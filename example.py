@@ -1,12 +1,12 @@
-import sleekxmpp.clientxmpp
+import sleekxmpp
 import logging
 from optparse import OptionParser
 import time
 
-class Example(sleekxmpp.clientxmpp.ClientXMPP):
+class Example(sleekxmpp.ClientXMPP):
 	
 	def __init__(self, jid, password):
-		sleekxmpp.clientxmpp.ClientXMPP.__init__(self, jid, password)
+		sleekxmpp.ClientXMPP.__init__(self, jid, password)
 		self.add_event_handler("session_start", self.start)
 		self.add_event_handler("message", self.message)
 	

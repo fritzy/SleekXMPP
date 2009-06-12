@@ -17,18 +17,19 @@
 """
 
 import logging
-import sleekxmpp.clientxmpp
+import sleekxmpp
 from optparse import OptionParser
 from xml.etree import cElementTree as ET
 import os
 import time
 import sys
-import queue
+import Queue
+import thread
 
 
-class testps(sleekxmpp.clientxmpp.ClientXMPP):
+class testps(sleekxmpp.ClientXMPP):
 	def __init__(self, jid, password, ssl=False, plugin_config = {}, plugin_whitelist=[], nodenum=0, pshost=None):
-		sleekxmpp.clientxmpp.ClientXMPP.__init__(self, jid, password, ssl, plugin_config, plugin_whitelist)
+		sleekxmpp.ClientXMPP.__init__(self, jid, password, ssl, plugin_config, plugin_whitelist)
 		self.registerPlugin('xep_0004')
 		self.registerPlugin('xep_0030')
 		self.registerPlugin('xep_0060')
@@ -36,7 +37,7 @@ class testps(sleekxmpp.clientxmpp.ClientXMPP):
 		self.add_handler("<message xmlns='jabber:client'><event xmlns='http://jabber.org/protocol/pubsub#event' /></message>", self.pubsubEventHandler, threaded=True)
 		self.add_event_handler("session_start", self.start, threaded=True)
 		self.add_handler("<iq type='error' />", self.handleError)
-		self.events = queue.Queue()
+		self.events = Queue.Queue()
 		self.default_config = None
 		self.ps = self.plugin['xep_0060']
 		self.node = "pstestnode_%s"
@@ -57,7 +58,7 @@ class testps(sleekxmpp.clientxmpp.ClientXMPP):
 		#TODO: make this configurable
 		self.getRoster()
 		self.sendPresence(ppriority=20)
-		self.test_all()
+		thread.start_new(self.test_all, tuple())
 	
 	def sprint(self, msg, end=False, color=False):
 		length = len(msg)
@@ -176,12 +177,12 @@ class testps(sleekxmpp.clientxmpp.ClientXMPP):
 	def test_addItem(self):
 		"Adding item, waiting for notification"
 		item = ET.Element('test')
-		result = self.ps.setItem(self.pshost, self.node % self.leafnode, {'test_node1': item})
+		result = self.ps.setItem(self.pshost, self.node % self.leafnode, (('test_node1', item),))
 		if result == False:
 			return False
 		try:
 			event = self.events.get(True, 10)
-		except queue.Empty:
+		except Queue.Empty:
 			return False
 		if event == 'test_node1':
 			return True
@@ -191,12 +192,12 @@ class testps(sleekxmpp.clientxmpp.ClientXMPP):
 		"Updating item, waiting for notification"
 		item = ET.Element('test')
 		item.attrib['crap'] = 'yup, right here'
-		result = self.ps.setItem(self.pshost, self.node % self.leafnode, {'test_node1': item})
+		result = self.ps.setItem(self.pshost, self.node % self.leafnode, (('test_node1', item),))
 		if result == False:
 			return False
 		try:
 			event = self.events.get(True, 10)
-		except queue.Empty:
+		except Queue.Empty:
 			return False
 		if event == 'test_node1':
 			return True
@@ -209,7 +210,7 @@ class testps(sleekxmpp.clientxmpp.ClientXMPP):
 			return False
 		try:
 			event = self.events.get(True, 10)
-		except queue.Empty:
+		except Queue.Empty:
 			self.lasterror = "No Notification"
 			return False
 		if event == 'test_node1':
@@ -243,7 +244,7 @@ class testps(sleekxmpp.clientxmpp.ClientXMPP):
 			return False
 		try:
 			event = self.events.get(True, 10)
-		except queue.Empty:
+		except Queue.Empty:
 			self.lasterror = "No Notification"
 			return False
 		if event == self.node % self.leafnode:
@@ -265,7 +266,7 @@ class testps(sleekxmpp.clientxmpp.ClientXMPP):
 			return False
 		try:
 			event = self.events.get(True, 10)
-		except queue.Empty:
+		except Queue.Empty:
 			self.lasterror = "No Notification"
 			return False
 		if event == self.node % self.leafnode:
@@ -287,7 +288,7 @@ class testps(sleekxmpp.clientxmpp.ClientXMPP):
 			return False
 		try:
 			event = self.events.get(True, 10)
-		except queue.Empty:
+		except Queue.Empty:
 			self.lasterror = "No Notification"
 			return False
 		if event == self.node % self.leafnode:
@@ -309,7 +310,7 @@ class testps(sleekxmpp.clientxmpp.ClientXMPP):
 			return False
 		try:
 			event = self.events.get(True, 10)
-		except queue.Empty:
+		except Queue.Empty:
 			self.lasterror = "No Notification"
 			return False
 		if event == self.node % self.leafnode:
@@ -355,5 +356,5 @@ if __name__ == '__main__':
 		con.connect() 
 	else:
 		con.connect((config.attrib['server'], 5222))
-	con.process()
+	con.process(threaded=False)
 	print("")

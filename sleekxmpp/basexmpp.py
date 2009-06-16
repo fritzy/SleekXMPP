@@ -92,8 +92,8 @@ class basexmpp(object):
 		self.auto_subscribe = True
 		self.event_handlers = {}
 		self.roster = {}
-		self.registerHandler(Callback('IM', MatchMany((MatchXMLMask("<message xmlns='%s' type='chat'><body /></message>" % self.default_ns),MatchXMLMask("<message xmlns='%s' type='normal'><body /></message>" % self.default_ns),MatchXMLMask("<message xmlns='%s' type='__None__'><body /></message>" % self.default_ns))), self._handleMessage))
-		self.registerHandler(Callback('Presence', MatchMany((MatchXMLMask("<presence xmlns='%s' type='available'/>" % self.default_ns),MatchXMLMask("<presence xmlns='%s' type='__None__'/>" % self.default_ns),MatchXMLMask("<presence xmlns='%s' type='unavailable'/>" % self.default_ns))), self._handlePresence))
+		self.registerHandler(Callback('IM', MatchMany((MatchXMLMask("<message xmlns='%s' type='chat'><body /></message>" % self.default_ns),MatchXMLMask("<message xmlns='%s' type='normal'><body /></message>" % self.default_ns),MatchXMLMask("<message xmlns='%s' type='__None__'><body /></message>" % self.default_ns))), self._handleMessage, thread=False))
+		self.registerHandler(Callback('Presence', MatchMany((MatchXMLMask("<presence xmlns='%s' type='available'/>" % self.default_ns),MatchXMLMask("<presence xmlns='%s' type='__None__'/>" % self.default_ns),MatchXMLMask("<presence xmlns='%s' type='unavailable'/>" % self.default_ns))), self._handlePresence, thread=False))
 		self.registerHandler(Callback('PresenceSubscribe', MatchMany((MatchXMLMask("<presence xmlns='%s' type='subscribe'/>" % self.default_ns),MatchXMLMask("<presence xmlns='%s' type='unsubscribed'/>" % self.default_ns))), self._handlePresenceSubscribe))
 	
 	def set_jid(self, jid):

@@ -160,8 +160,6 @@ class xep_0060(base.base_plugin):
 				subs[sub.get('jid')] = sub.get('affiliation')
 			return subs
 
-		
-	
 	def deleteNode(self, jid, node):
 		pubsub = ET.Element('{http://jabber.org/protocol/pubsub#owner}pubsub')
 		iq = self.xmpp.makeIqSet()

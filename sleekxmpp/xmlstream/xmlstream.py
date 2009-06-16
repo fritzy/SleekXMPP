@@ -194,8 +194,11 @@ class XMLStream(object):
 			except KeyboardInterrupt:
 				logging.debug("Keyboard Escape Detected")
 				self.state.set('processing', False)
+				self.state.set('reconnect', False)
 				self.disconnect()
 				raise
+			except CloseStream:
+				break
 			except:
 				self.state.set('processing', False)
 				traceback.print_exc()
@@ -263,7 +266,7 @@ class XMLStream(object):
 		except socket.error,(errno,strerror):
 			logging.warning("Error while disconnecting. Socket Error #%s: %s" % (errno, strerror))
 		if self.state['processing']:
-			raise
+			raise CloseStream
 	
 	def reconnect(self):
 		self.state.set('tls',False)

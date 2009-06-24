@@ -81,7 +81,7 @@ class ClientXMPP(basexmpp, XMLStream):
 		self.registerFeature("<starttls xmlns='urn:ietf:params:xml:ns:xmpp-tls' />", self.handler_starttls, True)
 		self.registerFeature("<mechanisms xmlns='urn:ietf:params:xml:ns:xmpp-sasl' />", self.handler_sasl_auth, True)
 		self.registerFeature("<bind xmlns='urn:ietf:params:xml:ns:xmpp-bind' />", self.handler_bind_resource)
-		#self.registerFeature("<session xmlns='urn:ietf:params:xml:ns:xmpp-session' />", self.handler_start_session)
+		self.registerFeature("<session xmlns='urn:ietf:params:xml:ns:xmpp-session' />", self.handler_start_session)
 		
 		#self.registerStanzaExtension('PresenceStanza', PresenceStanzaType)
 		#self.register_plugins()
@@ -183,6 +183,8 @@ class ClientXMPP(basexmpp, XMLStream):
 		self.send(self.makeIqGet('jabber:iq:roster'))
 	
 	def _handleStreamFeatures(self, features):
+		for sub in features.xml:
+			self.features.append(sub.tag)
 		for subelement in features.xml:
 			for feature in self.registered_features:
 				if feature[0].match(subelement):
@@ -242,12 +244,12 @@ class ClientXMPP(basexmpp, XMLStream):
 		response = self.send(out, self.makeIqResult(id))
 		self.set_jid(response.find('{urn:ietf:params:xml:ns:xmpp-bind}bind/{urn:ietf:params:xml:ns:xmpp-bind}jid').text)
 		logging.info("Node set to: %s" % self.fulljid)
-		logging.debug("Established Session")
-		self.sessionstarted = True
-		self.event("session_start")
+		if "{urn:ietf:params:xml:ns:xmpp-session}session" not in self.features:
+			logging.debug("Established Session")
+			self.sessionstarted = True
+			self.event("session_start")
 	
 	def handler_start_session(self, xml):
-		"deprecated"
 		if self.authenticated:
 			response = self.send(self.makeIqSet(xml), self.makeIq(self.getId()))
 			logging.debug("Established Session")

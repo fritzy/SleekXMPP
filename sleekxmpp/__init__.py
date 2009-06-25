@@ -150,8 +150,6 @@ class ClientXMPP(basexmpp, XMLStream):
 		XMLStream.reconnect(self)
 	
 	def disconnect(self, init=True, close=False, reconnect=False):
-		print "** Called -- disconnected"
-        # raise TypeError
 		self.event("disconnected")
 		XMLStream.disconnect(self, reconnect)
 	

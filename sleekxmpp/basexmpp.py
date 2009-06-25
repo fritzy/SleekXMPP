@@ -138,7 +138,7 @@ class basexmpp(object):
 			return self.getId()
 	
 	def add_handler(self, mask, pointer, disposable=False, threaded=False, filter=False):
-		logging.warning("Deprecated add_handler used for %s: %s." % (mask, pointer))
+		#logging.warning("Deprecated add_handler used for %s: %s." % (mask, pointer))
 		self.registerHandler(XMLCallback('add_handler_%s' % self.getNewId(), MatchXMLMask(mask), pointer, threaded, disposable))
 	
 	def getId(self):

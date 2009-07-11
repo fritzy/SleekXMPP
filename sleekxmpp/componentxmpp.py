@@ -24,8 +24,8 @@ from . basexmpp import basexmpp
 from xml.etree import cElementTree as ET
 
 # some servers use different namespaces for components -- this is a hack, but is there for compatibility
-import xmlstream.matcher.xmlmask
-import xmlstream.matcher.xpath
+from . import xmlstream.matcher.xmlmask
+from . import xmlstream.matcher.xpath
 xmlstream.matcher.xmlmask.ignore_ns = True
 xmlstream.matcher.xpath.ignore_ns = True
 # ----------

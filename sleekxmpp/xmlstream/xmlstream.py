@@ -289,10 +289,14 @@ class XMLStream(object):
 		self.state.set('ssl',False)
 		time.sleep(1)
 		self.connect()
+	
+	def incoming_filter(self, xmlobj):
+		return xmlobj
 		
 	def __spawnEvent(self, xmlobj):
 		"watching xmlOut and processes handlers"
 		#convert XML into Stanza
+		xmlobj = self.incoming_filter(xmlobj)
 		logging.debug("PROCESSING: %s" % xmlobj.tag)
 		stanza = None
 		for stanza_class in self.__root_stanza:

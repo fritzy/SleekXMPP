@@ -23,14 +23,6 @@ from __future__ import absolute_import
 from . basexmpp import basexmpp
 from xml.etree import cElementTree as ET
 
-# some servers use different namespaces for components -- this is a hack, but is there for compatibility
-from . xmlstream.matcher import xmlmask
-from . xmlstream.matcher import xpath
-
-xmlmask.ignore_ns = True
-xpath.ignore_ns = True
-# ----------
-
 from . xmlstream.xmlstream import XMLStream
 from . xmlstream.xmlstream import RestartStream
 from . xmlstream.matcher.xmlmask import MatchXMLMask
@@ -77,6 +69,14 @@ class ComponentXMPP(basexmpp, XMLStream):
 			 MatchXMLMask("<presence xmlns='%s' type='unsubscribe'/>" % self.default_ns), \
 			 MatchXMLMask("<presence xmlns='%s' type='unsubscribed'/>" % self.default_ns) \
 			 )), self._handlePresenceSubscription))
+	
+	def incoming_filter(self, xmlobj):
+		if xmlobj.tag.startswith('{jabber:client}'):
+			xmlobj.tag = xmlobj.tag.replace('jabber:client', 'jabber:component:accept')
+			for child in xmlobj.children():
+				child = self.incoming_filter(child)
+		return xmlobj
+
 
 	def _handlePresenceProbe(self, stanza):
 		xml = stanza.xml

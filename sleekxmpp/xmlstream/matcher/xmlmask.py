@@ -41,6 +41,18 @@ class MatchXMLMask(base.MatcherBase):
 				return False
 		#for subelement in maskobj.getiterator()[1:]: #recursively compare subelements
 		for subelement in maskobj: #recursively compare subelements
-			if not self.maskcmp(source.find(subelement.tag), subelement, use_ns):
-				return False
+			if use_ns:
+				if not self.maskcmp(source.find(subelement.tag), subelement, use_ns):
+					return False
+			else:
+				if not self.maskcmp(self.getChildIgnoreNS(source, subelement.tag), subelement, use_ns):
+					return False
 		return True
+	
+	def getChildIgnoreNS(self, xml, tag):
+		tag = tag.split('}')[-1]
+		try:
+			idx = [c.tag.split('}')[-1] for c in xml.getchildren()].index(tag)
+		except ValueError:
+			return None
+		return xml.getchildren()[idx]

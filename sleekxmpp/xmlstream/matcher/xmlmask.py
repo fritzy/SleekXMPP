@@ -2,6 +2,8 @@ from . import base
 from xml.etree import cElementTree
 from xml.parsers.expat import ExpatError
 
+ignore_ns = False
+
 class MatchXMLMask(base.MatcherBase):
 
 	def __init__(self, criteria):
@@ -19,6 +21,7 @@ class MatchXMLMask(base.MatcherBase):
 	def maskcmp(self, source, maskobj, use_ns=False, default_ns='__no_ns__'):
 		"""maskcmp(xmlobj, maskobj):
 		Compare etree xml object to etree xml object mask"""
+		use_ns = not ignore_ns
 		#TODO require namespaces
 		if source == None: #if element not found (happens during recursive check below)
 			return False

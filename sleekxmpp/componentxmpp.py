@@ -22,6 +22,14 @@
 from __future__ import absolute_import
 from . basexmpp import basexmpp
 from xml.etree import cElementTree as ET
+
+# some servers use different namespaces for components -- this is a hack, but is there for compatibility
+import xmlstream.matcher.xmlmask
+import xmlstream.matcher.xpath
+xmlstream.matcher.xmlmask.ignore_ns = True
+xmlstream.matcher.xpath.ignore_ns = True
+# ----------
+
 from . xmlstream.xmlstream import XMLStream
 from . xmlstream.xmlstream import RestartStream
 from . xmlstream.matcher.xmlmask import MatchXMLMask

@@ -85,7 +85,7 @@ class xep_0050(base.base_plugin):
 		results.fromXML(in_command.find('{jabber:x:data}x'))
 		apply(pointer, (results,sessionid))
 		self.xmpp.send(self.makeCommand(xml.attrib['from'], in_command.attrib['node'], form=None, id=xml.attrib['id'], sessionid=sessionid, status='completed', actions=[]))
-		del self.sessions[command.get('sessionid')]
+		del self.sessions[in_command.get('sessionid')]
 		
 	
 	def handler_command_next(self, xml):

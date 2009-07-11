@@ -343,9 +343,14 @@ class basexmpp(object):
 
 	def _handleMessage(self, msg):
 		xml = msg.xml
+		ns = xml.tag.split('}')[0]
+		if ns == 'message':
+			ns = ''
+		else:
+			ns = "%s}" % ns
 		mfrom = xml.attrib['from']
-		message = xml.find('{%s}body' % self.default_ns).text
-		subject = xml.find('{%s}subject' % self.default_ns)
+		message = xml.find('%sbody' % ns).text
+		subject = xml.find('%ssubject' % ns)
 		if subject is not None:
 			subject = subject.text
 		else:
@@ -358,10 +363,15 @@ class basexmpp(object):
 	
 	def _handlePresence(self, presence):
 		xml = presence.xml
+		ns = xml.tag.split('}')[0]
+		if ns == 'presence':
+			ns = ''
+		else:
+			ns = "%s}" % ns
 		"""Update roster items based on presence"""
-		show = xml.find('{%s}show' % self.default_ns)
-		status = xml.find('{%s}status' % self.default_ns)
-		priority = xml.find('{%s}priority' % self.default_ns)
+		show = xml.find('%sshow' % ns)
+		status = xml.find('%sstatus' % ns)
+		priority = xml.find('%spriority' % ns)
 		fulljid = xml.attrib['from']
 		to = xml.attrib['to']
 		resource = self.getjidresource(fulljid)

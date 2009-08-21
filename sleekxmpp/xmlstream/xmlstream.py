@@ -258,10 +258,11 @@ class XMLStream(object):
 			data = data.encode('utf-8')
 		try:
 			self.socket.send(data)
-		except socket.error,(errno, strerror):
+		#except socket.error,(errno, strerror):
+		except:
 			self.state.set('connected', False)
 			if self.state.reconnect:
-				logging.error("Disconnected. Socket Error #%s: %s" % (errno,strerror))
+				logging.error("Disconnected. Socket Error.")
 				self.disconnect(reconnect=True)
 			return False
 		return True

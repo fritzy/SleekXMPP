@@ -17,7 +17,6 @@ class Example(sleekxmpp.componentxmpp.ComponentXMPP):
 		pass
 
 	def message(self, event):
-		print event
 		self.sendMessage("%s/%s" % (event['jid'], event['resource']), "Thanks for sending me, \"%s\"." % event['message'], mtype=event['type'])
 
 if __name__ == '__main__':

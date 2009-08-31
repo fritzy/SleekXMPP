@@ -20,8 +20,8 @@
 from __future__ import with_statement
 from xml.etree import cElementTree as ET
 import logging
-import sha
-import base
+import hashlib
+from . import base
 
 
 class xep_0078(base.base_plugin):
@@ -66,7 +66,7 @@ class xep_0078(base.base_plugin):
 		else:
 			logging.debug("Authenticating via jabber:iq:auth Digest")
 			digest = ET.Element('digest')
-			digest.text = sha.sha("%s%s" % (self.streamid, self.xmpp.password)).hexdigest()
+			digest.text = hashlib.sha1(b"%s%s" % (self.streamid, self.xmpp.password)).hexdigest()
 			query.append(digest)
 		attempt.append(query)
 		result = self.xmpp.send(attempt, self.xmpp.makeIq(self.xmpp.id))

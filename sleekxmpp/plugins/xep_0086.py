@@ -1,6 +1,6 @@
 
 from __future__ import with_statement
-import base
+from . import base
 import logging
 from xml.etree import cElementTree as ET
 import copy

@@ -18,12 +18,11 @@
 	Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 from __future__ import with_statement
-import base
+from . import base
 import logging
 from xml.etree import cElementTree as ET
 import traceback
 import time
-import thread
 
 class xep_0050(base.base_plugin):
 	"""

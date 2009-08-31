@@ -138,14 +138,14 @@ class ClientXMPP(basexmpp, XMLStream):
 		if result:
 			self.event("connected")
 		else:
-			print "** Failed to connect -- disconnected"
+			logging.warning("Failed to connect")
 			self.event("disconnected")
 		return result
 	
 	# overriding reconnect and disconnect so that we can get some events
 	# should events be part of or required by xmlstream?  Maybe that would be cleaner
 	def reconnect(self):
-		print "** Reconnect -- disconnected"
+		logging.info("Reconnecting")
 		self.event("disconnected")
 		XMLStream.reconnect(self)
 	
@@ -192,7 +192,7 @@ class ClientXMPP(basexmpp, XMLStream):
 	
 	def handler_starttls(self, xml):
 		if self.ssl_support:
-			self.add_handler("<proceed xmlns='urn:ietf:params:xml:ns:xmpp-tls' />", self.handler_tls_start)
+			self.add_handler("<proceed xmlns='urn:ietf:params:xml:ns:xmpp-tls' />", self.handler_tls_start, instream=True)
 			self.send(xml)
 			return True
 		else:
@@ -206,14 +206,14 @@ class ClientXMPP(basexmpp, XMLStream):
 	
 	def handler_sasl_auth(self, xml):
 		logging.debug("Starting SASL Auth")
-		self.add_handler("<success xmlns='urn:ietf:params:xml:ns:xmpp-sasl' />", self.handler_auth_success)
-		self.add_handler("<failure xmlns='urn:ietf:params:xml:ns:xmpp-sasl' />", self.handler_auth_fail)
+		self.add_handler("<success xmlns='urn:ietf:params:xml:ns:xmpp-sasl' />", self.handler_auth_success, instream=True)
+		self.add_handler("<failure xmlns='urn:ietf:params:xml:ns:xmpp-sasl' />", self.handler_auth_fail, instream=True)
 		sasl_mechs = xml.findall('{urn:ietf:params:xml:ns:xmpp-sasl}mechanism')
 		if len(sasl_mechs):
 			for sasl_mech in sasl_mechs:
 				self.features.append("sasl:%s" % sasl_mech.text)
 			if 'sasl:PLAIN' in self.features:
-				self.send("""<auth xmlns='urn:ietf:params:xml:ns:xmpp-sasl' mechanism='PLAIN'>%s</auth>""" % str(base64.b64encode('\x00' + self.username + '\x00' + self.password)))
+				self.send("""<auth xmlns='urn:ietf:params:xml:ns:xmpp-sasl' mechanism='PLAIN'>%s</auth>""" % base64.b64encode(b'\x00' + bytes(self.username, 'utf-8') + b'\x00' + bytes(self.password, 'utf-8')).decode('utf-8'))
 			else:
 				logging.error("No appropriate login method.")
 				self.disconnect()

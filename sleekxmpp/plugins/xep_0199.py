@@ -31,8 +31,8 @@ class xep_0199(base.base_plugin):
 		self.xep = "0199"
 		self.xmpp.add_handler("<iq type='get' xmlns='%s'><ping xmlns='http://www.xmpp.org/extensions/xep-0199.html#ns'/></iq>" % self.xmpp.default_ns, self.handler_ping)
 		self.running = False
-		if self.config.get('keepalive', True):
-			self.xmpp.add_event_handler('session_start', self.handler_pingserver, threaded=True)
+		#if self.config.get('keepalive', True):
+			#self.xmpp.add_event_handler('session_start', self.handler_pingserver, threaded=True)
 	
 	def post_init(self):
 		self.xmpp['xep_0030'].add_feature('http://www.xmpp.org/extensions/xep-0199.html#ns')

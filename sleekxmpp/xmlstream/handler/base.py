@@ -11,6 +11,9 @@ class BaseHandler(object):
 	def match(self, xml):
 		return self._matcher.match(xml)
 	
+	def prerun(self, payload):
+		self._payload = payload
+
 	def run(self, payload):
 		self._payload = payload
 	

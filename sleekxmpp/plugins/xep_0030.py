@@ -17,11 +17,9 @@
 	along with SleekXMPP; if not, write to the Free Software
 	Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
-from __future__ import absolute_import, with_statement
 from . import base
 import logging
 from xml.etree import cElementTree as ET
-import thread
 
 class xep_0030(base.base_plugin):
 	"""
@@ -36,13 +34,11 @@ class xep_0030(base.base_plugin):
 		self.items = {'main': []}
 		self.xmpp.add_handler("<iq type='get' xmlns='%s'><query xmlns='http://jabber.org/protocol/disco#info' /></iq>" % self.xmpp.default_ns, self.info_handler)
 		self.xmpp.add_handler("<iq type='get' xmlns='%s'><query xmlns='http://jabber.org/protocol/disco#items' /></iq>" % self.xmpp.default_ns, self.item_handler)
-		self.lock = thread.allocate_lock()
 	
 	def add_feature(self, feature, node='main'):
-		with self.lock:
-			if not self.features.has_key(node):
-				self.features[node] = []
-			self.features[node].append(feature)
+		if not self.features.has_key(node):
+			self.features[node] = []
+		self.features[node].append(feature)
 	
 	def add_identity(self, category=None, itype=None, name=None, node='main'):
 		if not self.identities.has_key(node):

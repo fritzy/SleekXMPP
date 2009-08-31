@@ -190,7 +190,6 @@ class xep_0060(base.base_plugin):
 		id = iq.get('id')
 		result = self.xmpp.send(iq, "<iq id='%s'/>" % id)
 		if result is None or result.get('type') == 'error': 
-			print "---------- returning false, apparently"
 			return False
 		return True
 	

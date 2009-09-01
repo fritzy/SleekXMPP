@@ -93,7 +93,7 @@ class ClientXMPP(basexmpp, XMLStream):
 				self.registerStanza(**register)
 
 	def __getitem__(self, key):
-		if self.plugin.has_key(key):
+		if key in self.plugin:
 			return self.plugin[key]
 		else:
 			logging.warning("""Plugin "%s" is not loaded.""" % key)

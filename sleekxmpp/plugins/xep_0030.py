@@ -36,17 +36,17 @@ class xep_0030(base.base_plugin):
 		self.xmpp.add_handler("<iq type='get' xmlns='%s'><query xmlns='http://jabber.org/protocol/disco#items' /></iq>" % self.xmpp.default_ns, self.item_handler)
 	
 	def add_feature(self, feature, node='main'):
-		if not self.features.has_key(node):
+		if not node in self.features:
 			self.features[node] = []
 		self.features[node].append(feature)
 	
 	def add_identity(self, category=None, itype=None, name=None, node='main'):
-		if not self.identities.has_key(node):
+		if not node in self.identities:
 			self.identities[node] = []
 		self.identities[node].append({'category': category, 'type': itype, 'name': name})
 	
 	def add_item(self, jid=None, name=None, node='main', subnode=''):
-		if not self.items.has_key(node):
+		if not node in self.items:
 			self.items[node] = []
 		self.items[node].append({'jid': jid, 'name': name, 'node': subnode})
 

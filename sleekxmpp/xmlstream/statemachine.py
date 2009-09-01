@@ -25,7 +25,7 @@ class StateMachine(object):
 				if gstate in self.__state or gstate in self.__group:
 					raise IndexError("The key or group '%s' is already in the StateMachine." % gstate)
 				for state in groups[gstate]:
-					if self.__state.has_key(state):
+					if state in self.__state:
 						raise IndexError("The group %s contains a key %s which is not set in the StateMachine." % (gstate, state))
 				self.__group[gstate] = groups[gstate]
 	

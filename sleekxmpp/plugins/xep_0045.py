@@ -87,10 +87,10 @@ class xep_0045(base.base_plugin):
 		mtype = xml.attrib.get('type', 'normal')
 		self.xmpp.event("groupchat_message", {'room': mfrom, 'name': resource, 'type': mtype, 'subject': subject, 'message': message})
 	
-	def joinMUC(self, room, nick, maxhistory="0", password='', wait=False):
+	def joinMUC(self, room, nick, maxhistory="0", password='', wait=False, pstatus=None, pshow=None):
 		""" Join the specified room, requesting 'maxhistory' lines of history.
 		"""
-		stanza = self.xmpp.makePresence(pto="%s/%s" % (room, nick))
+		stanza = self.xmpp.makePresence(pto="%s/%s" % (room, nick), pstatus=pstatus, pshow=pshow)
 		x = ET.Element('{http://jabber.org/protocol/muc}x')
 		if password:
 			passelement = ET.Element('password')
@@ -180,7 +180,7 @@ class xep_0045(base.base_plugin):
 		""" Get the property of a nick in a room, such as its 'jid' or 'affiliation'
 			If not found, return None.
 		"""
-		if self.rooms.has_key(room) and self.rooms[room].has_key(nick) and self.rooms[room][nick].has_key(jidProperty):
+		if room in self.rooms and nick in self.rooms[room] and jidProperty in self.rooms[room][nick]:
 			return self.rooms[room][nick][jidProperty]
 		else:
 			return None

@@ -12,6 +12,8 @@ import traceback
 import types
 import xml.sax.saxutils
 
+HANDLER_THREADS = 1
+
 ssl_support = True
 try:
 	import ssl
@@ -118,8 +120,9 @@ class XMLStream(object):
 		raise RestartStream()
 	
 	def process(self, threaded=True):
-		self.__thread['eventhandle'] = threading.Thread(name='eventhandle', target=self._eventRunner)
-		self.__thread['eventhandle'].start()
+		for t in range(0, HANDLER_THREADS):
+			self.__thread['eventhandle%s' % t] = threading.Thread(name='eventhandle%s' % t, target=self._eventRunner)
+			self.__thread['eventhandle%s' % t].start()
 		if threaded:
 			self.__thread['process'] = threading.Thread(name='process', target=self._process)
 			self.__thread['process'].start()
@@ -269,7 +272,7 @@ class XMLStream(object):
 			try:
 				event = self.eventqueue.get(True, timeout=5)
 			except queue.Empty:
-				even = None
+				event = None
 			if event is not None:
 				etype, handler, stanza = event
 				if etype == 'stanza':

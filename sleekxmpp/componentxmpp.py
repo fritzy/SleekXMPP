@@ -96,7 +96,7 @@ class ComponentXMPP(basexmpp, XMLStream):
 	def start_stream_handler(self, xml):
 		sid = xml.get('id', '')
 		handshake = ET.Element('{jabber:component:accept}handshake')
-		handshake.text = hashlib.sha1.new(b"%s%s" % (sid, self.secret)).hexdigest().lower()
+		handshake.text = hashlib.sha1(bytes("%s%s" % (sid, self.secret), 'utf-8')).hexdigest().lower()
 		self.send(handshake)
 	
 	def _handleHandshake(self, xml):

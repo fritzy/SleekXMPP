@@ -264,7 +264,7 @@ class basexmpp(object):
 				with self.lock:
 					self.event_handlers[name].pop(self.event_handlers[name].index(handler))
 	
-	def makeMessage(self, mto, mbody='', msubject=None, mtype=None, mhtml=None, mfrom=None):
+	def makeMessage(self, mto, mbody='', msubject=None, mtype=None, mhtml=None, mfrom=None, mnick=None):
 		message = ET.Element('{%s}message' % self.default_ns)
 		if mfrom is None:
 			message.attrib['from'] = self.fulljid
@@ -289,6 +289,11 @@ class basexmpp(object):
 			subject = ET.Element('subject')
 			subject.text = msubject
 			message.append(subject)
+		if mnick:
+			print("generating nick")
+			nick = ET.Element("{http://jabber.org/protocol/nick}nick")
+			nick.text = mnick
+			message.append(nick)
 		return message
 	
 	def makePresence(self, pshow=None, pstatus=None, ppriority=None, pto=None, ptype=None, pfrom=None):
@@ -315,8 +320,8 @@ class basexmpp(object):
 			presence.attrib['from'] = pfrom
 		return presence
 	
-	def sendMessage(self, mto, mbody, msubject=None, mtype=None, mhtml=None, mfrom=None):
-		self.send(self.makeMessage(mto,mbody,msubject,mtype,mhtml,mfrom))
+	def sendMessage(self, mto, mbody, msubject=None, mtype=None, mhtml=None, mfrom=None, mnick=None):
+		self.send(self.makeMessage(mto,mbody,msubject,mtype,mhtml,mfrom,mnick))
 	
 	def sendPresence(self, pshow=None, pstatus=None, ppriority=None, pto=None, pfrom=None):
 		self.send(self.makePresence(pshow,pstatus,ppriority,pto, pfrom=pfrom))

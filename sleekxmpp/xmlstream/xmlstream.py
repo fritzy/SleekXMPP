@@ -248,8 +248,8 @@ class XMLStream(object):
 	def __spawnEvent(self, xmlobj):
 		"watching xmlOut and processes handlers"
 		#convert XML into Stanza
+		logging.debug("RECV: %s" % cElementTree.tostring(xmlobj))
 		xmlobj = self.incoming_filter(xmlobj)
-		logging.debug("PROCESSING: %s" % xmlobj.tag)
 		stanza = None
 		for stanza_class in self.__root_stanza:
 			if self.__root_stanza[stanza_class].match(xmlobj):

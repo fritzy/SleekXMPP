@@ -297,6 +297,9 @@ class basexmpp(object):
 		return message
 	
 	def makePresence(self, pshow=None, pstatus=None, ppriority=None, pto=None, ptype=None, pfrom=None):
+		if pshow == 'unavailable':
+			pshow = None
+			ptype = 'unavailable'
 		presence = ET.Element('{%s}presence' % self.default_ns)
 		if ptype:
 			presence.attrib['type'] = ptype

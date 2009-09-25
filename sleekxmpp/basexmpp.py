@@ -326,8 +326,8 @@ class basexmpp(object):
 	def sendMessage(self, mto, mbody, msubject=None, mtype=None, mhtml=None, mfrom=None, mnick=None):
 		self.send(self.makeMessage(mto,mbody,msubject,mtype,mhtml,mfrom,mnick))
 	
-	def sendPresence(self, pshow=None, pstatus=None, ppriority=None, pto=None, pfrom=None):
-		self.send(self.makePresence(pshow,pstatus,ppriority,pto, pfrom=pfrom))
+	def sendPresence(self, pshow=None, pstatus=None, ppriority=None, pto=None, pfrom=None, ptype=None):
+		self.send(self.makePresence(pshow,pstatus,ppriority,pto, ptype=ptype, pfrom=pfrom))
 		if not self.sentpresence:
 			self.event('sent_presence')
 			self.sentpresence = True

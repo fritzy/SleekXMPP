@@ -31,9 +31,9 @@ class xep_0045(base.base_plugin):
 		self.rooms = {}
 		self.ourNicks = {}
 		self.xep = '0045'
-		self.description = 'Multi User Chat (Very Basic Still)'
+		self.description = 'Multi User Chat'
 		self.xmpp.add_handler("<message xmlns='%s' type='groupchat'><body/></message>" % self.xmpp.default_ns, self.handle_groupchat_message)
-		self.xmpp.add_handler("<presence />", self.handle_groupchat_presence)
+		self.xmpp.add_handler("<presence xmlns='%s' />" % self.xmpp.default_ns, self.handle_groupchat_presence)
 	
 	def handle_groupchat_presence(self, xml):
 		""" Handle a presence in a muc.
@@ -49,6 +49,8 @@ class xep_0045(base.base_plugin):
 		}
 		if 'type' in xml.attrib.keys():
 			entry['type'] = xml.attrib['type']
+		else:
+			entry['type'] = 'available'
 		for tag in ['status','show','priority']:
 			if xml.find(('{%s}' % self.xmpp.default_ns) + tag) != None:
 				entry[tag] = xml.find(('{%s}' % self.xmpp.default_ns) + tag).text
@@ -87,6 +89,39 @@ class xep_0045(base.base_plugin):
 		mtype = xml.attrib.get('type', 'normal')
 		self.xmpp.event("groupchat_message", {'room': mfrom, 'name': resource, 'type': mtype, 'subject': subject, 'message': message})
 	
+	def getRoomForm(self, room, ifrom=None):
+		iq = self.xmpp.makeIqGet()
+		iq.attrib['to'] = room
+		if ifrom is not None:
+			iq.attrib['from'] = ifrom
+		query = ET.Element('{http://jabber.org/protocol/muc#owner}query')
+		iq.append(query)
+		result = self.xmpp.send(iq, self.xmpp.makeIq(id=iq.get('id')))
+		if result.get('type', 'error') == 'error':
+			return False
+		xform = result.find('{http://jabber.org/protocol/muc#owner}query/{jabber:x:data}x')
+		if xform is None: return False
+		form = self.xmpp.plugin['xep_0004'].buildForm(xform)
+		return form
+	
+	def configureRoom(self, room, form=None, ifrom=None):
+		if form is None:
+			form = self.getRoomForm(room, ifrom=ifrom)
+			#form = self.xmpp.plugin['xep_0004'].makeForm(ftype='submit')
+			#form.addField('FORM_TYPE', value='http://jabber.org/protocol/muc#roomconfig')	
+		iq = self.xmpp.makeIqSet()
+		iq.attrib['to'] = room
+		if ifrom is not None:
+			iq.attrib['from'] = ifrom
+		query = ET.Element('{http://jabber.org/protocol/muc#owner}query')
+		form = form.getXML('submit')
+		query.append(form)
+		iq.append(query)
+		result = self.xmpp.send(iq, self.xmpp.makeIq(iq.get('id')))
+		if result.get('type', 'error') == 'error':
+			return False
+		return True
+	
 	def joinMUC(self, room, nick, maxhistory="0", password='', wait=False, pstatus=None, pshow=None):
 		""" Join the specified room, requesting 'maxhistory' lines of history.
 		"""
@@ -104,11 +139,30 @@ class xep_0045(base.base_plugin):
 			self.xmpp.send(stanza)
 		else:
 			#wait for our own room presence back
-			expect = ET.Element('{jabber:client}presence', {'from':"%s/%s" % (room, nick)})
+			expect = ET.Element("{%s}presence" % self.xmpp.default_ns, {'from':"%s/%s" % (room, nick)})
 			self.xmpp.send(stanza, expect)
 		self.rooms[room] = {}
 		self.ourNicks[room] = nick
 	
+	def destroy(self, room, reason='', altroom = '', ifrom=None):
+		iq = self.xmpp.makeIqSet()
+		if ifrom is not None:
+			iq.attrib['from'] = ifrom
+		iq.attrib['to'] = room
+		query = ET.Element('{http://jabber.org/protocol/muc#owner}query')
+		destroy = ET.Element('destroy')
+		if altroom:
+			destroy.attrib['jid'] = altroom
+		xreason = ET.Element('reason')
+		xreason.text = reason
+		destroy.append(xreason)
+		query.append(destroy)
+		iq.append(query)
+		r = self.xmpp.send(iq, self.xmpp.makeIq(iq.get('id')))
+		if r is None or r.get('type', 'error') == 'error':
+			return False
+		return True
+
 	def setAffiliation(self, room, jid, affiliation='member'):
 		""" Change room affiliation."""
 		if affiliation not in ('outcast', 'member', 'admin', 'owner', 'none'):

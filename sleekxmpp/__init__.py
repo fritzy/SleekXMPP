@@ -181,6 +181,7 @@ class ClientXMPP(basexmpp, XMLStream):
 		self.send(self.makeIqGet('jabber:iq:roster'))
 	
 	def _handleStreamFeatures(self, features):
+		self.features = []
 		for sub in features.xml:
 			self.features.append(sub.tag)
 		for subelement in features.xml:
@@ -191,7 +192,7 @@ class ClientXMPP(basexmpp, XMLStream):
 						return True
 	
 	def handler_starttls(self, xml):
-		if self.ssl_support:
+		if not self.authenticated and self.ssl_support:
 			self.add_handler("<proceed xmlns='urn:ietf:params:xml:ns:xmpp-tls' />", self.handler_tls_start, instream=True)
 			self.send(xml)
 			return True
@@ -205,6 +206,8 @@ class ClientXMPP(basexmpp, XMLStream):
 			raise RestartStream()
 	
 	def handler_sasl_auth(self, xml):
+		if '{urn:ietf:params:xml:ns:xmpp-tls}starttls' in self.features:
+			return False
 		logging.debug("Starting SASL Auth")
 		self.add_handler("<success xmlns='urn:ietf:params:xml:ns:xmpp-sasl' />", self.handler_auth_success, instream=True)
 		self.add_handler("<failure xmlns='urn:ietf:params:xml:ns:xmpp-sasl' />", self.handler_auth_fail, instream=True)

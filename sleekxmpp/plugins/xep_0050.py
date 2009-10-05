@@ -82,7 +82,7 @@ class xep_0050(base.base_plugin):
 		pointer = self.sessions[sessionid]['next']
 		results = self.xmpp['xep_0004'].makeForm('result')
 		results.fromXML(in_command.find('{jabber:x:data}x'))
-		apply(pointer, (results,sessionid))
+		pointer(results,sessioni)
 		self.xmpp.send(self.makeCommand(xml.attrib['from'], in_command.attrib['node'], form=None, id=xml.attrib['id'], sessionid=sessionid, status='completed', actions=[]))
 		del self.sessions[in_command.get('sessionid')]
 		
@@ -93,7 +93,7 @@ class xep_0050(base.base_plugin):
 		pointer = self.sessions[sessionid]['next']
 		results = self.xmpp['xep_0004'].makeForm('result')
 		results.fromXML(in_command.find('{jabber:x:data}x'))
-		form, npointer, next = apply(pointer, (results,sessionid))
+		form, npointer, next = pointer(results,sessionid)
 		self.sessions[sessionid]['next'] = npointer
 		self.sessions[sessionid]['past'].append((form, pointer))
 		actions = []

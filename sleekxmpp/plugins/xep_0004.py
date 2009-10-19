@@ -95,6 +95,19 @@ class Form(FieldContainer):
 		self.reported = []
 		self.items = []
 	
+	def merge(self, form2):
+		form1 = Form(self.xmpp, self.type, self.title, self.instructions)
+		form1.fromXML(self.getXML(self.type))
+		for field in form2.fields:
+			if not field.var in form1.fields:
+				form1.addField(field.var, field.type, field.label, field.desc, field.required, field.value):
+			else:
+				form1.fields[field.var].value = field.value
+			for option, label in field.options:
+				if (option, label) not in form1.fields[field.var].options:
+					form1.fields[field.var].addOption(option, label)
+		return form1
+	
 	def getValues(self):
 		result = {}
 		for field in self.fields:

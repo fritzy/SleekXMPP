@@ -108,6 +108,12 @@ class Form(FieldContainer):
 					form1.fields[field.var].addOption(option, label)
 		return form1
 	
+	def update(self, form):
+		values = form.getValues()
+		for var in values:
+			if var in self.fields:
+				self.fields[var].setValue(self.fields[var])
+	
 	def getValues(self):
 		result = {}
 		for field in self.fields:

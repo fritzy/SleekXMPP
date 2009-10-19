@@ -100,7 +100,7 @@ class Form(FieldContainer):
 		form1.fromXML(self.getXML(self.type))
 		for field in form2.fields:
 			if not field.var in form1.fields:
-				form1.addField(field.var, field.type, field.label, field.desc, field.required, field.value):
+				form1.addField(field.var, field.type, field.label, field.desc, field.required, field.value)
 			else:
 				form1.fields[field.var].value = field.value
 			for option, label in field.options:

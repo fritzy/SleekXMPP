@@ -96,13 +96,13 @@ class Form(FieldContainer):
 		self.items = []
 	
 	def merge(self, form2):
-		form1 = Form(self.xmpp, self.type, self.title, self.instructions)
+		form1 = Form(ftype=self.type)
 		form1.fromXML(self.getXML(self.type))
 		for field in form2.fields:
-			if not field.var in form1.fields:
+			if not field.var in form1.field:
 				form1.addField(field.var, field.type, field.label, field.desc, field.required, field.value)
 			else:
-				form1.fields[field.var].value = field.value
+				form1.field[field.var].value = field.value
 			for option, label in field.options:
 				if (option, label) not in form1.fields[field.var].options:
 					form1.fields[field.var].addOption(option, label)
@@ -179,17 +179,17 @@ class Form(FieldContainer):
 		form = ET.Element('{jabber:x:data}x')
 		form.attrib['type'] = self.type
 		if self.title and self.type in ('form', 'result'):
-			title = ET.Element('title')
+			title = ET.Element('{jabber:x:data}title')
 			title.text = self.title
 			form.append(title)
 		if self.instructions and self.type == 'form':
-			instructions = ET.Element('instructions')
+			instructions = ET.Element('{jabber:x:data}instructions')
 			instructions.text = self.instructions
 			form.append(instructions)
 		for field in self.fields:
 			form.append(field.getXML(self.type))
 		for reported in self.reported:
-			form.append(reported.getXML('reported'))
+			form.append(reported.getXML('{jabber:x:data}reported'))
 		for item in self.items:
 			form.append(item.getXML(self.type))
 		#if tostring:
@@ -264,6 +264,11 @@ class FormField(object):
 		self.desc = desc
 	
 	def setValue(self, value):
+		if self.type == 'boolean':
+			if value in ('1', 1, True, 'true', 'True', 'yes'):
+				value = True
+			else:
+				value = False
 		if self.islinebreak and value is not None:
 			self.value += value.split('\n')
 		else:
@@ -299,7 +304,7 @@ class FormField(object):
 			self.setDescription(xml.find('{jabber:x:data}desc').text)
 	
 	def getXML(self, ftype):
-		field = ET.Element('field')
+		field = ET.Element('{jabber:x:data}field')
 		if ftype != 'result':
 			field.attrib['type'] = self.type
 		if self.type != 'fixed':
@@ -309,21 +314,21 @@ class FormField(object):
 				field.attrib['label'] = self.label
 		if ftype == 'form':
 			for option in self.options:
-				optionxml = ET.Element('option')
+				optionxml = ET.Element('{jabber:x:data}option')
 				optionxml.attrib['label'] = option[1]
-				optionval = ET.Element('value')
+				optionval = ET.Element('{jabber:x:data}value')
 				optionval.text = option[0]
 				optionxml.append(optionval)
 				field.append(optionxml)
 			if self.required:
-				required = ET.Element('required')
+				required = ET.Element('{jabber:x:data}required')
 				field.append(required)
 			if self.desc:
-				desc = ET.Element('desc')
+				desc = ET.Element('{jabber:x:data}desc')
 				desc.text = self.desc
 				field.append(desc)
 		for value in self.value:
-			valuexml = ET.Element('value')
+			valuexml = ET.Element('{jabber:x:data}value')
 			if value is True or value is False:
 				if value:
 					valuexml.text = '1'

@@ -104,7 +104,7 @@ class Form(FieldContainer):
 			else:
 				form1.field[field.var].value = field.value
 			for option, label in field.options:
-				if (option, label) not in form1.fields[field.var].options:
+				if (option, label) not in form1.field[field.var].options:
 					form1.fields[field.var].addOption(option, label)
 		return form1
 	
@@ -122,6 +122,15 @@ class Form(FieldContainer):
 				value = value[0]
 			result[field.var] = value
 		return result
+	
+	def setValues(self, values={}):
+		for field in values:
+			if field in self.field:
+				if isintance(values[field], list) or isinstance(values[field], tuple):
+					for value in values[field]:
+						self.field[field].setValue(value)
+				else:
+					self.field[field].setValue(values[field])
 	
 	def fromXML(self, xml):
 		self.buildForm(xml)

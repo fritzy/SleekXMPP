@@ -50,9 +50,12 @@ except ImportError:
 class ComponentXMPP(basexmpp, XMLStream):
 	"""SleekXMPP's client class.  Use only for good, not evil."""
 
-	def __init__(self, jid, secret, host, port, plugin_config = {}, plugin_whitelist=[]):
+	def __init__(self, jid, secret, host, port, plugin_config = {}, plugin_whitelist=[], use_jc_ns=False):
 		XMLStream.__init__(self)
-		self.default_ns = 'jabber:component:accept'
+		if use_jc_ns:
+			self.default_ns = 'jabber:client'
+		else:
+			self.default_ns = 'jabber:component:accept'
 		basexmpp.__init__(self)
 		self.auto_authorize = None
 		self.stream_header = "<stream:stream xmlns='jabber:component:accept' xmlns:stream='http://etherx.jabber.org/streams' to='%s'>" % jid

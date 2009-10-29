@@ -72,7 +72,7 @@ class ComponentXMPP(basexmpp, XMLStream):
 	
 	def incoming_filter(self, xmlobj):
 		if xmlobj.tag.startswith('{jabber:client}'):
-			xmlobj.tag = xmlobj.tag.replace('jabber:client', 'jabber:component:accept')
+			xmlobj.tag = xmlobj.tag.replace('jabber:client', self.default_ns)
 		for sub in xmlobj:
 			self.incoming_filter(sub)
 		return xmlobj

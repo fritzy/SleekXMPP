@@ -18,25 +18,26 @@ class xep_0060(base.base_plugin):
 		create.set('node', node)
 		pubsub.append(create)
 		configure = ET.Element('configure')
-		if config is None:
-			submitform = self.xmpp.plugin['xep_0004'].makeForm('submit')
-		else:
+		#if config is None:
+		#	submitform = self.xmpp.plugin['xep_0004'].makeForm('submit')
+		#else:
+		if config is not None:
 			submitform = config
-		if 'FORM_TYPE' in submitform.field:
-			submitform.field['FORM_TYPE'].setValue('http://jabber.org/protocol/pubsub#node_config')
-		else:
-			submitform.addField('FORM_TYPE', 'hidden', value='http://jabber.org/protocol/pubsub#node_config')
-		if collection:
-			if 'pubsub#node_type' in submitform.field:
-				submitform.field['pubsub#node_type'].setValue('collection')
+			if 'FORM_TYPE' in submitform.field:
+				submitform.field['FORM_TYPE'].setValue('http://jabber.org/protocol/pubsub#node_config')
 			else:
-				submitform.addField('pubsub#node_type', value='collection')
-		else:
-			if 'pubsub#node_type' in submitform.field:
-				submitform.field['pubsub#node_type'].setValue('leaf')
+				submitform.addField('FORM_TYPE', 'hidden', value='http://jabber.org/protocol/pubsub#node_config')
+			if collection:
+				if 'pubsub#node_type' in submitform.field:
+					submitform.field['pubsub#node_type'].setValue('collection')
+				else:
+					submitform.addField('pubsub#node_type', value='collection')
 			else:
-				submitform.addField('pubsub#node_type', value='leaf')
-		configure.append(submitform.getXML('submit'))
+				if 'pubsub#node_type' in submitform.field:
+					submitform.field['pubsub#node_type'].setValue('leaf')
+				else:
+					submitform.addField('pubsub#node_type', value='leaf')
+			configure.append(submitform.getXML('submit'))
 		pubsub.append(configure)
 		iq = self.xmpp.makeIqSet(pubsub)
 		iq.attrib['to'] = jid

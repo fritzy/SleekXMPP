@@ -16,7 +16,6 @@ class Callback(base.BaseHandler):
 			self.run(payload, True)
 	
 	def run(self, payload, instream=False):
-		logging.debug("Running %s in %s" % (self.name, self._pointer))
 		if not self._instream or instream:
 			base.BaseHandler.run(self, payload)
 			#if self._thread:

@@ -108,6 +108,11 @@ class Form(FieldContainer):
 					form1.fields[field.var].addOption(option, label)
 		return form1
 	
+	def copy(self):
+		newform = Form(ftype=self.type)
+		newform.fromXML(self.getXML(self.type))
+		return newform
+	
 	def update(self, form):
 		values = form.getValues()
 		for var in values:
@@ -126,7 +131,7 @@ class Form(FieldContainer):
 	def setValues(self, values={}):
 		for field in values:
 			if field in self.field:
-				if isintance(values[field], list) or isinstance(values[field], tuple):
+				if isinstance(values[field], list) or isinstance(values[field], tuple):
 					for value in values[field]:
 						self.field[field].setValue(value)
 				else:

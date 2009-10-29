@@ -9,14 +9,12 @@ class Waiter(base.BaseHandler):
 		self._payload = queue.Queue()
 	
 	def prerun(self, payload):
-		logging.debug("Putting into Waiter %s" % self.name)
 		self._payload.put(payload)
 	
 	def run(self, payload):
 		pass
 
 	def wait(self, timeout=60):
-		logging.debug("Waiting on %s." % self.name)
 		try:
 			return self._payload.get(True, timeout)
 		except queue.Empty:

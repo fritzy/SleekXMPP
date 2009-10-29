@@ -94,7 +94,6 @@ class XMLStream(object):
 				self.socket = ssl.wrap_socket(self.socket)
 			try:
 				self.socket.connect(self.address)
-				logging.info("creating filesocket")
 				self.filesocket = self.socket.makefile('rb', 0)
 				self.state.set('connected', True)
 				return True

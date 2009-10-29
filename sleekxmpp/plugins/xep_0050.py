@@ -39,15 +39,16 @@ class xep_0050(base.base_plugin):
 		self.xmpp.add_handler("<iq type='set' xmlns='%s'><command xmlns='http://jabber.org/protocol/commands' action='complete'/></iq>" % self.xmpp.default_ns, self.handler_command_complete)
 		self.commands = {}
 		self.sessions = {}
+		self.sd = self.xmpp.plugin['xep_0030']
 	
 	def post_init(self):
-		self.xmpp['xep_0030'].add_feature('http://jabber.org/protocol/commands')
+		self.sd.add_feature('http://jabber.org/protocol/commands')
 
 	def addCommand(self, node, name, form, pointer=None, multi=False):
-		self.xmpp['xep_0030'].add_item(None, name, 'http://jabber.org/protocol/commands', node)
-		self.xmpp['xep_0030'].add_identity('automation', 'command-node', name, node)
-		self.xmpp['xep_0030'].add_feature('http://jabber.org/protocol/commands', node)
-		self.xmpp['xep_0030'].add_feature('jabber:x:data', node)
+		self.sd.add_item(None, name, 'http://jabber.org/protocol/commands', node)
+		self.sd.add_identity('automation', 'command-node', name, node)
+		self.sd.add_feature('http://jabber.org/protocol/commands', node)
+		self.sd.add_feature('jabber:x:data', node)
 		self.commands[node] = (name, form, pointer, multi)
 	
 	def getNewSession(self):
@@ -80,7 +81,7 @@ class xep_0050(base.base_plugin):
 		in_command = xml.find('{http://jabber.org/protocol/commands}command')
 		sessionid = in_command.get('sessionid', None)
 		pointer = self.sessions[sessionid]['next']
-		results = self.xmpp['xep_0004'].makeForm('result')
+		results = self.xmpp.plugin['xep_0004'].makeForm('result')
 		results.fromXML(in_command.find('{jabber:x:data}x'))
 		pointer(results,sessionid)
 		self.xmpp.send(self.makeCommand(xml.attrib['from'], in_command.attrib['node'], form=None, id=xml.attrib['id'], sessionid=sessionid, status='completed', actions=[]))
@@ -91,7 +92,7 @@ class xep_0050(base.base_plugin):
 		in_command = xml.find('{http://jabber.org/protocol/commands}command')
 		sessionid = in_command.get('sessionid', None)
 		pointer = self.sessions[sessionid]['next']
-		results = self.xmpp['xep_0004'].makeForm('result')
+		results = self.xmpp.plugin['xep_0004'].makeForm('result')
 		results.fromXML(in_command.find('{jabber:x:data}x'))
 		form, npointer, next = pointer(results,sessionid)
 		self.sessions[sessionid]['next'] = npointer

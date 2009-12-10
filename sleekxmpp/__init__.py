@@ -30,6 +30,8 @@ from . xmlstream.matcher.many import MatchMany
 from . xmlstream.handler.callback import Callback
 from . xmlstream.stanzabase import StanzaBase
 from . xmlstream import xmlstream as xmlstreammod
+from . stanza.message import Message
+from . stanza.iq import Iq
 import time
 import logging
 import base64

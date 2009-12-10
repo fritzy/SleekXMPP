@@ -257,7 +257,6 @@ class XMLStream(object):
 				break
 		if stanza is None:
 			stanza = StanzaBase(self, xmlobj)
-		logging.debug(self.__handlers)
 		for handler in self.__handlers:
 			if handler.match(xmlobj):
 				handler.prerun(stanza)

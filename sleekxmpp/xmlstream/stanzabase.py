@@ -1,5 +1,22 @@
 from xml.etree import cElementTree as ET
 
+class JID(object):
+	def __init__(self, jid):
+		self.jid = jid
+	
+	def __getattr__(self, name):
+		if name == 'resource':
+			return self.jid.split('/', 1)[-1]
+		elif name == 'user':
+			return self.jid.split('@', 1)[0]
+		elif name == 'server':
+			return self.jid.split('@', 1)[-1].split('/', 1)[0]
+		elif name == 'full':
+			return self.jid
+	
+	def __str__(self):
+		return self.jid
+
 class StanzaBase(object):
 	name = 'stanza'
 	namespace = 'jabber:client'
@@ -22,7 +39,7 @@ class StanzaBase(object):
 	
 	def match(self, xml):
 		return xml.tag == self.tag
-		
+	
 	def __getitem__(self, attrib):
 		if attrib in self.interfaces:
 			if hasattr(self, "get%s" % attrib.title()):
@@ -85,11 +102,35 @@ class StanzaBase(object):
 	
 	def reply(self):
 		self['from'], self['to'] = self['to'], self['from']
+		self.clear()
 		return self
 	
 	def error(self):
 		self['type'] = 'error'
 	
+	def getTo(self):
+		return JID(self._getAttr('to'))
+	
+	def setTo(self, value):
+		return self._setAttr('to', str(value))
+	
+	def getFrom(self):
+		return JID(self._getAttr('from'))
+	
+	def setFrom(self, value):
+		return self._setAttr('from', str(value))
+	
+	def getValues(self):
+		out = {}
+		for interface in self.interfaces:
+			out[interface] = self[interface]
+		return out
+	
+	def setValues(self, attrib):
+		for interface in attrib:
+			if interface in self.interfaces:
+				self[interface] = attrib[interface]
+
 	def _setAttr(self, name, value):
 		self.xml.attrib[name] = value
 	
@@ -138,18 +179,19 @@ class StanzaBase(object):
 		else:
 			ixmlns = ''
 		nsbuffer = ''
-		#if xmlns != ixmlns and ixmlns != '':
-		#	if ixmlns in self.namespace_map:
-		#		if self.namespace_map[ixmlns] != '':
-		#			itag = "%s:%s" % (self.namespace_map[ixmlns], itag)
-		#	else:
-		#		nsbuffer = """ xmlns="%s\"""" % ixmlns
+		if xmlns != ixmlns and ixmlns != '' and ixmlns != self.stream.default_ns:
+			if ixmlns in self.stream.namespace_map:
+				if self.stream.namespace_map[ixmlns] != '':
+					itag = "%s:%s" % (self.stream.namespace_map[ixmlns], itag)
+			else:
+				nsbuffer = """ xmlns="%s\"""" % ixmlns
 		if ixmlns not in (xmlns, self.namespace):
 			nsbuffer = """ xmlns="%s\"""" % ixmlns
 		newoutput.append("<%s" % itag)
 		newoutput.append(nsbuffer)
 		for attrib in xml.attrib:
-			newoutput.append(""" %s="%s\"""" % (attrib, self.xmlesc(xml.attrib[attrib])))
+			if '{' not in attrib:
+				newoutput.append(""" %s="%s\"""" % (attrib, self.xmlesc(xml.attrib[attrib])))
 		if len(xml) or xml.text or xml.tail:
 			newoutput.append(">")
 			if xml.text:

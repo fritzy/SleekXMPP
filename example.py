@@ -14,9 +14,8 @@ class Example(sleekxmpp.ClientXMPP):
 		self.getRoster()
 		self.sendPresence()
 
-	def message(self, event):
-		print("******got a message")
-		
+	def message(self, msg):
+		msg.reply("Thanks for sending\n%(body)s" % msg).send()
 
 if __name__ == '__main__':
 	#parse command line arguements

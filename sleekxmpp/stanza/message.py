@@ -19,6 +19,12 @@ class Message(StanzaBase):
 		self['type'] = 'normal'
 		return self
 	
+	def reply(self, body=None):
+		StanzaBase.reply(self)
+		if body is not None:
+			self['body'] = body
+		return self
+	
 if __name__ == '__main__':
 	m = Message()
 	m['to'] = 'me'

@@ -354,24 +354,26 @@ class basexmpp(object):
 		return fulljid.split('/', 1)[0]
 
 	def _handleMessage(self, msg):
-		xml = msg.xml
-		ns = xml.tag.split('}')[0]
-		if ns == 'message':
-			ns = ''
-		else:
-			ns = "%s}" % ns
-		mfrom = xml.attrib['from']
-		message = xml.find('%sbody' % ns).text
-		subject = xml.find('%ssubject' % ns)
-		if subject is not None:
-			subject = subject.text
-		else:
-			subject = ''
-		resource = self.getjidresource(mfrom)
-		mfrom = self.getjidbare(mfrom)
-		mtype = xml.attrib.get('type', 'normal')
-		name = self.roster.get('name', '')
-		self.event("message", {'jid': mfrom, 'resource': resource, 'name': name, 'type': mtype, 'subject': subject, 'message': message, 'to': xml.attrib.get('to', '')})
+		self.event('message', msg)
+		#xml = msg.xml
+		#ns = xml.tag.split('}')[0]
+		#if ns == 'message':
+		#	ns = ''
+		#else:
+		#	ns = "%s}" % ns
+		#mfrom = xml.attrib['from']
+		#message = xml.find('%sbody' % ns).text
+		#subject = xml.find('%ssubject' % ns)
+		#if subject is not None:
+		#	subject = subject.text
+		#else:
+		#	subject = ''
+		#resource = self.getjidresource(mfrom)
+		#mfrom = self.getjidbare(mfrom)
+		#mtype = xml.attrib.get('type', 'normal')
+		#name = self.roster.get('name', '')
+		#self.event("message", {'jid': mfrom, 'resource': resource, 'name': name, 'type': mtype, 'subject': subject, 'message': message, 'to': xml.attrib.get('to', '')})
+
 	
 	def _handlePresence(self, presence):
 		xml = presence.xml

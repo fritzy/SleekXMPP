@@ -44,7 +44,7 @@ class XMLStream(object):
 
 		self.__thread = {}
 
-		self.__root_stanza = {}
+		self.__root_stanza = []
 		self.__stanza = {}
 		self.__stanza_extension = {}
 		self.__handlers = []
@@ -251,11 +251,13 @@ class XMLStream(object):
 		xmlobj = self.incoming_filter(xmlobj)
 		stanza = None
 		for stanza_class in self.__root_stanza:
-			if self.__root_stanza[stanza_class].match(xmlobj):
+			if xmlobj.tag == "{%s}%s" % (self.default_ns, stanza_class.name):
+			#if self.__root_stanza[stanza_class].match(xmlobj):
 				stanza = stanza_class(self, xmlobj)
 				break
 		if stanza is None:
 			stanza = StanzaBase(self, xmlobj)
+		logging.debug(self.__handlers)
 		for handler in self.__handlers:
 			if handler.match(xmlobj):
 				handler.prerun(stanza)
@@ -293,12 +295,9 @@ class XMLStream(object):
 				return
 			idx += 1
 	
-	def registerStanza(self, matcher, stanza_class, root=True):
+	def registerStanza(self, stanza_class):
 		"Adds stanza.  If root stanzas build stanzas sent in events while non-root stanzas build substanza objects."
-		if root:
-			self.__root_stanza[stanza_class] = matcher
-		else:
-			self.__stanza[stanza_class] = matcher
+		self.__root_stanza.append(stanza_class)
 	
 	def registerStanzaExtension(self, stanza_class, stanza_extension):
 		if stanza_class not in stanza_extensions:

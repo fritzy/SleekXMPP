@@ -37,7 +37,7 @@ import sys
 import random
 import copy
 from . import plugins
-from . import stanza
+#from . import stanza
 srvsupport = True
 try:
 	import dns.resolver
@@ -87,6 +87,8 @@ class ClientXMPP(basexmpp, XMLStream):
 		#self.register_plugins()
 	
 	def importStanzas(self):
+		pass
+		return 
 		for modname in stanza.__all__:
 			__import__("%s.%s" % (globals()['stanza'].__name__, modname))
 			for register in getattr(stanza, modname).stanzas:

@@ -1,5 +1,6 @@
 from .. xmlstream.stanzabase import StanzaBase
 from xml.etree import cElementTree as ET
+from . error import Error
 
 class Message(StanzaBase):
 	interfaces = set(('type', 'to', 'from', 'id', 'body', 'subject'))
@@ -25,21 +26,5 @@ class Message(StanzaBase):
 			self['body'] = body
 		return self
 	
-if __name__ == '__main__':
-	m = Message()
-	m['to'] = 'me'
-	m['from'] = 'you'
-	m['type'] = 'chat'
-	m.reply()
-	m['body'] = 'Hello there!'
-	m['subject'] = 'whatever'
-	m['id'] = 'abc'
-	print(str(m))
-	print(m['body'])
-	print(m['subject'])
-	print(m['id'])
-	m['type'] = None
-	m['body'] = None
-	m['id'] = None
-	print(str(m))
-	print(m['type'])
+Message.plugin_attrib_map['error'] = Error
+Message.plugin_tag_map["{%s}%s" % (Error.namespace, Error.name)] = Error

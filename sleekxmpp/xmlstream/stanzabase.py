@@ -13,32 +13,52 @@ class JID(object):
 			return self.jid.split('@', 1)[-1].split('/', 1)[0]
 		elif name == 'full':
 			return self.jid
+		elif name == 'bare':
+			return self.jid.split('/', 1)[0]
 	
 	def __str__(self):
 		return self.jid
 
-class StanzaBase(object):
+class ElementBase(object):
 	name = 'stanza'
+	plugin_attrib = 'plugin'
 	namespace = 'jabber:client'
 	interfaces = set(('type', 'to', 'from', 'id', 'payload'))
 	types = set(('get', 'set', 'error', None, 'unavailable', 'normal', 'chat'))
 	sub_interfaces = tuple()
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
 
-	def __init__(self, stream, xml=None, stype=None, sto=None, sfrom=None, sid=None):
-		self.stream = stream
+	def __init__(self, xml=None, parent=None):
+		self.parent = parent
 		self.xml = xml
-		if xml is None:
-			self.xml = ET.Element("{%(namespace)s}%(name)s" % {'name': self.name, 'namespace': self.namespace})
-		if stype is not None:
-			self['type'] = stype
-		if sto is not None:
-			self['to'] = sto
-		if sfrom is not None:
-			self['from'] = sfrom
-		self.tag = "{%s}%s" % (self.stream.default_ns, self.name)
-	
+		self.plugins = {}
+		if not self.setup(xml) and len(self.plugin_attrib_map):
+			for child in self.xml.getchildren():
+				if child.tag in self.plugin_tag_map:
+					self.plugins[self.plugin_tag_map[child.tag].plugin_attrib] = self.plugin_tag_map[child.tag](xml=child, parent=self)
+
 	def match(self, xml):
 		return xml.tag == self.tag
+	
+	def setup(self, xml=None):
+		if self.xml is None:
+			self.xml = xml
+		if self.xml is None:
+			self.xml = ET.Element("{%(namespace)s}%(name)s" % {'name': self.name, 'namespace': self.namespace})
+			if self.parent is not None:
+				self.parent.xml.append(self.xml)
+			return True #had to generate XML
+		else:
+			return False
+
+	def enable(self, attrib):
+		self.initPlugin(attrib)
+		return self
+	
+	def initPlugin(self, attrib):
+		if attrib not in self.plugins:
+			self.plugins[attrib] = self.plugin_attrib_map[attrib](parent=self)
 	
 	def __getitem__(self, attrib):
 		if attrib in self.interfaces:
@@ -49,11 +69,14 @@ class StanzaBase(object):
 					return self._getSubText(attrib)
 				else:
 					return self._getAttr(attrib)
+		elif attrib in self.plugin_attrib_map:
+			self.initPlugin(attrib)
+			return self.plugins[attrib]
 		else:
 			return ''
 	
 	def __setitem__(self, attrib, value):
-		if attrib.lower() in self.interfaces:
+		if attrib in self.interfaces:
 			if value is not None:
 				if hasattr(self, "set%s" % attrib.title()):
 					getattr(self, "set%s" % attrib.title())(value,)
@@ -64,6 +87,9 @@ class StanzaBase(object):
 						self._setAttr(attrib, value)
 			else:
 				self.__delitem__(attrib)
+		elif attrib in self.plugin_map:
+			self.initPlugin(attrib)
+			self.plugins[attrib].setValues(value)
 		return self
 	
 	def __delitem__(self, attrib):
@@ -75,62 +101,18 @@ class StanzaBase(object):
 					return self._delSub(attrib)
 				else:
 					self._delAttr(attrib)
-		return self
-
-	def setType(self, value):
-		if value in self.types:
-			if value is None and 'type' in self.xml.attrib:
-				del self.xml.attrib['type']
-			elif value is not None:
-				self.xml.attrib['type'] = value
-		else:
-			raise ValueError
-		return self
-
-	def getPayload(self):
-		return self.xml.getchildren()
-	
-	def setPayload(self, value):
-		self.xml.append(value)
-	
-	def delPayload(self):
-		self.clear()
-	
-	def clear(self):
-		for child in self.xml.getchildren():
-			self.xml.remove(child)
-	
-	def reply(self):
-		self['from'], self['to'] = self['to'], self['from']
-		self.clear()
+		elif attrib in self.plugin_map:
+			if attrib in self.plugins:
+				del self.plugins[attrib]
 		return self
 	
-	def error(self):
-		self['type'] = 'error'
+	def __eq__(self, other):
+		values = self.getValues()
+		for key in other:
+			if key not in values or values[key] != other[key]:
+				return False
+		return True
 	
-	def getTo(self):
-		return JID(self._getAttr('to'))
-	
-	def setTo(self, value):
-		return self._setAttr('to', str(value))
-	
-	def getFrom(self):
-		return JID(self._getAttr('from'))
-	
-	def setFrom(self, value):
-		return self._setAttr('from', str(value))
-	
-	def getValues(self):
-		out = {}
-		for interface in self.interfaces:
-			out[interface] = self[interface]
-		return out
-	
-	def setValues(self, attrib):
-		for interface in attrib:
-			if interface in self.interfaces:
-				self[interface] = attrib[interface]
-
 	def _setAttr(self, name, value):
 		self.xml.attrib[name] = value
 	
@@ -161,6 +143,87 @@ class StanzaBase(object):
 		for child in self.xml.getchildren():
 			if child.tag == "{%s}%s" % (self.namespace, name):
 				self.xml.remove(child)
+	
+	def getValues(self):
+		out = {}
+		for interface in self.interfaces:
+			out[interface] = self[interface]
+		return out
+	
+	def setValues(self, attrib):
+		for interface in attrib:
+			if interface in self.interfaces:
+				self[interface] = attrib[interface]
+		return self
+	
+	def append(self, xml):
+		self.xml.append(xml)
+		return self
+	
+	def __del__(self):
+		if self.parent is not None:
+			self.parent.xml.remove(self.xml)
+
+class StanzaBase(ElementBase):
+	name = 'stanza'
+	namespace = 'jabber:client'
+	interfaces = set(('type', 'to', 'from', 'id', 'payload'))
+	types = set(('get', 'set', 'error', None, 'unavailable', 'normal', 'chat'))
+	sub_interfaces = tuple()
+
+	def __init__(self, stream, xml=None, stype=None, sto=None, sfrom=None, sid=None):
+		self.stream = stream
+		self.namespace = stream.default_ns
+		ElementBase.__init__(self, xml)
+		if stype is not None:
+			self['type'] = stype
+		if sto is not None:
+			self['to'] = sto
+		if sfrom is not None:
+			self['from'] = sfrom
+		self.tag = "{%s}%s" % (self.stream.default_ns, self.name)
+	
+	def setType(self, value):
+		if value in self.types:
+				self.xml.attrib['type'] = value
+		else:
+			raise ValueError
+		return self
+
+	def getPayload(self):
+		return self.xml.getchildren()
+	
+	def setPayload(self, value):
+		self.xml.append(value)
+	
+	def delPayload(self):
+		self.clear()
+	
+	def clear(self):
+		for child in self.xml.getchildren():
+			self.xml.remove(child)
+		for plugin in self.plugins:
+			del self.plugins[plugin]
+	
+	def reply(self):
+		self['from'], self['to'] = self['to'], self['from']
+		self.clear()
+		return self
+	
+	def error(self):
+		self['type'] = 'error'
+	
+	def getTo(self):
+		return JID(self._getAttr('to'))
+	
+	def setTo(self, value):
+		return self._setAttr('to', str(value))
+	
+	def getFrom(self):
+		return JID(self._getAttr('from'))
+	
+	def setFrom(self, value):
+		return self._setAttr('from', str(value))
 	
 	def unhandled(self):
 		pass
@@ -226,15 +289,3 @@ class StanzaBase(object):
 					text[cc] = '&quot;'
 			cc += 1
 		return ''.join(text)
-		
-
-if __name__ == '__main__':
-	x = Stanza()
-	x['from'] = 'you'
-	x['to'] = 'me'
-	print(x['from'], x['to'])
-	x.reply()
-	print(x['from'], x['to'])
-	x['from'] = None
-	print(x['from'], x['to'])
-	print(str(x))

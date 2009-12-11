@@ -28,61 +28,22 @@ from . xmlstream.handler.callback import Callback
 from . import plugins
 from . stanza.message import Message
 from . stanza.iq import Iq
+from . stanza.presence import Presence
+from . stanza.roster import Roster
 
 import logging
 import threading
+
+def stanzaPlugin(stanza, plugin):
+	stanza.plugin_attrib_map[plugin.plugin_attrib] = plugin
+	stanza.plugin_tag_map["{%s}%s" % (plugin.namespace, plugin.name)] = plugin
+
+stanzaPlugin(Iq, Roster)
 
 class basexmpp(object):
 	def __init__(self):
 		self.id = 0
 		self.id_lock = threading.Lock()
-		self.stanza_errors = {
-			'bad-request':False,
-			'conflict':False,
-			'feature-not-implemented':False,
-			'forbidden':False,
-			'gone':True,
-			'internal-server-error':False,
-			'item-not-found':False,
-			'jid-malformed':False,
-			'not-acceptable':False,
-			'not-allowed':False,
-			'payment-required':False,
-			'recipient-unavailable':False,
-			'redirect':True,
-			'registration-required':False,
-			'remote-server-not-found':False,
-			'remote-server-timeout':False,
-			'resource-constraint':False,
-			'service-unavailable':False,
-			'subscription-required':False,
-			'undefined-condition':False,
-			'unexpected-request':False}
-		self.stream_errors = {
-			'bad-format':False,
-			'bad-namespace-prefix':False,
-			'conflict':False,
-			'connection-timeout':False,
-			'host-gone':False,
-			'host-unknown':False,
-			'improper-addressing':False,
-			'internal-server-error':False,
-			'invalid-from':False,
-			'invalid-id':False,
-			'invalid-namespace':False,
-			'invalid-xml':False,
-			'not-authorized':False,
-			'policy-violation':False,
-			'remote-connection-failed':False,
-			'resource-constraint':False,
-			'restricted-xml':False,
-			'see-other-host':True,
-			'system-shutdown':False,
-			'undefined-condition':False,
-			'unsupported-encoding':False,
-			'unsupported-stanza-type':False,
-			'unsupported-version':False,
-			'xml-not-well-formed':False}
 		self.sentpresence = False
 		self.fulljid = ''
 		self.resource = ''
@@ -94,11 +55,21 @@ class basexmpp(object):
 		self.auto_subscribe = True
 		self.event_handlers = {}
 		self.roster = {}
-		self.registerHandler(Callback('IM', MatchMany((MatchXMLMask("<message xmlns='%s' type='chat'><body /></message>" % self.default_ns),MatchXMLMask("<message xmlns='%s' type='normal'><body /></message>" % self.default_ns),MatchXMLMask("<message xmlns='%s' type='__None__'><body /></message>" % self.default_ns))), self._handleMessage, thread=False))
-		self.registerHandler(Callback('Presence', MatchMany((MatchXMLMask("<presence xmlns='%s' type='available'/>" % self.default_ns),MatchXMLMask("<presence xmlns='%s' type='__None__'/>" % self.default_ns),MatchXMLMask("<presence xmlns='%s' type='unavailable'/>" % self.default_ns))), self._handlePresence, thread=False))
-		self.registerHandler(Callback('PresenceSubscribe', MatchMany((MatchXMLMask("<presence xmlns='%s' type='subscribe'/>" % self.default_ns),MatchXMLMask("<presence xmlns='%s' type='unsubscribed'/>" % self.default_ns))), self._handlePresenceSubscribe))
+		self.registerHandler(Callback('IM', MatchXMLMask("<message xmlns='%s'><body /></message>" % self.default_ns), self._handleMessage))
+		self.registerHandler(Callback('Presence', MatchXMLMask("<presence xmlns='%s' />" % self.default_ns), self._handlePresence))
+		self.add_event_handler('presence_subscribe', self._handlePresenceSubscribe)
 		self.registerStanza(Message)
 		self.registerStanza(Iq)
+		self.registerStanza(Presence)
+	
+	def Message(self, *args, **kwargs):
+		return Presence(self, *args, **kwargs)
+
+	def Iq(self, *args, **kwargs):
+		return Iq(self, *args, **kwargs)
+
+	def Presence(self, *args, **kwargs):
+		return Presence(self, *args, **kwargs)
 	
 	def set_jid(self, jid):
 		"""Rip a JID apart and claim it as our own."""
@@ -147,11 +118,17 @@ class basexmpp(object):
 	
 	def getId(self):
 		return "%x".upper() % self.id
+
+	def sendXML(self, data, mask=None, timeout=10):
+		return self.send(self.tostring(data), mask, timeout)
 	
-	def send(self, data, mask=None, timeout=60):
+	def send(self, data, mask=None, timeout=10):
 		#logging.warning("Deprecated send used for \"%s\"" % (data,))
-		if not type(data) == type(''):
-			data = self.tostring(data)
+		#if not type(data) == type(''):
+		#	data = self.tostring(data)
+		if hasattr(mask, 'xml'):
+			mask = mask.xml
+		data = str(data)
 		if mask is not None:
 			waitfor = XMLWaiter('SendWait_%s' % self.getNewId(), MatchXMLMask(mask))
 			self.registerHandler(waitfor)
@@ -160,85 +137,27 @@ class basexmpp(object):
 			return waitfor.wait(timeout)
 	
 	def makeIq(self, id=0, ifrom=None):
-		iq = ET.Element('{%s}iq' % self.default_ns)
-		if id == 0:
-			id = self.getNewId()
-		iq.set('id', str(id))
-		if ifrom is not None:
-			iq.attrib['from'] = ifrom
-		return iq
+		return self.Iq().setValues({'id': id, 'from': ifrom})
 	
 	def makeIqGet(self, queryxmlns = None):
-		iq = self.makeIq()
-		iq.set('type', 'get')
+		iq = self.Iq().setValues({'type': 'get'})
 		if queryxmlns:
-			query = ET.Element("{%s}query" % queryxmlns)
-			iq.append(query)
+			iq.append(ET.Element("{%s}query" % queryxmlns))
 		return iq
 	
 	def makeIqResult(self, id):
-		iq = self.makeIq(id)
-		iq.set('type', 'result')
-		return iq
+		return self.Iq().setValues({'id': id, 'type': 'result'})
 	
 	def makeIqSet(self, sub=None):
-		iq = self.makeIq()
-		iq.set('type', 'set')
+		iq = self.Iq().setValues({'type': 'set'})
 		if sub != None:
 			iq.append(sub)
 		return iq
 
-	def makeIqError(self, id):
-		iq = self.makeIq(id)
-		iq.set('type', 'error')
+	def makeIqError(self, id, type='cancel', condition='feature-not-implemented', text=None):
+		iq = self.Iq().setValues({'id': id})
+		iq['error'].setValues({'type': type, 'condition': condition, 'text': text})
 		return iq
-
-	def makeStanzaErrorCondition(self, condition, cdata=None):
-		if condition not in self.stanza_errors:
-			raise ValueError()
-		stanzaError = ET.Element('{urn:ietf:params:xml:ns:xmpp-stanzas}'+condition)
-		if cdata is not None:
-			if not self.stanza_errors[condition]:
-				raise ValueError()
-			stanzaError.text = cdata
-		return stanzaError
-
-
-	def makeStanzaError(self, condition, errorType, code=None, text=None, customElem=None):
-		if errorType not in ['auth', 'cancel', 'continue', 'modify', 'wait']:
-			raise ValueError()
-		error = ET.Element('error')
-		error.append(self.makeStanzaErrorCondition(condition))
-		error.set('type',errorType)
-		if code is not None:
-			error.set('code', code)
-		if text is not None:
-			textElem = ET.Element('text')
-			textElem.text = text
-			error.append(textElem)
-		if customElem is not None:
-			error.append(customElem)
-		return error
-
-	def makeStreamErrorCondition(self, condition, cdata=None):
-		if condition not in self.stream_errors:
-			raise ValueError()
-		streamError = ET.Element('{urn:ietf:params:xml:ns:xmpp-streams}'+condition)
-		if cdata is not None:
-			if not self.stream_errors[condition]:
-				raise ValueError()
-			textElem = ET.Element('text')
-			textElem.text = text
-			streamError.append(textElem)
-
-	def makeStreamError(self, errorElem, text=None):
-		error = ET.Element('error')
-		error.append(errorElem)
-		if text is not None:
-			textElem = ET.Element('text')
-			textElem.text = text
-			error.append(text)
-		return error
 
 	def makeIqQuery(self, iq, xmlns):
 		query = ET.Element("{%s}query" % xmlns)
@@ -355,61 +274,21 @@ class basexmpp(object):
 
 	def _handleMessage(self, msg):
 		self.event('message', msg)
-		#xml = msg.xml
-		#ns = xml.tag.split('}')[0]
-		#if ns == 'message':
-		#	ns = ''
-		#else:
-		#	ns = "%s}" % ns
-		#mfrom = xml.attrib['from']
-		#message = xml.find('%sbody' % ns).text
-		#subject = xml.find('%ssubject' % ns)
-		#if subject is not None:
-		#	subject = subject.text
-		#else:
-		#	subject = ''
-		#resource = self.getjidresource(mfrom)
-		#mfrom = self.getjidbare(mfrom)
-		#mtype = xml.attrib.get('type', 'normal')
-		#name = self.roster.get('name', '')
-		#self.event("message", {'jid': mfrom, 'resource': resource, 'name': name, 'type': mtype, 'subject': subject, 'message': message, 'to': xml.attrib.get('to', '')})
-
 	
 	def _handlePresence(self, presence):
-		xml = presence.xml
-		ns = xml.tag.split('}')[0]
-		if ns == 'presence':
-			ns = ''
-		else:
-			ns = "%s}" % ns
 		"""Update roster items based on presence"""
-		show = xml.find('%sshow' % ns)
-		status = xml.find('%sstatus' % ns)
-		priority = xml.find('%spriority' % ns)
-		fulljid = xml.attrib['from']
-		to = xml.attrib['to']
-		resource = self.getjidresource(fulljid)
-		if not resource:
-			resouce = None
-		jid = self.getjidbare(fulljid)
-		if type(status) == type(None) or status.text is None:
-			status = ''
-		else:
-			status = status.text
-		if type(show) == type(None): 
-			show = 'available'
-		else:
-			show = show.text
-		if xml.get('type', None) == 'unavailable':
-			show = 'unavailable'
-		if type(priority) == type(None):
-			priority = 0
-		else:
-			priority = int(priority.text)
+		self.event("presence_%s" % presence['type'], presence)
+		if not presence['type'] in ('available', 'unavailable'):
+			return
+		jid = presence['from'].bare
+		resource = presence['from'].resource
+		show = presence['type']
+		status = presence['status']
+		priority = presence['priority']
 		wasoffline = False
 		oldroster = self.roster.get(jid, {}).get(resource, {})
-		if not jid in self.roster:
-				self.roster[jid] = {'groups': [], 'name': '', 'subscription': 'none', 'presence': {}, 'in_roster': False}
+		if not presence['from'].bare in self.roster:
+			self.roster[jid] = {'groups': [], 'name': '', 'subscription': 'none', 'presence': {}, 'in_roster': False}
 		if not resource in self.roster[jid]['presence']:
 			wasoffline = True
 			self.roster[jid]['presence'][resource] = {'show': show, 'status': status, 'priority': priority}
@@ -417,12 +296,10 @@ class basexmpp(object):
 			if self.roster[jid]['presence'][resource].get('show', None) == 'unavailable':
 				wasoffline = True
 			self.roster[jid]['presence'][resource] = {'show': show, 'status': status}
-			if priority:
-				self.roster[jid]['presence'][resource]['priority'] = priority
+			self.roster[jid]['presence'][resource]['priority'] = priority
 		name = self.roster[jid].get('name', '')
-		eventdata = {'jid': jid, 'to': to, 'resource': resource, 'name': name, 'type': show, 'priority': priority, 'message': status}
-		if wasoffline and show in ('available', 'away', 'xa', 'na'):
-			self.event("got_online", eventdata)
+		if wasoffline and show in ('available', 'away', 'xa', 'na', 'ffc'):
+			self.event("got_online", presence)
 		elif not wasoffline and show == 'unavailable':
 			self.event("got_offline", eventdata)
 			if len(self.roster[jid]['presence']) > 1:
@@ -430,7 +307,7 @@ class basexmpp(object):
 			else:
 				del self.roster[jid]
 		elif oldroster != self.roster.get(jid, {'presence': {}})['presence'].get(resource, {}) and show != 'unavailable':
-			self.event("changed_status", eventdata)
+			self.event("changed_status", presence)
 		name = ''
 		if name:
 			name = "(%s) " % name
@@ -438,13 +315,9 @@ class basexmpp(object):
 	
 	def _handlePresenceSubscribe(self, presence):
 		"""Handling subscriptions automatically."""
-		xml = presence.xml
 		if self.auto_authorize == True:
-			#self.updateRoster(self.getjidbare(xml.attrib['from']))
-			self.send(self.makePresence(ptype='subscribed', pto=self.getjidbare(xml.attrib['from'])))
+			self.send(self.makePresence(ptype='subscribed', pto=presence['from'].bare))
 			if self.auto_subscribe:
-				self.send(self.makePresence(ptype='subscribe', pto=self.getjidbare(xml.attrib['from'])))
+				self.send(self.makePresence(ptype='subscribe', pto=presence['from'].bare))
 		elif self.auto_authorize == False:
-			self.send(self.makePresence(ptype='unsubscribed', pto=self.getjidbare(xml.attrib['from'])))
-		elif self.auto_authorize == None:
-			pass
+			self.send(self.makePresence(ptype='unsubscribed', pto=presence['from'].bare))

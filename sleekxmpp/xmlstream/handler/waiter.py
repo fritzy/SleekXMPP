@@ -1,6 +1,7 @@
 from . import base
 import queue
 import logging
+from .. stanzabase import StanzaBase
 
 class Waiter(base.BaseHandler):
 	
@@ -19,7 +20,7 @@ class Waiter(base.BaseHandler):
 			return self._payload.get(True, timeout)
 		except queue.Empty:
 			logging.warning("Timed out waiting for %s" % self.name)
-			return False
+			return StanzaBase(stype='error')
 	
 	def checkDelete(self):
 		return True

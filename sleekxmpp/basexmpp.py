@@ -187,63 +187,22 @@ class basexmpp(object):
 				with self.lock:
 					self.event_handlers[name].pop(self.event_handlers[name].index(handler))
 	
-	def makeMessage(self, mto, mbody='', msubject=None, mtype=None, mhtml=None, mfrom=None, mnick=None):
-		message = ET.Element('{%s}message' % self.default_ns)
-		if mfrom is None:
-			message.attrib['from'] = self.fulljid
-		else:
-			message.attrib['from'] = mfrom
-		message.attrib['to'] = mto
-		if not mtype:
-			mtype='chat'
-		message.attrib['type'] = mtype
-		if mtype == 'none':
-			del message.attrib['type']
-		if mbody:
-			body = ET.Element('body')
-			body.text = mbody
-			message.append(body)
-		if mhtml :
-			html = ET.Element('{http://jabber.org/protocol/xhtml-im}html')
-			html_body = ET.XML('<body xmlns="http://www.w3.org/1999/xhtml">' + mhtml + '</body>')
-			html.append(html_body)
-			message.append(html)
-		if msubject:
-			subject = ET.Element('subject')
-			subject.text = msubject
-			message.append(subject)
-		if mnick:
-			print("generating nick")
-			nick = ET.Element("{http://jabber.org/protocol/nick}nick")
-			nick.text = mnick
-			message.append(nick)
+	def makeMessage(self, mto, mbody=None, msubject=None, mtype=None, mhtml=None, mfrom=None, mnick=None):
+		message = self.Message(sto=mto, stype=mtype, sfrom=mfrom)
+		message['body'] = mbody
+		message['subject'] = msubject
+		message['nick'] = mnick
+		message['html'] = mhtml
 		return message
 	
 	def makePresence(self, pshow=None, pstatus=None, ppriority=None, pto=None, ptype=None, pfrom=None):
-		if pshow == 'unavailable':
-			pshow = None
-			ptype = 'unavailable'
-		presence = ET.Element('{%s}presence' % self.default_ns)
-		if ptype:
-			presence.attrib['type'] = ptype
-		if pshow:
-			show = ET.Element('show')
-			show.text = pshow
-			presence.append(show)
-		if pstatus:
-			status = ET.Element('status')
-			status.text = pstatus
-			presence.append(status)
-		if ppriority:
-			priority = ET.Element('priority')
-			priority.text = str(ppriority)
-			presence.append(priority)
-		if pto:
-			presence.attrib['to'] = pto
-		if pfrom is None:
-			presence.attrib['from'] = self.fulljid
-		else:
-			presence.attrib['from'] = pfrom
+		presence = self.Presence(stype=ptype, sfrom=pfrom, sto=pto)
+		if pshow is not None:
+			presence['type'] = pshow
+		if pfrom is None: #maybe this should be done in stanzabase
+			presence['from'] = self.fulljid
+		presence['priority'] = ppriority
+		presence['status'] = pstatus
 		return presence
 	
 	def sendMessage(self, mto, mbody, msubject=None, mtype=None, mhtml=None, mfrom=None, mnick=None):

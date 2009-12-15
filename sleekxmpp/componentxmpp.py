@@ -100,7 +100,7 @@ class ComponentXMPP(basexmpp, XMLStream):
 		sid = xml.get('id', '')
 		handshake = ET.Element('{jabber:component:accept}handshake')
 		handshake.text = hashlib.sha1(bytes("%s%s" % (sid, self.secret), 'utf-8')).hexdigest().lower()
-		self.send(handshake)
+		self.sendXML(handshake)
 	
 	def _handleHandshake(self, xml):
 		self.event("session_start")

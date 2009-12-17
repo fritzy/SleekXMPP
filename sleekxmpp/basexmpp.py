@@ -30,6 +30,8 @@ from . stanza.message import Message
 from . stanza.iq import Iq
 from . stanza.presence import Presence
 from . stanza.roster import Roster
+from . stanza.nick import Nick
+from . stanza.htmlim import HTMLIM
 
 import logging
 import threading
@@ -38,7 +40,6 @@ def stanzaPlugin(stanza, plugin):
 	stanza.plugin_attrib_map[plugin.plugin_attrib] = plugin
 	stanza.plugin_tag_map["{%s}%s" % (plugin.namespace, plugin.name)] = plugin
 
-stanzaPlugin(Iq, Roster)
 
 class basexmpp(object):
 	def __init__(self):
@@ -61,9 +62,16 @@ class basexmpp(object):
 		self.registerStanza(Message)
 		self.registerStanza(Iq)
 		self.registerStanza(Presence)
+		self.stanzaPlugin(Iq, Roster)
+		self.stanzaPlugin(Message, Nick)
+		self.stanzaPlugin(Message, HTMLIM)
+
+	def stanzaPlugin(self, stanza, plugin):
+		stanza.plugin_attrib_map[plugin.plugin_attrib] = plugin
+		stanza.plugin_tag_map["{%s}%s" % (plugin.namespace, plugin.name)] = plugin
 	
 	def Message(self, *args, **kwargs):
-		return Presence(self, *args, **kwargs)
+		return Message(self, *args, **kwargs)
 
 	def Iq(self, *args, **kwargs):
 		return Iq(self, *args, **kwargs)
@@ -191,14 +199,13 @@ class basexmpp(object):
 		message = self.Message(sto=mto, stype=mtype, sfrom=mfrom)
 		message['body'] = mbody
 		message['subject'] = msubject
-		message['nick'] = mnick
-		message['html'] = mhtml
+		if mnick is not None: message['nick'] = mnick
+		if mhtml is not None: message['html'] = mhtml
 		return message
 	
 	def makePresence(self, pshow=None, pstatus=None, ppriority=None, pto=None, ptype=None, pfrom=None):
 		presence = self.Presence(stype=ptype, sfrom=pfrom, sto=pto)
-		if pshow is not None:
-			presence['type'] = pshow
+		if pshow is not None: presence['type'] = pshow
 		if pfrom is None: #maybe this should be done in stanzabase
 			presence['from'] = self.fulljid
 		presence['priority'] = ppriority
@@ -237,7 +244,10 @@ class basexmpp(object):
 	def _handlePresence(self, presence):
 		"""Update roster items based on presence"""
 		self.event("presence_%s" % presence['type'], presence)
-		if not presence['type'] in ('available', 'unavailable'):
+		if presence['type'] in ('subscribe', 'subscribed', 'unsubscribe', 'unsubscribed'):
+			self.event('changed_subscription', presence)
+			return
+		elif not presence['type'] in ('available', 'unavailable'):
 			return
 		jid = presence['from'].bare
 		resource = presence['from'].resource
@@ -260,7 +270,7 @@ class basexmpp(object):
 		if wasoffline and show in ('available', 'away', 'xa', 'na', 'ffc'):
 			self.event("got_online", presence)
 		elif not wasoffline and show == 'unavailable':
-			self.event("got_offline", eventdata)
+			self.event("got_offline", presence)
 			if len(self.roster[jid]['presence']) > 1:
 				del self.roster[jid]['presence'][resource]
 			else:

@@ -262,6 +262,8 @@ class XMLStream(object):
 				handler.prerun(stanza)
 				self.eventqueue.put(('stanza', handler, stanza))
 				if handler.checkDelete(): self.__handlers.pop(self.__handlers.index(handler))
+			else:
+				stanza.unhandled()
 
 			#loop through handlers and test match
 			#spawn threads as necessary, call handlers, sending Stanza
@@ -274,10 +276,18 @@ class XMLStream(object):
 			except queue.Empty:
 				event = None
 			if event is not None:
-				etype, handler, stanza = event
+				etype, handler, *args = event
 				if etype == 'stanza':
-					handler.run(stanza)
-				if etype == 'quit':
+					try:
+						handler.run(args[0])
+					except:
+						args[0].exception(traceback.format_exc())
+				elif etype == 'sched':
+					try:
+						handler.run(*args)
+					except:
+						logging.error(traceback.format_exc())
+				elif etype == 'quit':
 					logging.debug("Quitting eventRunner thread")
 					return False
 	

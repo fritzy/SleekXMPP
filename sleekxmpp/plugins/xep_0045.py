@@ -21,6 +21,98 @@ from __future__ import with_statement
 from . import base
 import logging
 from xml.etree import cElementTree as ET
+from .. xmlstream.stanzabase import ElementBase, JID
+from .. stanza.presence import Presence
+from .. xmlstream.handler.callback import Callback
+from .. xmlstream.matcher.xpath import MatchXPath
+from .. xmlstream.matcher.xmlmask import MatchXMLMask
+
+class MUCPresence(ElementBase):
+	name = 'x'
+	namespace = 'http://jabber.org/protocol/muc#user'
+	plugin_attrib = 'muc'
+	interfaces = set(('affiliation', 'role', 'jid', 'nick', 'room'))
+	affiliations = set(('', ))
+	roles = set(('', ))
+
+	def getXMLItem(self):
+		item = self.xml.find('{http://jabber.org/protocol/muc#user}item')
+		if item is None:
+			item = ET.Element('{http://jabber.org/protocol/muc#user}item')
+			self.xml.append(item)
+		return item
+
+	def getAffiliation(self):
+		#TODO if no affilation, set it to the default and return default
+		item = self.getXMLItem()
+		return item.get('affiliation', '')
+	
+	def setAffiliation(self, value):
+		item = self.getXMLItem()
+		#TODO check for valid affiliation
+		item.attrib['affiliation'] = value
+		return self
+	
+	def delAffiliation(self):
+		item = self.getXMLItem()
+		#TODO set default affiliation
+		if 'affiliation' in item.attrib: del item.attrib['affiliation']
+		return self
+	
+	def getJid(self):
+		item = self.getXMLItem()
+		return JID(item.get('jid', ''))
+	
+	def setJid(self, value):
+		item = self.getXMLItem()
+		if not isinstance(value, str):
+			value = str(value)
+		item.attrib['jid'] = value
+		return self
+	
+	def delJid(self):
+		item = self.getXMLItem()
+		if 'jid' in item.attrib: del item.attrib['jid']
+		return self
+		
+	def getRole(self):
+		item = self.getXMLItem()
+		#TODO get default role, set default role if none
+		return item.get('role', '')
+	
+	def setRole(self, value):
+		item = self.getXMLItem()
+		#TODO check for valid role
+		item.attrib['role'] = value
+		return self
+	
+	def delRole(self):
+		item = self.getXMLItem()
+		#TODO set default role
+		if 'role' in item.attrib: del item.attrib['role']
+		return self
+	
+	def getNick(self):
+		return self.parent['from'].resource
+	
+	def getRoom(self):
+		return self.parent['from'].bare
+	
+	def setNick(self, value):
+		logging.warning("Cannot set nick through mucpresence plugin.")
+		return self
+	
+	def setRoom(self, value):
+		logging.warning("Cannot set room through mucpresence plugin.")
+		return self
+	
+	def delNick(self):
+		logging.warning("Cannot delete nick through mucpresence plugin.")
+		return self
+	
+	def delRoom(self):
+		logging.warning("Cannot delete room through mucpresence plugin.")
+		return self
 
 class xep_0045(base.base_plugin):
 	"""
@@ -32,74 +124,40 @@ class xep_0045(base.base_plugin):
 		self.ourNicks = {}
 		self.xep = '0045'
 		self.description = 'Multi User Chat'
-		self.xmpp.add_handler("<message xmlns='%s' type='groupchat'><body/></message>" % self.xmpp.default_ns, self.handle_groupchat_message)
-		self.xmpp.add_handler("<presence xmlns='%s' />" % self.xmpp.default_ns, self.handle_groupchat_presence)
+		# load MUC support in presence stanzas
+		self.xmpp.stanzaPlugin(Presence, MUCPresence)
+		self.xmpp.registerHandler(Callback('MUCPresence', MatchXMLMask("<presence xmlns='%s' />" % self.xmpp.default_ns), self.handle_groupchat_presence))
+		self.xmpp.registerHandler(Callback('MUCMessage', MatchXMLMask("<message xmlns='%s' type='groupchat'><body/></message>" % self.xmpp.default_ns), self.handle_groupchat_message))
 	
-	def handle_groupchat_presence(self, xml):
+	def handle_groupchat_presence(self, pr):
 		""" Handle a presence in a muc.
 		"""
-		source = xml.attrib['from']
-		room = self.xmpp.getjidbare(source)
-		if room not in self.rooms.keys():
+		if pr['muc']['room'] not in self.rooms.keys():
 			return
-		nick = self.xmpp.getjidresource(source)
-		entry = {
-				'nick': nick,
-				'room': room,
-		}
-		if 'type' in xml.attrib.keys():
-			entry['type'] = xml.attrib['type']
+		entry = pr['muc'].getValues()
+		if pr['type'] == 'unavailable':
+			self.rooms[entry['room']][entry['nick']] = None
 		else:
-			entry['type'] = 'available'
-		for tag in ['status','show','priority']:
-			if xml.find(('{%s}' % self.xmpp.default_ns) + tag) != None:
-				entry[tag] = xml.find(('{%s}' % self.xmpp.default_ns) + tag).text
-			else:
-				entry[tag] = None
-		
-		for tag in ['affiliation','role','jid']:
-			item = xml.find('{http://jabber.org/protocol/muc#user}x/{http://jabber.org/protocol/muc#user}item')
-			if item != None:
-				if tag in item.attrib:
-					entry[tag] = item.attrib[tag]
-				else:
-					entry[tag] = None
-			else:
-				entry[tag] = None
-		
-		if entry['status'] == 'unavailable':
-			self.rooms[room][nick] = None
-		else:
-			self.rooms[room][nick] = entry
+			self.rooms[entry['room']][entry['nick']] = entry
 		logging.debug("MUC presence from %s/%s : %s" % (entry['room'],entry['nick'], entry))
-		self.xmpp.event("groupchat_presence", entry)
+		self.xmpp.event("groupchat_presence", pr)
 	
-	def handle_groupchat_message(self, xml):
+	def handle_groupchat_message(self, msg):
 		""" Handle a message event in a muc.
 		"""
-		mfrom = xml.attrib['from']
-		message = xml.find('{%s}body' % self.xmpp.default_ns).text
-		subject = xml.find('{%s}subject' % self.xmpp.default_ns)
-		if subject:
-			subject = subject.text
-		else:
-			subject = ''
-		resource = self.xmpp.getjidresource(mfrom)
-		mfrom = self.xmpp.getjidbare(mfrom)
-		mtype = xml.attrib.get('type', 'normal')
-		self.xmpp.event("groupchat_message", {'room': mfrom, 'name': resource, 'type': mtype, 'subject': subject, 'message': message})
+		self.xmpp.event('groupchat_message', msg)
 	
 	def getRoomForm(self, room, ifrom=None):
 		iq = self.xmpp.makeIqGet()
-		iq.attrib['to'] = room
+		iq['to'] = room
 		if ifrom is not None:
-			iq.attrib['from'] = ifrom
+			iq['from'] = ifrom
 		query = ET.Element('{http://jabber.org/protocol/muc#owner}query')
 		iq.append(query)
-		result = self.xmpp.send(iq, self.xmpp.makeIq(id=iq.get('id')))
-		if result.get('type', 'error') == 'error':
+		result = iq.send()
+		if result['type'] == 'error':
 			return False
-		xform = result.find('{http://jabber.org/protocol/muc#owner}query/{jabber:x:data}x')
+		xform = result.xml.find('{http://jabber.org/protocol/muc#owner}query/{jabber:x:data}x')
 		if xform is None: return False
 		form = self.xmpp.plugin['xep_0004'].buildForm(xform)
 		return form
@@ -110,15 +168,16 @@ class xep_0045(base.base_plugin):
 			#form = self.xmpp.plugin['xep_0004'].makeForm(ftype='submit')
 			#form.addField('FORM_TYPE', value='http://jabber.org/protocol/muc#roomconfig')	
 		iq = self.xmpp.makeIqSet()
-		iq.attrib['to'] = room
+		iq['to'] = room
 		if ifrom is not None:
-			iq.attrib['from'] = ifrom
+			iq['from'] = ifrom
 		query = ET.Element('{http://jabber.org/protocol/muc#owner}query')
 		form = form.getXML('submit')
 		query.append(form)
 		iq.append(query)
-		result = self.xmpp.send(iq, self.xmpp.makeIq(iq.get('id')))
-		if result.get('type', 'error') == 'error':
+		#result = self.xmpp.send(iq, self.xmpp.makeIq(iq.get('id')))
+		result = iq.send()
+		if result['type'] == 'error':
 			return False
 		return True
 	
@@ -147,8 +206,8 @@ class xep_0045(base.base_plugin):
 	def destroy(self, room, reason='', altroom = '', ifrom=None):
 		iq = self.xmpp.makeIqSet()
 		if ifrom is not None:
-			iq.attrib['from'] = ifrom
-		iq.attrib['to'] = room
+			iq['from'] = ifrom
+		iq['to'] = room
 		query = ET.Element('{http://jabber.org/protocol/muc#owner}query')
 		destroy = ET.Element('destroy')
 		if altroom:
@@ -158,8 +217,9 @@ class xep_0045(base.base_plugin):
 		destroy.append(xreason)
 		query.append(destroy)
 		iq.append(query)
-		r = self.xmpp.send(iq, self.xmpp.makeIq(iq.get('id')))
-		if r is None or r.get('type', 'error') == 'error':
+		#r = self.xmpp.send(iq, self.xmpp.makeIq(iq.get('id')))
+		r = iq.send()
+		if r is False or r['type'] == 'error':
 			return False
 		return True
 
@@ -171,17 +231,18 @@ class xep_0045(base.base_plugin):
 		item = ET.Element('item', {'affiliation':affiliation, 'jid':jid})	
 		query.append(item)
 		iq = self.xmpp.makeIqSet(query)
-		iq.attrib['to'] = room
-		result = self.xmpp.send(iq, "<iq id='%s' />" % iq.get('id'))
-		if result is None or result.get('type') != 'result':
+		iq['to'] = room
+		result = iq.send()
+		if result is False or result['type'] != 'result':
 			raise ValueError
 		return True
 	
 	def invite(self, room, jid, reason=''):
 		""" Invite a jid to a room."""
-		msg = self.xmpp.makeMessage(room, mtype='none')
+		msg = self.xmpp.makeMessage(room)
+		msg['from'] = self.xmpp.jid
 		x = ET.Element('{http://jabber.org/protocol/muc#user}x')
-		invite = ET.Element('invite', {'to': jid})
+		invite = ET.Element('{http://jabber.org/protocol/muc#user}invite', {'to': jid})
 		if reason:
 			rxml = ET.Element('reason')
 			rxml.text = reason
@@ -198,11 +259,11 @@ class xep_0045(base.base_plugin):
 	
 	def getRoomConfig(self, room):
 		iq = self.xmpp.makeIqGet('http://jabber.org/protocol/muc#owner')
-		iq.attrib['to'] = room
-		result = self.xmpp.send(iq, "<iq id='%s' />" % iq.get('id'))
-		if result is None or result.get('type') != 'result':
+		iq['to'] = room
+		result = iq.send()
+		if result is None or result['type'] != 'result':
 			raise ValueError
-		form = result.find('{http://jabber.org/protocol/muc#owner}query/{jabber:x:data}x')
+		form = result.xml.find('{http://jabber.org/protocol/muc#owner}query/{jabber:x:data}x')
 		if form is None:
 			raise ValueError
 		return self.xmpp.plugin['xep_0004'].buildForm(form)
@@ -212,15 +273,15 @@ class xep_0045(base.base_plugin):
 		x = ET.Element('{jabber:x:data}x', type='cancel')
 		query.append(x)
 		iq = self.xmpp.makeIqSet(query)
-		self.xmpp.send(iq, "<iq id='%s' />" % iq.get('id'))
+		iq.send()
 	
 	def setRoomConfig(self, room, config):
 		query = ET.Element('{http://jabber.org/protocol/muc#owner}query')
 		x = config.getXML('submit')
 		query.append(x)
 		iq = self.xmpp.makeIqSet(query)
-		iq.attrib['to'] = room
-		self.xmpp.send(iq, "<iq id='%s' />" % iq.get('id'))
+		iq['to'] = room
+		iq.send()
 		
 	def getJoinedRooms(self):
 		return self.rooms.keys()

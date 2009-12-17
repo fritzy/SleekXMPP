@@ -20,7 +20,7 @@ class Waiter(base.BaseHandler):
 			return self._payload.get(True, timeout)
 		except queue.Empty:
 			logging.warning("Timed out waiting for %s" % self.name)
-			return StanzaBase(stype='error')
+			return False
 	
 	def checkDelete(self):
 		return True

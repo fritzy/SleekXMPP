@@ -5,6 +5,8 @@ class HTMLIM(ElementBase):
 	name = 'html'
 	plugin_attrib = 'html'
 	interfaces = set(('html'))
+	plugin_attrib_map = set()
+	plugin_xml_map = set()
 
 	def setHtml(self, html):
 		if issinstance(html, str):

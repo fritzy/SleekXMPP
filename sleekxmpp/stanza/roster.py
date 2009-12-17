@@ -36,7 +36,7 @@ class Roster(ElementBase):
 				if groupsxml is not None:
 					for groupxml in groupsxml:
 						item['groups'].append(groupxml.text)
-			items[JID(itemxml.get('jid'))] = item
+				items[JID(itemxml.get('jid'))] = item
 		return items
 	
 	def delItems(self):

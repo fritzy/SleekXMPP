@@ -5,7 +5,7 @@ from .. xmlstream.handler.waiter import Waiter
 from .. xmlstream.matcher.id import MatcherId
 
 class Iq(StanzaBase):
-	interfaces = set(('type', 'to', 'from', 'id', 'body', 'subject'))
+	interfaces = set(('type', 'to', 'from', 'id','query'))
 	types = set(('get', 'result', 'set', 'error'))
 	name = 'iq'
 	namespace = 'jabber:client'
@@ -13,7 +13,19 @@ class Iq(StanzaBase):
 	def __init__(self, *args, **kwargs):
 		StanzaBase.__init__(self, *args, **kwargs)
 		if self['id'] == '':
-			self['id'] = self.stream.getId()
+			self['id'] = self.stream.getNewId()
+	
+	def exception(self, text):
+		self.reply()
+		self['error']['condition'] = 'undefined-condition'
+		self['error']['text'] = text
+		self.send()
+	
+	def unhandled(self):
+		self.reply()
+		self['error']['condition'] = 'feature-not-implemented'
+		self['error']['text'] = 'No handlers registered for this request.'
+		self.send()
 	
 	def result(self):
 		self['type'] = 'result'
@@ -35,6 +47,29 @@ class Iq(StanzaBase):
 	def setPayload(self, value):
 		self.clear()
 		StanzaBase.setPayload(self, value)
+	
+	def setQuery(self, value):
+		query = self.xml.find("{%s}query" % value)
+		if query is None:
+			self.clear()
+			query = ET.Element("{%s}query" % value)
+			self.xml.append(query)
+		return self
+	
+	def getQuery(self):
+		for child in self.getchildren():
+			if child.tag.endswith('query'):
+				ns =child.tag.split('}')[0]
+				if '{' in ns:
+					ns = ns[1:]
+				return ns
+		return ''
+	
+	def delQuery(self):
+		for child in self.getchildren():
+			if child.tag.endswith('query'):
+				self.xml.remove(child)
+		return self
 	
 	def unhandled(self):
 		pass

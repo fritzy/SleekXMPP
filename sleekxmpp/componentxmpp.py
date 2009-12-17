@@ -64,14 +64,7 @@ class ComponentXMPP(basexmpp, XMLStream):
 		self.server_port = port
 		self.set_jid(jid)
 		self.secret = secret
-		self.registerHandler(Callback('PresenceProbe', MatchXMLMask("<presence xmlns='%s' type='probe'/>" % self.default_ns), self._handlePresenceProbe))
 		self.registerHandler(Callback('Handshake', MatchXPath('{jabber:component:accept}handshake'), self._handleHandshake))
-		self.registerHandler(Callback('PresenceSubscription', MatchMany(\
-			(MatchXMLMask("<presence xmlns='%s' type='subscribe'/>" % self.default_ns), \
-			 MatchXMLMask("<presence xmlns='%s' type='subscribed'/>" % self.default_ns), \
-			 MatchXMLMask("<presence xmlns='%s' type='unsubscribe'/>" % self.default_ns), \
-			 MatchXMLMask("<presence xmlns='%s' type='unsubscribed'/>" % self.default_ns) \
-			 )), self._handlePresenceSubscription))
 	
 	def incoming_filter(self, xmlobj):
 		if xmlobj.tag.startswith('{jabber:client}'):
@@ -80,22 +73,6 @@ class ComponentXMPP(basexmpp, XMLStream):
 			self.incoming_filter(sub)
 		return xmlobj
 
-
-	def _handlePresenceProbe(self, stanza):
-		xml = stanza.xml
-		self.event("got_presence_probe", ({
-				'from': xml.attrib['from'],
-				'to': xml.attrib['to']
-			}))
-
-	def _handlePresenceSubscription(self, presence):
-		xml = presence.xml
-		self.event("changed_subscription", {
-				'type' : xml.attrib['type'],
-				'from': xml.attrib['from'],
-				'to': xml.attrib['to'] 
-			})
-	
 	def start_stream_handler(self, xml):
 		sid = xml.get('id', '')
 		handshake = ET.Element('{jabber:component:accept}handshake')

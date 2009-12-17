@@ -1,4 +1,5 @@
 from xml.etree import cElementTree as ET
+import logging
 
 class JID(object):
 	def __init__(self, jid):
@@ -45,7 +46,12 @@ class ElementBase(object):
 		if self.xml is None:
 			self.xml = xml
 		if self.xml is None:
-			self.xml = ET.Element("{%(namespace)s}%(name)s" % {'name': self.name, 'namespace': self.namespace})
+			for ename in self.name.split('/'):
+				new = ET.Element("{%(namespace)s}%(name)s" % {'name': self.name, 'namespace': self.namespace})
+				if self.xml is None:
+					self.xml = new
+				else:
+					self.xml.append(new)
 			if self.parent is not None:
 				self.parent.xml.append(self.xml)
 			return True #had to generate XML
@@ -70,7 +76,7 @@ class ElementBase(object):
 				else:
 					return self._getAttr(attrib)
 		elif attrib in self.plugin_attrib_map:
-			self.initPlugin(attrib)
+			if attrib not in self.plugins: self.initPlugin(attrib)
 			return self.plugins[attrib]
 		else:
 			return ''
@@ -87,9 +93,10 @@ class ElementBase(object):
 						self._setAttr(attrib, value)
 			else:
 				self.__delitem__(attrib)
-		elif attrib in self.plugin_map:
+		elif attrib in self.plugin_attrib_map:
+			if attrib not in self.plugins: self.initPlugin(attrib)
 			self.initPlugin(attrib)
-			self.plugins[attrib].setValues(value)
+			self.plugins[attrib][attrib] = value
 		return self
 	
 	def __delitem__(self, attrib):
@@ -101,7 +108,7 @@ class ElementBase(object):
 					return self._delSub(attrib)
 				else:
 					self._delAttr(attrib)
-		elif attrib in self.plugin_map:
+		elif attrib in self.plugin_attrib_map:
 			if attrib in self.plugins:
 				del self.plugins[attrib]
 		return self
@@ -114,7 +121,10 @@ class ElementBase(object):
 		return True
 	
 	def _setAttr(self, name, value):
-		self.xml.attrib[name] = value
+		if value is None or value == '':
+			self.__delitem__(name)
+		else:
+			self.xml.attrib[name] = value
 	
 	def _delAttr(self, name):
 		if name in self.xml.attrib:
@@ -131,12 +141,14 @@ class ElementBase(object):
 			return stanza.text
 	
 	def _setSubText(self, name, attrib={}, text=None):
+		if text is None or text == '':
+			return self.__delitem__(name)
 		stanza = self.xml.find("{%s}%s" % (self.namespace, name))
 		if stanza is None:
-			self.xml.append(ET.Element("{%s}%s" % (self.namespace, name), attrib))
-			stanza = self.xml.find("{%s}%s" % (self.namespace, name))
-		if text is not None:
-			stanza.text = text
+			#self.xml.append(ET.Element("{%s}%s" % (self.namespace, name), attrib))
+			stanza = ET.Element("{%s}%s" % (self.namespace, name))
+			self.xml.append(stanza)
+		stanza.text = text
 		return stanza
 		
 	def _delSub(self, name):
@@ -228,6 +240,9 @@ class StanzaBase(ElementBase):
 	def unhandled(self):
 		pass
 	
+	def exception(self, text):
+		logging.error(text)
+	
 	def send(self):
 		self.stream.sendRaw(str(self))
 
@@ -285,7 +300,7 @@ class StanzaBase(ElementBase):
 					text[cc] = '&gt;'
 				elif c == "'":
 					text[cc] = '&apos;'
-				elif self.escape_quotes:
+				else:
 					text[cc] = '&quot;'
 			cc += 1
 		return ''.join(text)

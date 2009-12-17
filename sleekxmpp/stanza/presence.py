@@ -19,6 +19,8 @@ class Presence(StanzaBase):
 			if value in self.types:
 				if show is not None:
 					self.xml.remove(show)
+				if value == 'available':
+					value = ''
 				self._setAttr('type', value)
 			elif value in self.showtypes:
 				if show is None:
@@ -44,8 +46,18 @@ class Presence(StanzaBase):
 			out = 'available'
 		return out
 	
-	def delType(self):
-		self.setType('available')
+	def reply(self):
+		if self['type'] == 'unsubscribe':
+			self['type'] = 'unsubscribed'
+		elif self['type'] == 'subscribe':
+			self['type'] = 'subscribed'
+		return StanzaBase.reply(self)
+	
+	def exception(self, text):
+		self.reply()
+		self['error']['condition'] = 'undefined-condition'
+		self['error']['text'] = text
+		self.send()
 
 Presence.plugin_attrib_map['error'] = Error
 Presence.plugin_tag_map["{%s}%s" % (Error.namespace, Error.name)] = Error

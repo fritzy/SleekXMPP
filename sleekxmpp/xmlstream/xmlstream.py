@@ -257,14 +257,15 @@ class XMLStream(object):
 				break
 		if stanza is None:
 			stanza = StanzaBase(self, xmlobj)
+		unhandled = True
 		for handler in self.__handlers:
 			if handler.match(xmlobj):
 				handler.prerun(stanza)
 				self.eventqueue.put(('stanza', handler, stanza))
 				if handler.checkDelete(): self.__handlers.pop(self.__handlers.index(handler))
-			else:
-				stanza.unhandled()
-
+				unhandled = False
+		if unhandled:
+			stanza.unhandled()
 			#loop through handlers and test match
 			#spawn threads as necessary, call handlers, sending Stanza
 	

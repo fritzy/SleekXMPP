@@ -214,8 +214,8 @@ class StanzaBase(ElementBase):
 	def clear(self):
 		for child in self.xml.getchildren():
 			self.xml.remove(child)
-		for plugin in self.plugins:
-			del self.plugins[plugin]
+		#for plugin in list(self.plugins.keys()):
+		#	del self.plugins[plugin]
 	
 	def reply(self):
 		self['from'], self['to'] = self['to'], self['from']

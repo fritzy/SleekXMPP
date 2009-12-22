@@ -65,21 +65,19 @@ class Iq(StanzaBase):
 				return ns
 		return ''
 	
+	def reply(self):
+		self['type'] = 'result'
+		StanzaBase.reply(self)
+		return self
+	
 	def delQuery(self):
 		for child in self.getchildren():
 			if child.tag.endswith('query'):
 				self.xml.remove(child)
 		return self
 	
-	def unhandled(self):
-		pass
-		# returned unhandled error
-	
-	def exception(self, traceback=None):
-		pass
-	
 	def send(self, block=True, timeout=10):
-		if block:
+		if block and self['type'] in ('get', 'set'):
 			waitfor = Waiter('IqWait_%s' % self['id'], MatcherId(self['id']))
 			self.stream.registerHandler(waitfor)
 			StanzaBase.send(self)

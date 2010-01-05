@@ -3,8 +3,9 @@ from xml.etree import cElementTree as ET
 from . error import Error
 from .. xmlstream.handler.waiter import Waiter
 from .. xmlstream.matcher.id import MatcherId
+from . rootstanza import RootStanza
 
-class Iq(StanzaBase):
+class Iq(RootStanza):
 	interfaces = set(('type', 'to', 'from', 'id','query'))
 	types = set(('get', 'result', 'set', 'error'))
 	name = 'iq'
@@ -13,13 +14,10 @@ class Iq(StanzaBase):
 	def __init__(self, *args, **kwargs):
 		StanzaBase.__init__(self, *args, **kwargs)
 		if self['id'] == '':
-			self['id'] = self.stream.getNewId()
-	
-	def exception(self, text):
-		self.reply()
-		self['error']['condition'] = 'undefined-condition'
-		self['error']['text'] = text
-		self.send()
+			if self.stream is not None:
+				self['id'] = self.stream.getNewId()
+			else:
+				self['id'] = '0'
 	
 	def unhandled(self):
 		self.reply()
@@ -84,7 +82,3 @@ class Iq(StanzaBase):
 			return waitfor.wait(timeout)
 		else:
 			return StanzaBase.send(self)
-		
-
-Iq.plugin_attrib_map['error'] = Error
-Iq.plugin_tag_map["{%s}%s" % (Error.namespace, Error.name)] = Error

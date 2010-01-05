@@ -1,8 +1,9 @@
 from .. xmlstream.stanzabase import StanzaBase
 from xml.etree import cElementTree as ET
 from . error import Error
+from . rootstanza import RootStanza
 
-class Message(StanzaBase):
+class Message(RootStanza):
 	interfaces = set(('type', 'to', 'from', 'id', 'body', 'subject'))
 	types = set((None, 'normal', 'chat', 'headline', 'error', 'groupchat'))
 	sub_interfaces = set(('body', 'subject'))
@@ -27,11 +28,3 @@ class Message(StanzaBase):
 			self['body'] = body
 		return self
 	
-	def exception(self, text):
-		self.reply()
-		self['error']['condition'] = 'undefined-condition'
-		self['error']['text'] = text
-		self.send()
-	
-Message.plugin_attrib_map['error'] = Error
-Message.plugin_tag_map["{%s}%s" % (Error.namespace, Error.name)] = Error

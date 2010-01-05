@@ -1,7 +1,8 @@
 from __future__ import with_statement
 from . import base
 import logging
-from xml.etree import cElementTree as ET
+#from xml.etree import cElementTree as ET
+from .. xmlstream.stanzabase import ElementBase, ET
 
 class xep_0060(base.base_plugin):
 	"""

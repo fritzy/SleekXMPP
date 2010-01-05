@@ -1,5 +1,6 @@
 from xml.etree import cElementTree as ET
 import logging
+import traceback
 
 class JID(object):
 	def __init__(self, jid):
@@ -31,6 +32,7 @@ class ElementBase(object):
 	plugin_tag_map = {}
 
 	def __init__(self, xml=None, parent=None):
+		self.attrib = self # backwards compatibility hack
 		self.parent = parent
 		self.xml = xml
 		self.plugins = {}
@@ -41,6 +43,9 @@ class ElementBase(object):
 
 	def match(self, xml):
 		return xml.tag == self.tag
+	
+	def find(self, xpath): # for backwards compatiblity, expose elementtree interface
+		return self.xml.find(xpath)
 	
 	def setup(self, xml=None):
 		if self.xml is None:
@@ -183,9 +188,8 @@ class StanzaBase(ElementBase):
 	types = set(('get', 'set', 'error', None, 'unavailable', 'normal', 'chat'))
 	sub_interfaces = tuple()
 
-	def __init__(self, stream, xml=None, stype=None, sto=None, sfrom=None, sid=None):
+	def __init__(self, stream=None, xml=None, stype=None, sto=None, sfrom=None, sid=None):
 		self.stream = stream
-		self.namespace = stream.default_ns
 		ElementBase.__init__(self, xml)
 		if stype is not None:
 			self['type'] = stype
@@ -193,7 +197,9 @@ class StanzaBase(ElementBase):
 			self['to'] = sto
 		if sfrom is not None:
 			self['from'] = sfrom
-		self.tag = "{%s}%s" % (self.stream.default_ns, self.name)
+		if stream is not None:
+			self.namespace = stream.default_ns
+		self.tag = "{%s}%s" % (self.namespace, self.name)
 	
 	def setType(self, value):
 		if value in self.types:
@@ -240,8 +246,8 @@ class StanzaBase(ElementBase):
 	def unhandled(self):
 		pass
 	
-	def exception(self, text):
-		logging.error(text)
+	def exception(self, e):
+		logging.error(traceback.format_tb(e))
 	
 	def send(self):
 		self.stream.sendRaw(str(self))
@@ -257,13 +263,13 @@ class StanzaBase(ElementBase):
 		else:
 			ixmlns = ''
 		nsbuffer = ''
-		if xmlns != ixmlns and ixmlns != '' and ixmlns != self.stream.default_ns:
-			if ixmlns in self.stream.namespace_map:
+		if xmlns != ixmlns and ixmlns != '' and ixmlns != self.namespace:
+			if self.stream is not None and ixmlns in self.stream.namespace_map:
 				if self.stream.namespace_map[ixmlns] != '':
 					itag = "%s:%s" % (self.stream.namespace_map[ixmlns], itag)
 			else:
 				nsbuffer = """ xmlns="%s\"""" % ixmlns
-		if ixmlns not in (xmlns, self.namespace):
+		if ixmlns not in ('', xmlns, self.namespace):
 			nsbuffer = """ xmlns="%s\"""" % ixmlns
 		newoutput.append("<%s" % itag)
 		newoutput.append(nsbuffer)

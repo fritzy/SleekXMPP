@@ -1,8 +1,9 @@
 from .. xmlstream.stanzabase import StanzaBase
 from xml.etree import cElementTree as ET
 from . error import Error
+from . rootstanza import RootStanza
 
-class Presence(StanzaBase):
+class Presence(RootStanza):
 	interfaces = set(('type', 'to', 'from', 'id', 'status', 'priority'))
 	types = set(('available', 'unavailable', 'error', 'probe', 'subscribe', 'subscribed', 'unsubscribe', 'unsubscribed'))
 	showtypes = set(('dnd', 'ffc', 'xa', 'away'))
@@ -52,12 +53,3 @@ class Presence(StanzaBase):
 		elif self['type'] == 'subscribe':
 			self['type'] = 'subscribed'
 		return StanzaBase.reply(self)
-	
-	def exception(self, text):
-		self.reply()
-		self['error']['condition'] = 'undefined-condition'
-		self['error']['text'] = text
-		self.send()
-
-Presence.plugin_attrib_map['error'] = Error
-Presence.plugin_tag_map["{%s}%s" % (Error.namespace, Error.name)] = Error

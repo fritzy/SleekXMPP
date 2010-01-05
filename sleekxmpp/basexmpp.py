@@ -18,6 +18,8 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 from __future__ import with_statement
+
+
 from xml.etree import cElementTree as ET
 from . xmlstream.xmlstream import XMLStream
 from . xmlstream.matcher.xmlmask import MatchXMLMask
@@ -32,6 +34,7 @@ from . stanza.presence import Presence
 from . stanza.roster import Roster
 from . stanza.nick import Nick
 from . stanza.htmlim import HTMLIM
+from . stanza.error import Error
 
 import logging
 import threading
@@ -91,6 +94,8 @@ class basexmpp(object):
 		"""Register a plugin not in plugins.__init__.__all__ but in the plugins
 		directory."""
 		# discover relative "path" to the plugins module from the main app, and import it.
+		# TODO:
+		# gross, this probably isn't necessary anymore, especially for an installed module
 		__import__("%s.%s" % (globals()['plugins'].__name__, plugin))
 		# init the plugin class
 		self.plugin[plugin] = getattr(getattr(plugins, plugin), plugin)(self, pconfig) # eek

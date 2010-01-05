@@ -48,7 +48,7 @@ class xep_0004(base.base_plugin):
 		return object
 	
 	def buildForm(self, xml):
-		form = Form(xml.attrib['type'])
+		form = Form(ftype=xml.attrib['type'])
 		form.fromXML(xml)
 		return form
 

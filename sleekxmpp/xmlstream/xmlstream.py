@@ -281,8 +281,8 @@ class XMLStream(object):
 				if etype == 'stanza':
 					try:
 						handler.run(args[0])
-					except:
-						args[0].exception(traceback.format_exc())
+					except Exception as e:
+						args[0].exception(e)
 				elif etype == 'sched':
 					try:
 						handler.run(*args)

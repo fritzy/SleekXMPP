@@ -48,14 +48,14 @@ class Iq(RootStanza):
 	
 	def setQuery(self, value):
 		query = self.xml.find("{%s}query" % value)
-		if query is None:
+		if query is None and value:
 			self.clear()
 			query = ET.Element("{%s}query" % value)
 			self.xml.append(query)
 		return self
 	
 	def getQuery(self):
-		for child in self.getchildren():
+		for child in self.xml.getchildren():
 			if child.tag.endswith('query'):
 				ns =child.tag.split('}')[0]
 				if '{' in ns:

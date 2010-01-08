@@ -5,63 +5,52 @@ from .. xmlstream.xmlstream import XMLStream
 from . import xep_0004
 
 def stanzaPlugin(stanza, plugin):                                                                       
-    stanza.plugin_attrib_map[plugin.plugin_attrib] = plugin                                             
-    stanza.plugin_tag_map["{%s}%s" % (plugin.namespace, plugin.name)] = plugin 
+	stanza.plugin_attrib_map[plugin.plugin_attrib] = plugin                                             
+	stanza.plugin_tag_map["{%s}%s" % (plugin.namespace, plugin.name)] = plugin 
 
 class Pubsub(ElementBase):
 	namespace = 'http://jabber.org/protocol/pubsub'
 	name = 'pubsub'
 	plugin_attrib = 'pubsub'
 	interfaces = set(tuple())
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
 
 stanzaPlugin(Iq, Pubsub)
 
 class PubsubOwner(ElementBase):
 	namespace = 'http://jabber.org/protocol/pubsub#owner'
-	name = 'pubsub_owner'
-	plugin_attrib = 'pubsub'
+	name = 'pubsub'
+	plugin_attrib = 'pubsub_owner'
 	interfaces = set(tuple())
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
 
 stanzaPlugin(Iq, PubsubOwner)
+
+class Affiliation(ElementBase):
+	namespace = 'http://jabber.org/protocol/pubsub'
+	name = 'affiliation'
+	plugin_attrib = name
+	interfaces = set(('node', 'affiliation'))
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
 
 class Affiliations(ElementBase):
 	namespace = 'http://jabber.org/protocol/pubsub'
 	name = 'affiliations'
 	plugin_attrib = 'affiliations'
 	interfaces = set(tuple())
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
+	subitem = Affiliation
 
-	def __init__(self, *args, **kwargs):
-		ElementBase.__init__(self, *args, **kwargs)
-		self.affiliations = []
-		self.idx = 0
-
-	def __iter__(self):
-		self.idx = 0
-		return self
-	
-	def __next__(self):
-		self.idx += 1
-		if self.idx + 1 > len(self.affiliations):
-			self.idx = 0
-			raise StopIteration
-		return self.affiliations[self.idx]
-	
-	def __len__(self):
-		return len(self.affiliations)
-	
 	def append(self, affiliation):
 		if not isinstance(affiliation, Affiliation):
 			raise TypeError
 		self.xml.append(affiliation.xml)
-		return self.affiliations.append(affiliation)
-	
-	def pop(self, idx=0):
-		aff = self.affiliations.pop(idx)
-		self.xml.remove(aff.xml)
-		return aff
-	
-	def find(self, affiliation):
-		return self.affiliations.find(affiliation)
+		return self.iterables.append(affiliation)
+
 
 stanzaPlugin(Pubsub, Affiliations)
 
@@ -70,6 +59,8 @@ class Subscriptions(ElementBase):
 	name = 'subscriptions'
 	plugin_attrib = 'subscriptions'
 	interfaces = set(tuple())
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
 
 	def __init__(self, *args, **kwargs):
 		ElementBase.__init__(self, *args, **kwargs)
@@ -106,17 +97,14 @@ class Subscriptions(ElementBase):
 
 stanzaPlugin(Pubsub, Subscriptions)
 
-class Affiliation(ElementBase):
-	namespace = 'http://jabber.org/protocol/pubsub'
-	name = 'affiliation'
-	plugin_attrib = name
-	interfaces = set(('node', 'affiliation'))
 
 class Subscription(ElementBase):
 	namespace = 'http://jabber.org/protocol/pubsub'
 	name = 'subscription'
 	plugin_attrib = name
 	interfaces = set(('jid', 'node', 'subid', 'subscription'))
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
 
 	def setJid(self, value):
 		self._setAttr('jid', str(value))
@@ -153,6 +141,8 @@ class SubscribeOptions(ElementBase, OptionalSetting):
 	namespace = 'http://jabber.org/protocol/pubsub'
 	name = 'subscribe-options'
 	plugin_attrib = 'options'
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
 
 stanzaPlugin(Subscription, SubscribeOptions)
 
@@ -161,6 +151,8 @@ class Items(ElementBase):
 	name = 'items'
 	plugin_attrib = 'items'
 	interfaces = set(tuple())
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
 
 	def __init__(self, *args, **kwargs):
 		ElementBase.__init__(self, *args, **kwargs)
@@ -202,6 +194,8 @@ class Item(ElementBase):
 	name = 'item'
 	plugin_attrib = name
 	interfaces = set(('id', 'payload'))
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
 
 	def setPayload(self, value):
 		self.xml.append(value)
@@ -220,6 +214,8 @@ class Create(ElementBase):
 	name = 'create'
 	plugin_attrib = name
 	interfaces = set(('node'))
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
 
 stanzaPlugin(Pubsub, Create)
 
@@ -228,6 +224,8 @@ class Default(ElementBase):
 	name = 'default'
 	plugin_attrib = name
 	interfaces = set(('node', 'type'))
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
 
 	def getType(self):
 		t = self._getAttr('type')
@@ -241,6 +239,8 @@ class Publish(Items):
 	name = 'publish'
 	plugin_attrib = name
 	interfaces = set(('node'))
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
 
 stanzaPlugin(Pubsub, Publish)
 
@@ -249,6 +249,8 @@ class Retract(Items):
 	name = 'retract'
 	plugin_attrib = name
 	interfaces = set(('node', 'notify'))
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
 
 stanzaPlugin(Pubsub, Retract)
 
@@ -257,6 +259,8 @@ class Unsubscribe(ElementBase):
 	name = 'unsubscribe'
 	plugin_attrib = name
 	interfaces = set(('node', 'jid'))
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
 	
 	def setJid(self, value):
 		self._setAttr('jid', str(value))
@@ -269,6 +273,8 @@ class Subscribe(ElementBase):
 	name = 'subscribe'
 	plugin_attrib = name
 	interfaces = set(('node', 'jid'))
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
 
 	def setJid(self, value):
 		self._setAttr('jid', str(value))
@@ -283,6 +289,8 @@ class Configure(ElementBase):
 	name = 'configure'
 	plugin_attrib = name
 	interfaces = set(('node', 'type', 'config'))
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
 
 	def getType(self):
 		t = self._getAttr('type')
@@ -311,6 +319,8 @@ class DefaultConfig(ElementBase):
 	name = 'default'
 	plugin_attrib = 'defaultconfig'
 	interfaces = set(('node', 'type', 'config'))
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
 	
 	def __init__(self, *args, **kwargs):
 		ElementBase.__init__(self, *args, **kwargs)
@@ -337,6 +347,8 @@ class Options(ElementBase):
 	name = 'options'
 	plugin_attrib = 'options'
 	interfaces = set(('jid', 'node', 'options'))
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
 	
 	def __init__(self, *args, **kwargs):
 		ElementBase.__init__(self, *args, **kwargs)
@@ -364,34 +376,24 @@ class Options(ElementBase):
 
 stanzaPlugin(Pubsub, Options)
 
-iq = Iq()
-aff1 = Affiliation()
-aff1['node'] = 'testnode'
-aff1['affiliation'] = 'owner'
-aff2 = Affiliation()
-aff2['node'] = 'testnode2'
-aff2['affiliation'] = 'publisher'
-iq['pubsub']['affiliations'].append(aff1)
-iq['pubsub']['affiliations'].append(aff2)
-print(iq)
-iq['pubsub']['affiliations'].pop(0)
-print(iq)
 
-iq = Iq()
-iq['pubsub']['defaultconfig']
-print(iq)
+#iq = Iq()
+#iq['pubsub']['defaultconfig']
+#print(iq)
 
-from xml.etree import cElementTree as ET
-iq = Iq()
-item = Item()
-item['payload'] = ET.Element("{http://netflint.net/p/crap}stupidshit")
-item['id'] = 'aa11bbcc'
-iq['pubsub']['items'].append(item)
-print(iq)
+#from xml.etree import cElementTree as ET
+#iq = Iq()
+#item = Item()
+#item['payload'] = ET.Element("{http://netflint.net/p/crap}stupidshit")
+#item['id'] = 'aa11bbcc'
+#iq['pubsub']['items'].append(item)
+#print(iq)
 	
 class OwnerAffiliations(Affiliations):
 	namespace = 'http://jabber.org/protocol/pubsub#owner'
 	interfaces = set(('node'))
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
 	
 	def append(self, affiliation):
 		if not isinstance(affiliation, OwnerAffiliation):
@@ -404,16 +406,22 @@ stanzaPlugin(PubsubOwner, OwnerAffiliations)
 class OwnerAffiliation(Affiliation):
 	namespace = 'http://jabber.org/protocol/pubsub#owner'
 	interfaces = set(('affiliation', 'jid'))
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
 
 class OwnerConfigure(Configure):
 	namespace = 'http://jabber.org/protocol/pubsub#owner'
 	interfaces = set(('node', 'config'))
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
 
 stanzaPlugin(PubsubOwner, OwnerConfigure)
 
 class OwnerDefault(OwnerConfigure):
 	namespace = 'http://jabber.org/protocol/pubsub#owner'
 	interfaces = set(('node', 'config'))
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
 
 stanzaPlugin(PubsubOwner, OwnerDefault)
 
@@ -421,6 +429,8 @@ class OwnerDelete(ElementBase, OptionalSetting):
 	namespace = 'http://jabber.org/protocol/pubsub#owner'
 	name = 'delete'
 	plugin_attrib = 'delete'
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
 
 stanzaPlugin(PubsubOwner, OwnerDelete)
 
@@ -428,6 +438,8 @@ class OwnerPurge(ElementBase, OptionalSetting):
 	namespace = 'http://jabber.org/protocol/pubsub#owner'
 	name = 'purge'
 	plugin_attrib = name
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
 
 stanzaPlugin(PubsubOwner, OwnerPurge)
 
@@ -436,6 +448,8 @@ class OwnerRedirect(ElementBase):
 	name = 'redirect'
 	plugin_attrib = name
 	interfaces = set(('node', 'jid'))
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
 	
 	def setJid(self, value):
 		self._setAttr('jid', str(value))
@@ -448,6 +462,8 @@ stanzaPlugin(OwnerDelete, OwnerRedirect)
 class OwnerSubscriptions(Subscriptions):
 	namespace = 'http://jabber.org/protocol/pubsub#owner'
 	interfaces = set(('node',))
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
 	
 	def append(self, subscription):
 		if not isinstance(subscription, OwnerSubscription):
@@ -462,6 +478,8 @@ class OwnerSubscription(ElementBase):
 	name = 'subscription'
 	plugin_attrib = name
 	interfaces = set(('jid', 'subscription'))
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
 
 	def setJid(self, value):
 		self._setAttr('jid', str(value))

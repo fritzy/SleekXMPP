@@ -30,16 +30,56 @@ class ElementBase(object):
 	sub_interfaces = tuple()
 	plugin_attrib_map = {}
 	plugin_tag_map = {}
+	subitem = None
 
 	def __init__(self, xml=None, parent=None):
 		self.attrib = self # backwards compatibility hack
 		self.parent = parent
 		self.xml = xml
 		self.plugins = {}
-		if not self.setup(xml) and len(self.plugin_attrib_map):
+		self.iterables = []
+		self.idx = 0
+		if not self.setup(xml):
 			for child in self.xml.getchildren():
 				if child.tag in self.plugin_tag_map:
 					self.plugins[self.plugin_tag_map[child.tag].plugin_attrib] = self.plugin_tag_map[child.tag](xml=child, parent=self)
+				if self.subitem is not None and child.tag == "{%s}%s" % (self.subitem.namespace, self.subitem.name):
+					self.iterables.append(self.subitem(xml=child, parent=self))
+
+	def __iter__(self):
+		self.idx = 0
+		return self
+	
+	def __next__(self):
+		self.idx += 1
+		if self.idx + 1 > len(self.iterables):
+			self.idx = 0
+			raise StopIteration
+		return self.affiliations[self.idx]
+	
+	def __len__(self):
+		return len(self.iterables)
+	
+	def append(self, item):
+		if not isinstance(item, ElementBase):
+			raise TypeError
+		self.xml.append(item.xml)
+		return self.iterables.append(item)
+	
+	def pop(self, idx=0):
+		aff = self.iterables.pop(idx)
+		self.xml.remove(aff.xml)
+		return aff
+	
+	def keys(self):
+		out = []
+		out += [x for x in self.interfaces]
+		out += [x for x in self.plugins]
+		if self.iterables:
+			out.append('substanzas')
+	
+	def find(self, item):
+		return self.iterables.find(item)
 
 	def match(self, xml):
 		return xml.tag == self.tag
@@ -72,7 +112,9 @@ class ElementBase(object):
 			self.plugins[attrib] = self.plugin_attrib_map[attrib](parent=self)
 	
 	def __getitem__(self, attrib):
-		if attrib in self.interfaces:
+		if attrib == 'substanzas':
+			return self.iterables
+		elif attrib in self.interfaces:
 			if hasattr(self, "get%s" % attrib.title()):
 				return getattr(self, "get%s" % attrib.title())()
 			else:
@@ -165,12 +207,26 @@ class ElementBase(object):
 		out = {}
 		for interface in self.interfaces:
 			out[interface] = self[interface]
+		for pluginkey in self.plugins:
+			out[pluginkey] = self.plugins[pluginkey].getValues()
+		if self.iterables:
+			iterables = [x.getValues() for x in self.iterables]
+			out['substanzas'] = iterables
 		return out
 	
 	def setValues(self, attrib):
 		for interface in attrib:
-			if interface in self.interfaces:
+			if interface == 'substanzas':
+				for subdict in attrib['substanzas']:
+					sub = self.subitem(parent=self)
+					sub.setValues(subdict)
+					self.iterables.append(sub)
+			elif interface in self.interfaces:
 				self[interface] = attrib[interface]
+			elif interface in self.plugin_attrib_map and interface not in self.plugins:
+				self.initPlugin(interface)
+			if interface in self.plugins:
+				self.plugins[interface].setValues(attrib[interface])
 		return self
 	
 	def append(self, xml):
@@ -204,8 +260,6 @@ class StanzaBase(ElementBase):
 	def setType(self, value):
 		if value in self.types:
 				self.xml.attrib['type'] = value
-		else:
-			raise ValueError
 		return self
 
 	def getPayload(self):

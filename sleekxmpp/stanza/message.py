@@ -4,7 +4,7 @@ from . error import Error
 from . rootstanza import RootStanza
 
 class Message(RootStanza):
-	interfaces = set(('type', 'to', 'from', 'id', 'body', 'subject', 'groupchat'))
+	interfaces = set(('type', 'to', 'from', 'id', 'body', 'subject', 'mucroom', 'mucnick'))
 	types = set((None, 'normal', 'chat', 'headline', 'error', 'groupchat'))
 	sub_interfaces = set(('body', 'subject'))
 	name = 'message'
@@ -30,3 +30,26 @@ class Message(RootStanza):
 			self['body'] = body
 		return self
 	
+	def getMucroom(self):
+		if self['type'] == 'groupchat':
+			return self['from'].bare
+		else:
+			return ''
+	
+	def setMucroom(self, value):
+		pass
+	
+	def delMucroom(self):
+		pass
+	
+	def getMucnick(self):
+		if self['type'] == 'groupchat':
+			return self['from'].resource
+		else:
+			return ''
+	
+	def setMucnick(self, value):
+		pass
+	
+	def delMucnick(self):
+		pass

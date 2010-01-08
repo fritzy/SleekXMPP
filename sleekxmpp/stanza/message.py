@@ -4,7 +4,7 @@ from . error import Error
 from . rootstanza import RootStanza
 
 class Message(RootStanza):
-	interfaces = set(('type', 'to', 'from', 'id', 'body', 'subject'))
+	interfaces = set(('type', 'to', 'from', 'id', 'body', 'subject', 'groupchat'))
 	types = set((None, 'normal', 'chat', 'headline', 'error', 'groupchat'))
 	sub_interfaces = set(('body', 'subject'))
 	name = 'message'
@@ -23,6 +23,8 @@ class Message(RootStanza):
 	
 	def reply(self, body=None):
 		StanzaBase.reply(self)
+		if self['type'] == 'groupchat':
+			self['to'] = self['to'].bare
 		del self['id']
 		if body is not None:
 			self['body'] = body

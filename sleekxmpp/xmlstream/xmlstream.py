@@ -1,5 +1,8 @@
-from __future__ import with_statement
-import queue
+from __future__ import with_statement, unicode_literals
+try:
+	import queue
+except ImportError:
+	import Queue as queue
 from . import statemachine
 from . stanzabase import StanzaBase
 from xml.etree import cElementTree
@@ -15,10 +18,15 @@ import xml.sax.saxutils
 HANDLER_THREADS = 1
 
 ssl_support = True
-try:
-	import ssl
-except ImportError:
-	ssl_support = False
+#try:
+import ssl
+#except ImportError:
+#	ssl_support = False
+import sys
+if sys.version_info < (3, 0):
+	#monkey patch broken filesocket object
+	from . import filesocket
+	socket._fileobject = filesocket.filesocket
 	
 
 class RestartStream(Exception):
@@ -89,11 +97,13 @@ class XMLStream(object):
 				self.use_tls = use_tls
 			self.state.set('is client', True)
 			self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+			self.socket.settimeout(None)
 			if self.use_ssl and self.ssl_support:
 				logging.debug("Socket Wrapped for SSL")
 				self.socket = ssl.wrap_socket(self.socket)
 			try:
 				self.socket.connect(self.address)
+				#self.filesocket = self.socket.makefile('rb', 0)
 				self.filesocket = self.socket.makefile('rb', 0)
 				self.state.set('connected', True)
 				return True
@@ -111,7 +121,11 @@ class XMLStream(object):
 			self.realsocket = self.socket
 			self.socket = ssl.wrap_socket(self.socket, ssl_version=ssl.PROTOCOL_TLSv1, do_handshake_on_connect=False)
 			self.socket.do_handshake()
-			self.filesocket = self.socket.makefile('rb', 0)
+			if sys.version_info < (3,0):
+				from . filesocket import filesocket
+				self.filesocket = filesocket(self.socket)
+			else:
+				self.filesocket = self.socket.makefile('rb', 0)
 			return True
 		else:
 			logging.warning("Tried to enable TLS, but ssl module not found.")
@@ -180,6 +194,7 @@ class XMLStream(object):
 		"Parses the incoming stream, adding to xmlin queue as it goes"
 		#build cElementTree object from expat was we go
 		#self.filesocket = self.socket.makefile('rb', 0)
+		#print self.filesocket.read(1024) #self.filesocket._sock.recv(1024)
 		edepth = 0
 		root = None
 		for (event, xmlobj) in cElementTree.iterparse(self.filesocket, (b'end', b'start')):
@@ -208,11 +223,14 @@ class XMLStream(object):
 		logging.debug("SEND: %s" % data)
 		try:
 			self.socket.send(bytes(data, "utf-8"))
+		except TypeError:
+			self.socket.send(bytes(data))
 		#except socket.error,(errno, strerror):
 		except:
 			self.state.set('connected', False)
 			if self.state.reconnect:
 				logging.error("Disconnected. Socket Error.")
+				traceback.print_exc()
 				self.disconnect(reconnect=True)
 			return False
 		return True
@@ -277,7 +295,10 @@ class XMLStream(object):
 			except queue.Empty:
 				event = None
 			if event is not None:
-				etype, handler, *args = event
+				etype = event[0]
+				handler = event[1]
+				args = event[2:]
+				#etype, handler, *args = event  #python 3.x way
 				if etype == 'stanza':
 					try:
 						handler.run(args[0])

@@ -1,5 +1,8 @@
 from . import base
-import queue
+try:
+	import queue
+except ImportError:
+	import Queue as queue
 import logging
 from .. stanzabase import StanzaBase
 

@@ -19,7 +19,7 @@
     along with SleekXMPP; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 from . basexmpp import basexmpp
 from xml.etree import cElementTree as ET
 from . xmlstream.xmlstream import XMLStream
@@ -201,7 +201,10 @@ class ClientXMPP(basexmpp, XMLStream):
 			for sasl_mech in sasl_mechs:
 				self.features.append("sasl:%s" % sasl_mech.text)
 			if 'sasl:PLAIN' in self.features:
-				self.send("""<auth xmlns='urn:ietf:params:xml:ns:xmpp-sasl' mechanism='PLAIN'>%s</auth>""" % base64.b64encode(b'\x00' + bytes(self.username, 'utf-8') + b'\x00' + bytes(self.password, 'utf-8')).decode('utf-8'))
+				if sys.version_info < (3,0):
+					self.send("""<auth xmlns='urn:ietf:params:xml:ns:xmpp-sasl' mechanism='PLAIN'>%s</auth>""" % base64.b64encode(b'\x00' + bytes(self.username) + b'\x00' + bytes(self.password)).decode('utf-8'))
+				else:
+					self.send("""<auth xmlns='urn:ietf:params:xml:ns:xmpp-sasl' mechanism='PLAIN'>%s</auth>""" % base64.b64encode(b'\x00' + bytes(self.username, 'utf-8') + b'\x00' + bytes(self.password, 'utf-8')).decode('utf-8'))
 			else:
 				logging.error("No appropriate login method.")
 				self.disconnect()

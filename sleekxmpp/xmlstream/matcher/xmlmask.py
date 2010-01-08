@@ -25,7 +25,7 @@ class MatchXMLMask(base.MatcherBase):
 		#TODO require namespaces
 		if source == None: #if element not found (happens during recursive check below)
 			return False
-		if type(maskobj) == type(str()): #if the mask is a string, make it an xml obj
+		if not hasattr(maskobj, 'attrib'): #if the mask is a string, make it an xml obj
 			try:
 				maskobj = cElementTree.fromstring(maskobj)
 			except ExpatError:

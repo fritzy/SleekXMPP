@@ -17,7 +17,7 @@
     along with SleekXMPP; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
-from __future__ import with_statement
+from __future__ import with_statement, unicode_literals
 
 
 from xml.etree import cElementTree as ET

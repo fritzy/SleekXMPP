@@ -77,6 +77,7 @@ class ElementBase(object):
 		out += [x for x in self.plugins]
 		if self.iterables:
 			out.append('substanzas')
+		return tuple(out)
 	
 	def find(self, item):
 		return self.iterables.find(item)

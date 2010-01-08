@@ -16,6 +16,9 @@ def testAffiliations():
 	values = iq2.getValues()
 	print(values)
 	iq3.setValues(values)
+	print("-"*8)
+	print(iq3.keys())
+
 	print(iq3)
 	print(str(iq) == str(iq2) == str(iq3))
 	

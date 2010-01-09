@@ -71,6 +71,12 @@ class ElementBase(object):
 		self.xml.remove(aff.xml)
 		return aff
 	
+	def get(self, key, defaultvalue=None):
+		value = self[key]
+		if value is None or value == '':
+			return defaultvalue
+		return value
+	
 	def keys(self):
 		out = []
 		out += [x for x in self.interfaces]

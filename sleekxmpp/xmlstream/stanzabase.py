@@ -64,7 +64,8 @@ class ElementBase(object):
 		if not isinstance(item, ElementBase):
 			raise TypeError
 		self.xml.append(item.xml)
-		return self.iterables.append(item)
+		self.iterables.append(item)
+		return self
 	
 	def pop(self, idx=0):
 		aff = self.iterables.pop(idx)
@@ -236,7 +237,7 @@ class ElementBase(object):
 				self.plugins[interface].setValues(attrib[interface])
 		return self
 	
-	def append(self, xml):
+	def appendxml(self, xml):
 		self.xml.append(xml)
 		return self
 	

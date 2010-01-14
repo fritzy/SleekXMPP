@@ -2,6 +2,8 @@ from xml.etree import cElementTree as ET
 import logging
 import traceback
 
+xmltester = type(ET.Element('xml'))
+
 class JID(object):
 	def __init__(self, jid):
 		self.jid = jid
@@ -62,7 +64,10 @@ class ElementBase(object):
 	
 	def append(self, item):
 		if not isinstance(item, ElementBase):
-			raise TypeError
+			if type(item) == xmltester:
+				return self.appendxml(item)
+			else:
+				raise TypeError
 		self.xml.append(item.xml)
 		self.iterables.append(item)
 		return self

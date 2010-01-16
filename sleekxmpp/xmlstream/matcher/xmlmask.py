@@ -16,6 +16,7 @@ class MatchXMLMask(base.MatcherBase):
 		self.default_ns = ns
 
 	def match(self, xml):
+		xml = xml.xml
 		return self.maskcmp(xml, self._criteria, True)
 	
 	def maskcmp(self, source, maskobj, use_ns=False, default_ns='__no_ns__'):

@@ -62,6 +62,7 @@ class xep_0050(base.base_plugin):
 		name, form, pointer, multi = self.commands[node]
 		self.sessions[sessionid] = {}
 		self.sessions[sessionid]['jid'] = xml.get('from')
+		self.sessions[sessionid]['to'] = xml.get('to')
 		self.sessions[sessionid]['past'] = [(form, None)]
 		self.sessions[sessionid]['next'] = pointer
 		npointer = pointer
@@ -133,6 +134,8 @@ class xep_0050(base.base_plugin):
 			command.append(xmlactions)
 		if not sessionid:
 			sessionid = self.getNewSession()
+		else:
+			iq.attrib['from'] = self.sessions[sessionid]['to']
 		command.attrib['sessionid'] = sessionid
 		if form is not None:
 			if hasattr(form,'getXML'):

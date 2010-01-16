@@ -58,7 +58,7 @@ class Subscription(ElementBase):
 	namespace = 'http://jabber.org/protocol/pubsub'
 	name = 'subscription'
 	plugin_attrib = name
-	interfaces = set(('jid', 'node', 'subscription'))
+	interfaces = set(('jid', 'node', 'subscription', 'subid'))
 	plugin_attrib_map = {}
 	plugin_tag_map = {}
 
@@ -207,9 +207,10 @@ class Publish(Items):
 	namespace = 'http://jabber.org/protocol/pubsub'
 	name = 'publish'
 	plugin_attrib = name
-	interfaces = set(('node'))
+	interfaces = set(('node',))
 	plugin_attrib_map = {}
 	plugin_tag_map = {}
+	subitem = Item
 
 stanzaPlugin(Pubsub, Publish)
 

@@ -277,7 +277,7 @@ class XMLStream(object):
 			stanza = StanzaBase(self, xmlobj)
 		unhandled = True
 		for handler in self.__handlers:
-			if handler.match(xmlobj):
+			if handler.match(stanza):
 				handler.prerun(stanza)
 				self.eventqueue.put(('stanza', handler, stanza))
 				if handler.checkDelete(): self.__handlers.pop(self.__handlers.index(handler))

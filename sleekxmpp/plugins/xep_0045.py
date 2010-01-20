@@ -223,12 +223,15 @@ class xep_0045(base.base_plugin):
 			return False
 		return True
 
-	def setAffiliation(self, room, jid, affiliation='member'):
+	def setAffiliation(self, room, jid=None, nick=None, affiliation='member'):
 		""" Change room affiliation."""
 		if affiliation not in ('outcast', 'member', 'admin', 'owner', 'none'):
 			raise TypeError
 		query = ET.Element('{http://jabber.org/protocol/muc#admin}query')
-		item = ET.Element('item', {'affiliation':affiliation, 'jid':jid})	
+		if nick is not None:
+			item = ET.Element('item', {'affiliation':affiliation, 'nick':nick})	
+		else:
+			item = ET.Element('item', {'affiliation':affiliation, 'jid':jid})	
 		query.append(item)
 		iq = self.xmpp.makeIqSet(query)
 		iq['to'] = room

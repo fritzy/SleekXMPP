@@ -1,0 +1,8 @@
+Pre-requisites:
+Python 3.1 or 2.6
+
+Install:
+python3 setup.py install
+
+Root install:
+sudo python3 setup.py install

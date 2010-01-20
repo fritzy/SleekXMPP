@@ -1,0 +1,37 @@
+SleekXMPP is an XMPP library written for Python 3.x (with 2.6 compatibility).
+Featured in examples in XMPP: The Definitive Guide by Kevin Smith, Remko Tronçon, and Peter Saint-Andre
+
+SleekXMPP has several design goals/philosophies:
+- Low number of dependencies.
+- Every XEP as a plugin.
+- Rewarding to work with.
+
+The goals for 1.0 include (and we're getting close):
+- Nearly Full test coverage of stanzas.
+- Wide range of functional tests.
+- Stanza objects for all interaction with the stream
+- Documentation on using and extending SleekXMPP.
+- Complete documentation on all implemented stanza objects
+- Documentation on all examples used in XMPP: The Definitive Guide
+
+1.1 will include:
+- More functional and unit tests
+- PEP-8 compliance
+- XEP-225 support
+
+Since 0.2, here's the Changelog:
+- MANY bugfixes
+- Re-implementation of handlers/threading to greatly simplify and remove bugs (no more spawning threads in handlers)
+- Stanza objects for jabber:client and all implemented XEPs
+- Raising XMPPError for jabber:client and extended errors in handlers
+- Robust error handling and better insurance of iq responses
+- Stanza objects have made life a lot easier!
+- Massive audit/cleanup.
+
+Credits
+----------------
+Main Author: Nathan Fritz fritz@netflint.net
+XEP-0045 original implementation: Kevin Smith
+Patches: Remko Tronçon
+
+Feel free to add fritzy@netflint.net to your roster for direct support and comments.

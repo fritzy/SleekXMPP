@@ -15,18 +15,18 @@ class Presence(RootStanza):
 		return self.xml.find("{%s}show" % self.namespace)
 
 	def setType(self, value):
+		show = self.getShowElement()
 		if value in self.types:
-			show = self.getShowElement()
-			if value in self.types:
-				if show is not None:
-					self.xml.remove(show)
-				if value == 'available':
-					value = ''
-				self._setAttr('type', value)
-			elif value in self.showtypes:
-				if show is None:
-					show = ET.Element("{%s}show" % self.namespace)
-				show.text = value
+			if show is not None:
+				self.xml.remove(show)
+			if value == 'available':
+				value = ''
+			self._setAttr('type', value)
+		elif value in self.showtypes:
+			if show is None:
+				show = ET.Element("{%s}show" % self.namespace)
+				self.xml.append(show)
+			show.text = value
 		return self
 
 	def setPriority(self, value):

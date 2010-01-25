@@ -20,10 +20,11 @@ class Iq(RootStanza):
 				self['id'] = '0'
 	
 	def unhandled(self):
-		self.reply()
-		self['error']['condition'] = 'feature-not-implemented'
-		self['error']['text'] = 'No handlers registered for this request.'
-		self.send()
+		if self['type'] in ('get', 'set'):
+			self.reply()
+			self['error']['condition'] = 'feature-not-implemented'
+			self['error']['text'] = 'No handlers registered for this request.'
+			self.send()
 	
 	def result(self):
 		self['type'] = 'result'

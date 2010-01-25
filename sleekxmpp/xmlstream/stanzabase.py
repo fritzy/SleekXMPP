@@ -2,6 +2,8 @@ from xml.etree import cElementTree as ET
 import logging
 import traceback
 
+xmltester = type(ET.Element('xml'))
+
 class JID(object):
 	def __init__(self, jid):
 		self.jid = jid
@@ -62,7 +64,10 @@ class ElementBase(object):
 	
 	def append(self, item):
 		if not isinstance(item, ElementBase):
-			raise TypeError
+			if type(item) == xmltester:
+				return self.appendxml(item)
+			else:
+				raise TypeError
 		self.xml.append(item.xml)
 		self.iterables.append(item)
 		return self
@@ -86,11 +91,27 @@ class ElementBase(object):
 			out.append('substanzas')
 		return tuple(out)
 	
-	def find(self, item):
-		return self.iterables.find(item)
-
-	def match(self, xml):
-		return xml.tag == self.tag
+	def match(self, matchstring):
+		if isinstance(matchstring, str):
+			nodes = matchstring.split('/')
+		else:
+			nodes = matchstring
+		tagargs = nodes[0].split('@')
+		if tagargs[0] not in (self.plugins, self.name): return False
+		founditerable = False
+		for iterable in self.iterables:
+			founditerable = iterable.match(nodes[1:])
+			if founditerable: break;
+		for evals in tagargs[1:]:
+			x,y = evals.split('=')
+			if self[x] != y: return False
+		if not founditerable and len(nodes) > 1:
+			next = nodes[1].split('@')[0]
+			if next in self.plugins:
+				return self.plugins[next].match(nodes[1:])
+			else:
+				return False
+		return True
 	
 	def find(self, xpath): # for backwards compatiblity, expose elementtree interface
 		return self.xml.find(xpath)

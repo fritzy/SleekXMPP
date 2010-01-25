@@ -1,5 +1,6 @@
 import unittest
 from xml.etree import cElementTree as ET
+from sleekxmpp.xmlstream.matcher.stanzapath import StanzaPath
 
 class testpubsubstanzas(unittest.TestCase):
 
@@ -23,7 +24,8 @@ class testpubsubstanzas(unittest.TestCase):
 		iq3 = self.ps.Iq()
 		values = iq2.getValues()
 		iq3.setValues(values)
-		self.failUnless(xmlstring == str(iq) == str(iq2) == str(iq3))
+		self.failUnless(xmlstring == str(iq) == str(iq2) == str(iq3), "3 methods for creating stanza don't match")
+		self.failUnless(iq.match('iq@id=0/pubsub/affiliations/affiliation@node=testnode2@affiliation=publisher'), 'Match path failed')
 	
 	def testSubscriptions(self):
 		"Testing iq/pubsub/subscriptions/subscription stanzas"
@@ -34,9 +36,10 @@ class testpubsubstanzas(unittest.TestCase):
 		sub2 = self.ps.Subscription()
 		sub2['node'] = 'testnode2'
 		sub2['jid'] = 'boogers@bork.top/bill'
+		sub2['subscription'] = 'subscribed'
 		iq['pubsub']['subscriptions'].append(sub1)
 		iq['pubsub']['subscriptions'].append(sub2)
-		xmlstring = """<iq id="0"><pubsub xmlns="http://jabber.org/protocol/pubsub"><subscriptions><subscription node="testnode" jid="steve@myserver.tld/someresource" /><subscription node="testnode2" jid="boogers@bork.top/bill" /></subscriptions></pubsub></iq>"""
+		xmlstring = """<iq id="0"><pubsub xmlns="http://jabber.org/protocol/pubsub"><subscriptions><subscription node="testnode" jid="steve@myserver.tld/someresource" /><subscription node="testnode2" jid="boogers@bork.top/bill" subscription="subscribed" /></subscriptions></pubsub></iq>"""
 		iq2 = self.ps.Iq(None, self.ps.ET.fromstring(xmlstring))
 		iq3 = self.ps.Iq()
 		values = iq2.getValues()
@@ -123,6 +126,31 @@ class testpubsubstanzas(unittest.TestCase):
 		iq3 = self.ps.Iq()
 		values = iq2.getValues()
 		iq3.setValues(values)
+		self.failUnless(xmlstring == str(iq) == str(iq2) == str(iq3))
+	
+	def testPublish(self):
+		iq = self.ps.Iq()
+		iq['pubsub']['publish']['node'] = 'thingers'
+		payload = ET.fromstring("""<thinger xmlns="http://andyet.net/protocol/thinger" x="1" y='2'><child1 /><child2 normandy='cheese' foo='bar' /></thinger>""")
+		payload2 = ET.fromstring("""<thinger2 xmlns="http://andyet.net/protocol/thinger2" x="12" y='22'><child12 /><child22 normandy='cheese2' foo='bar2' /></thinger2>""")
+		item = self.ps.Item()
+		item['id'] = 'asdf'
+		item['payload'] = payload
+		item2 = self.ps.Item()
+		item2['id'] = 'asdf2'
+		item2['payload'] = payload2
+		iq['pubsub']['publish'].append(item)
+		iq['pubsub']['publish'].append(item2)
+		xmlstring = """<iq id="0"><pubsub xmlns="http://jabber.org/protocol/pubsub"><publish node="thingers"><item id="asdf"><thinger xmlns="http://andyet.net/protocol/thinger" y="2" x="1"><child1 /><child2 foo="bar" normandy="cheese" /></thinger></item><item id="asdf2"><thinger2 xmlns="http://andyet.net/protocol/thinger2" y="22" x="12"><child12 /><child22 foo="bar2" normandy="cheese2" /></thinger2></item></publish></pubsub></iq>"""
+		iq2 = self.ps.Iq(None, self.ps.ET.fromstring(xmlstring))
+		iq3 = self.ps.Iq()
+		values = iq2.getValues()
+		iq3.setValues(values)
+		#print()
+		#print(xmlstring)
+		#print(iq)
+		#print(iq2)
+		#print(iq3)
 		self.failUnless(xmlstring == str(iq) == str(iq2) == str(iq3))
 
 suite = unittest.TestLoader().loadTestsFromTestCase(testpubsubstanzas)

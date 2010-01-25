@@ -6,6 +6,8 @@ ignore_ns = False
 class MatchXPath(base.MatcherBase):
 
 	def match(self, xml):
+		if hasattr(xml, 'xml'):
+			xml = xml.xml
 		x = cElementTree.Element('x')
 		x.append(xml)
 		if not ignore_ns:

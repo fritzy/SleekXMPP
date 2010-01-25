@@ -53,7 +53,7 @@ class xep_0030(base.base_plugin):
 	def info_handler(self, xml):
 		logging.debug("Info request from %s" % xml.get('from', ''))
 		iq = self.xmpp.makeIqResult(xml.get('id', self.xmpp.getNewId()))
-		iq.attrib['from'] = self.xmpp.fulljid
+		iq.attrib['from'] = xml.get('to')
 		iq.attrib['to'] = xml.get('from', self.xmpp.server)
 		query = xml.find('{http://jabber.org/protocol/disco#info}query')
 		node = query.get('node', 'main')
@@ -74,7 +74,7 @@ class xep_0030(base.base_plugin):
 	def item_handler(self, xml):
 		logging.debug("Item request from %s" % xml.get('from', ''))
 		iq = self.xmpp.makeIqResult(xml.get('id', self.xmpp.getNewId()))
-		iq.attrib['from'] = self.xmpp.fulljid
+		iq.attrib['from'] = xml.get('to')
 		iq.attrib['to'] = xml.get('from', self.xmpp.server)
 		query = self.xmpp.makeIqQuery(iq, 'http://jabber.org/protocol/disco#items').find('{http://jabber.org/protocol/disco#items}query')
 		node = xml.find('{http://jabber.org/protocol/disco#items}query').get('node', 'main')
@@ -82,7 +82,7 @@ class xep_0030(base.base_plugin):
 			itemxml = ET.Element('item')
 			itemxml.attrib = item
 			if itemxml.attrib['jid'] is None:
-				itemxml.attrib['jid'] = self.xmpp.fulljid
+				itemxml.attrib['jid'] = xml.get('to')
 			query.append(itemxml)
 		self.xmpp.send(iq)
 	

@@ -26,7 +26,7 @@ import sys
 if sys.version_info < (3, 0):
 	#monkey patch broken filesocket object
 	from . import filesocket
-	socket._fileobject = filesocket.filesocket
+	#socket._fileobject = filesocket.filesocket
 	
 
 class RestartStream(Exception):
@@ -96,7 +96,10 @@ class XMLStream(object):
 			if use_tls is not None:
 				self.use_tls = use_tls
 			self.state.set('is client', True)
-			self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+			if sys.version_info < (3, 0):
+				self.socket = filesocket.Socket26(socket.AF_INET, socket.SOCK_STREAM)
+			else:
+				self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 			self.socket.settimeout(None)
 			if self.use_ssl and self.ssl_support:
 				logging.debug("Socket Wrapped for SSL")
@@ -222,10 +225,9 @@ class XMLStream(object):
 	def sendRaw(self, data):
 		logging.debug("SEND: %s" % data)
 		try:
-			self.socket.send(bytes(data, "utf-8"))
-		except TypeError:
-			self.socket.send(bytes(data))
-		#except socket.error,(errno, strerror):
+			self.socket.send(data.encode('utf-8'))
+			#self.socket.send(bytes(data, "utf-8"))
+			#except socket.error,(errno, strerror):
 		except:
 			self.state.set('connected', False)
 			if self.state.reconnect:
@@ -303,6 +305,7 @@ class XMLStream(object):
 					try:
 						handler.run(args[0])
 					except Exception as e:
+						traceback.print_exc()
 						args[0].exception(e)
 				elif etype == 'sched':
 					try:

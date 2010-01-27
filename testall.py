@@ -16,6 +16,7 @@ class testoverall(unittest.TestCase):
 		"""Invoking the tabnanny"""
 		import tabnanny
 		self.failIf(tabnanny.check("." + os.sep + 'sleekxmpp'))
+		#raise "Help!"
 
 	def testMethodLength(self):
 		"""Testing for excessive method lengths"""
@@ -62,4 +63,5 @@ if __name__ == '__main__':
 					#sys.modules[modname].config = moduleconfig
 					alltests.append(sys.modules[modname].suite)
 	alltests_suite = unittest.TestSuite(alltests)
-	unittest.TextTestRunner(verbosity=2).run(alltests_suite)
+	result = unittest.TextTestRunner(verbosity=2).run(alltests_suite)
+	print("""<tests xmlns='http://andyet.net/protocol/tests' ran='%s' errors='%s' fails='%s' success='%s' />""" % (result.testsRun, len(result.errors), len(result.failures), result.wasSuccessful()))

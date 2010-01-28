@@ -76,7 +76,10 @@ class ComponentXMPP(basexmpp, XMLStream):
 	def start_stream_handler(self, xml):
 		sid = xml.get('id', '')
 		handshake = ET.Element('{jabber:component:accept}handshake')
-		handshake.text = hashlib.sha1(bytes("%s%s" % (sid, self.secret), 'utf-8')).hexdigest().lower()
+		if sys.version_info < (3,0):
+			handshake.text = hashlib.sha1("%s%s" % (sid, self.secret)).hexdigest().lower()
+		else:
+			handshake.text = hashlib.sha1(bytes("%s%s" % (sid, self.secret), 'utf-8')).hexdigest().lower()
 		self.sendXML(handshake)
 	
 	def _handleHandshake(self, xml):

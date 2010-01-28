@@ -252,7 +252,7 @@ class basexmpp(object):
 		if presence['type'] in ('subscribe', 'subscribed', 'unsubscribe', 'unsubscribed'):
 			self.event('changed_subscription', presence)
 			return
-		elif not presence['type'] in ('available', 'unavailable'):
+		elif not presence['type'] in ('available', 'unavailable') and not presence['type'] in presence.showtypes:
 			return
 		jid = presence['from'].bare
 		resource = presence['from'].resource
@@ -280,7 +280,7 @@ class basexmpp(object):
 				del self.roster[jid]['presence'][resource]
 			else:
 				del self.roster[jid]
-		elif oldroster != self.roster.get(jid, {'presence': {}})['presence'].get(resource, {}) and show != 'unavailable':
+		elif oldroster != self.roster.get(jid, {'presence': {}})['presence'].get(resource, {}):
 			self.event("changed_status", presence)
 		name = ''
 		if name:

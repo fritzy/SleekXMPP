@@ -10,7 +10,10 @@ class testoverall(unittest.TestCase):
 		"""Testing all modules by compiling them"""
 		import compileall
 		import re
-		self.failUnless(compileall.compile_dir('.' + os.sep + 'sleekxmpp', rx=re.compile('/[.]svn'), quiet=True))
+		if sys.version_info < (3,0):
+			self.failUnless(compileall.compile_dir('.' + os.sep + 'sleekxmpp', rx=re.compile('/[.]svn'), quiet=True))
+		else:
+			self.failUnless(compileall.compile_dir('.' + os.sep + 'sleekxmpp', rx=re.compile('/[.]svn|26.py'), quiet=True))
 
 	def	testTabNanny(self):
 		"""Invoking the tabnanny"""

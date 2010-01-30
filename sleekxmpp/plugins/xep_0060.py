@@ -63,7 +63,7 @@ class xep_0060(base.base_plugin):
 		iq = self.xmpp.makeIqSet(pubsub)
 		iq.attrib['to'] = jid
 		iq.attrib['from'] = self.xmpp.fulljid
-		id = iq.get('id')
+		id = iq['id']
 		result = self.xmpp.send(iq, "<iq id='%s'/>" % id)
 		if result is False or result is None or result.get('type') == 'error': return False
 		return True

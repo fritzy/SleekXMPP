@@ -13,7 +13,7 @@ class testoverall(unittest.TestCase):
 		if sys.version_info < (3,0):
 			self.failUnless(compileall.compile_dir('.' + os.sep + 'sleekxmpp', rx=re.compile('/[.]svn'), quiet=True))
 		else:
-			self.failUnless(compileall.compile_dir('.' + os.sep + 'sleekxmpp', rx=re.compile('/[.]svn|26.py'), quiet=True))
+			self.failUnless(compileall.compile_dir('.' + os.sep + 'sleekxmpp', rx=re.compile('/[.]svn|.*26\Z'), quiet=True))
 
 	def	testTabNanny(self):
 		"""Invoking the tabnanny"""

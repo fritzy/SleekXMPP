@@ -37,6 +37,18 @@ CLASSIFIERS      = [ 'Intended Audience :: Developers',
                      'Topic :: Software Development :: Libraries :: Python Modules',
                    ]
 
+packages     = [ 'sleekxmpp', 
+				 'sleekxmpp/plugins',
+				 'sleekxmpp/stanza',
+				 'sleekxmpp/xmlstream',
+				 'sleekxmpp/xmlstream/matcher',
+				 'sleekxmpp/xmlstream/handler' ]
+
+if sys.version_info < (3, 0):
+	packages.append('sleekxmpp/xmlstream/tostring26')
+else:
+	packages.append('sleekxmpp/xmlstream/tostring')
+
 setup(
     name             = "sleekxmpp",
     version          = VERSION,
@@ -47,12 +59,7 @@ setup(
     url          = 'http://code.google.com/p/sleekxmpp',
     license      = 'GPLv2',
     platforms    = [ 'any' ],
-    packages     = [ 'sleekxmpp', 
-                     'sleekxmpp/plugins',
-                     'sleekxmpp/stanza',
-                     'sleekxmpp/xmlstream',
-                     'sleekxmpp/xmlstream/matcher',
-                     'sleekxmpp/xmlstream/handler' ],
+	packages	 = packages,
     requires     = [ 'tlslite', 'pythondns' ],
     )
 

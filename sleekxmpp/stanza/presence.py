@@ -37,7 +37,7 @@ class Presence(RootStanza):
 		return self
 
 	def setPriority(self, value):
-		self._setSubText('priority', str(value))
+		self._setSubText('priority', text = str(value))
 	
 	def getPriority(self):
 		p = self._getSubText('priority')

@@ -66,6 +66,7 @@ class XMLStream(object):
 		self.stream_footer = "</stream>"
 
 		self.eventqueue = queue.Queue()
+		self.sendqueue = queue.Queue()
 
 		self.namespace_map = {}
 
@@ -139,11 +140,16 @@ class XMLStream(object):
 		for t in range(0, HANDLER_THREADS):
 			self.__thread['eventhandle%s' % t] = threading.Thread(name='eventhandle%s' % t, target=self._eventRunner)
 			self.__thread['eventhandle%s' % t].start()
+		self.__thread['sendthread'] = threading.Thread(name='sendthread', target=self._sendThread)
+		self.__thread['sendthread'].start()
 		if threaded:
 			self.__thread['process'] = threading.Thread(name='process', target=self._process)
 			self.__thread['process'].start()
 		else:
 			self._process()
+	
+	def schedule(self, seconds, handler, args=None):
+		threading.Timer(seconds, handler, args).start()
 	
 	def _process(self):
 		"Start processing the socket."
@@ -222,19 +228,23 @@ class XMLStream(object):
 			if event == b'start':
 				edepth += 1
 	
+	def _sendThread(self):
+		while True:
+			data = self.sendqueue.get(True)
+			logging.debug("SEND: %s" % data)
+			try:
+				self.socket.send(data.encode('utf-8'))
+				#self.socket.send(bytes(data, "utf-8"))
+				#except socket.error,(errno, strerror):
+			except:
+				self.state.set('connected', False)
+				if self.state.reconnect:
+					logging.error("Disconnected. Socket Error.")
+					traceback.print_exc()
+					self.disconnect(reconnect=True)
+	
 	def sendRaw(self, data):
-		logging.debug("SEND: %s" % data)
-		try:
-			self.socket.send(data.encode('utf-8'))
-			#self.socket.send(bytes(data, "utf-8"))
-			#except socket.error,(errno, strerror):
-		except:
-			self.state.set('connected', False)
-			if self.state.reconnect:
-				logging.error("Disconnected. Socket Error.")
-				traceback.print_exc()
-				self.disconnect(reconnect=True)
-			return False
+		self.sendqueue.put(data)
 		return True
 	
 	def disconnect(self, reconnect=False):

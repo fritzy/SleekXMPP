@@ -44,10 +44,10 @@ packages     = [ 'sleekxmpp',
 				 'sleekxmpp/xmlstream/matcher',
 				 'sleekxmpp/xmlstream/handler' ]
 
-if sys.version_info < (3, 0):
-	packages.append('sleekxmpp/xmlstream/tostring26')
-else:
-	packages.append('sleekxmpp/xmlstream/tostring')
+#if sys.version_info < (3, 0):
+#	packages.append('sleekxmpp/xmlstream/tostring26')
+#else:
+#	packages.append('sleekxmpp/xmlstream/tostring')
 
 setup(
     name             = "sleekxmpp",

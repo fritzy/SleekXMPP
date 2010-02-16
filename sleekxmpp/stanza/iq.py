@@ -26,23 +26,6 @@ class Iq(RootStanza):
 			self['error']['text'] = 'No handlers registered for this request.'
 			self.send()
 	
-	def result(self):
-		self['type'] = 'result'
-		return self
-	
-	def set(self):
-		self['type'] = 'set'
-		return self
-	
-	def error(self):
-		#TODO add error payloads
-		self['type'] = 'error'
-		return self
-	
-	def get(self):
-		self['type'] = 'get'
-		return self
-	
 	def setPayload(self, value):
 		self.clear()
 		StanzaBase.setPayload(self, value)

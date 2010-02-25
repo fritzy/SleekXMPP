@@ -18,7 +18,10 @@ class JID(object):
 		if name == 'resource':
 			return self.jid.split('/', 1)[-1]
 		elif name == 'user':
-			return self.jid.split('@', 1)[0]
+			if '@' in self.jid:
+				return self.jid.split('@', 1)[0]
+			else:
+				return ''
 		elif name == 'server':
 			return self.jid.split('@', 1)[-1].split('/', 1)[0]
 		elif name == 'full':

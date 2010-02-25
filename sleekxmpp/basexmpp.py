@@ -39,6 +39,13 @@ from . stanza.error import Error
 import logging
 import threading
 
+import sys
+
+if sys.version_info < (3,0):
+	reload(sys)
+	sys.setdefaultencoding('utf8')
+
+
 def stanzaPlugin(stanza, plugin):
 	stanza.plugin_attrib_map[plugin.plugin_attrib] = plugin
 	stanza.plugin_tag_map["{%s}%s" % (plugin.namespace, plugin.name)] = plugin

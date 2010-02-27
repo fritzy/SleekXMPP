@@ -6,7 +6,7 @@ from . rootstanza import RootStanza
 class Presence(RootStanza):
 	interfaces = set(('type', 'to', 'from', 'id', 'status', 'priority'))
 	types = set(('available', 'unavailable', 'error', 'probe', 'subscribe', 'subscribed', 'unsubscribe', 'unsubscribed'))
-	showtypes = set(('dnd', 'ffc', 'xa', 'away'))
+	showtypes = set(('dnd', 'chat', 'xa', 'away'))
 	sub_interfaces = set(('status', 'priority'))
 	name = 'presence'
 	namespace = 'jabber:client'

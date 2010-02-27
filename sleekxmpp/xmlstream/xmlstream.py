@@ -154,7 +154,7 @@ class XMLStream(object):
 	def _process(self):
 		"Start processing the socket."
 		firstrun = True
-		while firstrun or self.state['reconnect']:
+		while self.run and (firstrun or self.state['reconnect']):
 			self.state.set('processing', True)
 			firstrun = False
 			try:
@@ -229,7 +229,7 @@ class XMLStream(object):
 				edepth += 1
 	
 	def _sendThread(self):
-		while True:
+		while self.run:
 			data = self.sendqueue.get(True)
 			logging.debug("SEND: %s" % data)
 			try:

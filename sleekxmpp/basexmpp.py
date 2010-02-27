@@ -279,15 +279,15 @@ class basexmpp(object):
 			self.roster[jid]['presence'][resource] = {'show': show, 'status': status}
 			self.roster[jid]['presence'][resource]['priority'] = priority
 		name = self.roster[jid].get('name', '')
-		if wasoffline and show in ('available', 'away', 'xa', 'na', 'ffc'):
+		if wasoffline and (show == 'available' or show in presence.showtypes):
 			self.event("got_online", presence)
 		elif not wasoffline and show == 'unavailable':
-			self.event("got_offline", presence)
 			logging.debug("%s %s got offline" % (jid, resource))
 			if len(self.roster[jid]['presence']) > 1:
 				del self.roster[jid]['presence'][resource]
 			else:
 				del self.roster[jid]
+			self.event("got_offline", presence)
 		elif oldroster != self.roster.get(jid, {'presence': {}})['presence'].get(resource, {}):
 			self.event("changed_status", presence)
 		name = ''

@@ -5,8 +5,12 @@ import logging
 from optparse import OptionParser
 import time
 
-reload(sys)
-sys.setdefaultencoding('utf8')
+import sys
+
+if sys.version_info < (3,0):
+	reload(sys)
+	sys.setdefaultencoding('utf8')
+
 
 class Example(sleekxmpp.ClientXMPP):
 	

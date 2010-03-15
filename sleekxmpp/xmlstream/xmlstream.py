@@ -202,7 +202,7 @@ class XMLStream(object):
 	def __readXML(self):
 		"Parses the incoming stream, adding to xmlin queue as it goes"
 		#build cElementTree object from expat was we go
-		self.filesocket = self.socket.makefile('rb', 0)
+		#self.filesocket = self.socket.makefile('rb', 0)
 		#print self.filesocket.read(1024) #self.filesocket._sock.recv(1024)
 		edepth = 0
 		root = None

@@ -44,7 +44,6 @@ class ElementBase(tostring.ToString):
 	subitem = None
 
 	def __init__(self, xml=None, parent=None):
-		self.attrib = self # backwards compatibility hack
 		self.parent = parent
 		self.xml = xml
 		self.plugins = {}
@@ -56,6 +55,11 @@ class ElementBase(tostring.ToString):
 					self.plugins[self.plugin_tag_map[child.tag].plugin_attrib] = self.plugin_tag_map[child.tag](xml=child, parent=self)
 				if self.subitem is not None and child.tag == "{%s}%s" % (self.subitem.namespace, self.subitem.name):
 					self.iterables.append(self.subitem(xml=child, parent=self))
+
+    def _getattrib(self):
+        return self
+    
+    attrib = property(_getattrib) # backwards compatibility
 
 	def __iter__(self):
 		self.idx = 0

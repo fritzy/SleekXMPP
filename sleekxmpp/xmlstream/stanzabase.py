@@ -56,10 +56,10 @@ class ElementBase(tostring.ToString):
 				if self.subitem is not None and child.tag == "{%s}%s" % (self.subitem.namespace, self.subitem.name):
 					self.iterables.append(self.subitem(xml=child, parent=self))
 
-    def _getattrib(self):
-        return self
-    
-    attrib = property(_getattrib) # backwards compatibility
+
+	@property
+	def attrib(self): #backwards compatibility
+		return self
 
 	def __iter__(self):
 		self.idx = 0

@@ -136,7 +136,7 @@ class xep_0045(base.base_plugin):
 			return
 		entry = pr['muc'].getValues()
 		if pr['type'] == 'unavailable':
-			self.rooms[entry['room']][entry['nick']] = None
+			del self.rooms[entry['room']][entry['nick']]
 		else:
 			self.rooms[entry['room']][entry['nick']] = entry
 		logging.debug("MUC presence from %s/%s : %s" % (entry['room'],entry['nick'], entry))

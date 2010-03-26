@@ -32,7 +32,7 @@ SleekXMPP is an elegant Python library for XMPP (aka Jabber, Google Talk, etc).
 """
 
 CLASSIFIERS      = [ 'Intended Audience :: Developers',
-                     'License :: OSI Approved :: GPL v2.0',
+                     'License :: OSI Approved :: MIT',
                      'Programming Language :: Python',
                      'Topic :: Software Development :: Libraries :: Python Modules',
                    ]
@@ -57,7 +57,7 @@ setup(
     author       = 'Nathanael Fritz',
     author_email = 'fritzy [at] netflint.net',
     url          = 'http://code.google.com/p/sleekxmpp',
-    license      = 'GPLv2',
+    license      = 'MIT',
     platforms    = [ 'any' ],
 	packages	 = packages,
     requires     = [ 'tlslite', 'pythondns' ],

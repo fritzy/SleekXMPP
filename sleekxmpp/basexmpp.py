@@ -281,7 +281,7 @@ class basexmpp(object):
 		name = self.roster[jid].get('name', '')
 		if wasoffline and (show == 'available' or show in presence.showtypes):
 			self.event("got_online", presence)
-		elif not wasoffline and show == 'unavailable':
+		elif show == 'unavailable':
 			logging.debug("%s %s got offline" % (jid, resource))
 			if len(self.roster[jid]['presence']) > 1:
 				del self.roster[jid]['presence'][resource]

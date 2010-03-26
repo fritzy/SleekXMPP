@@ -16,4 +16,10 @@ class testmessagestanzas(unittest.TestCase):
 		msg.reply()
 		self.failUnless(str(msg['to']) == 'room@someservice.someserver.tld')
 
+	def testAttribProperty(self):
+		"Test attrib property returning self"
+		msg = self.m.Message()
+		msg.attrib.attrib.attrib['to'] = 'usr@server.tld'
+		self.failUnless(str(msg['to']) == 'usr@server.tld')
+
 suite = unittest.TestLoader().loadTestsFromTestCase(testmessagestanzas)

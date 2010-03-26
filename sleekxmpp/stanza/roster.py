@@ -1,10 +1,12 @@
 from .. xmlstream.stanzabase import ElementBase, ET, JID
+import logging
 
 class Roster(ElementBase):
 	namespace = 'jabber:iq:roster'
 	name = 'query'
 	plugin_attrib = 'roster'
 	interfaces = set(('items',))
+	sub_interfaces = set()
 
 	def setItems(self, items):
 		self.delItems()
@@ -27,8 +29,8 @@ class Roster(ElementBase):
 		items = {}
 		itemsxml = self.xml.findall('{jabber:iq:roster}item')
 		if itemsxml is not None:
-			item = {}
 			for itemxml in itemsxml:
+				item = {}
 				item['name'] = itemxml.get('name', '')
 				item['subscription'] = itemxml.get('subscription', '')
 				item['groups'] = []
@@ -36,7 +38,7 @@ class Roster(ElementBase):
 				if groupsxml is not None:
 					for groupxml in groupsxml:
 						item['groups'].append(groupxml.text)
-				items[JID(itemxml.get('jid'))] = item
+				items[itemxml.get('jid')] = item
 		return items
 	
 	def delItems(self):

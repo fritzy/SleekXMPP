@@ -163,7 +163,8 @@ class ClientXMPP(basexmpp, XMLStream):
 	
 	def getRoster(self):
 		"""Request the roster be sent."""
-		self.Iq().setValues({'type': 'get'}).enable('roster').send()
+		iq = self.Iq().setValues({'type': 'get'}).enable('roster').send()
+		self._handleRoster(iq, request=True)
 	
 	def _handleStreamFeatures(self, features):
 		self.features = []
@@ -245,11 +246,12 @@ class ClientXMPP(basexmpp, XMLStream):
 			self.sessionstarted = True
 			self.event("session_start")
 	
-	def _handleRoster(self, iq):
-		for jid in iq['roster']['items']:
-			if not jid.bare in self.roster:
-				self.roster[jid.bare] = {'groups': [], 'name': '', 'subscription': 'none', 'presence': {}, 'in_roster': True}
-			self.roster[jid.bare].update(iq['roster']['jid'])
-		if iq['type'] == 'set':
-			self.send(self.Iq().setValues({'type': 'result', 'id': iq['id']}).enable('roster'))
+	def _handleRoster(self, iq, request=False):
+		if iq['type'] == 'set' or (iq['type'] == 'result' and request):
+			for jid in iq['roster']['items']:
+				if not jid in self.roster:
+					self.roster[jid] = {'groups': [], 'name': '', 'subscription': 'none', 'presence': {}, 'in_roster': True}
+				self.roster[jid].update(iq['roster']['items'][jid])
+			if iq['type'] == 'set':
+				self.send(self.Iq().setValues({'type': 'result', 'id': iq['id']}).enable('roster'))
 		self.event("roster_update", iq)

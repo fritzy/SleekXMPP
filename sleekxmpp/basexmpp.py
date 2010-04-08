@@ -202,7 +202,7 @@ class basexmpp(object):
 		message['body'] = mbody
 		message['subject'] = msubject
 		if mnick is not None: message['nick'] = mnick
-		if mhtml is not None: message['html'] = mhtml
+		if mhtml is not None: message['html']['html'] = mhtml
 		return message
 	
 	def makePresence(self, pshow=None, pstatus=None, ppriority=None, pto=None, ptype=None, pfrom=None):

@@ -11,24 +11,24 @@ class HTMLIM(ElementBase):
 	namespace = 'http://jabber.org/protocol/xhtml-im'
 	name = 'html'
 	plugin_attrib = 'html'
-	interfaces = set(('html'))
+	interfaces = set(('html',))
 	plugin_attrib_map = set()
 	plugin_xml_map = set()
 
 	def setHtml(self, html):
-		if issinstance(html, str):
+		if isinstance(html, str):
 			html = ET.XML(html)
-		if html.find('{http://www.w3.org/1999/xhtml}body') is None:
+		if html.tag != '{http://www.w3.org/1999/xhtml}body':
 			body = ET.Element('{http://www.w3.org/1999/xhtml}body')
 			body.append(html)
+			self.xml.append(body)
 		else:
-			body = html
-		self.xml.append(html)
+			self.xml.append(html)
 	
 	def getHtml(self):
 		html = self.xml.find('{http://www.w3.org/1999/xhtml}body')
 		if html is None: return ''
-		return __str__(html)
+		return html
 	
 	def delHtml(self):
 		return self.__del__()

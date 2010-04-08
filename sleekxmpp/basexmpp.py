@@ -139,6 +139,7 @@ class basexmpp(object):
 			mask = mask.xml
 		data = str(data)
 		if mask is not None:
+			logging.warning("Use of send mask waiters is deprecated")
 			waitfor = Waiter('SendWait_%s' % self.getNewId(), MatchXMLMask(mask))
 			self.registerHandler(waitfor)
 		self.sendRaw(data)

@@ -61,6 +61,7 @@ class testpubsubstanzas(unittest.TestCase):
 		self.failUnless(xmlstring == str(iq) == str(iq2) == str(iq3))
 	
 	def testItems(self):
+		"Testing iq/pubsub/items stanzas"
 		iq = self.ps.Iq()
 		iq['pubsub']['items']
 		payload = ET.fromstring("""<thinger xmlns="http://andyet.net/protocol/thinger" x="1" y='2'><child1 /><child2 normandy='cheese' foo='bar' /></thinger>""")
@@ -81,6 +82,7 @@ class testpubsubstanzas(unittest.TestCase):
 		self.failUnless(xmlstring == str(iq) == str(iq2) == str(iq3))
 		
 	def testCreate(self):
+		"Testing iq/pubsub/create&configure stanzas"
 		from sleekxmpp.plugins import xep_0004
 		iq = self.ps.Iq()
 		iq['pubsub']['create']['configure']
@@ -96,6 +98,7 @@ class testpubsubstanzas(unittest.TestCase):
 		self.failUnless(xmlstring == str(iq) == str(iq2) == str(iq3))
 	
 	def testDefault(self):
+		"Testing iq/default stanzas"
 		from sleekxmpp.plugins import xep_0004
 		iq = self.ps.Iq()
 		iq['pubsub']['default']
@@ -111,6 +114,7 @@ class testpubsubstanzas(unittest.TestCase):
 		self.failUnless(xmlstring == str(iq) == str(iq2) == str(iq3))
 	
 	def testSubscribe(self):
+		"Testing iq/pubsub/subscribe stanzas"
 		from sleekxmpp.plugins import xep_0004
 		iq = self.ps.Iq()
 		iq['pubsub']['subscribe']['options']
@@ -129,6 +133,7 @@ class testpubsubstanzas(unittest.TestCase):
 		self.failUnless(xmlstring == str(iq) == str(iq2) == str(iq3))
 	
 	def testPublish(self):
+		"Testing iq/pubsub/publish stanzas"
 		iq = self.ps.Iq()
 		iq['pubsub']['publish']['node'] = 'thingers'
 		payload = ET.fromstring("""<thinger xmlns="http://andyet.net/protocol/thinger" x="1" y='2'><child1 /><child2 normandy='cheese' foo='bar' /></thinger>""")

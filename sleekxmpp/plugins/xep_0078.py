@@ -50,7 +50,7 @@ class xep_0078(base.base_plugin):
 		username.text = self.xmpp.username
 		auth_request_query.append(username)
 		auth_request.append(auth_request_query)
-		result = self.xmpp.send(auth_request, self.xmpp.makeIqResult(self.xmpp.id))
+		result = auth_request.send()
 		rquery = result.find('{jabber:iq:auth}query')
 		attempt = self.xmpp.makeIqSet()
 		query = ET.Element('{jabber:iq:auth}query')
@@ -69,7 +69,7 @@ class xep_0078(base.base_plugin):
 			digest.text = hashlib.sha1(b"%s%s" % (self.streamid, self.xmpp.password)).hexdigest()
 			query.append(digest)
 		attempt.append(query)
-		result = self.xmpp.send(attempt, self.xmpp.makeIq(self.xmpp.id))
+		result = attempt.send()
 		if result.attrib['type'] == 'result':
 			with self.xmpp.lock:
 				self.xmpp.authenticated = True

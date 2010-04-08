@@ -44,7 +44,7 @@ class xep_0060(base.base_plugin):
 		iq.attrib['to'] = jid
 		iq.attrib['from'] = self.xmpp.fulljid
 		id = iq['id']
-		result = self.xmpp.send(iq, "<iq id='%s'/>" % id)
+		result = iq.send()
 		if result is False or result is None or result['type'] == 'error': return False
 		return True
 	
@@ -64,7 +64,7 @@ class xep_0060(base.base_plugin):
 		iq.attrib['to'] = jid
 		iq.attrib['from'] = self.xmpp.fulljid
 		id = iq['id']
-		result = self.xmpp.send(iq, "<iq id='%s'/>" % id)
+		result = iq.send()
 		if result is False or result is None or result['type'] == 'error': return False
 		return True
 	
@@ -84,7 +84,7 @@ class xep_0060(base.base_plugin):
 		iq.attrib['to'] = jid
 		iq.attrib['from'] = self.xmpp.fulljid
 		id = iq['id']
-		result = self.xmpp.send(iq, "<iq id='%s'/>" % id)
+		result = iq.send()
 		if result is False or result is None or result['type'] == 'error': return False
 		return True
 	
@@ -103,7 +103,7 @@ class xep_0060(base.base_plugin):
 		iq.attrib['from'] = self.xmpp.fulljid
 		id = iq['id']
 		#self.xmpp.add_handler("<iq id='%s'/>" % id, self.handlerCreateNodeResponse)
-		result = self.xmpp.send(iq, "<iq id='%s'/>" % id)
+		result = iq.send()
 		if result is None or result == False or result['type'] == 'error':
 			logging.warning("got error instead of config")
 			return False
@@ -126,7 +126,7 @@ class xep_0060(base.base_plugin):
 		iq.attrib['to'] = jid
 		iq.attrib['from'] = self.xmpp.fulljid
 		id = iq['id']
-		result = self.xmpp.send(iq, "<iq id='%s'/>" % id)
+		result = iq.send()
 		if result is None or result == False or result['type'] == 'error':
 			logging.warning("got error instead of config")
 			return False
@@ -149,7 +149,7 @@ class xep_0060(base.base_plugin):
 		iq.attrib['to'] = jid
 		iq.attrib['from'] = self.xmpp.fulljid
 		id = iq['id']
-		result = self.xmpp.send(iq, "<iq id='%s'/>" % id)
+		result = iq.send()
 		if result is None or result == False or result['type'] == 'error':
 			logging.warning("got error instead of config")
 			return False
@@ -172,7 +172,7 @@ class xep_0060(base.base_plugin):
 		iq.attrib['to'] = jid
 		iq.attrib['from'] = self.xmpp.fulljid
 		id = iq['id']
-		result = self.xmpp.send(iq, "<iq id='%s'/>" % id)
+		result = iq.send()
 		if result is not None and result is not False and result.attrib.get('type', 'error') != 'error':
 			return True
 		else:
@@ -190,7 +190,7 @@ class xep_0060(base.base_plugin):
 		iq.attrib['to'] = jid
 		iq.attrib['from'] = self.xmpp.fulljid
 		id = iq['id']
-		result = self.xmpp.send(iq, "<iq id='%s'/>" % id)
+		result = iq.send()
 		if result is None or result['type'] == 'error': 
 			return False
 		return True
@@ -211,7 +211,7 @@ class xep_0060(base.base_plugin):
 		iq.attrib['to'] = jid
 		iq.attrib['from'] = self.xmpp.fulljid
 		id = iq['id']
-		result = self.xmpp.send(iq, "<iq id='%s'/>" % id)
+		result = iq.send()
 		if result is None or result is False or result['type'] == 'error': return False
 		return True
 	
@@ -227,7 +227,7 @@ class xep_0060(base.base_plugin):
 		iq.attrib['to'] = jid
 		iq.attrib['from'] = self.xmpp.fulljid
 		id = iq['id']
-		result = self.xmpp.send(iq, "<iq id='%s'/>" % id)
+		result = iq.send()
 		if result is None or result is False or result['type'] == 'error': return False
 		return True
 	
@@ -281,7 +281,7 @@ class xep_0060(base.base_plugin):
 		iq.attrib['to'] = ps_jid
 		iq.attrib['from'] = self.xmpp.fulljid
 		id = iq['id']
-		result = self.xmpp.send(iq, "<iq id='%s'/>" % id)
+		result = iq.send()
 		if result is None or result is False or result['type'] == 'error':
 		    return False
 		return True

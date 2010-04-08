@@ -229,7 +229,8 @@ class ClientXMPP(basexmpp, XMLStream):
 	
 	def handler_start_session(self, xml):
 		if self.authenticated:
-			response = self.send(self.makeIqSet(xml), self.makeIq(self.getId()))
+			iq = self.makeIqSet(xml)
+			response = iq.send()
 			logging.debug("Established Session")
 			self.sessionstarted = True
 			self.event("session_start")

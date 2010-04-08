@@ -93,7 +93,7 @@ class xep_0030(base.base_plugin):
 		self.xmpp.makeIqQuery(iq, 'http://jabber.org/protocol/disco#items')
 		if node:
 			iq.find('{http://jabber.org/protocol/disco#items}query').attrib['node'] = node
-		return self.xmpp.send(iq, "<iq id='%s' />" % iq.get('id'))
+		return iq.send()
 	
 	def getInfo(self, jid, node=None):
 		iq = self.xmpp.makeIqGet()
@@ -102,7 +102,7 @@ class xep_0030(base.base_plugin):
 		self.xmpp.makeIqQuery(iq, 'http://jabber.org/protocol/disco#info')
 		if node:
 			iq.find('{http://jabber.org/protocol/disco#info}query').attrib['node'] = node
-		return self.xmpp.send(iq, self.xmpp.makeIq(iq.get('id')))
+		return iq.send()
 
 	def parseInfo(self, xml):
 		result = {'identity': {}, 'feature': []}

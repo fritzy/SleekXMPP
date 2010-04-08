@@ -55,7 +55,7 @@ class xep_0092(base.base_plugin):
 		iq.attrib['to'] = jid
 		iq.attrib['from'] = self.xmpp.fulljid
 		id = iq.get('id')
-		result = self.xmpp.send(iq, "<iq xmlns='%s' id='%s'/>" % (self.xmpp.default_ns, id))
+		result = iq.send()
 		if result and result is not None and result.get('type', 'error') != 'error':
 			qry = result.find('{jabber:iq:version}query')
 			version = {}

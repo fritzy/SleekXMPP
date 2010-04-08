@@ -51,7 +51,7 @@ class gmail_notify(base.base_plugin):
 		iq.attrib['from'] = self.xmpp.fulljid
 		iq.attrib['to'] = self.xmpp.jid
 		self.xmpp.makeIqQuery(iq, 'google:mail:notify')
-		emails = self.xmpp.send(iq, self.xmpp.makeIq(self.xmpp.id))
+		emails = iq.send()
 		mailbox = emails.find('{google:mail:notify}mailbox')
 		total = int(mailbox.get('total-matched', 0))
 		logging.info("%s New Gmail Messages" % total)

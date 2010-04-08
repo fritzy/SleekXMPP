@@ -182,7 +182,6 @@ class xep_0045(base.base_plugin):
 		form = form.getXML('submit')
 		query.append(form)
 		iq.append(query)
-		#result = self.xmpp.send(iq, self.xmpp.makeIq(iq.get('id')))
 		result = iq.send()
 		if result['type'] == 'error':
 			return False
@@ -224,7 +223,6 @@ class xep_0045(base.base_plugin):
 		destroy.append(xreason)
 		query.append(destroy)
 		iq.append(query)
-		#r = self.xmpp.send(iq, self.xmpp.makeIq(iq.get('id')))
 		r = iq.send()
 		if r is False or r['type'] == 'error':
 			return False

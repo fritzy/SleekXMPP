@@ -14,6 +14,7 @@ from . xmlstream.matcher.xmlmask import MatchXMLMask
 from . xmlstream.matcher.many import MatchMany
 from . xmlstream.handler.xmlcallback import XMLCallback
 from . xmlstream.handler.xmlwaiter import XMLWaiter
+from . xmlstream.handler.waiter import Waiter
 from . xmlstream.handler.callback import Callback
 from . import plugins
 from . stanza.message import Message
@@ -138,7 +139,7 @@ class basexmpp(object):
 			mask = mask.xml
 		data = str(data)
 		if mask is not None:
-			waitfor = XMLWaiter('SendWait_%s' % self.getNewId(), MatchXMLMask(mask))
+			waitfor = Waiter('SendWait_%s' % self.getNewId(), MatchXMLMask(mask))
 			self.registerHandler(waitfor)
 		self.sendRaw(data)
 		if mask is not None:

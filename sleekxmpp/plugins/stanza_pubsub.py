@@ -286,39 +286,6 @@ stanzaPlugin(Pubsub, Configure)
 stanzaPlugin(Create, Configure)
 
 class DefaultConfig(ElementBase):
-	namespace = 'http://jabber.org/protocol/pubsub'
-	name = 'default'
-	plugin_attrib = 'default'
-	interfaces = set(('node', 'type', 'config'))
-	plugin_attrib_map = {}
-	plugin_tag_map = {}
-	
-	def __init__(self, *args, **kwargs):
-		ElementBase.__init__(self, *args, **kwargs)
-		
-	def getConfig(self):
-		config = self.xml.find('{jabber:x:data}x')
-		form = xep_0004.Form()
-		if config is not None:
-			form.fromXML(config)
-		return form
-	
-	def setConfig(self, value):
-		self.xml.append(value.getXML())
-		return self
-	
-	def delConfig(self):
-		config = self.xml.find('{jabber:x:data}x')
-		self.xml.remove(config)
-
-	def getType(self):
-		t = self._getAttr('type')
-		if not t: t == 'leaf'
-		return t
-
-stanzaPlugin(Pubsub, DefaultConfig)
-
-class DefaultConfigOwner(ElementBase):
 	namespace = 'http://jabber.org/protocol/pubsub#owner'
 	name = 'default'
 	plugin_attrib = 'default'
@@ -440,6 +407,7 @@ class OwnerDelete(ElementBase, OptionalSetting):
 	plugin_attrib = 'delete'
 	plugin_attrib_map = {}
 	plugin_tag_map = {}
+	interfaces = set(('node',))
 
 stanzaPlugin(PubsubOwner, OwnerDelete)
 

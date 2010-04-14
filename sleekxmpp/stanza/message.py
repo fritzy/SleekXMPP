@@ -15,6 +15,7 @@ class Message(RootStanza):
 	types = set((None, 'normal', 'chat', 'headline', 'error', 'groupchat'))
 	sub_interfaces = set(('body', 'subject'))
 	name = 'message'
+	plugin_attrib = name
 	namespace = 'jabber:client'
 
 	def getType(self):

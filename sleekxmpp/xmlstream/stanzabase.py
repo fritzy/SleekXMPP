@@ -117,7 +117,7 @@ class ElementBase(tostring.ToString):
 		else:
 			nodes = matchstring
 		tagargs = nodes[0].split('@')
-		if tagargs[0] not in (self.plugins, self.name): return False
+		if tagargs[0] not in (self.plugins, self.plugin_attrib): return False
 		founditerable = False
 		for iterable in self.iterables:
 			founditerable = iterable.match(nodes[1:])
@@ -325,8 +325,8 @@ class StanzaBase(ElementBase):
 	def clear(self):
 		for child in self.xml.getchildren():
 			self.xml.remove(child)
-		#for plugin in list(self.plugins.keys()):
-		#	del self.plugins[plugin]
+		for plugin in list(self.plugins.keys()):
+			del self.plugins[plugin]
 	
 	def reply(self):
 		self['from'], self['to'] = self['to'], self['from']

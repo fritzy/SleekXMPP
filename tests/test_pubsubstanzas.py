@@ -98,15 +98,15 @@ class testpubsubstanzas(unittest.TestCase):
 		self.failUnless(xmlstring == str(iq) == str(iq2) == str(iq3))
 	
 	def testDefault(self):
-		"Testing iq/default stanzas"
+		"Testing iq/pubsub_owner/default stanzas"
 		from sleekxmpp.plugins import xep_0004
 		iq = self.ps.Iq()
-		iq['pubsub']['default']
-		iq['pubsub']['default']['node'] = 'mynode'
+		iq['pubsub_owner']['default']
+		iq['pubsub_owner']['default']['node'] = 'mynode'
 		form = xep_0004.Form()
 		form.addField('pubsub#title', ftype='text-single', value='This thing is awesome')
-		iq['pubsub']['default']['config'] = form
-		xmlstring = """<iq id="0"><pubsub xmlns="http://jabber.org/protocol/pubsub"><default node="mynode"><x xmlns="jabber:x:data" type="form"><field var="pubsub#title" type="text-single"><value>This thing is awesome</value></field></x></default></pubsub></iq>"""
+		iq['pubsub_owner']['default']['config'] = form
+		xmlstring = """<iq id="0"><pubsub xmlns="http://jabber.org/protocol/pubsub#owner"><default node="mynode"><x xmlns="jabber:x:data" type="form"><field var="pubsub#title" type="text-single"><value>This thing is awesome</value></field></x></default></pubsub></iq>"""
 		iq2 = self.ps.Iq(None, self.ps.ET.fromstring(xmlstring))
 		iq3 = self.ps.Iq()
 		values = iq2.getValues()
@@ -151,11 +151,16 @@ class testpubsubstanzas(unittest.TestCase):
 		iq3 = self.ps.Iq()
 		values = iq2.getValues()
 		iq3.setValues(values)
-		#print()
-		#print(xmlstring)
-		#print(iq)
-		#print(iq2)
-		#print(iq3)
+		self.failUnless(xmlstring == str(iq) == str(iq2) == str(iq3))
+
+	def testDelete(self):
+		"Testing iq/pubsub_owner/delete stanzas"
+		iq = self.ps.Iq()
+		iq['pubsub_owner']['delete']['node'] = 'thingers'
+		xmlstring = """<iq id="0"><pubsub xmlns="http://jabber.org/protocol/pubsub#owner"><delete node="thingers" /></pubsub></iq>"""
+		iq2 = self.ps.Iq(None, self.ps.ET.fromstring(xmlstring))
+		iq3 = self.ps.Iq()
+		iq3.setValues(iq2.getValues())
 		self.failUnless(xmlstring == str(iq) == str(iq2) == str(iq3))
 
 suite = unittest.TestLoader().loadTestsFromTestCase(testpubsubstanzas)

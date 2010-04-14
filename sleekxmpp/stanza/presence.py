@@ -16,6 +16,7 @@ class Presence(RootStanza):
 	showtypes = set(('dnd', 'chat', 'xa', 'away'))
 	sub_interfaces = set(('status', 'priority'))
 	name = 'presence'
+	plugin_attrib = name
 	namespace = 'jabber:client'
 
 	def getShowElement(self):

@@ -53,7 +53,7 @@ class XMLStream(object):
 		self.ssl_support = ssl_support
 		self.escape_quotes = escape_quotes
 		self.state = statemachine.StateMachine()
-		self.state.addStates({'connected':False, 'is client':False, 'ssl':False, 'tls':False, 'reconnect':True, 'processing':False}) #set initial states
+		self.state.addStates({'connected':False, 'is client':False, 'ssl':False, 'tls':False, 'reconnect':True, 'processing':False, 'disconnecting':False}) #set initial states
 
 		self.setSocket(socket)
 		self.address = (host, int(port))
@@ -168,7 +168,7 @@ class XMLStream(object):
 			try:
 				if self.state['is client']:
 					self.sendRaw(self.stream_header)
-				while self.__readXML():
+				while self.run and self.__readXML():
 					if self.state['is client']:
 						self.sendRaw(self.stream_header)
 			except KeyboardInterrupt:
@@ -222,6 +222,7 @@ class XMLStream(object):
 			if event == b'end':
 				edepth += -1
 				if edepth == 0 and event == b'end':
+					self.disconnect(reconnect=self.state['reconnect'])
 					return False
 				elif edepth == 1:
 					#self.xmlin.put(xmlobj)
@@ -245,6 +246,7 @@ class XMLStream(object):
 				#self.socket.send(bytes(data, "utf-8"))
 				#except socket.error,(errno, strerror):
 			except:
+				logging.warning("Failed to send %s" % data)
 				self.state.set('connected', False)
 				if self.state.reconnect:
 					logging.error("Disconnected. Socket Error.")
@@ -257,8 +259,15 @@ class XMLStream(object):
 	
 	def disconnect(self, reconnect=False):
 		self.state.set('reconnect', reconnect)
+		if self.state['disconnecting']:
+			return
+		if not self.state['reconnect']:
+			logging.debug("Disconnecting...")
+			self.state.set('disconnecting', True)
+			self.run = False
 		if self.state['connected']:
 			self.sendRaw(self.stream_footer)
+			time.sleep(1)
 			#send end of stream
 			#wait for end of stream back
 		try:

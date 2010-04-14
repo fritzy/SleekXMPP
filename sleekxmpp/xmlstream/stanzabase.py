@@ -210,6 +210,8 @@ class ElementBase(tostring.ToString):
 		return self
 	
 	def __eq__(self, other):
+		if not isinstance(other, ElementBase):
+			return False
 		values = self.getValues()
 		for key in other:
 			if key not in values or values[key] != other[key]:

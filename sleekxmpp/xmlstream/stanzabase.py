@@ -120,6 +120,8 @@ class ElementBase(tostring.ToString):
 		if tagargs[0] not in (self.plugins, self.plugin_attrib): return False
 		founditerable = False
 		for iterable in self.iterables:
+			if nodes[1:] == []:
+				break
 			founditerable = iterable.match(nodes[1:])
 			if founditerable: break;
 		for evals in tagargs[1:]:

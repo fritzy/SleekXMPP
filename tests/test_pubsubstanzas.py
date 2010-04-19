@@ -85,12 +85,11 @@ class testpubsubstanzas(unittest.TestCase):
 		"Testing iq/pubsub/create&configure stanzas"
 		from sleekxmpp.plugins import xep_0004
 		iq = self.ps.Iq()
-		iq['pubsub']['create']['configure']
 		iq['pubsub']['create']['node'] = 'mynode'
 		form = xep_0004.Form()
 		form.addField('pubsub#title', ftype='text-single', value='This thing is awesome')
-		iq['pubsub']['create']['configure']['config'] = form
-		xmlstring = """<iq id="0"><pubsub xmlns="http://jabber.org/protocol/pubsub"><create node="mynode"><configure><x xmlns="jabber:x:data" type="form"><field var="pubsub#title" type="text-single"><value>This thing is awesome</value></field></x></configure></create></pubsub></iq>"""
+		iq['pubsub']['configure']['config'] = form
+		xmlstring = """<iq id="0"><pubsub xmlns="http://jabber.org/protocol/pubsub"><create node="mynode" /><configure><x xmlns="jabber:x:data" type="form"><field var="pubsub#title" type="text-single"><value>This thing is awesome</value></field></x></configure></pubsub></iq>"""
 		iq2 = self.ps.Iq(None, self.ps.ET.fromstring(xmlstring))
 		iq3 = self.ps.Iq()
 		values = iq2.getValues()
@@ -162,5 +161,12 @@ class testpubsubstanzas(unittest.TestCase):
 		iq3 = self.ps.Iq()
 		iq3.setValues(iq2.getValues())
 		self.failUnless(xmlstring == str(iq) == str(iq2) == str(iq3))
+	
+	def testCreateConfigGet(self):
+		"""Testing getting config from full create"""
+		xml = """<iq to="pubsub.asdf" type="set" id="E" from="fritzy@asdf/87292ede-524d-4117-9076-d934ed3db8e7"><pubsub xmlns="http://jabber.org/protocol/pubsub"><create node="testnode2" /><configure><x xmlns="jabber:x:data" type="submit"><field var="FORM_TYPE" type="hidden"><value>http://jabber.org/protocol/pubsub#node_config</value></field><field var="pubsub#node_type" type="list-single" label="Select the node type"><value>leaf</value></field><field var="pubsub#title" type="text-single" label="A friendly name for the node" /><field var="pubsub#deliver_notifications" type="boolean" label="Deliver event notifications"><value>1</value></field><field var="pubsub#deliver_payloads" type="boolean" label="Deliver payloads with event notifications"><value>1</value></field><field var="pubsub#notify_config" type="boolean" label="Notify subscribers when the node configuration changes" /><field var="pubsub#notify_delete" type="boolean" label="Notify subscribers when the node is deleted" /><field var="pubsub#notify_retract" type="boolean" label="Notify subscribers when items are removed from the node"><value>1</value></field><field var="pubsub#notify_sub" type="boolean" label="Notify owners about new subscribers and unsubscribes" /><field var="pubsub#persist_items" type="boolean" label="Persist items in storage" /><field var="pubsub#max_items" type="text-single" label="Max # of items to persist"><value>10</value></field><field var="pubsub#subscribe" type="boolean" label="Whether to allow subscriptions"><value>1</value></field><field var="pubsub#access_model" type="list-single" label="Specify the subscriber model"><value>open</value></field><field var="pubsub#publish_model" type="list-single" label="Specify the publisher model"><value>publishers</value></field><field var="pubsub#send_last_published_item" type="list-single" label="Send last published item"><value>never</value></field><field var="pubsub#presence_based_delivery" type="boolean" label="Deliver notification only to available users" /></x></configure></pubsub></iq>"""
+		iq = self.ps.Iq(None, self.ps.ET.fromstring(xml))
+		config = iq['pubsub']['configure']['config']
+		self.failUnless(config.getValues() != {})
 
 suite = unittest.TestLoader().loadTestsFromTestCase(testpubsubstanzas)

@@ -2,6 +2,7 @@ from .. xmlstream.stanzabase import ElementBase, ET, JID
 from .. stanza.iq import Iq
 from .. basexmpp import basexmpp
 from .. xmlstream.xmlstream import XMLStream
+import logging
 from . import xep_0004
 
 def stanzaPlugin(stanza, plugin):                                                                       
@@ -283,7 +284,6 @@ class Configure(ElementBase):
 		self.xml.remove(config)
 	
 stanzaPlugin(Pubsub, Configure)
-stanzaPlugin(Create, Configure)
 
 class DefaultConfig(ElementBase):
 	namespace = 'http://jabber.org/protocol/pubsub#owner'

@@ -66,8 +66,20 @@ class TestPubsubServer(unittest.TestCase):
 		#print("%s == %s" % (nconfig.getValues(), self.statev['defaultconfig'].getValues()))
 		self.failUnless(nconfig.getValues() == self.statev['defaultconfig'].getValues(), "Configuration does not match")
 		self.failUnless(self.xmpp1['xep_0060'].setNodeConfig(self.pshost, 'testnode2', nconfig))
+
+	def test006subscribetonode(self):
+		"""Subscribe to node from account 2"""
+		self.failUnless(self.xmpp2['xep_0060'].subscribe(self.pshost, "testnode2"))
+	
+	def test007publishitem(self):
+		"""Publishing item"""
+		item = ET.Element('{http://netflint.net/protocol/test}test')
+		result = self.xmpp1['xep_0060'].setItem(self.pshost, "testnode2", (('test_node1', item),))
+		self.failUnless(result)
+		#need to add check for update
 	
 	def test999cleanup(self):
+		"Cleaning up"
 		self.failUnless(self.xmpp1['xep_0060'].deleteNode(self.pshost, 'testnode2'))
 
 

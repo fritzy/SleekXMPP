@@ -1,5 +1,6 @@
 from .. xmlstream.stanzabase import ElementBase, ET, JID
 from .. stanza.iq import Iq
+from .. stanza.message import Message
 from .. basexmpp import basexmpp
 from .. xmlstream.xmlstream import XMLStream
 import logging
@@ -463,3 +464,33 @@ class OwnerSubscription(ElementBase):
 	
 	def getJid(self):
 		return JID(self._getAttr('from'))
+
+class Event(ElementBase):
+	namespace = 'http://jabber.org/protocol/pubsub#event'
+	name = 'event'
+	plugin_attrib = 'pubsub_event'
+	interfaces = set(('node',))
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
+
+stanzaPlugin(Message, Event)
+
+class EventItems(ElementBase):
+	namespace = 'http://jabber.org/protocol/pubsub#event'
+	name = 'items'
+	plugin_attrib = 'items'
+	interfaces = set(tuple())
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
+
+stanzaPlugin(Event, EventItems)
+
+class EventItem(ElementBase):
+	namespace = 'http://jabber.org/protocol/pubsub#event'
+	name = 'item'
+	plugin_attrib = 'item'
+	interfaces = set(tuple())
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
+
+stanzaPlugin(Event, EventItems)

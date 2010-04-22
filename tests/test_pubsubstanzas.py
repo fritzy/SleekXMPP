@@ -1,6 +1,7 @@
 import unittest
 from xml.etree import cElementTree as ET
 from sleekxmpp.xmlstream.matcher.stanzapath import StanzaPath
+from . import xmlcompare
 
 class testpubsubstanzas(unittest.TestCase):
 
@@ -168,5 +169,131 @@ class testpubsubstanzas(unittest.TestCase):
 		iq = self.ps.Iq(None, self.ps.ET.fromstring(xml))
 		config = iq['pubsub']['configure']['config']
 		self.failUnless(config.getValues() != {})
+
+	def testItemEvent(self):
+		"""Testing message/pubsub_event/items/item"""
+		msg = self.ps.Message()
+		item = self.ps.EventItem()
+		pl = ET.Element('{http://netflint.net/protocol/test}test', {'failed':'3', 'passed':'24'})
+		item['payload'] = pl
+		item['id'] = 'abc123'
+		msg['pubsub_event']['items'].append(item)
+		msg['pubsub_event']['items']['node'] = 'cheese'
+		msg['type'] = 'normal'
+		xmlstring = """<message type="normal"><event xmlns="http://jabber.org/protocol/pubsub#event"><items node="cheese"><item id="abc123"><test xmlns="http://netflint.net/protocol/test" failed="3" passed="24" /></item></items></event></message>"""
+		msg2 = self.ps.Message(None, self.ps.ET.fromstring(xmlstring))
+		msg3 = self.ps.Message()
+		msg3.setValues(msg2.getValues())
+		self.failUnless(xmlstring == str(msg) == str(msg2) == str(msg3))
+
+	def testItemsEvent(self):
+		"""Testing multiple message/pubsub_event/items/item"""
+		msg = self.ps.Message()
+		item = self.ps.EventItem()
+		item2 = self.ps.EventItem()
+		pl = ET.Element('{http://netflint.net/protocol/test}test', {'failed':'3', 'passed':'24'})
+		pl2 = ET.Element('{http://netflint.net/protocol/test-other}test', {'total':'27', 'failed':'3'})
+		item2['payload'] = pl2
+		item['payload'] = pl
+		item['id'] = 'abc123'
+		item2['id'] = '123abc'
+		msg['pubsub_event']['items'].append(item)
+		msg['pubsub_event']['items'].append(item2)
+		msg['pubsub_event']['items']['node'] = 'cheese'
+		msg['type'] = 'normal'
+		xmlstring = """<message type="normal"><event xmlns="http://jabber.org/protocol/pubsub#event"><items node="cheese"><item id="abc123"><test xmlns="http://netflint.net/protocol/test" failed="3" passed="24" /></item><item id="123abc"><test xmlns="http://netflint.net/protocol/test-other" failed="3" total="27" /></item></items></event></message>"""
+		msg2 = self.ps.Message(None, self.ps.ET.fromstring(xmlstring))
+		msg3 = self.ps.Message()
+		msg3.setValues(msg2.getValues())
+		self.failUnless(xmlstring == str(msg) == str(msg2) == str(msg3))
+
+	def testItemsEvent(self):
+		"""Testing message/pubsub_event/items/item & retract mix"""
+		msg = self.ps.Message()
+		item = self.ps.EventItem()
+		item2 = self.ps.EventItem()
+		pl = ET.Element('{http://netflint.net/protocol/test}test', {'failed':'3', 'passed':'24'})
+		pl2 = ET.Element('{http://netflint.net/protocol/test-other}test', {'total':'27', 'failed':'3'})
+		item2['payload'] = pl2
+		retract = self.ps.EventRetract()
+		retract['id'] = 'aabbcc'
+		item['payload'] = pl
+		item['id'] = 'abc123'
+		item2['id'] = '123abc'
+		msg['pubsub_event']['items'].append(item)
+		msg['pubsub_event']['items'].append(retract)
+		msg['pubsub_event']['items'].append(item2)
+		msg['pubsub_event']['items']['node'] = 'cheese'
+		msg['type'] = 'normal'
+		xmlstring = """<message type="normal"><event xmlns="http://jabber.org/protocol/pubsub#event"><items node="cheese"><item id="abc123"><test xmlns="http://netflint.net/protocol/test" failed="3" passed="24" /></item><retract id="aabbcc" /><item id="123abc"><test xmlns="http://netflint.net/protocol/test-other" failed="3" total="27" /></item></items></event></message>"""
+		msg2 = self.ps.Message(None, self.ps.ET.fromstring(xmlstring))
+		msg3 = self.ps.Message()
+		msg3.setValues(msg2.getValues())
+		self.failUnless(xmlstring == str(msg) == str(msg2) == str(msg3))
+	
+	def testCollectionAssociate(self):
+		"""Testing message/pubsub_event/collection/associate"""
+		msg = self.ps.Message()
+		msg['pubsub_event']['collection']['associate']['node'] = 'cheese'
+		msg['pubsub_event']['collection']['node'] = 'cheeseburger'
+		msg['type'] = 'headline'
+		xmlstring = """<message type="headline"><event xmlns="http://jabber.org/protocol/pubsub#event"><collection node="cheeseburger"><associate node="cheese" /></collection></event></message>"""
+		msg2 = self.ps.Message(None, self.ps.ET.fromstring(xmlstring))
+		msg3 = self.ps.Message()
+		msg3.setValues(msg2.getValues())
+		self.failUnless(xmlstring == str(msg) == str(msg2) == str(msg3))
+
+	def testCollectionDisassociate(self):
+		"""Testing message/pubsub_event/collection/disassociate"""
+		msg = self.ps.Message()
+		msg['pubsub_event']['collection']['disassociate']['node'] = 'cheese'
+		msg['pubsub_event']['collection']['node'] = 'cheeseburger'
+		msg['type'] = 'headline'
+		xmlstring = """<message type="headline"><event xmlns="http://jabber.org/protocol/pubsub#event"><collection node="cheeseburger"><disassociate node="cheese" /></collection></event></message>"""
+		msg2 = self.ps.Message(None, self.ps.ET.fromstring(xmlstring))
+		msg3 = self.ps.Message()
+		msg3.setValues(msg2.getValues())
+		self.failUnless(xmlstring == str(msg) == str(msg2) == str(msg3))
+
+	def testEventConfiguration(self):
+		"""Testing message/pubsub_event/configuration/config"""
+		msg = self.ps.Message()
+		from sleekxmpp.plugins import xep_0004
+		form = xep_0004.Form()
+		form.addField('pubsub#title', ftype='text-single', value='This thing is awesome')
+		msg['pubsub_event']['configuration']['node'] = 'cheese'
+		msg['pubsub_event']['configuration']['config'] = form
+		msg['type'] = 'headline'
+		xmlstring = """<message type="headline"><event xmlns="http://jabber.org/protocol/pubsub#event"><configuration node="cheese"><x xmlns="jabber:x:data" type="form"><field var="pubsub#title" type="text-single"><value>This thing is awesome</value></field></x></configuration></event></message>"""
+		msg2 = self.ps.Message(None, self.ps.ET.fromstring(xmlstring))
+		msg3 = self.ps.Message()
+		msg3.setValues(msg2.getValues())
+		self.failUnless(xmlstring == str(msg) == str(msg2) == str(msg3))
+	
+	def testEventPurge(self):
+		"""Testing message/pubsub_event/purge"""
+		msg = self.ps.Message()
+		msg['pubsub_event']['purge']['node'] = 'pickles'
+		msg['type'] = 'headline'
+		xmlstring = """<message type="headline"><event xmlns="http://jabber.org/protocol/pubsub#event"><purge node="pickles" /></event></message>"""
+		msg2 = self.ps.Message(None, self.ps.ET.fromstring(xmlstring))
+		msg3 = self.ps.Message()
+		msg3.setValues(msg2.getValues())
+		self.failUnless(xmlstring == str(msg) == str(msg2) == str(msg3))
+	
+	def testEventSubscription(self):
+		"""Testing message/pubsub_event/subscription"""
+		msg = self.ps.Message()
+		msg['pubsub_event']['subscription']['node'] = 'pickles'
+		msg['pubsub_event']['subscription']['jid'] = 'fritzy@netflint.net/test'
+		msg['pubsub_event']['subscription']['subid'] = 'aabb1122'
+		msg['pubsub_event']['subscription']['subscription'] = 'subscribed'
+		msg['pubsub_event']['subscription']['expiry'] = 'presence'
+		msg['type'] = 'headline'
+		xmlstring = """<message type="headline"><event xmlns="http://jabber.org/protocol/pubsub#event"><subscription node="pickles" subid="aabb1122" jid="fritzy@netflint.net/test" subscription="subscribed" expiry="presence" /></event></message>"""
+		msg2 = self.ps.Message(None, self.ps.ET.fromstring(xmlstring))
+		msg3 = self.ps.Message()
+		msg3.setValues(msg2.getValues())
+		self.failUnless(xmlcompare.comparemany([xmlstring, str(msg), str(msg2), str(msg3)]))
 
 suite = unittest.TestLoader().loadTestsFromTestCase(testpubsubstanzas)

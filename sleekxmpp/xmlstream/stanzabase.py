@@ -60,8 +60,11 @@ class ElementBase(tostring.ToString):
 			for child in self.xml.getchildren():
 				if child.tag in self.plugin_tag_map:
 					self.plugins[self.plugin_tag_map[child.tag].plugin_attrib] = self.plugin_tag_map[child.tag](xml=child, parent=self)
-				if self.subitem is not None and child.tag == "{%s}%s" % (self.subitem.namespace, self.subitem.name):
-					self.iterables.append(self.subitem(xml=child, parent=self))
+				if self.subitem is not None:
+					for sub in self.subitem:
+						if child.tag == "{%s}%s" % (sub.namespace, sub.name):
+							self.iterables.append(sub(xml=child, parent=self))
+							break
 
 
 	@property
@@ -263,7 +266,10 @@ class ElementBase(tostring.ToString):
 		for pluginkey in self.plugins:
 			out[pluginkey] = self.plugins[pluginkey].getValues()
 		if self.iterables:
-			iterables = [x.getValues() for x in self.iterables]
+			iterables = []
+			for stanza in self.iterables:
+				iterables.append(stanza.getValues())
+				iterables[-1].update({'__childtag__': "{%s}%s" % (stanza.namespace, stanza.name)})
 			out['substanzas'] = iterables
 		return out
 	
@@ -271,9 +277,13 @@ class ElementBase(tostring.ToString):
 		for interface in attrib:
 			if interface == 'substanzas':
 				for subdict in attrib['substanzas']:
-					sub = self.subitem(parent=self)
-					sub.setValues(subdict)
-					self.iterables.append(sub)
+					if '__childtag__' in subdict:
+						for subclass in self.subitem:
+							if subdict['__childtag__'] == "{%s}%s" % (subclass.namespace, subclass.name):
+								sub = subclass(parent=self)
+								sub.setValues(subdict)
+								self.iterables.append(sub)
+								break
 			elif interface in self.interfaces:
 				self[interface] = attrib[interface]
 			elif interface in self.plugin_attrib_map and interface not in self.plugins:

@@ -45,7 +45,7 @@ class Affiliations(ElementBase):
 	interfaces = set(tuple())
 	plugin_attrib_map = {}
 	plugin_tag_map = {}
-	subitem = Affiliation
+	subitem = (Affiliation,)
 
 	def append(self, affiliation):
 		if not isinstance(affiliation, Affiliation):
@@ -64,11 +64,11 @@ class Subscription(ElementBase):
 	plugin_attrib_map = {}
 	plugin_tag_map = {}
 
-	def setJid(self, value):
-		self._setAttr('jid', str(value))
+	def setjid(self, value):
+		self._setattr('jid', str(value))
 	
-	def getJid(self):
-		return JID(self._getAttr('jid'))
+	def getjid(self):
+		return jid(self._getattr('jid'))
 
 stanzaPlugin(Pubsub, Subscription)
 
@@ -79,7 +79,7 @@ class Subscriptions(ElementBase):
 	interfaces = set(tuple())
 	plugin_attrib_map = {}
 	plugin_tag_map = {}
-	subitem = Subscription
+	subitem = (Subscription,)
 
 	def __init__(self, *args, **kwargs):
 		ElementBase.__init__(self, *args, **kwargs)
@@ -176,7 +176,7 @@ class Items(ElementBase):
 	interfaces = set(tuple())
 	plugin_attrib_map = {}
 	plugin_tag_map = {}
-	subitem = Item
+	subitem = (Item,)
 
 stanzaPlugin(Pubsub, Items)
 
@@ -212,7 +212,7 @@ class Publish(Items):
 	interfaces = set(('node',))
 	plugin_attrib_map = {}
 	plugin_tag_map = {}
-	subitem = Item
+	subitem = (Item,)
 
 stanzaPlugin(Pubsub, Publish)
 
@@ -238,7 +238,7 @@ class Unsubscribe(ElementBase):
 		self._setAttr('jid', str(value))
 	
 	def getJid(self):
-		return JID(self._getAttr('from'))
+		return JID(self._getAttr('jid'))
 
 class Subscribe(ElementBase):
 	namespace = 'http://jabber.org/protocol/pubsub'
@@ -433,7 +433,7 @@ class OwnerRedirect(ElementBase):
 		self._setAttr('jid', str(value))
 	
 	def getJid(self):
-		return JID(self._getAttr('from'))
+		return JID(self._getAttr('jid'))
 
 stanzaPlugin(OwnerDelete, OwnerRedirect)
 
@@ -475,22 +475,123 @@ class Event(ElementBase):
 
 stanzaPlugin(Message, Event)
 
-class EventItems(ElementBase):
-	namespace = 'http://jabber.org/protocol/pubsub#event'
-	name = 'items'
-	plugin_attrib = 'items'
-	interfaces = set(tuple())
-	plugin_attrib_map = {}
-	plugin_tag_map = {}
-
-stanzaPlugin(Event, EventItems)
-
 class EventItem(ElementBase):
 	namespace = 'http://jabber.org/protocol/pubsub#event'
 	name = 'item'
 	plugin_attrib = 'item'
-	interfaces = set(tuple())
+	interfaces = set(('id', 'payload'))
 	plugin_attrib_map = {}
 	plugin_tag_map = {}
 
+	def setPayload(self, value):
+		self.xml.append(value)
+	
+	def getPayload(self):
+		childs = self.xml.getchildren()
+		if len(childs) > 0:
+			return childs[0]
+	
+	def delPayload(self):
+		for child in self.xml.getchildren():
+			self.xml.remove(child)
+
+
+class EventRetract(ElementBase):
+	namespace = 'http://jabber.org/protocol/pubsub#event'
+	name = 'retract'
+	plugin_attrib = 'retract'
+	interfaces = set(('id',))
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
+
+class EventItems(ElementBase):
+	namespace = 'http://jabber.org/protocol/pubsub#event'
+	name = 'items'
+	plugin_attrib = 'items'
+	interfaces = set(('node',))
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
+	subitem = (EventItem, EventRetract)
+
 stanzaPlugin(Event, EventItems)
+
+class EventCollection(ElementBase):
+	namespace = 'http://jabber.org/protocol/pubsub#event'
+	name = 'collection'
+	plugin_attrib = name
+	interfaces = set(('node',))
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
+
+stanzaPlugin(Event, EventCollection)
+
+class EventAssociate(ElementBase):
+	namespace = 'http://jabber.org/protocol/pubsub#event'
+	name = 'associate'
+	plugin_attrib = name
+	interfaces = set(('node',))
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
+
+stanzaPlugin(EventCollection, EventAssociate)
+
+class EventDisassociate(ElementBase):
+	namespace = 'http://jabber.org/protocol/pubsub#event'
+	name = 'disassociate'
+	plugin_attrib = name
+	interfaces = set(('node',))
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
+
+stanzaPlugin(EventCollection, EventDisassociate)
+
+class EventConfiguration(ElementBase):
+	namespace = 'http://jabber.org/protocol/pubsub#event'
+	name = 'configuration'
+	plugin_attrib = name
+	interfaces = set(('node', 'config'))
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
+	
+	def getConfig(self):
+		config = self.xml.find('{jabber:x:data}x')
+		form = xep_0004.Form()
+		if config is not None:
+			form.fromXML(config)
+		return form
+	
+	def setConfig(self, value):
+		self.xml.append(value.getXML())
+		return self
+	
+	def delConfig(self):
+		config = self.xml.find('{jabber:x:data}x')
+		self.xml.remove(config)
+	
+stanzaPlugin(Event, EventConfiguration)
+
+class EventPurge(ElementBase):
+	namespace = 'http://jabber.org/protocol/pubsub#event'
+	name = 'purge'
+	plugin_attrib = name
+	interfaces = set(('node',))
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
+
+stanzaPlugin(Event, EventPurge)
+
+class EventSubscription(ElementBase):
+	namespace = 'http://jabber.org/protocol/pubsub#event'
+	name = 'subscription'
+	plugin_attrib = name
+	interfaces = set(('node','expiry', 'jid', 'subid', 'subscription'))
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
+	
+	def setJid(self, value):
+		self._setAttr('jid', str(value))
+	
+	def getJid(self):
+		return JID(self._getAttr('jid'))
+
+stanzaPlugin(Event, EventSubscription)

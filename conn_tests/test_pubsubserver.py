@@ -8,6 +8,8 @@ import sys
 import thread
 import unittest
 import sleekxmpp.plugins.xep_0004
+from sleekxmpp.xmlstream.matcher.stanzapath import StanzaPath
+from sleekxmpp.xmlstream.handler.waiter import Waiter
 try:
 	import configparser
 except ImportError:
@@ -74,13 +76,47 @@ class TestPubsubServer(unittest.TestCase):
 	def test007publishitem(self):
 		"""Publishing item"""
 		item = ET.Element('{http://netflint.net/protocol/test}test')
-		result = self.xmpp1['xep_0060'].setItem(self.pshost, "testnode2", (('test_node1', item),))
+		w = Waiter('wait publish', StanzaPath('message/pubsub_event/items'))
+		self.xmpp2.registerHandler(w)
+		result = self.xmpp1['xep_0060'].setItem(self.pshost, "testnode2", (('test1', item),))
+		msg = w.wait(5) # got to get a result in 5 seconds
+		self.failUnless(msg != False, "Account #2 did not get message event")
 		self.failUnless(result)
 		#need to add check for update
 	
+	def test008updateitem(self):
+		"""Updating item"""
+		item = ET.Element('{http://netflint.net/protocol/test}test', {'someattr': 'hi there'})
+		w = Waiter('wait publish', StanzaPath('message/pubsub_event/items'))
+		self.xmpp2.registerHandler(w)
+		result = self.xmpp1['xep_0060'].setItem(self.pshost, "testnode2", (('test1', item),))
+		msg = w.wait(5) # got to get a result in 5 seconds
+		self.failUnless(msg != False, "Account #2 did not get message event")
+		self.failUnless(result)
+		#need to add check for update
+	
+	def test009deleteitem(self):
+		"""Deleting item"""
+		w = Waiter('wait retract', StanzaPath('message/pubsub_event/items@node=testnode2'))
+		self.xmpp2.registerHandler(w)
+		result = self.xmpp1['xep_0060'].deleteItem(self.pshost, "testnode2", "test1")
+		self.failUnless(result, "Got error when deleting item.")
+		msg = w.wait(1)
+		self.failUnless(msg != False, "Did not get retract notice.")
+	
+	def test010unsubscribenode(self):
+		"Unsubscribing Account #2"
+		self.failUnless(self.xmpp2['xep_0060'].unsubscribe(self.pshost, "testnode2"), "Got error response when unsubscribing.")
+	
+	def test011createcollectionnode(self):
+		"Create a collection node"
+		self.failUnless(self.xmpp1['xep_0060'].create_node(self.pshost, "testnode3", self.statev['defaultconfig'], True))
+
+	
 	def test999cleanup(self):
 		"Cleaning up"
-		self.failUnless(self.xmpp1['xep_0060'].deleteNode(self.pshost, 'testnode2'))
+		self.failUnless(self.xmpp1['xep_0060'].deleteNode(self.pshost, 'testnode5'), "Could not delete test node.")
+		self.failUnless(self.xmpp1['xep_0060'].deleteNode(self.pshost, 'testnode3'), "Could not delete collection test node.")
 
 
 if __name__ == '__main__':

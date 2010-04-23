@@ -81,39 +81,6 @@ class Subscriptions(ElementBase):
 	plugin_tag_map = {}
 	subitem = (Subscription,)
 
-	def __init__(self, *args, **kwargs):
-		ElementBase.__init__(self, *args, **kwargs)
-		self.subscriptions = []
-		self.idx = 0
-
-	def __iter__(self):
-		self.idx = 0
-		return self
-	
-	def __next__(self):
-		self.idx += 1
-		if self.idx + 1 > len(self.subscriptions):
-			self.idx = 0
-			raise StopIteration
-		return self.subscriptions[self.idx]
-	
-	def __len__(self):
-		return len(self.subscriptions)
-	
-	def append(self, subscription):
-		if not isinstance(subscription, Subscription):
-			raise TypeError
-		self.xml.append(subscription.xml)
-		return self.subscriptions.append(subscription)
-	
-	def pop(self, idx=0):
-		aff = self.subscriptions.pop(idx)
-		self.xml.remove(aff.xml)
-		return aff
-	
-	def find(self, subscription):
-		return self.subscriptions.find(subscription)
-
 stanzaPlugin(Pubsub, Subscriptions)
 
 class OptionalSetting(object):

@@ -10,6 +10,7 @@ from xml.etree import cElementTree as ET
 from . error import Error
 from .. exceptions import XMPPError
 import traceback
+import sys
 
 class RootStanza(StanzaBase):
 
@@ -24,7 +25,10 @@ class RootStanza(StanzaBase):
 				self['error']['type'] = e.etype
 		else: # we probably didn't raise this on purpose, so send back a traceback
 			self['error']['condition'] = 'undefined-condition'
-			self['error']['text'] = traceback.format_tb(e.__traceback__)
+			if sys.version_info < (3,0):
+				self['error']['text'] = "SleekXMPP got into trouble."
+			else:
+				self['error']['text'] = traceback.format_tb(e.__traceback__)
 		self.send()
 
 # all jabber:client root stanzas should have the error plugin

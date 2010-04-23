@@ -77,11 +77,14 @@ class ElementBase(tostring.ToString):
 	
 	def __next__(self):
 		self.idx += 1
-		if self.idx + 1 > len(self.iterables):
+		if self.idx > len(self.iterables):
 			self.idx = 0
 			raise StopIteration
-		return self.affiliations[self.idx]
+		return self.iterables[self.idx - 1]
 	
+	def next(self):
+		return self.__next__()
+
 	def __len__(self):
 		return len(self.iterables)
 	
@@ -140,6 +143,9 @@ class ElementBase(tostring.ToString):
 	
 	def find(self, xpath): # for backwards compatiblity, expose elementtree interface
 		return self.xml.find(xpath)
+
+	def findall(self, xpath):
+		return self.xml.findall(xpath)
 	
 	def setup(self, xml=None):
 		if self.xml is None:

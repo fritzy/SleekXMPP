@@ -172,9 +172,8 @@ class xep_0060(base.base_plugin):
 		iq.append(pubsub)
 		iq.attrib['to'] = jid
 		iq.attrib['from'] = self.xmpp.fulljid
-		id = iq['id']
 		result = iq.send()
-		if result is not None and result is not False and result.attrib.get('type', 'error') != 'error':
+		if result is not None and result is not False and result['type'] != 'error':
 			return True
 		else:
 			return False
@@ -216,6 +215,9 @@ class xep_0060(base.base_plugin):
 		if result is None or result is False or result['type'] == 'error': return False
 		return True
 	
+	def addItem(self, jid, node, items=[]):
+		return self.setItem(jid, node, items)
+
 	def deleteItem(self, jid, node, item):
 		pubsub = ET.Element('{http://jabber.org/protocol/pubsub}pubsub')
 		retract = ET.Element('retract')
@@ -231,9 +233,6 @@ class xep_0060(base.base_plugin):
 		result = iq.send()
 		if result is None or result is False or result['type'] == 'error': return False
 		return True
-	
-	def addItem(self, jid, node, items=[]):
-		return setItem(jid, node, items)
 	
 	def getNodes(self, jid):
 		response = self.xmpp.plugin['xep_0030'].getItems(jid)

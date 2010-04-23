@@ -110,14 +110,13 @@ class TestPubsubServer(unittest.TestCase):
 	
 	def test011createcollectionnode(self):
 		"Create a collection node"
-		self.failUnless(self.xmpp1['xep_0060'].create_node(self.pshost, "testnode3", self.statev['defaultconfig'], True))
+		self.failUnless(self.xmpp1['xep_0060'].create_node(self.pshost, "testnode3", self.statev['defaultconfig'], True), "Could not create collection node")
 
-	
-	def test999cleanup(self):
+	def test900cleanup(self):
 		"Cleaning up"
-		self.failUnless(self.xmpp1['xep_0060'].deleteNode(self.pshost, 'testnode5'), "Could not delete test node.")
-		self.failUnless(self.xmpp1['xep_0060'].deleteNode(self.pshost, 'testnode3'), "Could not delete collection test node.")
-
+		self.failUnless(self.xmpp1['xep_0060'].deleteNode(self.pshost, 'testnode2'), "Could not delete test node.")
+		self.failUnless(self.xmpp1['xep_0060'].deleteNode(self.pshost, 'testnode3'), "Could not delete collection node")
+	
 
 if __name__ == '__main__':
 	#parse command line arguements

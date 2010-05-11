@@ -147,12 +147,12 @@ class xep_0045(base.base_plugin):
 		"""
 		self.xmpp.event('groupchat_message', msg)
 		       
-		def jidInRoom(self, room, jid):
-			for nick in self.rooms[room]:
-				entry = self.rooms[room][nick]
-				if entry is not None and entry['jid'].full == jid:
-					return True
-			return False
+	def jidInRoom(self, room, jid):
+		for nick in self.rooms[room]:
+			entry = self.rooms[room][nick]
+			if entry is not None and entry['jid'].full == jid:
+				return True
+		return False
 
 	def getRoomForm(self, room, ifrom=None):
 		iq = self.xmpp.makeIqGet()

@@ -261,27 +261,23 @@ class basexmpp(object):
 		if not presence['from'].bare in self.roster:
 			self.roster[jid] = {'groups': [], 'name': '', 'subscription': 'none', 'presence': {}, 'in_roster': False}
 		if not resource in self.roster[jid]['presence']:
+			if (show == 'available' or show in presence.showtypes):
+				self.event("got_online", presence)
 			wasoffline = True
-			self.roster[jid]['presence'][resource] = {'show': show, 'status': status, 'priority': priority}
-		else:
-			if self.roster[jid]['presence'][resource].get('show', 'unavailable') == 'unavailable':
-				wasoffline = True
-			self.roster[jid]['presence'][resource] = {'show': show, 'status': status}
-			self.roster[jid]['presence'][resource]['priority'] = priority
+			self.roster[jid]['presence'][resource] = {}
+		if self.roster[jid]['presence'][resource].get('show', 'unavailable') == 'unavailable':
+			wasoffline = True
+		self.roster[jid]['presence'][resource] = {'show': show, 'status': status, 'priority': priority}
 		name = self.roster[jid].get('name', '')
-		if wasoffline and (show == 'available' or show in presence.showtypes):
-			self.event("got_online", presence)
-			self.event("changed_status", presence)
-		elif show == 'unavailable':
+		if show == 'unavailable':
 			logging.debug("%s %s got offline" % (jid, resource))
-			if len(self.roster[jid]['presence']) > 1:
+			if len(self.roster[jid]['presence']):
 				del self.roster[jid]['presence'][resource]
 			else:
 				del self.roster[jid]
-			self.event("got_offline", presence)
-			self.event("changed_status", presence)
-		elif oldroster != self.roster.get(jid, {'presence': {}})['presence'].get(resource, {}):
-			self.event("changed_status", presence)
+			if not wasoffline:
+				self.event("got_offline", presence)
+		self.event("changed_status", presence)
 		name = ''
 		if name:
 			name = "(%s) " % name

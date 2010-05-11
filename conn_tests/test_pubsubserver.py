@@ -65,7 +65,7 @@ class TestPubsubServer(unittest.TestCase):
 		"""Retrieving node config and reconfiguring"""
 		nconfig = self.xmpp1['xep_0060'].getNodeConfig(self.pshost, 'testnode2')
 		self.failUnless(nconfig, "No configuration returned")
-		#print("%s == %s" % (nconfig.getValues(), self.statev['defaultconfig'].getValues()))
+		#print("\n%s ==\n %s" % (nconfig.getValues(), self.statev['defaultconfig'].getValues()))
 		self.failUnless(nconfig.getValues() == self.statev['defaultconfig'].getValues(), "Configuration does not match")
 		self.failUnless(self.xmpp1['xep_0060'].setNodeConfig(self.pshost, 'testnode2', nconfig))
 
@@ -168,7 +168,7 @@ if __name__ == '__main__':
 
 	TestPubsubServer.xmpp1 = xmpp1
 	TestPubsubServer.xmpp2 = xmpp2
-	TestPubsubServer.pshost = 'pubsub.recon'
+	TestPubsubServer.pshost = config.get('settings', 'pubsub')
 	xmpp1.waitforstart.get(True)
 	xmpp2.waitforstart.get(True)
 	testsuite = unittest.TestLoader().loadTestsFromTestCase(TestPubsubServer)

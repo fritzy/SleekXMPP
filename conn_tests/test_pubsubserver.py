@@ -109,8 +109,26 @@ class TestPubsubServer(unittest.TestCase):
 		self.failUnless(self.xmpp2['xep_0060'].unsubscribe(self.pshost, "testnode2"), "Got error response when unsubscribing.")
 	
 	def test011createcollectionnode(self):
-		"Create a collection node"
-		self.failUnless(self.xmpp1['xep_0060'].create_node(self.pshost, "testnode3", self.statev['defaultconfig'], True), "Could not create collection node")
+		"Create a collection node w/ Account #2"
+		self.failUnless(self.xmpp2['xep_0060'].create_node(self.pshost, "testnode3", self.statev['defaultconfig'], True), "Could not create collection node")
+	
+	def test012subscribecollection(self):
+		"Subscribe Account #1 to collection"
+		self.failUnless(self.xmpp1['xep_0060'].subscribe(self.pshost, "testnode3"))
+	
+	def test013assignnodetocollection(self):
+		"Assign node to collection"
+		self.failUnless(self.xmpp2['xep_0060'].addNodeToCollection(self.pshost, 'testnode2', 'testnode3'))
+	
+	def test014publishcollection(self):
+		"""Publishing item to collection child"""
+		item = ET.Element('{http://netflint.net/protocol/test}test')
+		w = Waiter('wait publish2', StanzaPath('message/pubsub_event/items@node=testnode2'))
+		self.xmpp1.registerHandler(w)
+		result = self.xmpp2['xep_0060'].setItem(self.pshost, "testnode2", (('test2', item),))
+		msg = w.wait(5) # got to get a result in 5 seconds
+		self.failUnless(msg != False, "Account #1 did not get message event: perhaps node was advertised incorrectly?")
+		self.failUnless(result)
 
 	def test900cleanup(self):
 		"Cleaning up"

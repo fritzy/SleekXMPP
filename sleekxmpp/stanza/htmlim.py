@@ -31,4 +31,5 @@ class HTMLIM(ElementBase):
 		return html
 	
 	def delHtml(self):
-		return self.__del__()
+		if self.parent is not None:
+			self.parent().xml.remove(self.xml)

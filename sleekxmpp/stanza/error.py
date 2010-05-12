@@ -22,7 +22,7 @@ class Error(ElementBase):
 			self['type'] = 'cancel'
 			self['condition'] = 'feature-not-implemented'
 		if self.parent is not None:
-			self.parent['type'] = 'error'
+			self.parent()['type'] = 'error'
 	
 	def getCondition(self):
 		for child in self.xml.getchildren():

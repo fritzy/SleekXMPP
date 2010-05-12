@@ -22,4 +22,5 @@ class Nick(ElementBase):
 		return self.xml.text
 	
 	def delNick(self):
-		return self.__del__()
+		if self.parent is not None:
+			self.parent().xml.remove(self.xml)

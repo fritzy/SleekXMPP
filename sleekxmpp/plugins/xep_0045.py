@@ -93,10 +93,10 @@ class MUCPresence(ElementBase):
 		return self
 	
 	def getNick(self):
-		return self.parent['from'].resource
+		return self.parent()['from'].resource
 	
 	def getRoom(self):
-		return self.parent['from'].bare
+		return self.parent()['from'].bare
 	
 	def setNick(self, value):
 		logging.warning("Cannot set nick through mucpresence plugin.")

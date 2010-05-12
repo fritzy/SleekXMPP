@@ -43,6 +43,10 @@ class TestPubsubServer(unittest.TestCase):
 
 	def test001getdefaultconfig(self):
 		"""Get the default node config"""
+		self.xmpp1['xep_0060'].deleteNode(self.pshost, 'testnode2')
+		self.xmpp1['xep_0060'].deleteNode(self.pshost, 'testnode3')
+		self.xmpp1['xep_0060'].deleteNode(self.pshost, 'testnode4')
+		self.xmpp1['xep_0060'].deleteNode(self.pshost, 'testnode5')
 		result = self.xmpp1['xep_0060'].getNodeConfig(self.pshost)
 		self.statev['defaultconfig'] = result
 		self.failUnless(isinstance(result, sleekxmpp.plugins.xep_0004.Form))
@@ -129,6 +133,39 @@ class TestPubsubServer(unittest.TestCase):
 		msg = w.wait(5) # got to get a result in 5 seconds
 		self.failUnless(msg != False, "Account #1 did not get message event: perhaps node was advertised incorrectly?")
 		self.failUnless(result)
+
+#	def test016speedtest(self):
+#		"Uncached speed test"
+#		import time
+#		start = time.time()
+#		for y in range(0, 50000, 1000):
+#			start2 = time.time()
+#			for x in range(y, y+1000):
+#				self.failUnless(self.xmpp1['xep_0060'].subscribe(self.pshost, "testnode4", subscribee="testuser%s@whatever" % x))
+#			print time.time() - start2
+#		seconds = time.time() - start
+#		print "--", seconds
+#		print "---------"
+#		time.sleep(15)
+#		self.failUnless(self.xmpp1['xep_0060'].deleteNode(self.pshost, 'testnode4'), "Could not delete non-cached test node")
+	
+#	def test015speedtest(self):
+#		"cached speed test"
+#		result = self.xmpp1['xep_0060'].getNodeConfig(self.pshost)
+#		self.statev['defaultconfig'] = result
+#		self.statev['defaultconfig'].field['pubsub#node_type'].setValue("leaf")
+#		self.statev['defaultconfig'].field['sleek#saveonchange'].setValue(True)
+#		self.failUnless(self.xmpp1['xep_0060'].create_node(self.pshost, 'testnode4', self.statev['defaultconfig']))
+#		self.statev['defaultconfig'].field['sleek#saveonchange'].setValue(False)
+#		self.failUnless(self.xmpp1['xep_0060'].create_node(self.pshost, 'testnode5', self.statev['defaultconfig']))
+#		start = time.time()
+#		for y in range(0, 50000, 1000):
+#			start2 = time.time()
+#			for x in range(y, y+1000):
+#				self.failUnless(self.xmpp1['xep_0060'].subscribe(self.pshost, "testnode5", subscribee="testuser%s@whatever" % x))
+#			print time.time() - start2
+#		seconds = time.time() - start
+#		print "--", seconds
 
 	def test900cleanup(self):
 		"Cleaning up"

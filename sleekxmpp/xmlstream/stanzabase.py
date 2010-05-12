@@ -9,6 +9,7 @@ from xml.etree import cElementTree as ET
 import logging
 import traceback
 import sys
+import weakref
 
 if sys.version_info < (3,0):
 	from . import tostring26 as tostring
@@ -51,7 +52,10 @@ class ElementBase(tostring.ToString):
 	subitem = None
 
 	def __init__(self, xml=None, parent=None):
-		self.parent = parent
+		if parent is None:
+			self.parent = None
+		else:
+			self.parent = weakref.ref(parent)
 		self.xml = xml
 		self.plugins = {}
 		self.iterables = []
@@ -158,7 +162,7 @@ class ElementBase(tostring.ToString):
 				else:
 					self.xml.append(new)
 			if self.parent is not None:
-				self.parent.xml.append(self.xml)
+				self.parent().xml.append(self.xml)
 			return True #had to generate XML
 		else:
 			return False
@@ -302,9 +306,9 @@ class ElementBase(tostring.ToString):
 		self.xml.append(xml)
 		return self
 	
-	def __del__(self):
-		if self.parent is not None:
-			self.parent.xml.remove(self.xml)
+	#def __del__(self): #prevents garbage collection of reference cycle
+	#	if self.parent is not None:
+	#		self.parent.xml.remove(self.xml)
 
 class StanzaBase(ElementBase):
 	name = 'stanza'

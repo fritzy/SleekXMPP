@@ -185,6 +185,19 @@ class basexmpp(object):
 			self.event_handlers[name] = []
 		self.event_handlers[name].append((pointer, threaded, disposable))
 
+	def del_event_handler(self, name, pointer):
+		"""Remove a handler for an event."""
+		if not name in self.event_handlers:
+			return
+		
+		# Need to keep handlers that do not use
+		# the given function pointer
+		def filter_pointers(handler):
+			return handler[0] != pointer
+
+		self.event_handlers[name] = filter(filter_pointers, 
+						   self.event_handlers[name])
+
 	def event(self, name, eventdata = {}): # called on an event
 		for handler in self.event_handlers.get(name, []):
 			if handler[1]: #if threaded

@@ -12,7 +12,7 @@ class Error(ElementBase):
 	name = 'error'
 	plugin_attrib = 'error'
 	conditions = set(('bad-request', 'conflict', 'feature-not-implemented', 'forbidden', 'gone', 'item-not-found', 'jid-malformed', 'not-acceptable', 'not-allowed', 'not-authorized', 'payment-required', 'recipient-unavailable', 'redirect', 'registration-required', 'remote-server-not-found', 'remote-server-timeout', 'service-unavailable', 'subscription-required', 'undefined-condition', 'unexpected-request'))
-	interfaces = set(('condition', 'text', 'type'))
+	interfaces = set(('code', 'condition', 'text', 'type'))
 	types = set(('cancel', 'continue', 'modify', 'auth', 'wait'))
 	sub_interfaces = set(('text',))
 	condition_ns = 'urn:ietf:params:xml:ns:xmpp-stanzas'

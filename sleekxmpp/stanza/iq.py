@@ -37,6 +37,7 @@ class Iq(RootStanza):
 	def setPayload(self, value):
 		self.clear()
 		StanzaBase.setPayload(self, value)
+		return self
 	
 	def setQuery(self, value):
 		query = self.xml.find("{%s}query" % value)

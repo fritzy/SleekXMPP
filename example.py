@@ -37,8 +37,8 @@ if __name__ == '__main__':
 	
 	logging.basicConfig(level=opts.loglevel, format='%(levelname)-8s %(message)s')
 	xmpp = Example('user@gmail.com/sleekxmpp', 'password')
+	xmpp.registerPlugin('xep_0030')	
 	xmpp.registerPlugin('xep_0004')
-	xmpp.registerPlugin('xep_0030')
 	xmpp.registerPlugin('xep_0060')
 	xmpp.registerPlugin('xep_0199')
 	if xmpp.connect(('talk.google.com', 5222)):

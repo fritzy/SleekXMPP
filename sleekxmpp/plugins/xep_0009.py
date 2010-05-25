@@ -185,8 +185,8 @@ class xep_0009(base.base_plugin):
 		self.activeCalls = []
 
 	def post_init(self):
-		self.xmpp['xep_0030'].add_feature('jabber:iq:rpc')
-		self.xmpp['xep_0030'].add_identity('automatition','rpc')
+		self.xmpp.plugin['xep_0030'].add_feature('jabber:iq:rpc')
+		self.xmpp.plugin['xep_0030'].add_identity('automatition','rpc')
 
 	def register_call(self, method, name=None):
 		#@returns an string that can be used in acl commands.

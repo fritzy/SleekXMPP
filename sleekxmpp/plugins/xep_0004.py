@@ -31,7 +31,7 @@ class xep_0004(base.base_plugin):
 		self.xmpp.add_handler("<message><x xmlns='jabber:x:data' /></message>", self.handler_message_xform)
 	
 	def post_init(self):
-		self.xmpp['xep_0030'].add_feature('jabber:x:data')
+		self.xmpp.plugin['xep_0030'].add_feature('jabber:x:data')
 	
 	def handler_message_xform(self, xml):
 		object = self.handle_form(xml)

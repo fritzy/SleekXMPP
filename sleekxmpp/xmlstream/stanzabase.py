@@ -332,7 +332,7 @@ class StanzaBase(ElementBase):
 	
 	def setType(self, value):
 		if value in self.types:
-				self.xml.attrib['type'] = value
+			self.xml.attrib['type'] = value
 		return self
 
 	def getPayload(self):
@@ -340,15 +340,18 @@ class StanzaBase(ElementBase):
 	
 	def setPayload(self, value):
 		self.xml.append(value)
+		return self
 	
 	def delPayload(self):
 		self.clear()
+		return self
 	
 	def clear(self):
 		for child in self.xml.getchildren():
 			self.xml.remove(child)
 		for plugin in list(self.plugins.keys()):
 			del self.plugins[plugin]
+		return self
 	
 	def reply(self):
 		self['from'], self['to'] = self['to'], self['from']
@@ -357,6 +360,7 @@ class StanzaBase(ElementBase):
 	
 	def error(self):
 		self['type'] = 'error'
+		return self
 	
 	def getTo(self):
 		return JID(self._getAttr('to'))

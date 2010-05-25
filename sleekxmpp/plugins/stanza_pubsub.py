@@ -281,7 +281,7 @@ class DefaultConfig(ElementBase):
 
 	def getType(self):
 		t = self._getAttr('type')
-		if not t: t == 'leaf'
+		if not t: t = 'leaf'
 		return t
 
 stanzaPlugin(PubsubOwner, DefaultConfig)

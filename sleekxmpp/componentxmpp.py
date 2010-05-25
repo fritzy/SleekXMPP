@@ -1,4 +1,4 @@
-#!/usr/bin/python2.5
+#!/usr/bin/python2.6
 
 """
     SleekXMPP: The Sleek XMPP Library
@@ -54,7 +54,7 @@ class ComponentXMPP(basexmpp, XMLStream):
 		self.secret = secret
 		self.registerHandler(Callback('Handshake', MatchXPath('{jabber:component:accept}handshake'), self._handleHandshake))
 	
-    def __getitem__(self, key):
+	def __getitem__(self, key):
 		if key in self.plugin:
 			return self.plugin[key]
 		else:

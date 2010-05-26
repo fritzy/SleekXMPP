@@ -1,25 +1,184 @@
 """
-	SleekXMPP: The Sleek XMPP Library
-	Copyright (C) 2007  Nathanael C. Fritz
-	This file is part of SleekXMPP.
+    SleekXMPP: The Sleek XMPP Library
+    Copyright (C) 2010 Nathanael C. Fritz, Lance J.T. Stout
+    This file is part of SleekXMPP.
 
-	SleekXMPP is free software; you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; either version 2 of the License, or
-	(at your option) any later version.
-
-	SleekXMPP is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with SleekXMPP; if not, write to the Free Software
-	Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+    See the file license.txt for copying permissio
 """
-from . import base
+
 import logging
-from xml.etree import cElementTree as ET
+from . import base
+from .. xmlstream.handler.callback import Callback
+from .. xmlstream.matcher.xpath import MatchXPath
+from .. xmlstream.stanzabase import ElementBase, ET, JID
+from .. stanza.iq import Iq
+
+class DiscoInfo(ElementBase):
+	namespace = 'http://jabber.org/protocol/disco#info'
+	name = 'query'
+	plugin_attrib = 'disco_info'
+	interfaces = set(('node', 'features', 'identities'))
+
+	def getFeatures(self):
+		features = []
+		featuresXML = self.xml.findall('{%s}feature' % self.namespace)
+		for feature in featuresXML:
+			features.append(feature.attrib['var'])
+		return features
+
+	def setFeatures(self, features):
+		self.delFeatures()
+		for name in features:
+			self.addFeature(name)
+
+	def delFeatures(self):
+		featuresXML = self.xml.findall('{%s}feature' % self.namespace)
+		for feature in featuresXML:
+			self.xml.remove(feature)
+
+	def addFeature(self, feature):
+		featureXML = ET.Element('{%s}feature' % self.namespace, 
+					{'var': feature})
+		self.xml.append(featureXML)
+
+	def delFeature(self, feature):
+		featuresXML = self.xml.findall('{%s}feature' % self.namespace)
+		for featureXML in featuresXML:
+			if featureXML.attrib['var'] == feature:
+				self.xml.remove(featureXML)
+
+	def getIdentities(self):
+		ids = []
+		idsXML = self.xml.findall('{%s}identity' % self.namespace)
+		for idXML in idsXML:
+			idData = (idXML.attrib['category'],
+				  idXML.attrib['type'],
+				  idXML.attrib.get('name', ''))
+			ids.append(idData)
+		return ids
+
+	def setIdentities(self, ids):
+		self.delIdentities()
+		for idData in ids:
+			self.addIdentity(*idData)
+
+	def delIdentities(self):
+		idsXML = self.xml.findall('{%s}identity' % self.namespace)
+		for idXML in idsXML:
+			self.xml.remove(idXML)
+
+	def addIdentity(self, category, id_type, name=''):
+		idXML = ET.Element('{%s}identity' % self.namespace, 
+				   {'category': category,
+				    'type': id_type,
+				    'name': name})
+		self.xml.append(idXML)
+
+	def delIdentity(self, category, id_type, name=''):
+		idsXML = self.xml.findall('{%s}identity' % self.namespace)
+		for idXML in idsXML:
+			idData = (idXML.attrib['category'], 
+				  idXML.attrib['type'])
+			delId = (category, id_type)
+			if idData == delId:
+				self.xml.remove(idXML)
+
+
+class DiscoItems(ElementBase):
+	namespace = 'http://jabber.org/protocol/disco#items'
+	name = 'query'
+	plugin_attrib = 'disco_items'
+	interfaces = set(('node', 'items'))
+
+	def getItems(self):
+		items = []
+		itemsXML = self.xml.findall('{%s}item' % self.namespace)
+		for item in itemsXML:
+			itemData = (item.attrib['jid'],
+				    item.attrib.get('node'),
+				    item.attrib.get('name'))
+			items.append(itemData)
+		return items
+
+	def setItems(self, items):
+		self.delItems()
+		for item in items:
+			self.addItem(*item)
+
+	def delItems(self):
+		itemsXML = self.xml.findall('{%s}item' % self.namespace)
+		for item in itemsXML:
+			self.xml.remove(item)
+
+	def addItem(self, jid, node='', name=''):
+		itemXML = ET.Element('{%s}item' % self.namespace, {'jid': jid})
+		if name:
+			itemXML.attrib['name'] = name
+		if node:
+			itemXML.attrib['node'] = node
+		self.xml.append(itemXML)
+
+	def delItem(self, jid, node=''):
+		itemsXML = self.xml.findall('{%s}item' % self.namespace)
+		for itemXML in itemsXML:
+			itemData = (itemXML.attrib['jid'],
+				    itemXML.attrib.get('node', ''))
+			itemDel = (jid, node)
+			if itemData == itemDel:
+				self.xml.remove(itemXML)
+	
+
+class DiscoNode(object):
+	"""
+	Collection object for grouping info and item information
+	into nodes.
+	"""
+	def __init__(self, name):
+		self.name = name
+		self.info = DiscoInfo()
+		self.items = DiscoItems()
+
+		# This is a bit like poor man's inheritance, but
+		# to simplify adding information to the node we 
+		# map node functions to either the info or items
+		# stanza objects.
+		#
+		# We don't want to make DiscoNode inherit from 
+		# DiscoInfo and DiscoItems because DiscoNode is
+		# not an actual stanza, and doing so would create
+		# confusion and potential bugs.
+
+		self._map(self.items, 'items', ['get', 'set', 'del'])
+		self._map(self.items, 'item', ['add', 'del'])
+		self._map(self.info, 'identities', ['get', 'set', 'del'])
+		self._map(self.info, 'identity', ['add', 'del'])
+		self._map(self.info, 'features', ['get', 'set', 'del'])
+		self._map(self.info, 'feature', ['add', 'del'])
+
+	def isEmpty(self):
+		"""
+		Test if the node contains any information. Useful for
+		determining if a node can be deleted.
+		"""
+		ids = self.getIdentities()
+		features = self.getFeatures()
+		items = self.getItems()
+
+		if not ids and not features and not items:
+			return True
+		return False
+
+	def _map(self, obj, interface, access):
+		"""
+		Map functions of the form obj.accessInterface
+		to self.accessInterface for each given access type.
+		"""
+		interface = interface.title()
+		for access_type in access:
+			method = access_type + interface
+			if hasattr(obj, method):
+				setattr(self, method, getattr(obj, method))
+
 
 class xep_0030(base.base_plugin):
 	"""
@@ -29,85 +188,137 @@ class xep_0030(base.base_plugin):
 	def plugin_init(self):
 		self.xep = '0030'
 		self.description = 'Service Discovery'
-		self.features = {'main': ['http://jabber.org/protocol/disco#info', 'http://jabber.org/protocol/disco#items']}
-		self.identities = {'main': [{'category': 'client', 'type': 'pc', 'name': 'SleekXMPP'}]}
-		self.items = {'main': []}
-		self.xmpp.add_handler("<iq type='get' xmlns='%s'><query xmlns='http://jabber.org/protocol/disco#info' /></iq>" % self.xmpp.default_ns, self.info_handler)
-		self.xmpp.add_handler("<iq type='get' xmlns='%s'><query xmlns='http://jabber.org/protocol/disco#items' /></iq>" % self.xmpp.default_ns, self.item_handler)
+
+		self.xmpp.registerHandler(
+			Callback('Disco Items',
+				 MatchXPath('{%s}iq/{%s}query' % (self.xmpp.default_ns, 
+								  DiscoItems.namespace)),
+				 self.handle_item_query))
+
+		self.xmpp.registerHandler(
+			Callback('Disco Info',
+				 MatchXPath('{%s}iq/{%s}query' % (self.xmpp.default_ns, 
+								  DiscoInfo.namespace)),
+				 self.handle_info_query))
+
+		self.xmpp.stanzaPlugin(Iq, DiscoInfo)
+		self.xmpp.stanzaPlugin(Iq, DiscoItems)
+
+		self.xmpp.add_event_handler('disco_items_request', self.handle_disco_items)
+		self.xmpp.add_event_handler('disco_info_request', self.handle_disco_info)
+
+		self.nodes = {'main': DiscoNode('main')}
+
+	def add_node(self, node):
+		if node not in self.nodes:
+			self.nodes[node] = DiscoNode(node)
+
+	def del_node(self, node):
+		if node in self.nodes:
+			del self.nodes[node]
+
+	def handle_item_query(self, iq):
+		if iq['type'] == 'get':
+			logging.debug("Items requested by %s" % iq['from'])
+			self.xmpp.event('disco_items_request', iq)
+		elif iq['type'] == 'result':
+			logging.debug("Items result from %s" % iq['from'])
+			self.xmpp.event('disco_items', iq)
+
+	def handle_info_query(self, iq):
+		if iq['type'] == 'get':
+			logging.debug("Info requested by %s" % iq['from'])
+			self.xmpp.event('disco_info_request', iq)
+		elif iq['type'] == 'result':
+			logging.debug("Info result from %s" % iq['from'])
+			self.xmpp.event('disco_info', iq)
+
+	def handle_disco_info(self, iq, forwarded=False):
+		"""
+		A default handler for disco#info requests. If another
+		handler is registered, this one will defer and not run.
+		"""
+		handlers = self.xmpp.event_handlers['disco_info_request']
+		if not forwarded and len(handlers) > 1:
+			return
+
+		node_name = iq['disco_info']['node']
+		if not node_name:
+			node_name = 'main'
+
+		logging.debug("Using default handler for disco#info on node '%s'." % node_name)
+
+		if node_name in self.nodes:
+			node = self.nodes[node_name]
+			iq.reply().setPayload(node.info.xml).send()
+		else:
+			logging.debug("Node %s requested, but does not exist." % node_name)
+			iq.reply().error().setPayload(iq['disco_info'].xml)
+			iq['error']['code'] = '404'
+			iq['error']['type'] = 'cancel'
+			iq['error']['condition'] = 'item-not-found'
+			iq.send()
+			
+	def handle_disco_items(self, iq, forwarded=False):
+		"""
+		A default handler for disco#items requests. If another
+		handler is registered, this one will defer and not run.
+
+		If this handler is called by your own custom handler with
+		forwarded set to True, then it will run as normal.
+		"""
+		handlers = self.xmpp.event_handlers['disco_items_request']
+		if not forwarded and len(handlers) > 1:
+			return
+
+		node_name = iq['disco_items']['node']
+		if not node_name:
+			node_name = 'main'
+
+		logging.debug("Using default handler for disco#items on node '%s'." % node_name)
+
+		if node_name in self.nodes:
+			node = self.nodes[node_name]
+			iq.reply().setPayload(node.items.xml).send()
+		else:	
+			logging.debug("Node %s requested, but does not exist." % node_name)
+			iq.reply().error().setPayload(iq['disco_items'].xml)
+			iq['error']['code'] = '404'
+			iq['error']['type'] = 'cancel'
+			iq['error']['condition'] = 'item-not-found'
+			iq.send()
+
+	# Older interface methods for backwards compatibility
+
+	def getInfo(self, jid, node=''):
+		iq = Iq(self.xmpp)
+		iq['type'] = 'get'
+		iq['to'] = jid
+		iq['from'] = self.xmpp.fulljid
+		iq['disco_info']['node'] = node
+		iq.send()
+
+	def getItems(self, jid, node=''):
+		iq = Iq(self.xmpp)
+		iq['type'] = 'get'
+		iq['to'] = jid
+		iq['from'] = self.xmpp.fulljid
+		iq['disco_items']['node'] = node
+		iq.send()
 	
 	def add_feature(self, feature, node='main'):
-		if not node in self.features:
-			self.features[node] = []
-		self.features[node].append(feature)
+		self.add_node(node)
+		self.nodes[node].addFeature(feature)
 	
-	def add_identity(self, category=None, itype=None, name=None, node='main'):
-		if not node in self.identities:
-			self.identities[node] = []
-		self.identities[node].append({'category': category, 'type': itype, 'name': name})
+	def add_identity(self, category='', itype='', name='', node='main'):
+		self.add_node(node)
+		self.nodes[node].addIdentity(category=category,
+					     id_type=itype,
+					     name=name)
 	
-	def add_item(self, jid=None, name=None, node='main', subnode=''):
-		if not node in self.items:
-			self.items[node] = []
-		self.items[node].append({'jid': jid, 'name': name, 'node': subnode})
-
-	def info_handler(self, xml):
-		logging.debug("Info request from %s" % xml.get('from', ''))
-		iq = self.xmpp.makeIqResult(xml.get('id', self.xmpp.getNewId()))
-		iq.attrib['from'] = xml.get('to')
-		iq.attrib['to'] = xml.get('from', self.xmpp.server)
-		query = xml.find('{http://jabber.org/protocol/disco#info}query')
-		node = query.get('node', 'main')
-		for identity in self.identities.get(node, []):
-			idxml = ET.Element('identity')
-			for attrib in identity:
-				if identity[attrib]:
-					idxml.attrib[attrib] = identity[attrib]
-			query.append(idxml)
-		for feature in self.features.get(node, []):
-			featxml = ET.Element('feature')
-			featxml.attrib['var'] = feature
-			query.append(featxml)
-		iq.append(query)
-		#print ET.tostring(iq)
-		self.xmpp.send(iq)
-
-	def item_handler(self, xml):
-		logging.debug("Item request from %s" % xml.get('from', ''))
-		iq = self.xmpp.makeIqResult(xml.get('id', self.xmpp.getNewId()))
-		iq.attrib['from'] = xml.get('to')
-		iq.attrib['to'] = xml.get('from', self.xmpp.server)
-		query = self.xmpp.makeIqQuery(iq, 'http://jabber.org/protocol/disco#items').find('{http://jabber.org/protocol/disco#items}query')
-		node = xml.find('{http://jabber.org/protocol/disco#items}query').get('node', 'main')
-		for item in self.items.get(node, []):
-			itemxml = ET.Element('item')
-			itemxml.attrib = item
-			if itemxml.attrib['jid'] is None:
-				itemxml.attrib['jid'] = xml.get('to')
-			query.append(itemxml)
-		self.xmpp.send(iq)
-	
-	def getItems(self, jid, node=None):
-		iq = self.xmpp.makeIqGet()
-		iq.attrib['from'] = self.xmpp.fulljid
-		iq.attrib['to'] = jid
-		self.xmpp.makeIqQuery(iq, 'http://jabber.org/protocol/disco#items')
-		if node:
-			iq.find('{http://jabber.org/protocol/disco#items}query').attrib['node'] = node
-		return iq.send()
-	
-	def getInfo(self, jid, node=None):
-		iq = self.xmpp.makeIqGet()
-		iq.attrib['from'] = self.xmpp.fulljid
-		iq.attrib['to'] = jid
-		self.xmpp.makeIqQuery(iq, 'http://jabber.org/protocol/disco#info')
-		if node:
-			iq.find('{http://jabber.org/protocol/disco#info}query').attrib['node'] = node
-		return iq.send()
-
-	def parseInfo(self, xml):
-		result = {'identity': {}, 'feature': []}
-		for identity in xml.findall('{http://jabber.org/protocol/disco#info}query/{{http://jabber.org/protocol/disco#info}identity'):
-			result['identity'][identity['name']] = identity.attrib
-		for feature in xml.findall('{http://jabber.org/protocol/disco#info}query/{{http://jabber.org/protocol/disco#info}feature'):
-			result['feature'].append(feature.get('var', '__unknown__'))
-		return result
+	def add_item(self, jid=None, name='', node='main', subnode=''):
+		self.add_node(node)
+		self.add_node(subnode)
+		if jid is None:
+			jid = self.xmpp.fulljid
+		self.nodes[node].addItem(jid=jid, name=name, node=subnode)

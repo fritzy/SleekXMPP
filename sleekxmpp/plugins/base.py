@@ -24,6 +24,7 @@ class base_plugin(object):
 		self.description = 'Base Plugin'
 		self.xmpp = xmpp
 		self.config = config
+		self.post_inited = False
 		self.enable = config.get('enable', True)
 		if self.enable:
 			self.plugin_init()
@@ -32,4 +33,4 @@ class base_plugin(object):
 		pass
 	
 	def post_init(self):
-		pass
+		self.post_inited = True

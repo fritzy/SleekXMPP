@@ -185,6 +185,7 @@ class xep_0009(base.base_plugin):
 		self.activeCalls = []
 
 	def post_init(self):
+		base.base_plugin.post_init(self)
 		self.xmpp.plugin['xep_0030'].add_feature('jabber:iq:rpc')
 		self.xmpp.plugin['xep_0030'].add_identity('automatition','rpc')
 

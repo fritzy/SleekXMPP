@@ -42,6 +42,7 @@ class xep_0050(base.base_plugin):
 		self.sd = self.xmpp.plugin['xep_0030']
 	
 	def post_init(self):
+		base.base_plugin.post_init(self)
 		self.sd.add_feature('http://jabber.org/protocol/commands')
 
 	def addCommand(self, node, name, form, pointer=None, multi=False):

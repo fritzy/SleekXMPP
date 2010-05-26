@@ -85,8 +85,13 @@ class basexmpp(object):
 		self.jid = self.getjidbare(jid)
 		self.username = jid.split('@', 1)[0]
 		self.server = jid.split('@',1)[-1].split('/', 1)[0]
+	
+	def process(self, *args, **kwargs):
+		for idx in self.plugin:
+			if not self.plugin[idx].post_inited: self.plugin[idx].post_init()
+		return super(basexmpp, self).process(*args, **kwargs)
 		
-	def registerPlugin(self, plugin, pconfig = {}, run_post=True):
+	def registerPlugin(self, plugin, pconfig = {}):
 		"""Register a plugin not in plugins.__init__.__all__ but in the plugins
 		directory."""
 		# discover relative "path" to the plugins module from the main app, and import it.
@@ -100,8 +105,6 @@ class basexmpp(object):
 		if hasattr(self.plugin[plugin], 'xep'):
 			xep = "(XEP-%s) " % self.plugin[plugin].xep
 		logging.debug("Loaded Plugin %s%s" % (xep, self.plugin[plugin].description))
-		if run_post:
-			self.plugin[plugin].post_init()
 	
 	def register_plugins(self):
 		"""Initiates all plugins in the plugins/__init__.__all__"""

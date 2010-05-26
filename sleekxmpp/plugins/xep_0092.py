@@ -33,6 +33,7 @@ class xep_0092(base.base_plugin):
 		self.xmpp.add_handler("<iq type='get' xmlns='%s'><query xmlns='jabber:iq:version' /></iq>" % self.xmpp.default_ns, self.report_version)
 	
 	def post_init(self):
+		base.base_plugin.post_init(self)
 		self.xmpp.plugin['xep_0030'].add_feature('jabber:iq:version')
 	
 	def report_version(self, xml):

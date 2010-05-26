@@ -103,10 +103,11 @@ class testpubsubstanzas(unittest.TestCase):
 		iq = self.ps.Iq()
 		iq['pubsub_owner']['default']
 		iq['pubsub_owner']['default']['node'] = 'mynode'
+		iq['pubsub_owner']['default']['type'] = 'leaf'
 		form = xep_0004.Form()
 		form.addField('pubsub#title', ftype='text-single', value='This thing is awesome')
 		iq['pubsub_owner']['default']['config'] = form
-		xmlstring = """<iq id="0"><pubsub xmlns="http://jabber.org/protocol/pubsub#owner"><default node="mynode"><x xmlns="jabber:x:data" type="form"><field var="pubsub#title" type="text-single"><value>This thing is awesome</value></field></x></default></pubsub></iq>"""
+		xmlstring = """<iq id="0"><pubsub xmlns="http://jabber.org/protocol/pubsub#owner"><default node="mynode" type="leaf"><x xmlns="jabber:x:data" type="form"><field var="pubsub#title" type="text-single"><value>This thing is awesome</value></field></x></default></pubsub></iq>"""
 		iq2 = self.ps.Iq(None, self.ps.ET.fromstring(xmlstring))
 		iq3 = self.ps.Iq()
 		values = iq2.getValues()

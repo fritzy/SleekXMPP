@@ -14,12 +14,14 @@ class xep_0060(base.base_plugin):
 		self.xep = '0060'
 		self.description = 'Publish-Subscribe'
 	
-	def create_node(self, jid, node, config=None, collection=False):
+	def create_node(self, jid, node, config=None, collection=False, ntype=None):
 		pubsub = ET.Element('{http://jabber.org/protocol/pubsub}pubsub')
 		create = ET.Element('create')
 		create.set('node', node)
 		pubsub.append(create)
 		configure = ET.Element('configure')
+		if collection:
+			ntype = 'collection'
 		#if config is None:
 		#	submitform = self.xmpp.plugin['xep_0004'].makeForm('submit')
 		#else:
@@ -29,11 +31,11 @@ class xep_0060(base.base_plugin):
 				submitform.field['FORM_TYPE'].setValue('http://jabber.org/protocol/pubsub#node_config')
 			else:
 				submitform.addField('FORM_TYPE', 'hidden', value='http://jabber.org/protocol/pubsub#node_config')
-			if collection:
+			if ntype:
 				if 'pubsub#node_type' in submitform.field:
-					submitform.field['pubsub#node_type'].setValue('collection')
+					submitform.field['pubsub#node_type'].setValue(ntype)
 				else:
-					submitform.addField('pubsub#node_type', value='collection')
+					submitform.addField('pubsub#node_type', value=ntype)
 			else:
 				if 'pubsub#node_type' in submitform.field:
 					submitform.field['pubsub#node_type'].setValue('leaf')

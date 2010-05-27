@@ -319,6 +319,8 @@ class StanzaBase(ElementBase):
 
 	def __init__(self, stream=None, xml=None, stype=None, sto=None, sfrom=None, sid=None):
 		self.stream = stream
+		if stream is not None:
+			self.namespace = stream.default_ns
 		ElementBase.__init__(self, xml)
 		if stype is not None:
 			self['type'] = stype
@@ -326,8 +328,6 @@ class StanzaBase(ElementBase):
 			self['to'] = sto
 		if sfrom is not None:
 			self['from'] = sfrom
-		if stream is not None:
-			self.namespace = stream.default_ns
 		self.tag = "{%s}%s" % (self.namespace, self.name)
 	
 	def setType(self, value):

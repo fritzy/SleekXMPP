@@ -10,6 +10,39 @@ def stanzaPlugin(stanza, plugin):
 	stanza.plugin_attrib_map[plugin.plugin_attrib] = plugin                                             
 	stanza.plugin_tag_map["{%s}%s" % (plugin.namespace, plugin.name)] = plugin 
 
+class PubsubState(ElementBase):
+	namespace = 'http://jabber.org/protocol/psstate'
+	name = 'state'
+	plugin_attrib = 'psstate'
+	interfaces = set(('node', 'item', 'payload'))
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
+	
+	def setPayload(self, value):
+		self.xml.append(value)
+	
+	def getPayload(self):
+		childs = self.xml.getchildren()
+		if len(childs) > 0:
+			return childs[0]
+	
+	def delPayload(self):
+		for child in self.xml.getchildren():
+			self.xml.remove(child)
+
+stanzaPlugin(Iq, PubsubState)
+
+class PubsubStateEvent(ElementBase):
+	namespace = 'http://jabber.org/protocol/psstate#event'
+	name = 'event'
+	plugin_attrib = 'psstate_event'
+	intefaces = set(tuple())
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
+
+stanzaPlugin(Message, PubsubState)
+stanzaPlugin(PubsubState, PubsubStateEvent)
+
 class Pubsub(ElementBase):
 	namespace = 'http://jabber.org/protocol/pubsub'
 	name = 'pubsub'
@@ -321,18 +354,6 @@ class Options(ElementBase):
 stanzaPlugin(Pubsub, Options)
 stanzaPlugin(Subscribe, Options)
 
-#iq = Iq()
-#iq['pubsub']['defaultconfig']
-#print(iq)
-
-#from xml.etree import cElementTree as ET
-#iq = Iq()
-#item = Item()
-#item['payload'] = ET.Element("{http://netflint.net/p/crap}stupidshit")
-#item['id'] = 'aa11bbcc'
-#iq['pubsub']['items'].append(item)
-#print(iq)
-	
 class OwnerAffiliations(Affiliations):
 	namespace = 'http://jabber.org/protocol/pubsub#owner'
 	interfaces = set(('node'))

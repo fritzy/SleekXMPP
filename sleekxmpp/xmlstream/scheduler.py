@@ -4,6 +4,7 @@ except ImportError:
 	import Queue as queue
 import time
 import threading
+import logging
 
 class Task(object):
 	"""Task object for the Scheduler class"""
@@ -34,7 +35,7 @@ class Scheduler(object):
 		self.addq = queue.Queue()
 		self.schedule = []
 		self.thread = None
-		self.run = True
+		self.run = False
 	
 	def process(self, threaded=True):
 		if threaded:
@@ -44,6 +45,7 @@ class Scheduler(object):
 			self._process()
 
 	def _process(self):
+		self.run = True
 		while self.run:
 			wait = 5
 			updated = False
@@ -67,7 +69,7 @@ class Scheduler(object):
 				self.schedule.append(newtask)
 			finally:
 				if updated: self.schedule = sorted(self.schedule, key=lambda task: task.next)
-				print [x.name for x in self.schedule]
+		logging.debug("Qutting Scheduler thread")
 
 	def add(self, name, seconds, callback, args=None, kwargs=None, repeat=False, qpointer=None):
 		self.addq.put(Task(name, seconds, callback, args, kwargs, repeat, qpointer))

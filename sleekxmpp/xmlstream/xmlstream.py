@@ -22,6 +22,7 @@ import time
 import traceback
 import types
 import xml.sax.saxutils
+from . import scheduler
 
 HANDLER_THREADS = 1
 
@@ -75,6 +76,7 @@ class XMLStream(object):
 
 		self.eventqueue = queue.Queue()
 		self.sendqueue = queue.Queue()
+		self.scheduler = scheduler.Scheduler()
 
 		self.namespace_map = {}
 
@@ -145,6 +147,7 @@ class XMLStream(object):
 		raise RestartStream()
 	
 	def process(self, threaded=True):
+		self.scheduler.process(threaded=True)
 		for t in range(0, HANDLER_THREADS):
 			self.__thread['eventhandle%s' % t] = threading.Thread(name='eventhandle%s' % t, target=self._eventRunner)
 			self.__thread['eventhandle%s' % t].start()
@@ -156,8 +159,8 @@ class XMLStream(object):
 		else:
 			self._process()
 	
-	def schedule(self, seconds, handler, args=None):
-		threading.Timer(seconds, handler, args).start()
+	def schedule(self, name, seconds, callback, args=None, kwargs=None, repeat=False):
+		self.scheduler.add(name, seconds, callback, args, kwargs, repeat, qpointer=self.eventqueue)
 	
 	def _process(self):
 		"Start processing the socket."
@@ -334,7 +337,7 @@ class XMLStream(object):
 					except Exception as e:
 						traceback.print_exc()
 						args[0].exception(e)
-				elif etype == 'sched':
+				elif etype == 'schedule':
 					try:
 						handler.run(*args)
 					except:

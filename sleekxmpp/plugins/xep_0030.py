@@ -291,7 +291,7 @@ class xep_0030(base.base_plugin):
 	# Older interface methods for backwards compatibility
 
 	def getInfo(self, jid, node=''):
-		iq = Iq(self.xmpp)
+		iq = self.xmpp.Iq()
 		iq['type'] = 'get'
 		iq['to'] = jid
 		iq['from'] = self.xmpp.fulljid
@@ -299,7 +299,7 @@ class xep_0030(base.base_plugin):
 		iq.send()
 
 	def getItems(self, jid, node=''):
-		iq = Iq(self.xmpp)
+		iq = self.xmpp.Iq()
 		iq['type'] = 'get'
 		iq['to'] = jid
 		iq['from'] = self.xmpp.fulljid

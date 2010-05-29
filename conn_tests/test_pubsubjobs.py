@@ -67,7 +67,7 @@ class TestPubsubServer(unittest.TestCase):
 		p = self.xmpp2.Presence()
 		p['to'] = self.pshost
 		p.send()
-		self.failUnless(self.xmpp1['xep_0060'].create_node(self.pshost, 'testnode2', self.statev['defaultconfig'], ntype='queue'))
+		self.failUnless(self.xmpp1['xep_0060'].create_node(self.pshost, 'testnode2', self.statev['defaultconfig'], ntype='job'))
 	
 	def test005reconfigure(self):
 		"""Retrieving node config and reconfiguring"""
@@ -86,31 +86,26 @@ class TestPubsubServer(unittest.TestCase):
 		item = ET.Element('{http://netflint.net/protocol/test}test')
 		w = Waiter('wait publish', StanzaPath('message/pubsub_event/items'))
 		self.xmpp2.registerHandler(w)
-		result = self.xmpp1['xep_0060'].setItem(self.pshost, "testnode2", (('test1', item),))
+		#result = self.xmpp1['xep_0060'].setItem(self.pshost, "testnode2", (('test1', item),))
+		result = self.xmpp1['jobs'].createJob(self.pshost, "testnode2", 'test1', item)
 		msg = w.wait(5) # got to get a result in 5 seconds
 		self.failUnless(msg != False, "Account #2 did not get message event")
-		result = self.xmpp1['xep_0060'].setItem(self.pshost, "testnode2", (('test2', item),))
-		iq = self.xmpp2.Iq()
-		iq['to'] = self.pshost
-		iq['type'] = 'set'
-		iq['psstate']['node'] = 'testnode2'
-		iq['psstate']['item'] = 'test1'
-		iq['psstate']['payload'] = ET.Element('{http://andyet.net/protocol/pubsubqueue}claimed')
-		result = iq.send()
-		time.sleep(10)
-		iq = self.xmpp2.Iq()
-		iq['to'] = self.pshost
-		iq['type'] = 'set'
-		iq['psstate']['node'] = 'testnode2'
-		iq['psstate']['item'] = 'test2'
-		iq['psstate']['payload'] = ET.Element('{http://andyet.net/protocol/pubsubqueue}claimed')
-		result = iq.send()
-		self.failUnless(result['type'] == 'result')
+		#result = self.xmpp1['xep_0060'].setItem(self.pshost, "testnode2", (('test2', item),))
+		result = self.xmpp1['jobs'].createJob(self.pshost, "testnode2", 'test2', item)
+		w = Waiter('wait publish2', StanzaPath('message/pubsub_event/items'))
+		self.xmpp2.registerHandler(w)
+		self.xmpp2['jobs'].claimJob(self.pshost, 'testnode2', 'test1')
+		msg = w.wait(5) # got to get a result in 5 seconds
+		self.xmpp2['jobs'].claimJob(self.pshost, 'testnode2', 'test2')
+		self.xmpp2['jobs'].finishJob(self.pshost, 'testnode2', 'test1')
+		self.xmpp2['jobs'].finishJob(self.pshost, 'testnode2', 'test2')
+		print result
 		#need to add check for update
 
 	def test900cleanup(self):
 		"Cleaning up"
-		self.failUnless(self.xmpp1['xep_0060'].deleteNode(self.pshost, 'testnode2'), "Could not delete test node.")
+		#self.failUnless(self.xmpp1['xep_0060'].deleteNode(self.pshost, 'testnode2'), "Could not delete test node.")
+		time.sleep(10)
 	
 
 if __name__ == '__main__':
@@ -141,10 +136,12 @@ if __name__ == '__main__':
 	xmpp1.registerPlugin('xep_0030')
 	xmpp1.registerPlugin('xep_0060')
 	xmpp1.registerPlugin('xep_0199')
+	xmpp1.registerPlugin('jobs')
 	xmpp2.registerPlugin('xep_0004')
 	xmpp2.registerPlugin('xep_0030')
 	xmpp2.registerPlugin('xep_0060')
 	xmpp2.registerPlugin('xep_0199')
+	xmpp2.registerPlugin('jobs')
 
 	if not config.get('account1', 'server'):
 		# we don't know the server, but the lib can probably figure it out

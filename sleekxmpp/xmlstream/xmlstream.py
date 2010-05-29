@@ -76,7 +76,7 @@ class XMLStream(object):
 
 		self.eventqueue = queue.Queue()
 		self.sendqueue = queue.Queue()
-		self.scheduler = scheduler.Scheduler()
+		self.scheduler = scheduler.Scheduler(self.eventqueue)
 
 		self.namespace_map = {}
 
@@ -149,6 +149,7 @@ class XMLStream(object):
 	def process(self, threaded=True):
 		self.scheduler.process(threaded=True)
 		for t in range(0, HANDLER_THREADS):
+			logging.debug("Starting HANDLER THREAD")
 			self.__thread['eventhandle%s' % t] = threading.Thread(name='eventhandle%s' % t, target=self._eventRunner)
 			self.__thread['eventhandle%s' % t].start()
 		self.__thread['sendthread'] = threading.Thread(name='sendthread', target=self._sendThread)
@@ -331,6 +332,9 @@ class XMLStream(object):
 				event = self.eventqueue.get(True, timeout=5)
 			except queue.Empty:
 				event = None
+			except KeyboardInterrupt:
+				self.run = False
+				self.scheduler.run = False
 			if event is not None:
 				etype = event[0]
 				handler = event[1]

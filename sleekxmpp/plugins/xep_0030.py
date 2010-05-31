@@ -138,6 +138,9 @@ class DiscoNode(object):
 		self.info = DiscoInfo()
 		self.items = DiscoItems()
 
+		self.info['node'] = name
+		self.items['node'] = name
+
 		# This is a bit like poor man's inheritance, but
 		# to simplify adding information to the node we 
 		# map node functions to either the info or items

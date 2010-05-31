@@ -49,7 +49,7 @@ class Scheduler(object):
 		self.run = True
 		while self.run:
 			try:
-				wait = 5
+				wait = 1
 				updated = False
 				if self.schedule:
 					wait = self.schedule[0].next - time.time()

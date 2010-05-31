@@ -78,6 +78,9 @@ class ElementBase(tostring.ToString):
 	def __iter__(self):
 		self.idx = 0
 		return self
+
+	def __bool__(self):
+		return True
 	
 	def __next__(self):
 		self.idx += 1

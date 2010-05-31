@@ -40,8 +40,8 @@ class PubsubStateEvent(ElementBase):
 	plugin_attrib_map = {}
 	plugin_tag_map = {}
 
-stanzaPlugin(Message, PubsubState)
-stanzaPlugin(PubsubState, PubsubStateEvent)
+stanzaPlugin(Message, PubsubStateEvent)
+stanzaPlugin(PubsubStateEvent, PubsubState)
 
 class Pubsub(ElementBase):
 	namespace = 'http://jabber.org/protocol/pubsub'

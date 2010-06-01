@@ -152,7 +152,7 @@ class basexmpp(object):
 			return waitfor.wait(timeout)
 	
 	def makeIq(self, id=0, ifrom=None):
-		return self.Iq().setValues({'id': id, 'from': ifrom})
+		return self.Iq().setValues({'id': str(id), 'from': ifrom})
 	
 	def makeIqGet(self, queryxmlns = None):
 		iq = self.Iq().setValues({'type': 'get'})

@@ -188,7 +188,6 @@ class Form(FieldContainer):
 	
 	#def getXML(self, tostring = False):
 	def getXML(self, ftype=None):
-		logging.debug("creating form as %s" % ftype)
 		if ftype:
 			self.type = ftype
 		form = ET.Element('{jabber:x:data}x')

@@ -22,6 +22,7 @@ import time
 import traceback
 import types
 import xml.sax.saxutils
+from . import scheduler
 
 HANDLER_THREADS = 1
 
@@ -75,6 +76,7 @@ class XMLStream(object):
 
 		self.eventqueue = queue.Queue()
 		self.sendqueue = queue.Queue()
+		self.scheduler = scheduler.Scheduler(self.eventqueue)
 
 		self.namespace_map = {}
 
@@ -145,7 +147,9 @@ class XMLStream(object):
 		raise RestartStream()
 	
 	def process(self, threaded=True):
+		self.scheduler.process(threaded=True)
 		for t in range(0, HANDLER_THREADS):
+			logging.debug("Starting HANDLER THREAD")
 			self.__thread['eventhandle%s' % t] = threading.Thread(name='eventhandle%s' % t, target=self._eventRunner)
 			self.__thread['eventhandle%s' % t].start()
 		self.__thread['sendthread'] = threading.Thread(name='sendthread', target=self._sendThread)
@@ -156,8 +160,8 @@ class XMLStream(object):
 		else:
 			self._process()
 	
-	def schedule(self, seconds, handler, args=None):
-		threading.Timer(seconds, handler, args).start()
+	def schedule(self, name, seconds, callback, args=None, kwargs=None, repeat=False):
+		self.scheduler.add(name, seconds, callback, args, kwargs, repeat, qpointer=self.eventqueue)
 	
 	def _process(self):
 		"Start processing the socket."
@@ -177,6 +181,7 @@ class XMLStream(object):
 				self.state.set('reconnect', False)
 				self.disconnect()
 				self.run = False
+				self.scheduler.run = False
 				self.eventqueue.put(('quit', None, None))
 				return
 			except CloseStream:
@@ -223,6 +228,7 @@ class XMLStream(object):
 				edepth += -1
 				if edepth == 0 and event == b'end':
 					self.disconnect(reconnect=self.state['reconnect'])
+					logging.debug("Ending readXML loop")
 					return False
 				elif edepth == 1:
 					#self.xmlin.put(xmlobj)
@@ -231,11 +237,13 @@ class XMLStream(object):
 					except RestartStream:
 						return True
 					except CloseStream:
+						logging.debug("Ending readXML loop")
 						return False
 					if root:
 						root.clear()
 			if event == b'start':
 				edepth += 1
+		logging.debug("Ending readXML loop")
 	
 	def _sendThread(self):
 		while self.run:
@@ -265,6 +273,7 @@ class XMLStream(object):
 			logging.debug("Disconnecting...")
 			self.state.set('disconnecting', True)
 			self.run = False
+			self.scheduler.run = False
 		if self.state['connected']:
 			self.sendRaw(self.stream_footer)
 			time.sleep(1)
@@ -323,6 +332,9 @@ class XMLStream(object):
 				event = self.eventqueue.get(True, timeout=5)
 			except queue.Empty:
 				event = None
+			except KeyboardInterrupt:
+				self.run = False
+				self.scheduler.run = False
 			if event is not None:
 				etype = event[0]
 				handler = event[1]
@@ -334,9 +346,10 @@ class XMLStream(object):
 					except Exception as e:
 						traceback.print_exc()
 						args[0].exception(e)
-				elif etype == 'sched':
+				elif etype == 'schedule':
 					try:
-						handler.run(*args)
+						logging.debug(args)
+						handler(*args[0])
 					except:
 						logging.error(traceback.format_exc())
 				elif etype == 'quit':

@@ -97,6 +97,21 @@ class testpubsubstanzas(unittest.TestCase):
 		iq3.setValues(values)
 		self.failUnless(xmlstring == str(iq) == str(iq2) == str(iq3))
 	
+	def testState(self):
+		"Testing iq/psstate stanzas"
+		from sleekxmpp.plugins import xep_0004
+		iq = self.ps.Iq()
+		iq['psstate']['node']= 'mynode'
+		iq['psstate']['item']= 'myitem'
+		pl = ET.Element('{http://andyet.net/protocol/pubsubqueue}claimed')
+		iq['psstate']['payload'] = pl
+		xmlstring = """<iq id="0"><state xmlns="http://jabber.org/protocol/psstate" node="mynode" item="myitem"><claimed xmlns="http://andyet.net/protocol/pubsubqueue" /></state></iq>"""
+		iq2 = self.ps.Iq(None, self.ps.ET.fromstring(xmlstring))
+		iq3 = self.ps.Iq()
+		values = iq2.getValues()
+		iq3.setValues(values)
+		self.failUnless(xmlstring == str(iq) == str(iq2) == str(iq3))
+	
 	def testDefault(self):
 		"Testing iq/pubsub_owner/default stanzas"
 		from sleekxmpp.plugins import xep_0004

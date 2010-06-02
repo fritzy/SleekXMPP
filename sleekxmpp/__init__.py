@@ -66,6 +66,7 @@ class ClientXMPP(basexmpp, XMLStream):
 		#TODO: Use stream state here
 		self.authenticated = False
 		self.sessionstarted = False
+		self.bound = False
 		self.registerHandler(Callback('Stream Features', MatchXPath('{http://etherx.jabber.org/streams}features'), self._handleStreamFeatures, thread=True))
 		self.registerHandler(Callback('Roster Update', MatchXPath('{%s}iq/{jabber:iq:roster}query' % self.default_ns), self._handleRoster, thread=True))
 		#self.registerHandler(Callback('Roster Update', MatchXMLMask("<presence xmlns='%s' type='subscribe' />" % self.default_ns), self._handlePresenceSubscribe, thread=True))
@@ -221,6 +222,7 @@ class ClientXMPP(basexmpp, XMLStream):
 		response = iq.send()
 		#response = self.send(iq, self.Iq(sid=iq['id']))
 		self.set_jid(response.xml.find('{urn:ietf:params:xml:ns:xmpp-bind}bind/{urn:ietf:params:xml:ns:xmpp-bind}jid').text)
+		self.bound = True
 		logging.info("Node set to: %s" % self.fulljid)
 		if "{urn:ietf:params:xml:ns:xmpp-session}session" not in self.features:
 			logging.debug("Established Session")
@@ -228,7 +230,7 @@ class ClientXMPP(basexmpp, XMLStream):
 			self.event("session_start")
 	
 	def handler_start_session(self, xml):
-		if self.authenticated:
+		if self.authenticated and self.bound:
 			iq = self.makeIqSet(xml)
 			response = iq.send()
 			logging.debug("Established Session")

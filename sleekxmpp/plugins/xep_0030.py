@@ -299,7 +299,7 @@ class xep_0030(base.base_plugin):
 		iq['to'] = jid
 		iq['from'] = dfrom
 		iq['disco_info']['node'] = node
-		iq.send()
+		return iq.send()
 
 	def getItems(self, jid, node='', dfrom=None):
 		iq = self.xmpp.Iq()
@@ -307,7 +307,7 @@ class xep_0030(base.base_plugin):
 		iq['to'] = jid
 		iq['from'] = dfrom
 		iq['disco_items']['node'] = node
-		iq.send()
+		return iq.send()
 	
 	def add_feature(self, feature, node='main'):
 		self.add_node(node)

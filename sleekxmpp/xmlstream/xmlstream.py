@@ -21,6 +21,7 @@ import threading
 import time
 import traceback
 import types
+import copy
 import xml.sax.saxutils
 from . import scheduler
 
@@ -305,19 +306,18 @@ class XMLStream(object):
 		#convert XML into Stanza
 		logging.debug("RECV: %s" % cElementTree.tostring(xmlobj))
 		xmlobj = self.incoming_filter(xmlobj)
-		stanza = None
+		stanza_type = StanzaBase
 		for stanza_class in self.__root_stanza:
 			if xmlobj.tag == "{%s}%s" % (self.default_ns, stanza_class.name):
-			#if self.__root_stanza[stanza_class].match(xmlobj):
-				stanza = stanza_class(self, xmlobj)
+				stanza_type = stanza_class
 				break
-		if stanza is None:
-			stanza = StanzaBase(self, xmlobj)
 		unhandled = True
+		stanza = stanza_type(self, xmlobj)
 		for handler in self.__handlers:
 			if handler.match(stanza):
-				handler.prerun(stanza)
-				self.eventqueue.put(('stanza', handler, stanza))
+				stanza_copy = stanza_type(self, copy.deepcopy(xmlobj))
+				handler.prerun(stanza_copy)
+				self.eventqueue.put(('stanza', handler, stanza_copy))
 				if handler.checkDelete(): self.__handlers.pop(self.__handlers.index(handler))
 				unhandled = False
 		if unhandled:

@@ -27,6 +27,7 @@ from . stanza.error import Error
 
 import logging
 import threading
+import copy
 
 import sys
 
@@ -205,12 +206,13 @@ class basexmpp(object):
 
 	def event(self, name, eventdata = {}): # called on an event
 		for handler in self.event_handlers.get(name, []):
+			handlerdata = copy.copy(eventdata)
 			if handler[1]: #if threaded
 				#thread.start_new(handler[0], (eventdata,))
-				x = threading.Thread(name="Event_%s" % str(handler[0]), target=handler[0], args=(eventdata,))
+				x = threading.Thread(name="Event_%s" % str(handler[0]), target=handler[0], args=(handlerdata,))
 				x.start()
 			else:
-				handler[0](eventdata)
+				handler[0](handlerdata)
 			if handler[2]: #disposable
 				with self.lock:
 					self.event_handlers[name].pop(self.event_handlers[name].index(handler))

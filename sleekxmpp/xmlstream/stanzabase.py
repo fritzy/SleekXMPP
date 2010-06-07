@@ -311,7 +311,7 @@ class ElementBase(tostring.ToString):
 		return self
 
 	def __copy__(self):
-		return self.__class__(xml=copy.copy(self.xml), parent=self.parent)
+		return self.__class__(xml=copy.deepcopy(self.xml), parent=self.parent)
 	
 	#def __del__(self): #prevents garbage collection of reference cycle
 	#	if self.parent is not None:
@@ -391,5 +391,5 @@ class StanzaBase(ElementBase):
 		self.stream.sendRaw(self.__str__())
 
 	def __copy__(self):
-		return self.__class__(xml=copy.copy(self.xml), stream=self.stream)
+		return self.__class__(xml=copy.deepcopy(self.xml), stream=self.stream)
 	

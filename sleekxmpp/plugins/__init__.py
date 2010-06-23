@@ -17,4 +17,4 @@
     along with SleekXMPP; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
-__all__ = ['xep_0004', 'xep_0030', 'xep_0045', 'xep_0050', 'xep_0078', 'xep_0085', 'xep_0092', 'xep_0199', 'gmail_notify', 'xep_0060']
+__all__ = ['xep_0004', 'xep_0030', 'xep_0033', 'xep_0045', 'xep_0050', 'xep_0078', 'xep_0085', 'xep_0092', 'xep_0199', 'gmail_notify', 'xep_0060']

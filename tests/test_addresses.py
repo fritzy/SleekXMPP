@@ -1,83 +1,110 @@
-import unittest
-from xml.etree import cElementTree as ET
-from sleekxmpp.xmlstream.matcher.stanzapath import StanzaPath
-from . import xmlcompare
-
-import sleekxmpp.plugins.xep_0033 as addr
+from sleektest import *
+import sleekxmpp.plugins.xep_0033 as xep_0033
 
 
-def stanzaPlugin(stanza, plugin):
-	stanza.plugin_attrib_map[plugin.plugin_attrib] = plugin
-	stanza.plugin_tag_map["{%s}%s" % (plugin.namespace, plugin.name)] = plugin
+class TestAddresses(SleekTest):
 
-
-class testaddresses(unittest.TestCase):
     	def setUp(self):
-		self.addr = addr
-                stanzaPlugin(self.addr.Message, self.addr.Addresses)
-
-	def try2Methods(self, xmlstring, msg):
-		msg2 = self.addr.Message(None, self.addr.ET.fromstring(xmlstring))
-                self.failUnless(xmlstring == str(msg) == str(msg2),
-				"""Three methods for creating stanza don't match:\n%s\n%s\n%s""" % (xmlstring, str(msg), str(msg2)))
+                self.stanzaPlugin(Message, xep_0033.Addresses)
 
         def testAddAddress(self):
 		"""Testing adding extended stanza address."""
-		xmlstring = """<message><addresses xmlns="http://jabber.org/protocol/address"><address jid="to@header1.org" type="to" /></addresses></message>"""
-
-		msg = self.addr.Message()
+		msg = self.Message()
 		msg['addresses'].addAddress(atype='to', jid='to@header1.org')
-		self.try2Methods(xmlstring, msg)
+		self.checkMessage(msg, """
+                  <message>
+                    <addresses xmlns="http://jabber.org/protocol/address">
+                      <address jid="to@header1.org" type="to" />
+                    </addresses>
+                  </message>
+                """)
 
-		xmlstring = """<message><addresses xmlns="http://jabber.org/protocol/address"><address jid="replyto@header1.org" type="replyto" desc="Reply address" /></addresses></message>"""
-
-		msg = self.addr.Message()
-		msg['addresses'].addAddress(atype='replyto', jid='replyto@header1.org', desc='Reply address')
-		self.try2Methods(xmlstring, msg)
+		msg = self.Message()
+		msg['addresses'].addAddress(atype='replyto', 
+                                            jid='replyto@header1.org', 
+                                            desc='Reply address')
+                self.checkMessage(msg, """
+                  <message>
+                    <addresses xmlns="http://jabber.org/protocol/address">
+                      <address jid="replyto@header1.org" type="replyto" desc="Reply address" />
+                    </addresses>
+                  </message>
+                """)
 
 	def testAddAddresses(self):
 		"""Testing adding multiple extended stanza addresses."""
 
-		xmlstring = """<message><addresses xmlns="http://jabber.org/protocol/address"><address jid="replyto@header1.org" type="replyto" desc="Reply address" /><address jid="cc@header2.org" type="cc" /><address jid="bcc@header2.org" type="bcc" /></addresses></message>"""
+		xmlstring = """
+                  <message>
+                    <addresses xmlns="http://jabber.org/protocol/address">
+                      <address jid="replyto@header1.org" type="replyto" desc="Reply address" />
+                      <address jid="cc@header2.org" type="cc" />
+                      <address jid="bcc@header2.org" type="bcc" />
+                    </addresses>
+                  </message>
+                """
 
-		msg = self.addr.Message()
-		msg['addresses'].setAddresses([{'type':'replyto', 'jid':'replyto@header1.org', 'desc':'Reply address'},
-					       {'type':'cc', 'jid':'cc@header2.org'},
-					       {'type':'bcc', 'jid':'bcc@header2.org'}])
-		self.try2Methods(xmlstring, msg)
+		msg = self.Message()
+		msg['addresses'].setAddresses([{'type':'replyto', 
+                                                'jid':'replyto@header1.org', 
+                                                'desc':'Reply address'},
+					       {'type':'cc', 
+                                                'jid':'cc@header2.org'},
+					       {'type':'bcc', 
+                                                'jid':'bcc@header2.org'}])
+		self.checkMessage(msg, xmlstring)
 
-		msg = self.addr.Message()
-		msg['addresses']['replyto'] = [{'jid':'replyto@header1.org', 'desc':'Reply address'}]
+		msg = self.Message()
+		msg['addresses']['replyto'] = [{'jid':'replyto@header1.org', 
+                                                'desc':'Reply address'}]
 		msg['addresses']['cc'] = [{'jid':'cc@header2.org'}]
 		msg['addresses']['bcc'] = [{'jid':'bcc@header2.org'}]
-		self.try2Methods(xmlstring, msg)
+		self.checkMessage(msg, xmlstring)
 
 	def testAddURI(self):
 		"""Testing adding URI attribute to extended stanza address."""
 
-		xmlstring = """<message><addresses xmlns="http://jabber.org/protocol/address"><address node="foo" jid="to@header1.org" type="to" /></addresses></message>"""
-		msg = self.addr.Message()
-		addr = msg['addresses'].addAddress(atype='to', jid='to@header1.org', node='foo')
-		self.try2Methods(xmlstring, msg)
+		msg = self.Message()
+		addr = msg['addresses'].addAddress(atype='to', 
+                                                   jid='to@header1.org', 
+                                                   node='foo')
+                self.checkMessage(msg, """
+                  <message>
+                    <addresses xmlns="http://jabber.org/protocol/address">
+                      <address node="foo" jid="to@header1.org" type="to" />
+                    </addresses>
+                  </message>
+                """)
 
-		xmlstring = """<message><addresses xmlns="http://jabber.org/protocol/address"><address type="to" uri="mailto:to@header2.org" /></addresses></message>"""
 		addr['uri'] = 'mailto:to@header2.org'
-		self.try2Methods(xmlstring, msg)
+		self.checkMessage(msg, """
+                  <message>
+                    <addresses xmlns="http://jabber.org/protocol/address">
+                      <address type="to" uri="mailto:to@header2.org" />
+                    </addresses>
+                  </message>
+                """)
 
 	def testDelivered(self):
 		"""Testing delivered attribute of extended stanza addresses."""
 
-		xmlstring = """<message><addresses xmlns="http://jabber.org/protocol/address"><address %sjid="to@header1.org" type="to" /></addresses></message>"""
+		xmlstring = """
+                  <message>
+                    <addresses xmlns="http://jabber.org/protocol/address">
+                      <address %s jid="to@header1.org" type="to" />
+                    </addresses>
+                  </message>
+                """
 
-		msg = self.addr.Message()
+		msg = self.Message()
 		addr = msg['addresses'].addAddress(jid='to@header1.org', atype='to')
-		self.try2Methods(xmlstring % '', msg)
+		self.checkMessage(msg, xmlstring % '')
 
 		addr['delivered'] = True
-		self.try2Methods(xmlstring % 'delivered="true" ', msg)
+		self.checkMessage(msg, xmlstring % 'delivered="true"')
 
 		addr['delivered'] = False
-		self.try2Methods(xmlstring % '', msg)
+		self.checkMessage(msg, xmlstring % '')
 
 
-suite = unittest.TestLoader().loadTestsFromTestCase(testaddresses)
+suite = unittest.TestLoader().loadTestsFromTestCase(TestAddresses)

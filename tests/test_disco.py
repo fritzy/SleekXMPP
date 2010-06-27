@@ -1,96 +1,118 @@
-import unittest
-from xml.etree import cElementTree as ET
-from sleekxmpp.xmlstream.matcher.stanzapath import StanzaPath
-from . import xmlcompare
+from sleektest import *
+import sleekxmpp.plugins.xep_0030 as xep_0030
 
-import sleekxmpp.plugins.xep_0030 as sd
 
-def stanzaPlugin(stanza, plugin):                                                                       
-	stanza.plugin_attrib_map[plugin.plugin_attrib] = plugin                                             
-	stanza.plugin_tag_map["{%s}%s" % (plugin.namespace, plugin.name)] = plugin 
-
-class testdisco(unittest.TestCase):
+class TestDisco(SleekTest):
 
     def setUp(self):
-        self.sd = sd
-        stanzaPlugin(self.sd.Iq, self.sd.DiscoInfo)
-        stanzaPlugin(self.sd.Iq, self.sd.DiscoItems)
-
-    def try3Methods(self, xmlstring, iq):
-	iq2 = self.sd.Iq(None, self.sd.ET.fromstring(xmlstring))
-	values = iq2.getValues()
-	iq3 = self.sd.Iq()
-	iq3.setValues(values)
-        self.failUnless(xmlstring == str(iq) == str(iq2) == str(iq3), str(iq)+"3 methods for creating stanza don't match")
+        self.stanzaPlugin(Iq, xep_0030.DiscoInfo)
+        self.stanzaPlugin(Iq, xep_0030.DiscoItems)
         
     def testCreateInfoQueryNoNode(self):
         """Testing disco#info query with no node."""
-        iq = self.sd.Iq()
+        iq = self.Iq()
         iq['id'] = "0"
         iq['disco_info']['node'] = ''
-        xmlstring = """<iq id="0"><query xmlns="http://jabber.org/protocol/disco#info" /></iq>"""
-	self.try3Methods(xmlstring, iq)
+
+        self.checkIq(iq, """
+          <iq id="0">
+            <query xmlns="http://jabber.org/protocol/disco#info" />
+          </iq>
+        """)
 
     def testCreateInfoQueryWithNode(self):
         """Testing disco#info query with a node."""
-        iq = self.sd.Iq()
+        iq = self.Iq()
         iq['id'] = "0"
         iq['disco_info']['node'] = 'foo'
-        xmlstring = """<iq id="0"><query xmlns="http://jabber.org/protocol/disco#info" node="foo" /></iq>"""
-	self.try3Methods(xmlstring, iq)
+
+        self.checkIq(iq, """
+          <iq id="0">
+            <query xmlns="http://jabber.org/protocol/disco#info" node="foo" />
+          </iq>
+        """)
 
     def testCreateInfoQueryNoNode(self):
         """Testing disco#items query with no node."""
-        iq = self.sd.Iq()
+        iq = self.Iq()
         iq['id'] = "0"
         iq['disco_items']['node'] = ''
-        xmlstring = """<iq id="0"><query xmlns="http://jabber.org/protocol/disco#items" /></iq>"""
-	self.try3Methods(xmlstring, iq)
+
+        self.checkIq(iq, """
+          <iq id="0">
+            <query xmlns="http://jabber.org/protocol/disco#items" />
+          </iq>
+        """)
 
     def testCreateItemsQueryWithNode(self):
         """Testing disco#items query with a node."""
-        iq = self.sd.Iq()
+        iq = self.Iq()
         iq['id'] = "0"
         iq['disco_items']['node'] = 'foo'
-        xmlstring = """<iq id="0"><query xmlns="http://jabber.org/protocol/disco#items" node="foo" /></iq>"""
-	self.try3Methods(xmlstring, iq)
+
+        self.checkIq(iq, """
+          <iq id="0">
+            <query xmlns="http://jabber.org/protocol/disco#items" node="foo" />
+          </iq>
+        """)
 
     def testInfoIdentities(self):
         """Testing adding identities to disco#info."""
-        iq = self.sd.Iq()
+        iq = self.Iq()
         iq['id'] = "0"
         iq['disco_info']['node'] = 'foo'
 	iq['disco_info'].addIdentity('conference', 'text', 'Chatroom')
-        xmlstring = """<iq id="0"><query xmlns="http://jabber.org/protocol/disco#info" node="foo"><identity category="conference" type="text" name="Chatroom" /></query></iq>"""
-	self.try3Methods(xmlstring, iq)
+
+        self.checkIq(iq, """
+          <iq id="0">
+            <query xmlns="http://jabber.org/protocol/disco#info" node="foo">
+              <identity category="conference" type="text" name="Chatroom" />
+            </query>
+          </iq>
+        """)
 
     def testInfoFeatures(self):
         """Testing adding features to disco#info."""
-        iq = self.sd.Iq()
+        iq = self.Iq()
         iq['id'] = "0"
         iq['disco_info']['node'] = 'foo'
 	iq['disco_info'].addFeature('foo')
 	iq['disco_info'].addFeature('bar')
-        xmlstring = """<iq id="0"><query xmlns="http://jabber.org/protocol/disco#info" node="foo"><feature var="foo" /><feature var="bar" /></query></iq>"""
-	self.try3Methods(xmlstring, iq)
+
+        self.checkIq(iq, """
+          <iq id="0">
+            <query xmlns="http://jabber.org/protocol/disco#info" node="foo">
+              <feature var="foo" />
+              <feature var="bar" />
+            </query>
+          </iq>
+        """)
 
     def testItems(self):
         """Testing adding features to disco#info."""
-        iq = self.sd.Iq()
+        iq = self.Iq()
         iq['id'] = "0"
         iq['disco_items']['node'] = 'foo'
 	iq['disco_items'].addItem('user@localhost')
 	iq['disco_items'].addItem('user@localhost', 'foo')
 	iq['disco_items'].addItem('user@localhost', 'bar', 'Testing')
-        xmlstring = """<iq id="0"><query xmlns="http://jabber.org/protocol/disco#items" node="foo"><item jid="user@localhost" /><item node="foo" jid="user@localhost" /><item node="bar" jid="user@localhost" name="Testing" /></query></iq>"""
-	self.try3Methods(xmlstring, iq)
+
+        self.checkIq(iq, """
+          <iq id="0">
+            <query xmlns="http://jabber.org/protocol/disco#items" node="foo">
+              <item jid="user@localhost" />
+              <item node="foo" jid="user@localhost" />
+              <item node="bar" jid="user@localhost" name="Testing" />
+            </query>
+          </iq>
+        """)
 
     def testAddRemoveIdentities(self):
         """Test adding and removing identities to disco#info stanza"""
 	ids = [('automation', 'commands', 'AdHoc'),
 	       ('conference', 'text', 'ChatRoom')]
 
-	info = self.sd.DiscoInfo()
+	info = xep_0030.DiscoInfo()
 	info.addIdentity(*ids[0])
 	self.failUnless(info.getIdentities() == [ids[0]])
 
@@ -110,7 +132,7 @@ class testdisco(unittest.TestCase):
         """Test adding and removing features to disco#info stanza"""
 	features = ['foo', 'bar', 'baz']
 
-	info = self.sd.DiscoInfo()
+	info = xep_0030.DiscoInfo()
 	info.addFeature(features[0])
 	self.failUnless(info.getFeatures() == [features[0]])
 
@@ -132,7 +154,7 @@ class testdisco(unittest.TestCase):
 		 ('user@localhost', 'foo', None),
 		 ('user@localhost', 'bar', 'Test')]
 
-	info = self.sd.DiscoItems()
+	info = xep_0030.DiscoItems()
 	self.failUnless(True, ""+str(items[0]))
 
 	info.addItem(*(items[0]))
@@ -151,5 +173,4 @@ class testdisco(unittest.TestCase):
 	self.failUnless(info.getItems() == [])
 	
 
-        
-suite = unittest.TestLoader().loadTestsFromTestCase(testdisco)
+suite = unittest.TestLoader().loadTestsFromTestCase(TestDisco)

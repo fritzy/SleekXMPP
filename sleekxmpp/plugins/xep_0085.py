@@ -38,8 +38,9 @@ class ChatState(ElementBase):
     def setState(self, state):
         if state in self.states:
             self.name = state
-            self.xml.tag = state
-            self.xml.attrib['xmlns'] = self.namespace
+            self.xml.tag = '{%s}%s' % (self.namespace, state)
+        else:
+            raise ValueError('Invalid chat state')
 
     def getState(self):
         return self.name

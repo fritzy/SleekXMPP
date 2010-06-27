@@ -35,7 +35,7 @@ class Addresses(ElementBase):
 		for addrXML in self.xml.findall('{%s}address' % Address.namespace):
 			# ElementTree 1.2.6 does not support [@attr='value'] in findall
 			if atype is None or addrXML.attrib.get('type') == atype:
-                                addresses.append(Address(xml=addrXML, parent=None))
+				addresses.append(Address(xml=addrXML, parent=None))
 		return addresses
 
 	def setAddresses(self, addresses, set_type=None):

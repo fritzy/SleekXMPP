@@ -34,14 +34,14 @@ class Addresses(ElementBase):
 		addresses = []
 		for addrXML in self.xml.findall('{%s}address' % Address.namespace):
 			# ElementTree 1.2.6 does not support [@attr='value'] in findall
-			if atype is not None and addrXML.get('type') == atype:
-				self.xml.remove(addrXML)
-			addresses.append(Address(xml=addrXML, parent=None))
+			if atype is None or addrXML.attrib.get('type') == atype:
+                                addresses.append(Address(xml=addrXML, parent=None))
 		return addresses
 
 	def setAddresses(self, addresses, set_type=None):
 		self.delAddresses(set_type)
 		for addr in addresses:
+                        addr = dict(addr)
 			# Remap 'type' to 'atype' to match the add method
 			if set_type is not None:
 				addr['type'] = set_type
@@ -52,9 +52,11 @@ class Addresses(ElementBase):
 			self.addAddress(**addr)
 
 	def delAddresses(self, atype=None):
+                if atype is None:
+                        return
 		for addrXML in self.xml.findall('{%s}address' % Address.namespace):
 			# ElementTree 1.2.6 does not support [@attr='value'] in findall
-			if atype is not None and addrXML.get('type') == atype:
+			if addrXML.attrib.get('type') == atype:
 				self.xml.remove(addrXML)
 
 	# --------------------------------------------------------------
@@ -126,7 +128,7 @@ class Address(ElementBase):
 	address_types = set(('bcc', 'cc', 'noreply', 'replyroom', 'replyto', 'to'))
 
 	def getDelivered(self):
-		return self.attrib.get('delivered', False)
+		return self.xml.attrib.get('delivered', False)
 
 	def setDelivered(self, delivered):
 		if delivered:

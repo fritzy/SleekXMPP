@@ -30,7 +30,7 @@ class Addresses(ElementBase):
 		address['delivered'] = delivered
 		return address
 
-        def getAddresses(self, atype=None):
+	def getAddresses(self, atype=None):
 		addresses = []
 		for addrXML in self.xml.findall('{%s}address' % Address.namespace):
 			# ElementTree 1.2.6 does not support [@attr='value'] in findall
@@ -39,7 +39,7 @@ class Addresses(ElementBase):
 			addresses.append(Address(xml=addrXML, parent=None))
 		return addresses
 
-        def setAddresses(self, addresses, set_type=None):
+	def setAddresses(self, addresses, set_type=None):
 		self.delAddresses(set_type)
 		for addr in addresses:
 			# Remap 'type' to 'atype' to match the add method
@@ -51,7 +51,7 @@ class Addresses(ElementBase):
 				addr['atype'] = curr_type
 			self.addAddress(**addr)
 
-        def delAddresses(self, atype=None):
+	def delAddresses(self, atype=None):
 		for addrXML in self.xml.findall('{%s}address' % Address.namespace):
 			# ElementTree 1.2.6 does not support [@attr='value'] in findall
 			if atype is not None and addrXML.get('type') == atype:
@@ -62,59 +62,59 @@ class Addresses(ElementBase):
 	def delBcc(self):
 		self.delAddresses('bcc')
 
-        def delCc(self):
+	def delCc(self):
 		self.delAddresses('cc')
 
-        def delNoreply(self):
+	def delNoreply(self):
 		self.delAddresses('noreply')
 
-        def delReplyroom(self):
+	def delReplyroom(self):
 		self.delAddresses('replyroom')
 
-        def delReplyto(self):
+	def delReplyto(self):
 		self.delAddresses('replyto')
 
-        def delTo(self):
+	def delTo(self):
 		self.delAddresses('to')
 
 	# --------------------------------------------------------------
 
-        def getBcc(self):
+	def getBcc(self):
 		return self.getAddresses('bcc')
 
 	def getCc(self):
 		return self.getAddresses('cc')
 
-        def getNoreply(self):
+	def getNoreply(self):
 		return self.getAddresses('noreply')
 
-        def getReplyroom(self):
+	def getReplyroom(self):
 		return self.getAddresses('replyroom')
 
-        def getReplyto(self):
+	def getReplyto(self):
 		return self.getAddresses('replyto')
 
-        def getTo(self):
+	def getTo(self):
 		return self.getAddresses('to')
 
 	# --------------------------------------------------------------
 
-        def setBcc(self, addresses):
+	def setBcc(self, addresses):
 		self.setAddresses(addresses, 'bcc')
 
-        def setCc(self, addresses):
+	def setCc(self, addresses):
 		self.setAddresses(addresses, 'cc')
 
-        def setNoreply(self, addresses):
+	def setNoreply(self, addresses):
 		self.setAddresses(addresses, 'noreply')
 
-        def setReplyroom(self, addresses):
+	def setReplyroom(self, addresses):
 		self.setAddresses(addresses, 'replyroom')
 
-        def setReplyto(self, addresses):
+	def setReplyto(self, addresses):
 		self.setAddresses(addresses, 'replyto')
 
-        def setTo(self, addresses):
+	def setTo(self, addresses):
 		self.setAddresses(addresses, 'to')
 
 
@@ -123,9 +123,9 @@ class Address(ElementBase):
 	name = 'address'
 	plugin_attrib = 'address'
 	interfaces = set(('delivered', 'desc', 'jid', 'node', 'type', 'uri'))
-        address_types = set(('bcc', 'cc', 'noreply', 'replyroom', 'replyto', 'to'))
+	address_types = set(('bcc', 'cc', 'noreply', 'replyroom', 'replyto', 'to'))
 
-        def getDelivered(self):
+	def getDelivered(self):
 		return self.attrib.get('delivered', False)
 
 	def setDelivered(self, delivered):
@@ -134,7 +134,7 @@ class Address(ElementBase):
 		else:
 			del self['delivered']
 
-        def setUri(self, uri):
+	def setUri(self, uri):
 		if uri:
 			del self['jid']
 			del self['node']

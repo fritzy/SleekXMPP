@@ -41,7 +41,7 @@ class Addresses(ElementBase):
 	def setAddresses(self, addresses, set_type=None):
 		self.delAddresses(set_type)
 		for addr in addresses:
-                        addr = dict(addr)
+			addr = dict(addr)
 			# Remap 'type' to 'atype' to match the add method
 			if set_type is not None:
 				addr['type'] = set_type
@@ -52,8 +52,8 @@ class Addresses(ElementBase):
 			self.addAddress(**addr)
 
 	def delAddresses(self, atype=None):
-                if atype is None:
-                        return
+		if atype is None:
+			return
 		for addrXML in self.xml.findall('{%s}address' % Address.namespace):
 			# ElementTree 1.2.6 does not support [@attr='value'] in findall
 			if addrXML.attrib.get('type') == atype:

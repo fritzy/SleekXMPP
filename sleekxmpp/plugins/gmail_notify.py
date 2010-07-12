@@ -1,57 +1,146 @@
 """
-	SleekXMPP: The Sleek XMPP Library
-	Copyright (C) 2007  Nathanael C. Fritz
-	This file is part of SleekXMPP.
+    SleekXMPP: The Sleek XMPP Library
+    Copyright (C) 2010 Nathanael C. Fritz, Lance J.T. Stout
+    This file is part of SleekXMPP.
 
-	SleekXMPP is free software; you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; either version 2 of the License, or
-	(at your option) any later version.
-
-	SleekXMPP is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with SleekXMPP; if not, write to the Free Software
-	Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+    See the file license.txt for copying permission.
 """
-from __future__ import with_statement
-from . import base
+
 import logging
-from xml.etree import cElementTree as ET
-import traceback
-import time
+from . import base
+from .. xmlstream.handler.callback import Callback
+from .. xmlstream.matcher.xpath import MatchXPath
+from .. xmlstream.stanzabase import ElementBase, ET, JID
+from .. stanza.iq import Iq
+
+
+class GmailQuery(ElementBase):
+    namespace = 'google:mail:notify'
+    name = 'query'
+    plugin_attrib = 'gmail'
+    interfaces = set(('newer-than-time', 'newer-than-tid', 'q', 'search'))
+
+    def getSearch(self):
+        return self['q']
+
+    def setSearch(self, search):
+        self['q'] = search
+
+    def delSearch(self):
+        del self['q']
+
+
+class MailBox(ElementBase):
+    namespace = 'google:mail:notify'
+    name = 'mailbox'
+    plugin_attrib = 'mailbox'
+    interfaces = set(('result-time', 'total-matched', 'total-estimate', 
+                      'url', 'threads', 'matched', 'estimate'))
+
+    def getThreads(self):
+        threads = []
+        for threadXML in self.xml.findall('{%s}%s' % (MailThread.namespace, 
+                                                      MailThread.name)):
+            threads.append(MailThread(xml=threadXML, parent=None))
+        return threads
+
+    def getMatched(self):
+        return self['total-matched']
+
+    def getEstimate(self):
+        return self['total-estimate'] == '1'
+
+
+class MailThread(ElementBase):
+    namespace = 'google:mail:notify'
+    name = 'mail-thread-info'
+    plugin_attrib = 'thread'
+    interfaces = set(('tid', 'participation', 'messages', 'date', 
+                      'senders', 'url', 'labels', 'subject', 'snippet'))
+    sub_interfaces = set(('labels', 'subject', 'snippet'))
+        
+    def getSenders(self):
+        senders = []
+        sendersXML = self.xml.find('{%s}senders' % self.namespace)
+        if sendersXML is not None:
+            for senderXML in sendersXML.findall('{%s}sender' % self.namespace):
+                senders.append(MailSender(xml=senderXML, parent=None))
+        return senders
+
+
+class MailSender(ElementBase):
+    namespace = 'google:mail:notify'
+    name = 'sender'
+    plugin_attrib = 'sender'
+    interfaces = set(('address', 'name', 'originator', 'unread'))
+
+    def getOriginator(self):
+        return self.xml.attrib.get('originator', '0') == '1'
+
+    def getUnread(self):
+        return self.xml.attrib.get('unread', '0') == '1'
+
+
+class NewMail(ElementBase):
+    namespace = 'google:mail:notify'
+    name = 'new-mail'
+    plugin_attrib = 'new-mail'
+
 
 class gmail_notify(base.base_plugin):
-	
-	def plugin_init(self):
-		self.description = 'Google Talk Gmail Notification'
-		self.xmpp.add_event_handler('sent_presence', self.handler_gmailcheck, threaded=True)
-		self.emails = []
-	
-	def handler_gmailcheck(self, payload):
-		#TODO XEP 30 should cache results and have getFeature
-		result = self.xmpp['xep_0030'].getInfo(self.xmpp.server)
-		features = []
-		for feature in result.findall('{http://jabber.org/protocol/disco#info}query/{http://jabber.org/protocol/disco#info}feature'):
-			features.append(feature.get('var'))
-		if 'google:mail:notify' in features:
-			logging.debug("Server supports Gmail Notify")
-			self.xmpp.add_handler("<iq type='set' xmlns='%s'><new-mail xmlns='google:mail:notify' /></iq>" % self.xmpp.default_ns, self.handler_notify)
-			self.getEmail()
-	
-	def handler_notify(self, xml):
-		logging.info("New Gmail recieved!")
-		self.xmpp.event('gmail_notify')
-		
-	def getEmail(self):
-		iq = self.xmpp.makeIqGet()
-		iq.attrib['from'] = self.xmpp.fulljid
-		iq.attrib['to'] = self.xmpp.jid
-		self.xmpp.makeIqQuery(iq, 'google:mail:notify')
-		emails = iq.send()
-		mailbox = emails.find('{google:mail:notify}mailbox')
-		total = int(mailbox.get('total-matched', 0))
-		logging.info("%s New Gmail Messages" % total)
+    """
+    Google Talk: Gmail Notifications
+    """
+    
+    def plugin_init(self):
+        self.description = 'Google Talk: Gmail Notifications'
+
+        self.xmpp.registerHandler(
+            Callback('Gmail Result',
+                     MatchXPath('{%s}iq/{%s}%s' % (self.xmpp.default_ns, 
+                                                   MailBox.namespace,
+                                                   MailBox.name)),
+                     self.handle_gmail))
+
+        self.xmpp.registerHandler(
+            Callback('Gmail New Mail',
+                     MatchXPath('{%s}iq/{%s}%s' % (self.xmpp.default_ns,
+                                                   NewMail.namespace,
+                                                   NewMail.name)),
+                     self.handle_new_mail))
+        
+        self.xmpp.stanzaPlugin(Iq, GmailQuery)
+        self.xmpp.stanzaPlugin(Iq, MailBox)
+        self.xmpp.stanzaPlugin(Iq, NewMail)
+
+        self.last_result_time = None
+
+    def handle_gmail(self, iq):
+        mailbox = iq['mailbox']
+        approx = ' approximately' if mailbox['estimated'] else ''
+        logging.info('Gmail: Received%s %s emails' % (approx, mailbox['total-matched']))
+        self.last_result_time = mailbox['result-time']
+        self.xmpp.event('gmail_messages', iq)
+
+    def handle_new_mail(self, iq):
+        logging.info("Gmail: New emails received!")
+        self.xmpp.event('gmail_notify')
+        self.checkEmail()
+
+    def getEmail(self, query=None):
+        return self.search(query)
+
+    def checkEmail(self):
+        return self.search(newer=self.last_result_time)
+
+    def search(self, query=None, newer=None):
+        if query is None:
+            logging.info("Gmail: Checking for new emails")
+        else:
+            logging.info('Gmail: Searching for emails matching: "%s"' % query)
+        iq = self.xmpp.Iq()
+        iq['type'] = 'get'
+        iq['to'] = self.xmpp.jid
+        iq['gmail']['q'] = query
+        iq['gmail']['newer-than-time'] = newer
+        return iq.send()

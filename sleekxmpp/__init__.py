@@ -148,7 +148,6 @@ class ClientXMPP(basexmpp, XMLStream):
 		iq = self.Iq().setValues({'type': 'set'})
 		iq['roster']['items'] = {jid: {'name': name, 'subscription': subscription, 'groups': groups}}
 		#self.send(iq, self.Iq().setValues({'id': iq['id']}))
-		return
 		r = iq.send()
 		return r['type'] == 'result'
 

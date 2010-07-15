@@ -146,10 +146,17 @@ class ClientXMPP(basexmpp, XMLStream):
 	def updateRoster(self, jid, name=None, subscription=None, groups=[]):
 		"""Add or change a roster item."""
 		iq = self.Iq().setValues({'type': 'set'})
-		iq['roster'] = {jid: {'name': name, 'subscription': subscription, 'groups': groups}}
+		iq['roster']['items'] = {jid: {'name': name, 'subscription': subscription, 'groups': groups}}
 		#self.send(iq, self.Iq().setValues({'id': iq['id']}))
+		return
 		r = iq.send()
 		return r['type'] == 'result'
+
+	def delRosterItem(self, jid):
+		iq = self.Iq()
+		iq['type'] = 'set'
+		iq['roster']['items'] = {jid: {'subscription': 'remove'}}
+		return iq.send()['type'] == 'result'
 	
 	def getRoster(self):
 		"""Request the roster be sent."""

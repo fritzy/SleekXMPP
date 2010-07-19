@@ -166,9 +166,9 @@ class SleekTest(unittest.TestCase):
         debug += "Constructed Stanza:\n%s\n" % ET.tostring(iq2.xml)
         
         if use_values:
-            values = iq.getValues()
+            values = iq.getStanzaValues()
             iq3 = self.Iq()
-            iq3.setValues(values)
+            iq3.setStanzaValues(values)
 
             debug += "Second Constructed Stanza:\n%s\n" % ET.tostring(iq3.xml)
             debug = "Three methods for creating stanza do not match:\n" + debug

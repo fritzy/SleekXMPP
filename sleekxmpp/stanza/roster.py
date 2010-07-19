@@ -23,7 +23,9 @@ class Roster(ElementBase):
 			if 'subscription' in items[jid]:
 				item.attrib['subscription'] = items[jid]['subscription']
 			if 'name' in items[jid]:
-				item.attrib['name'] = items[jid]['name']
+				name = items[jid]['name']
+				if name is not None:
+					item.attrib['name'] = name
 			if 'groups' in items[jid]:
 				for group in items[jid]['groups']:
 					groupxml = ET.Element('{jabber:iq:roster}group')

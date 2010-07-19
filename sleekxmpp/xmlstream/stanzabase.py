@@ -21,10 +21,10 @@ xmltester = type(ET.Element('xml'))
 
 
 def registerStanzaPlugin(stanza, plugin):
-        """
-        Associate a stanza object as a plugin for another stanza.
-        """
-        tag = "{%s}%s" % (plugin.namespace, plugin.name)
+	"""
+	Associate a stanza object as a plugin for another stanza.
+	"""
+	tag = "{%s}%s" % (plugin.namespace, plugin.name)
 	stanza.plugin_attrib_map[plugin.plugin_attrib] = plugin
 	stanza.plugin_tag_map[tag] = plugin
 

@@ -241,7 +241,7 @@ class ElementBase(tostring.ToString):
 	def __eq__(self, other):
 		if not isinstance(other, ElementBase):
 			return False
-		values = self.getValues()
+		values = self.getStanzaValues()
 		for key in other:
 			if key not in values or values[key] != other[key]:
 				return False
@@ -283,21 +283,21 @@ class ElementBase(tostring.ToString):
 			if child.tag == "{%s}%s" % (self.namespace, name):
 				self.xml.remove(child)
 	
-	def getValues(self):
+	def getStanzaValues(self):
 		out = {}
 		for interface in self.interfaces:
 			out[interface] = self[interface]
 		for pluginkey in self.plugins:
-			out[pluginkey] = self.plugins[pluginkey].getValues()
+			out[pluginkey] = self.plugins[pluginkey].getStanzaValues()
 		if self.iterables:
 			iterables = []
 			for stanza in self.iterables:
-				iterables.append(stanza.getValues())
+				iterables.append(stanza.getStanzaValues())
 				iterables[-1].update({'__childtag__': "{%s}%s" % (stanza.namespace, stanza.name)})
 			out['substanzas'] = iterables
 		return out
 	
-	def setValues(self, attrib):
+	def setStanzaValues(self, attrib):
 		for interface in attrib:
 			if interface == 'substanzas':
 				for subdict in attrib['substanzas']:
@@ -305,7 +305,7 @@ class ElementBase(tostring.ToString):
 						for subclass in self.subitem:
 							if subdict['__childtag__'] == "{%s}%s" % (subclass.namespace, subclass.name):
 								sub = subclass(parent=self)
-								sub.setValues(subdict)
+								sub.setStanzaValues(subdict)
 								self.iterables.append(sub)
 								break
 			elif interface in self.interfaces:
@@ -313,7 +313,7 @@ class ElementBase(tostring.ToString):
 			elif interface in self.plugin_attrib_map and interface not in self.plugins:
 				self.initPlugin(interface)
 			if interface in self.plugins:
-				self.plugins[interface].setValues(attrib[interface])
+				self.plugins[interface].setStanzaValues(attrib[interface])
 		return self
 	
 	def appendxml(self, xml):

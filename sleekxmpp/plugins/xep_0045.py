@@ -134,7 +134,7 @@ class xep_0045(base.base_plugin):
 		"""
 		if pr['muc']['room'] not in self.rooms.keys():
 			return
-		entry = pr['muc'].getValues()
+		entry = pr['muc'].getStanzaValues()
 		if pr['type'] == 'unavailable':
 			del self.rooms[entry['room']][entry['nick']]
 		else:

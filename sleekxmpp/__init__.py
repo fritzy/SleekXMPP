@@ -145,7 +145,7 @@ class ClientXMPP(basexmpp, XMLStream):
 
 	def updateRoster(self, jid, name=None, subscription=None, groups=[]):
 		"""Add or change a roster item."""
-		iq = self.Iq().setValues({'type': 'set'})
+		iq = self.Iq().setStanzaValues({'type': 'set'})
 		iq['roster']['items'] = {jid: {'name': name, 'subscription': subscription, 'groups': groups}}
 		#self.send(iq, self.Iq().setValues({'id': iq['id']}))
 		r = iq.send()
@@ -159,7 +159,7 @@ class ClientXMPP(basexmpp, XMLStream):
 	
 	def getRoster(self):
 		"""Request the roster be sent."""
-		iq = self.Iq().setValues({'type': 'get'}).enable('roster').send()
+		iq = self.Iq().setStanzaValues({'type': 'get'}).enable('roster').send()
 		self._handleRoster(iq, request=True)
 	
 	def _handleStreamFeatures(self, features):
@@ -254,5 +254,5 @@ class ClientXMPP(basexmpp, XMLStream):
 					self.roster[jid] = {'groups': [], 'name': '', 'subscription': 'none', 'presence': {}, 'in_roster': True}
 				self.roster[jid].update(iq['roster']['items'][jid])
 			if iq['type'] == 'set':
-				self.send(self.Iq().setValues({'type': 'result', 'id': iq['id']}).enable('roster'))
+				self.send(self.Iq().setStanzaValues({'type': 'result', 'id': iq['id']}).enable('roster'))
 		self.event("roster_update", iq)

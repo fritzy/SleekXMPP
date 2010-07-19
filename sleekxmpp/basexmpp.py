@@ -144,26 +144,26 @@ class basexmpp(object):
 			return waitfor.wait(timeout)
 	
 	def makeIq(self, id=0, ifrom=None):
-		return self.Iq().setValues({'id': str(id), 'from': ifrom})
+		return self.Iq().setStanzaValues({'id': str(id), 'from': ifrom})
 	
 	def makeIqGet(self, queryxmlns = None):
-		iq = self.Iq().setValues({'type': 'get'})
+		iq = self.Iq().setStanzaValues({'type': 'get'})
 		if queryxmlns:
 			iq.append(ET.Element("{%s}query" % queryxmlns))
 		return iq
 	
 	def makeIqResult(self, id):
-		return self.Iq().setValues({'id': id, 'type': 'result'})
+		return self.Iq().setStanzaValues({'id': id, 'type': 'result'})
 	
 	def makeIqSet(self, sub=None):
-		iq = self.Iq().setValues({'type': 'set'})
+		iq = self.Iq().setStanzaValues({'type': 'set'})
 		if sub != None:
 			iq.append(sub)
 		return iq
 
 	def makeIqError(self, id, type='cancel', condition='feature-not-implemented', text=None):
-		iq = self.Iq().setValues({'id': id})
-		iq['error'].setValues({'type': type, 'condition': condition, 'text': text})
+		iq = self.Iq().setStanzaValues({'id': id})
+		iq['error'].setStanzaValues({'type': type, 'condition': condition, 'text': text})
 		return iq
 
 	def makeIqQuery(self, iq, xmlns):

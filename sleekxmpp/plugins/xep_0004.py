@@ -35,6 +35,15 @@ class Form(ElementBase):
 			field['options'] = options
 		return field
 
+	def getXML(self):
+		logging.warning("Form.getXML() is deprecated API compatibility with plugins/old_0004.py")
+		return self.xml
+	
+	def fromXML(self, xml):
+		logging.warning("Form.fromXML() is deprecated API compatibility with plugins/old_0004.py")
+		n = Form(xml=xml)
+		return n
+
 	def addItem(self, values):
 		itemXML = ET.Element('{%s}item' % self.namespace)
 		self.xml.append(itemXML)

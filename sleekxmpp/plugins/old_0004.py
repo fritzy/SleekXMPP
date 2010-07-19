@@ -21,6 +21,7 @@ from . import base
 import logging
 from xml.etree import cElementTree as ET
 import copy
+import logging
 #TODO support item groups and results
 
 class old_0004(base.base_plugin):
@@ -33,6 +34,7 @@ class old_0004(base.base_plugin):
 	def post_init(self):
 		base.base_plugin.post_init(self)
 		self.xmpp.plugin['xep_0030'].add_feature('jabber:x:data')
+		logging.warning("This implementation of XEP-0004 is deprecated.")
 	
 	def handler_message_xform(self, xml):
 		object = self.handle_form(xml)

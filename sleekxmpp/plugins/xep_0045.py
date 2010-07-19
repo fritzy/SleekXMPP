@@ -21,7 +21,7 @@ from __future__ import with_statement
 from . import base
 import logging
 from xml.etree import cElementTree as ET
-from .. xmlstream.stanzabase import ElementBase, JID
+from .. xmlstream.stanzabase import registerStanzaPlugin, ElementBase, JID
 from .. stanza.presence import Presence
 from .. xmlstream.handler.callback import Callback
 from .. xmlstream.matcher.xpath import MatchXPath
@@ -125,7 +125,7 @@ class xep_0045(base.base_plugin):
 		self.xep = '0045'
 		self.description = 'Multi User Chat'
 		# load MUC support in presence stanzas
-		self.xmpp.stanzaPlugin(Presence, MUCPresence)
+		registerStanzaPlugin(Presence, MUCPresence)
 		self.xmpp.registerHandler(Callback('MUCPresence', MatchXMLMask("<presence xmlns='%s' />" % self.xmpp.default_ns), self.handle_groupchat_presence))
 		self.xmpp.registerHandler(Callback('MUCMessage', MatchXMLMask("<message xmlns='%s' type='groupchat'><body/></message>" % self.xmpp.default_ns), self.handle_groupchat_message))
 	

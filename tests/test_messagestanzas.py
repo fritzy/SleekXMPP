@@ -5,9 +5,9 @@ class testmessagestanzas(unittest.TestCase):
 
 	def setUp(self):
 		import sleekxmpp.stanza.message as m
-		from sleekxmpp.basexmpp import stanzaPlugin
+		from sleekxmpp.basexmpp import registerStanzaPlugin
 		from sleekxmpp.stanza.htmlim import HTMLIM
-		stanzaPlugin(m.Message, HTMLIM)
+		registerStanzaPlugin(m.Message, HTMLIM)
 		self.m = m
 	
 	def testGroupchatReplyRegression(self):

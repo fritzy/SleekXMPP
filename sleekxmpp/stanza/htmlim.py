@@ -5,7 +5,7 @@
 
     See the file license.txt for copying permission.
 """
-from .. xmlstream.stanzabase import ElementBase, ET
+from .. xmlstream.stanzabase import registerStanzaPlugin, ElementBase, ET
 
 class HTMLIM(ElementBase):
 	namespace = 'http://jabber.org/protocol/xhtml-im'

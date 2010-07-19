@@ -16,6 +16,7 @@ from . xmlstream.handler.xmlcallback import XMLCallback
 from . xmlstream.handler.xmlwaiter import XMLWaiter
 from . xmlstream.handler.waiter import Waiter
 from . xmlstream.handler.callback import Callback
+from . xmlstream.stanzabase import registerStanzaPlugin
 from . import plugins
 from . stanza.message import Message
 from . stanza.iq import Iq
@@ -34,12 +35,6 @@ import sys
 if sys.version_info < (3,0):
 	reload(sys)
 	sys.setdefaultencoding('utf8')
-
-
-def stanzaPlugin(stanza, plugin):
-	stanza.plugin_attrib_map[plugin.plugin_attrib] = plugin
-	stanza.plugin_tag_map["{%s}%s" % (plugin.namespace, plugin.name)] = plugin
-
 
 class basexmpp(object):
 	def __init__(self):
@@ -62,13 +57,9 @@ class basexmpp(object):
 		self.registerStanza(Message)
 		self.registerStanza(Iq)
 		self.registerStanza(Presence)
-		self.stanzaPlugin(Iq, Roster)
-		self.stanzaPlugin(Message, Nick)
-		self.stanzaPlugin(Message, HTMLIM)
-
-	def stanzaPlugin(self, stanza, plugin):
-		stanza.plugin_attrib_map[plugin.plugin_attrib] = plugin
-		stanza.plugin_tag_map["{%s}%s" % (plugin.namespace, plugin.name)] = plugin
+		registerStanzaPlugin(Iq, Roster)
+		registerStanzaPlugin(Message, Nick)
+		registerStanzaPlugin(Message, HTMLIM)
 	
 	def Message(self, *args, **kwargs):
 		return Message(self, *args, **kwargs)

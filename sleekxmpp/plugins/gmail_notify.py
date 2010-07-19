@@ -10,7 +10,7 @@ import logging
 from . import base
 from .. xmlstream.handler.callback import Callback
 from .. xmlstream.matcher.xpath import MatchXPath
-from .. xmlstream.stanzabase import ElementBase, ET, JID
+from .. xmlstream.stanzabase import registerStanzaPlugin, ElementBase, ET, JID
 from .. stanza.iq import Iq
 
 
@@ -109,9 +109,9 @@ class gmail_notify(base.base_plugin):
                                                    NewMail.name)),
                      self.handle_new_mail))
         
-        self.xmpp.stanzaPlugin(Iq, GmailQuery)
-        self.xmpp.stanzaPlugin(Iq, MailBox)
-        self.xmpp.stanzaPlugin(Iq, NewMail)
+        registerStanzaPlugin(Iq, GmailQuery)
+        registerStanzaPlugin(Iq, MailBox)
+        registerStanzaPlugin(Iq, NewMail)
 
         self.last_result_time = None
 

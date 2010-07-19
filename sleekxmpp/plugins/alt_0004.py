@@ -11,7 +11,7 @@ import copy
 from . import base
 from .. xmlstream.handler.callback import Callback
 from .. xmlstream.matcher.xpath import MatchXPath
-from .. xmlstream.stanzabase import ElementBase, ET, JID
+from .. xmlstream.stanzabase import registerStanzaPlugin, ElementBase, ET, JID
 from .. stanza.message import Message
 
 
@@ -318,9 +318,9 @@ class alt_0004(base.base_plugin):
 								   Form.namespace)),
 				 self.handle_form))
 
-		self.xmpp.stanzaPlugin(FormField, FieldOption)
-		self.xmpp.stanzaPlugin(Form, FormField)
-		self.xmpp.stanzaPlugin(Message, Form)
+		registerStanzaPlugin(FormField, FieldOption)
+		registerStanzaPlugin(Form, FormField)
+		registerStanzaPlugin(Message, Form)
 	
 	def post_init(self):
 		base.base_plugin.post_init(self)

@@ -5,7 +5,7 @@
 
     See the file license.txt for copying permission.
 """
-from .. xmlstream.stanzabase import ElementBase, ET, JID
+from .. xmlstream.stanzabase import registerStanzaPlugin, ElementBase, ET, JID
 import logging
 
 class Roster(ElementBase):

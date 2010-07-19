@@ -10,7 +10,7 @@ import logging
 from . import base
 from .. xmlstream.handler.callback import Callback
 from .. xmlstream.matcher.xpath import MatchXPath
-from .. xmlstream.stanzabase import ElementBase, ET, JID
+from .. xmlstream.stanzabase import registerStanzaPlugin, ElementBase, ET, JID
 from .. stanza.iq import Iq
 
 class DiscoInfo(ElementBase):
@@ -204,8 +204,8 @@ class xep_0030(base.base_plugin):
 								  DiscoInfo.namespace)),
 				 self.handle_info_query))
 
-		self.xmpp.stanzaPlugin(Iq, DiscoInfo)
-		self.xmpp.stanzaPlugin(Iq, DiscoItems)
+		registerStanzaPlugin(Iq, DiscoInfo)
+		registerStanzaPlugin(Iq, DiscoItems)
 
 		self.xmpp.add_event_handler('disco_items_request', self.handle_disco_items)
 		self.xmpp.add_event_handler('disco_info_request', self.handle_disco_info)

@@ -5,9 +5,9 @@ import sleekxmpp.plugins.gmail_notify as gmail
 class TestGmail(SleekTest):
 
     def setUp(self):
-        self.stanzaPlugin(Iq, gmail.GmailQuery)
-        self.stanzaPlugin(Iq, gmail.MailBox)
-        self.stanzaPlugin(Iq, gmail.NewMail)
+        registerStanzaPlugin(Iq, gmail.GmailQuery)
+        registerStanzaPlugin(Iq, gmail.MailBox)
+        registerStanzaPlugin(Iq, gmail.NewMail)
         
     def testCreateQuery(self):
         """Testing querying Gmail for emails."""

@@ -10,7 +10,7 @@ import logging
 from . import base
 from .. xmlstream.handler.callback import Callback
 from .. xmlstream.matcher.xpath import MatchXPath
-from .. xmlstream.stanzabase import ElementBase, ET, JID
+from .. xmlstream.stanzabase import registerStanzaPlugin, ElementBase, ET, JID
 from .. stanza.message import Message
 
 
@@ -85,11 +85,11 @@ class xep_0085(base.base_plugin):
                                                             handler[1])), 
                          self._handleChatState))
 
-        self.xmpp.stanzaPlugin(Message, Active)
-        self.xmpp.stanzaPlugin(Message, Composing)
-        self.xmpp.stanzaPlugin(Message, Gone)
-        self.xmpp.stanzaPlugin(Message, Inactive)
-        self.xmpp.stanzaPlugin(Message, Paused)
+        registerStanzaPlugin(Message, Active)
+        registerStanzaPlugin(Message, Composing)
+        registerStanzaPlugin(Message, Gone)
+        registerStanzaPlugin(Message, Inactive)
+        registerStanzaPlugin(Message, Paused)
         
     def post_init(self):
         base.base_plugin.post_init(self)

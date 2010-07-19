@@ -19,6 +19,16 @@ else:
 
 xmltester = type(ET.Element('xml'))
 
+
+def registerStanzaPlugin(stanza, plugin):
+        """
+        Associate a stanza object as a plugin for another stanza.
+        """
+        tag = "{%s}%s" % (plugin.namespace, plugin.name)
+	stanza.plugin_attrib_map[plugin.plugin_attrib] = plugin
+	stanza.plugin_tag_map[tag] = plugin
+
+
 class JID(object):
 	def __init__(self, jid):
 		self.jid = jid
@@ -392,4 +402,4 @@ class StanzaBase(ElementBase):
 
 	def __copy__(self):
 		return self.__class__(xml=copy.deepcopy(self.xml), stream=self.stream)
-	
+                

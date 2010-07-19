@@ -17,6 +17,8 @@ from sleekxmpp import ClientXMPP
 from sleekxmpp import Message, Iq
 from sleekxmpp.stanza.presence import Presence
 from sleekxmpp.xmlstream.matcher.stanzapath import StanzaPath
+from sleekxmpp.xmlstream.stanzabase import registerStanzaPlugin
+
 
 class TestSocket(object):
     
@@ -87,14 +89,6 @@ class SleekTest(unittest.TestCase):
     A SleekXMPP specific TestCase class that provides
     methods for comparing message, iq, and presence stanzas.
     """
-
-    def stanzaPlugin(self, stanza, plugin):
-        """
-        Associate a stanza object as a plugin for another stanza.
-        """
-        tag = "{%s}%s" % (plugin.namespace, plugin.name)
-	stanza.plugin_attrib_map[plugin.plugin_attrib] = plugin
-	stanza.plugin_tag_map[tag] = plugin
 
     # ------------------------------------------------------------------
     # Shortcut methods for creating stanza objects

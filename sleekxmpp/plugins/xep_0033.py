@@ -10,7 +10,7 @@ import logging
 from . import base
 from .. xmlstream.handler.callback import Callback
 from .. xmlstream.matcher.xpath import MatchXPath
-from .. xmlstream.stanzabase import ElementBase, ET, JID
+from .. xmlstream.stanzabase import registerStanzaPlugin, ElementBase, ET, JID
 from .. stanza.message import Message
 
 
@@ -154,7 +154,7 @@ class xep_0030(base.base_plugin):
 		self.xep = '0033'
 		self.description = 'Extended Stanza Addressing'
 
-		self.xmpp.stanzaPlugin(Message, Addresses)
+		registerStanzaPlugin(Message, Addresses)
 
 	def post_init(self):
 		base.base_plugin.post_init(self)

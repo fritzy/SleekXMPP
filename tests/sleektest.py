@@ -134,9 +134,9 @@ class SleekTest(unittest.TestCase):
             if xml.attrib.get('type', None) is None:
                 xml.attrib['type'] = 'normal'
 
-            values = msg2.getValues()
+            values = msg2.getStanzaValues()
             msg3 = self.Message()
-            msg3.setValues(values)
+            msg3.setStanzaValues(values)
             
             debug += "Second Constructed Stanza:\n%s\n" % ET.tostring(msg3.xml)
             debug = "Three methods for creating stanza do not match:\n" + debug

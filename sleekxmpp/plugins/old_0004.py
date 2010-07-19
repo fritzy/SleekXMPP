@@ -29,7 +29,7 @@ class old_0004(base.base_plugin):
 	def plugin_init(self):
 		self.xep = '0004'
 		self.description = '*Deprecated Data Forms'
-		self.xmpp.add_handler("<message><x xmlns='jabber:x:data' /></message>", self.handler_message_xform)
+		self.xmpp.add_handler("<message><x xmlns='jabber:x:data' /></message>", self.handler_message_xform, name='Old Message Form')
 	
 	def post_init(self):
 		base.base_plugin.post_init(self)

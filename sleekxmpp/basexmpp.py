@@ -118,9 +118,11 @@ class basexmpp(object):
 			self.id += 1
 			return self.getId()
 	
-	def add_handler(self, mask, pointer, disposable=False, threaded=False, filter=False, instream=False):
-		#logging.warning("Deprecated add_handler used for %s: %s." % (mask, pointer))
-		self.registerHandler(XMLCallback('add_handler_%s' % self.getNewId(), MatchXMLMask(mask), pointer, threaded, disposable, instream))
+	def add_handler(self, mask, pointer, name=None, disposable=False, threaded=False, filter=False, instream=False):
+                # threaded is no longer needed, but leaving it for backwards compatibility for now
+		if name is None:
+			name = 'add_handler_%s' % self.getNewId()
+        	self.registerHandler(XMLCallback(name, MatchXMLMask(mask), pointer, threaded, disposable, instream))
 	
 	def getId(self):
 		return "%x".upper() % self.id

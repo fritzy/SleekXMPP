@@ -175,7 +175,7 @@ class ClientXMPP(basexmpp, XMLStream):
 	
 	def handler_starttls(self, xml):
 		if not self.authenticated and self.ssl_support:
-			self.add_handler("<proceed xmlns='urn:ietf:params:xml:ns:xmpp-tls' />", self.handler_tls_start, instream=True)
+			self.add_handler("<proceed xmlns='urn:ietf:params:xml:ns:xmpp-tls' />", self.handler_tls_start, name='TLS Proceed', instream=True)
 			self.sendXML(xml)
 			return True
 		else:
@@ -191,8 +191,8 @@ class ClientXMPP(basexmpp, XMLStream):
 		if '{urn:ietf:params:xml:ns:xmpp-tls}starttls' in self.features:
 			return False
 		logging.debug("Starting SASL Auth")
-		self.add_handler("<success xmlns='urn:ietf:params:xml:ns:xmpp-sasl' />", self.handler_auth_success, instream=True)
-		self.add_handler("<failure xmlns='urn:ietf:params:xml:ns:xmpp-sasl' />", self.handler_auth_fail, instream=True)
+		self.add_handler("<success xmlns='urn:ietf:params:xml:ns:xmpp-sasl' />", self.handler_auth_success, name='SASL Sucess', instream=True)
+		self.add_handler("<failure xmlns='urn:ietf:params:xml:ns:xmpp-sasl' />", self.handler_auth_fail, name='SASL Failure', instream=True)
 		sasl_mechs = xml.findall('{urn:ietf:params:xml:ns:xmpp-sasl}mechanism')
 		if len(sasl_mechs):
 			for sasl_mech in sasl_mechs:

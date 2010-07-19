@@ -30,7 +30,7 @@ class xep_0092(base.base_plugin):
 		self.xep = "0092"
 		self.name = self.config.get('name', 'SleekXMPP')
 		self.version = self.config.get('version', '0.1-dev')
-		self.xmpp.add_handler("<iq type='get' xmlns='%s'><query xmlns='jabber:iq:version' /></iq>" % self.xmpp.default_ns, self.report_version)
+		self.xmpp.add_handler("<iq type='get' xmlns='%s'><query xmlns='jabber:iq:version' /></iq>" % self.xmpp.default_ns, self.report_version, name='Sofware Version')
 	
 	def post_init(self):
 		base.base_plugin.post_init(self)

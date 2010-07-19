@@ -32,11 +32,11 @@ class xep_0050(base.base_plugin):
 	def plugin_init(self):
 		self.xep = '0050'
 		self.description = 'Ad-Hoc Commands'
-		self.xmpp.add_handler("<iq type='set' xmlns='%s'><command xmlns='http://jabber.org/protocol/commands' action='__None__'/></iq>" % self.xmpp.default_ns, self.handler_command)
-		self.xmpp.add_handler("<iq type='set' xmlns='%s'><command xmlns='http://jabber.org/protocol/commands' action='execute'/></iq>" % self.xmpp.default_ns, self.handler_command)
-		self.xmpp.add_handler("<iq type='set' xmlns='%s'><command xmlns='http://jabber.org/protocol/commands' action='next'/></iq>" % self.xmpp.default_ns, self.handler_command_next, threaded=True)
-		self.xmpp.add_handler("<iq type='set' xmlns='%s'><command xmlns='http://jabber.org/protocol/commands' action='cancel'/></iq>" % self.xmpp.default_ns, self.handler_command_cancel)
-		self.xmpp.add_handler("<iq type='set' xmlns='%s'><command xmlns='http://jabber.org/protocol/commands' action='complete'/></iq>" % self.xmpp.default_ns, self.handler_command_complete)
+		self.xmpp.add_handler("<iq type='set' xmlns='%s'><command xmlns='http://jabber.org/protocol/commands' action='__None__'/></iq>" % self.xmpp.default_ns, self.handler_command, name='Ad-Hoc None')
+		self.xmpp.add_handler("<iq type='set' xmlns='%s'><command xmlns='http://jabber.org/protocol/commands' action='execute'/></iq>" % self.xmpp.default_ns, self.handler_command, name='Ad-Hoc Execute')
+		self.xmpp.add_handler("<iq type='set' xmlns='%s'><command xmlns='http://jabber.org/protocol/commands' action='next'/></iq>" % self.xmpp.default_ns, self.handler_command_next, name='Ad-Hoc Next', threaded=True)
+		self.xmpp.add_handler("<iq type='set' xmlns='%s'><command xmlns='http://jabber.org/protocol/commands' action='cancel'/></iq>" % self.xmpp.default_ns, self.handler_command_cancel, name='Ad-Hoc Cancel')
+		self.xmpp.add_handler("<iq type='set' xmlns='%s'><command xmlns='http://jabber.org/protocol/commands' action='complete'/></iq>" % self.xmpp.default_ns, self.handler_command_complete, name='Ad-Hoc Complete')
 		self.commands = {}
 		self.sessions = {}
 		self.sd = self.xmpp.plugin['xep_0030']

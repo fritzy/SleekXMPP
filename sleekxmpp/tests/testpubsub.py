@@ -34,9 +34,9 @@ class testps(sleekxmpp.ClientXMPP):
 		self.registerPlugin('xep_0030')
 		self.registerPlugin('xep_0060')
 		self.registerPlugin('xep_0092')
-		self.add_handler("<message xmlns='jabber:client'><event xmlns='http://jabber.org/protocol/pubsub#event' /></message>", self.pubsubEventHandler, threaded=True)
+		self.add_handler("<message xmlns='jabber:client'><event xmlns='http://jabber.org/protocol/pubsub#event' /></message>", self.pubsubEventHandler, name='Pubsub Event', threaded=True)
 		self.add_event_handler("session_start", self.start, threaded=True)
-		self.add_handler("<iq type='error' />", self.handleError)
+		self.add_handler("<iq type='error' />", self.handleError, name='Iq Error')
 		self.events = Queue.Queue()
 		self.default_config = None
 		self.ps = self.plugin['xep_0060']

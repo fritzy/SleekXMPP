@@ -77,12 +77,6 @@ class TestSocket(object):
         except:
             return None
 
-class TestStream(object):
-    """Dummy class to pass a stream object to created stanzas"""
-    
-    def __init__(self):
-        self.default_ns = 'jabber:client'
-
 
 class SleekTest(unittest.TestCase):
     """
@@ -186,7 +180,34 @@ class SleekTest(unittest.TestCase):
         If use_values is False, the test using getValues() and 
         setValues() will not be used.
         """
-        pass
+        self.fix_namespaces(pres.xml, 'jabber:client')
+        debug = "Given Stanza:\n%s\n" % ET.tostring(pres.xml)
+
+        xml = ET.fromstring(xml_string)
+        self.fix_namespaces(xml, 'jabber:client')
+        debug += "XML String:\n%s\n" % ET.tostring(xml)
+        
+        pres2 = self.Presence(xml)
+        debug += "Constructed Stanza:\n%s\n" % ET.tostring(pres2.xml)
+
+        # Ugly, but 'priority' has a default value and need to make
+        # sure it is set
+        pres['priority'] = pres['priority']
+        pres2['priority'] = pres2['priority']
+
+        if use_values:
+            values = pres.getStanzaValues()
+            pres3 = self.Presence()
+            pres3.setStanzaValues(values)
+
+            debug += "Second Constructed Stanza:\n%s\n" % ET.tostring(pres3.xml)
+            debug = "Three methods for creating stanza do not match:\n" + debug
+            self.failUnless(self.compare([xml, pres.xml, pres2.xml, pres3.xml]), 
+                            debug)
+        else:
+            debug = "Two methods for creating stanza do not match:\n" + debug
+            self.failUnless(self.compare([xml, pres.xml, pres2.xml]), debug)
+
 
     # ------------------------------------------------------------------
     # Methods for simulating stanza streams.
@@ -208,7 +229,7 @@ class SleekTest(unittest.TestCase):
         self.xmpp.process(threaded=True)
         if skip: 
             # Clear startup stanzas
-            self.xmpp.socket.nextSent(timeout=1)
+            self.xmpp.socket.nextSent(timeout=0.1)
 
     def streamRecv(self, data):
         data = str(data)

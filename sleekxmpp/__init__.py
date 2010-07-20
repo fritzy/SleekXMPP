@@ -222,9 +222,10 @@ class ClientXMPP(basexmpp, XMLStream):
 	def handler_bind_resource(self, xml):
 		logging.debug("Requesting resource: %s" % self.resource)
 		iq = self.Iq(stype='set')
-		res = ET.Element('resource')
-		res.text = self.resource
-		xml.append(res)
+		if self.resource:
+			res = ET.Element('resource')
+			res.text = self.resource
+			xml.append(res)
 		iq.append(xml)
 		response = iq.send()
 		#response = self.send(iq, self.Iq(sid=iq['id']))

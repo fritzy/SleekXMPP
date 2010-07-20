@@ -3,7 +3,7 @@
     Copyright (C) 2010 Nathanael C. Fritz, Lance J.T. Stout
     This file is part of SleekXMPP.
 
-    See the file license.txt for copying permissio
+    See the file LICENSE for copying permissio
 """
 
 import logging

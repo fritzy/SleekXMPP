@@ -3,7 +3,7 @@
     Copyright (C) 2010 Nathanael C. Fritz, Lance J.T. Stout
     This file is part of SleekXMPP.
 
-    See the file license.txt for copying permission.
+    See the file LICENSE for copying permission.
 """
 
 import unittest
@@ -127,6 +127,11 @@ class SleekTest(unittest.TestCase):
             msg['type'] = msg['type']
             if xml.attrib.get('type', None) is None:
                 xml.attrib['type'] = 'normal'
+            msg2['type'] = msg2['type']
+            debug += ">>>>Given Stanza:\n%s\n" % ET.tostring(msg.xml)
+            debug += "XML String:\n%s\n" % ET.tostring(xml)
+            debug += ">>>>Constructed Stanza:\n%s\n" % ET.tostring(msg2.xml)
+
 
             values = msg2.getStanzaValues()
             msg3 = self.Message()

@@ -23,10 +23,18 @@ class Form(ElementBase):
 	sub_interfaces = set(('title',))
 	form_types = set(('cancel', 'form', 'result', 'submit'))
 
-	def addField(self, var, ftype='text-single', label='', desc='', required=False, value=None, options=None):
+	def setup(self, xml=None):
+		if ElementBase.setup(self, xml): #if we had to generate xml
+			self['type'] = 'form'
+
+	def addField(self, var='', ftype=None, label='', desc='', required=False, value=None, options=None, **kwargs):
+		kwtype = kwargs.get('type', None)
+		if kwtype is None:
+			kwtype = ftype
+
 		field = FormField(parent=self)
 		field['var'] = var
-		field['type'] = ftype
+		field['type'] = kwtype
 		field['label'] = label
 		field['desc'] = desc
 		field['required'] = required
@@ -55,7 +63,10 @@ class Form(ElementBase):
 			field['var'] = var
 			field['value'] = values.get(var, None)
 
-	def addReported(self, var, ftype='text-single', label='', desc=''):
+	def addReported(self, var, ftype=None, label='', desc='', **kwargs):
+		kwtype = kwargs.get('type', None)
+		if kwtype is None:
+			kwtype = ftype
 		reported = self.xml.find('{%s}reported' % self.namespace)
 		if reported is None:
 			reported = ET.Element('{%s}reported' % self.namespace)
@@ -64,7 +75,7 @@ class Form(ElementBase):
 		reported.append(fieldXML)
 		field = FormField(xml=fieldXML)
 		field['var'] = var
-		field['type'] = ftype
+		field['type'] = kwtype
 		field['label'] = label
 		field['desc'] = desc
 		return field
@@ -92,19 +103,21 @@ class Form(ElementBase):
 		if reportedXML is not None:
 			self.xml.remove(reportedXML)
 
-	def getFields(self):
-		fields = {}
-		fieldsXML = self.xml.findall('{%s}field' % FormField.namespace)
+	def getFields(self, use_dict=False):
+		fields = {} if use_dict else []
+		fieldsXML = self.xml.findall('{%s}field' % FormField.namespace)    
 		for fieldXML in fieldsXML:
 			field = FormField(xml=fieldXML)
-			fields[field['var']] = field
+			if use_dict:
+				fields[field['var']] = field
+			else:
+				fields.append((field['var'], field))
 		return fields
 
 	def getInstructions(self):
 		instructions = ''
-		instsXML = self.xml.findall('{%s}instructions')
-		for instXML in instsXML:
-			instructions += instXML.text
+		instsXML = self.xml.findall('{%s}instructions' % self.namespace)
+		return "\n".join([instXML.text for instXML in instsXML])
 
 	def getItems(self):
 		items = []
@@ -129,7 +142,7 @@ class Form(ElementBase):
 
 	def getValues(self):
 		values = {}
-		fields = self.getFields()
+		fields = self.getFields(use_dict=True)
 		for var in fields:
 			values[var] = fields[var]['value']
 		return values
@@ -140,20 +153,19 @@ class Form(ElementBase):
 		elif self['type'] == 'submit':
 			self['type'] = 'result'
 
-	def setFields(self, fields):
+	def setFields(self, fields, default=None):
 		del self['fields']
-		for var in fields:
-			field = fields[var]
+		for field_data in fields:
+			var = field_data[0]
+			field = field_data[1]
+			field['var'] = var
 
-			# Remap 'type' to 'ftype' to match the addField method
-			ftype = field.get('type', 'text-single')
-			field['type'] = ftype
-			del field['type']
-			field['ftype'] = ftype
-
-			self.addField(var, **field)
+			self.addField(**field)
 
 	def setInstructions(self, instructions):
+		del self['instructions']
+		if instructions in [None, '']:
+			return
 		instructions = instructions.split('\n')
 		for instruction in instructions:
 			inst = ET.Element('{%s}instructions' % self.namespace)
@@ -164,20 +176,14 @@ class Form(ElementBase):
 		for item in items:
 			self.addItem(item)
 
-	def setReported(self, reported):
+	def setReported(self, reported, default=None):
 		for var in reported:
 			field = reported[var]
-
-			# Remap 'type' to 'ftype' to match the addReported method
-			ftype = field.get('type', 'text-single')
-			field['type'] = ftype
-			del field['type']
-			field['ftype'] = ftype
-
+			field['var'] = var
 			self.addReported(var, **field)
 
 	def setValues(self, values):
-		fields = self.getFields()
+		fields = self.getFields(use_dict=True)
 		for field in values:
 			fields[field]['value'] = values[field]
 
@@ -226,7 +232,7 @@ class FormField(ElementBase):
 		optsXML = self.xml.findall('{%s}option' % self.namespace)
 		for optXML in optsXML:
 			opt = FieldOption(xml=optXML)
-		options.append({'label': opt['label'], 'value':opt['value']})
+			options.append({'label': opt['label'], 'value':opt['value']})
 		return options
 
 	def getRequired(self):
@@ -277,22 +283,24 @@ class FormField(ElementBase):
 	def setValue(self, value):
 		self.delValue()
 		valXMLName = '{%s}value' % self.namespace
-	
+
 		if self['type'] == 'boolean':
 			if value in self.true_values:
 				valXML = ET.Element(valXMLName)
-				valXML.text = 'true'
+				valXML.text = '1'
 				self.xml.append(valXML)
 			else:
 				valXML = ET.Element(valXMLName)
-				valXML.text = 'true'
+				valXML.text = '0'
 				self.xml.append(valXML)
-		if self['type'] in self.multi_value_types:
+		elif self['type'] in self.multi_value_types or self['type'] in ['', None]:
 			if self['type'] in self.multi_line_types and isinstance(value, str):
 				value = value.split('\n')
 			if not isinstance(value, list):
 				value = [value]
 			for val in value:
+				if self['type'] in ['', None] and val in self.true_values:
+					val = '1'
 				valXML = ET.Element(valXMLName)
 				valXML.text = val
 				self.xml.append(valXML)

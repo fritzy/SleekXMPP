@@ -257,7 +257,7 @@ class Configure(ElementBase):
 	namespace = 'http://jabber.org/protocol/pubsub'
 	name = 'configure'
 	plugin_attrib = name
-	interfaces = set(('node', 'type', 'config'))
+	interfaces = set(('node', 'type'))
 	plugin_attrib_map = {}
 	plugin_tag_map = {}
 
@@ -266,22 +266,8 @@ class Configure(ElementBase):
 		if not t: t == 'leaf'
 		return t
 	
-	def getConfig(self):
-		config = self.xml.find('{jabber:x:data}x')
-		form = xep_0004.Form()
-		if config is not None:
-			form.fromXML(config)
-		return form
-	
-	def setConfig(self, value):
-		self.xml.append(value.getXML())
-		return self
-	
-	def delConfig(self):
-		config = self.xml.find('{jabber:x:data}x')
-		self.xml.remove(config)
-	
 registerStanzaPlugin(Pubsub, Configure)
+registerStanzaPlugin(Configure, xep_0004.Form)
 
 class DefaultConfig(ElementBase):
 	namespace = 'http://jabber.org/protocol/pubsub#owner'
@@ -293,21 +279,6 @@ class DefaultConfig(ElementBase):
 	
 	def __init__(self, *args, **kwargs):
 		ElementBase.__init__(self, *args, **kwargs)
-		
-	def getConfig(self):
-		config = self.xml.find('{jabber:x:data}x')
-		form = xep_0004.Form()
-		if config is not None:
-			form.fromXML(config)
-		return form
-	
-	def setConfig(self, value):
-		self.xml.append(value.getXML())
-		return self
-	
-	def delConfig(self):
-		config = self.xml.find('{jabber:x:data}x')
-		self.xml.remove(config)
 
 	def getType(self):
 		t = self._getAttr('type')
@@ -315,6 +286,7 @@ class DefaultConfig(ElementBase):
 		return t
 
 registerStanzaPlugin(PubsubOwner, DefaultConfig)
+registerStanzaPlugin(DefaultConfig, xep_0004.Form)
 
 class Options(ElementBase):
 	namespace = 'http://jabber.org/protocol/pubsub'
@@ -538,22 +510,8 @@ class EventConfiguration(ElementBase):
 	plugin_attrib_map = {}
 	plugin_tag_map = {}
 	
-	def getConfig(self):
-		config = self.xml.find('{jabber:x:data}x')
-		form = xep_0004.Form()
-		if config is not None:
-			form.fromXML(config)
-		return form
-	
-	def setConfig(self, value):
-		self.xml.append(value.getXML())
-		return self
-	
-	def delConfig(self):
-		config = self.xml.find('{jabber:x:data}x')
-		self.xml.remove(config)
-	
 registerStanzaPlugin(Event, EventConfiguration)
+registerStanzaPlugin(EventConfiguration, xep_0004.Form)
 
 class EventPurge(ElementBase):
 	namespace = 'http://jabber.org/protocol/pubsub#event'

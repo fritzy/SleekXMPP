@@ -6,3 +6,6 @@ python3 setup.py install
 
 Root install:
 sudo python3 setup.py install
+
+To test:
+python example.py -v -j [USER@example.com] -p [PASSWORD]

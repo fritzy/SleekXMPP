@@ -1,14 +1,11 @@
-import unittest
+import sleekxmpp
+from sleektest import *
 
-class testevents(unittest.TestCase):
 
-	def setUp(self):
-		import sleekxmpp.stanza.presence as p
-		self.p = p
+class TestEvents(SleekTest):
 	
 	def testEventHappening(self):
 		"Test handler working"
-		import sleekxmpp
 		c = sleekxmpp.ClientXMPP('crap@wherever', 'password')
 		happened = []
 		def handletestevent(event):
@@ -20,7 +17,6 @@ class testevents(unittest.TestCase):
 	
 	def testDelEvent(self):
 		"Test handler working, then deleted and not triggered"
-		import sleekxmpp
 		c = sleekxmpp.ClientXMPP('crap@wherever', 'password')
 		happened = []
 		def handletestevent(event):
@@ -32,4 +28,4 @@ class testevents(unittest.TestCase):
 		self.failUnless(happened == [True], "event did not get triggered the correct number of times")
         
 
-suite = unittest.TestLoader().loadTestsFromTestCase(testevents)
+suite = unittest.TestLoader().loadTestsFromTestCase(TestEvents)

@@ -221,6 +221,7 @@ class ClientXMPP(basexmpp, XMLStream):
 	
 	def handler_bind_resource(self, xml):
 		logging.debug("Requesting resource: %s" % self.resource)
+		xml.clear()
 		iq = self.Iq(stype='set')
 		if self.resource:
 			res = ET.Element('resource')

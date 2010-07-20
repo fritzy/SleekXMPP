@@ -154,13 +154,13 @@ class xep_0045(base.base_plugin):
 			return False
 		xform = result.xml.find('{http://jabber.org/protocol/muc#owner}query/{jabber:x:data}x')
 		if xform is None: return False
-		form = self.xmpp.plugin['xep_0004'].buildForm(xform)
+		form = self.xmpp.plugin['old_0004'].buildForm(xform)
 		return form
 	
 	def configureRoom(self, room, form=None, ifrom=None):
 		if form is None:
 			form = self.getRoomForm(room, ifrom=ifrom)
-			#form = self.xmpp.plugin['xep_0004'].makeForm(ftype='submit')
+			#form = self.xmpp.plugin['old_0004'].makeForm(ftype='submit')
 			#form.addField('FORM_TYPE', value='http://jabber.org/protocol/muc#roomconfig')	
 		iq = self.xmpp.makeIqSet()
 		iq['to'] = room
@@ -262,7 +262,7 @@ class xep_0045(base.base_plugin):
 		form = result.xml.find('{http://jabber.org/protocol/muc#owner}query/{jabber:x:data}x')
 		if form is None:
 			raise ValueError
-		return self.xmpp.plugin['xep_0004'].buildForm(form)
+		return self.xmpp.plugin['old_0004'].buildForm(form)
 	
 	def cancelConfig(self, room):
 		query = ET.Element('{http://jabber.org/protocol/muc#owner}query')

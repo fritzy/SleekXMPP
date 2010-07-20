@@ -13,7 +13,7 @@ from .. xmlstream.matcher.xpath import MatchXPath
 from .. xmlstream.stanzabase import registerStanzaPlugin, ElementBase, ET, JID
 from .. stanza.iq import Iq
 from . xep_0030 import DiscoInfo, DiscoItems
-from . alt_0004 import Form
+from . xep_0004 import Form
 
 
 class xep_0128(base.base_plugin):

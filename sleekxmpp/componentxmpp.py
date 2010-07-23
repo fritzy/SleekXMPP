@@ -1,4 +1,4 @@
-#!/usr/bin/python2.6
+#!/usr/bin/env python
 
 """
     SleekXMPP: The Sleek XMPP Library

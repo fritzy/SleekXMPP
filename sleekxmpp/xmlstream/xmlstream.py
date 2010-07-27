@@ -19,7 +19,6 @@ import logging
 import socket
 import threading
 import time
-import traceback
 import types
 import copy
 import xml.sax.saxutils
@@ -195,14 +194,14 @@ class XMLStream(object):
 					return
 				else:
 					self.state.set('processing', False)
-					traceback.print_exc()
+					logging.exception('Socket Error')
 					self.disconnect(reconnect=True)
 			except:
 				if not self.state.reconnect:
 					return
 				else:
 					self.state.set('processing', False)
-					traceback.print_exc()
+					logging.exception('Connection error. Reconnecting.')
 					self.disconnect(reconnect=True)
 			if self.state['reconnect']:
 				self.reconnect()
@@ -258,8 +257,7 @@ class XMLStream(object):
 				logging.warning("Failed to send %s" % data)
 				self.state.set('connected', False)
 				if self.state.reconnect:
-					logging.error("Disconnected. Socket Error.")
-					traceback.print_exc()
+					logging.exception("Disconnected. Socket Error.")
 					self.disconnect(reconnect=True)
 	
 	def sendRaw(self, data):
@@ -344,14 +342,14 @@ class XMLStream(object):
 					try:
 						handler.run(args[0])
 					except Exception as e:
-						traceback.print_exc()
+						logging.exception('Error processing event handler: %s' % handler.name)
 						args[0].exception(e)
 				elif etype == 'schedule':
 					try:
 						logging.debug(args)
 						handler(*args[0])
 					except:
-						logging.error(traceback.format_exc())
+						logging.exception('Error processing scheduled task')
 				elif etype == 'quit':
 					logging.debug("Quitting eventRunner thread")
 					return False

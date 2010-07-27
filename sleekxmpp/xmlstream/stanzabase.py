@@ -7,7 +7,6 @@
 """
 from xml.etree import cElementTree as ET
 import logging
-import traceback
 import sys
 import weakref
 import copy
@@ -379,7 +378,7 @@ class StanzaBase(ElementBase):
                 pass
         
         def exception(self, e):
-                logging.error(traceback.format_tb(e))
+                logging.exception('Error handling {%s}%s stanza' % (self.namespace, self.name))
         
         def send(self):
                 self.stream.sendRaw(self.__str__())

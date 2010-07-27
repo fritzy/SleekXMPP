@@ -9,7 +9,6 @@ from __future__ import with_statement
 from . import base
 import logging
 from xml.etree import cElementTree as ET
-import traceback
 import time
 
 class xep_0050(base.base_plugin):

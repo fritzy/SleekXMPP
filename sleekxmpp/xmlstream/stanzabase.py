@@ -11,6 +11,7 @@ import traceback
 import sys
 import weakref
 import copy
+from . jid import JID
 
 if sys.version_info < (3,0):
         from . import tostring26 as tostring
@@ -28,28 +29,6 @@ def registerStanzaPlugin(stanza, plugin):
         stanza.plugin_attrib_map[plugin.plugin_attrib] = plugin
         stanza.plugin_tag_map[tag] = plugin
 
-
-class JID(object):
-        def __init__(self, jid):
-                self.jid = jid
-        
-        def __getattr__(self, name):
-                if name == 'resource':
-                        return self.jid.split('/', 1)[-1]
-                elif name == 'user':
-                        if '@' in self.jid:
-                                return self.jid.split('@', 1)[0]
-                        else:
-                                return ''
-                elif name == 'server':
-                        return self.jid.split('@', 1)[-1].split('/', 1)[0]
-                elif name == 'full':
-                        return self.jid
-                elif name == 'bare':
-                        return self.jid.split('/', 1)[0]
-        
-        def __str__(self):
-                return self.jid
 
 class ElementBase(tostring.ToString):
         name = 'stanza'

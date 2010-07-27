@@ -26,7 +26,7 @@ class TestStreamTester(SleekTest):
         """)
         
         self.streamSendMessage("""
-          <message to="user@localhost" from="tester@localhost">
+          <message to="user@localhost">
             <body>Thanks for sending: Hi!</body>
           </message>
         """)

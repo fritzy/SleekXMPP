@@ -239,26 +239,31 @@ class ElementBase(tostring.ToString):
                 return self.xml.attrib.get(name, '')
         
         def _getSubText(self, name):
-                stanza = self.xml.find("{%s}%s" % (self.namespace, name))
+                if '}' not in name:
+                        name = "{%s}%s" % (self.namespace, name)
+                stanza = self.xml.find(name)
                 if stanza is None or stanza.text is None:
                         return ''
                 else:
                         return stanza.text
         
         def _setSubText(self, name, attrib={}, text=None):
+                if '}' not in name:
+                        name = "{%s}%s" % (self.namespace, name)
                 if text is None or text == '':
                         return self.__delitem__(name)
-                stanza = self.xml.find("{%s}%s" % (self.namespace, name))
+                stanza = self.xml.find(name)
                 if stanza is None:
-                        #self.xml.append(ET.Element("{%s}%s" % (self.namespace, name), attrib))
-                        stanza = ET.Element("{%s}%s" % (self.namespace, name))
+                        stanza = ET.Element(name)
                         self.xml.append(stanza)
                 stanza.text = text
                 return stanza
                 
         def _delSub(self, name):
+                if '}' not in name:
+                        name = "{%s}%s" % (self.namespace, name)
                 for child in self.xml.getchildren():
-                        if child.tag == "{%s}%s" % (self.namespace, name):
+                        if child.tag == name:
                                 self.xml.remove(child)
         
         def getStanzaValues(self):

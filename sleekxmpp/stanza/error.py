@@ -108,7 +108,9 @@ class Error(ElementBase):
         """Remove the condition element."""
         for child in self.xml.getchildren():
             if "{%s}" % self.condition_ns in child.tag:
-                self.xml.remove(child)
+                tag = child.tag.split('}', 1)[-1]
+                if tag in self.conditions:
+                    self.xml.remove(child)
         return self
 
     def getText(self):

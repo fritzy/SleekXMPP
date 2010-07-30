@@ -235,8 +235,8 @@ class ElementBase(tostring.ToString):
                 if name in self.xml.attrib:
                         del self.xml.attrib[name]
         
-        def _getAttr(self, name):
-                return self.xml.attrib.get(name, '')
+        def _getAttr(self, name, default=''):
+                return self.xml.attrib.get(name, default)
         
         def _getSubText(self, name):
                 if '}' not in name:

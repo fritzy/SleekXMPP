@@ -49,6 +49,9 @@ class Iq(RootStanza):
     Stanza Interface:
         query -- The namespace of the <query> element if one exists.
 
+    Attributes:
+        types -- May be one of: get, set, result, or error.
+
     Methods:
         __init__   -- Overrides StanzaBase.__init__.
         unhandled  -- Send error if there are no handlers.

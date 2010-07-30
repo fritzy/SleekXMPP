@@ -128,10 +128,7 @@ class SleekTest(unittest.TestCase):
             if xml.attrib.get('type', None) is None:
                 xml.attrib['type'] = 'normal'
             msg2['type'] = msg2['type']
-            debug += ">>>>Given Stanza:\n%s\n" % ET.tostring(msg.xml)
             debug += "XML String:\n%s\n" % ET.tostring(xml)
-            debug += ">>>>Constructed Stanza:\n%s\n" % ET.tostring(msg2.xml)
-
 
             values = msg2.getStanzaValues()
             msg3 = self.Message()
@@ -234,25 +231,25 @@ class SleekTest(unittest.TestCase):
         self.xmpp.process(threaded=True)
         if skip: 
             # Clear startup stanzas
-            self.xmpp.socket.nextSent(timeout=0.1)
+            self.xmpp.socket.nextSent(timeout=0.01)
 
     def streamRecv(self, data):
         data = str(data)
         self.xmpp.socket.recvData(data)
 
-    def streamSendMessage(self, data, use_values=True, timeout=.5):
+    def streamSendMessage(self, data, use_values=True, timeout=.1):
         if isinstance(data, str):
             data = self.Message(xml=ET.fromstring(data))
-        sent = self.xmpp.socket.nextSent(timeout=1)
+        sent = self.xmpp.socket.nextSent(timeout)
         self.checkMessage(data, sent, use_values)
             
-    def streamSendIq(self, data, use_values=True, timeout=.5):
+    def streamSendIq(self, data, use_values=True, timeout=.1):
         if isinstance(data, str):
             data = self.Iq(xml=ET.fromstring(data))
         sent = self.xmpp.socket.nextSent(timeout)
         self.checkIq(data, sent, use_values)
 
-    def streamSendPresence(self, data, use_values=True, timeout=.5):
+    def streamSendPresence(self, data, use_values=True, timeout=.1):
         if isinstance(data, str):
             data = self.Presence(xml=ET.fromstring(data))
         sent = self.xmpp.socket.nextSent(timeout)

@@ -24,6 +24,7 @@ import copy
 import xml.sax.saxutils
 from . import scheduler
 
+RESPONSE_TIMEOUT = 10
 HANDLER_THREADS = 1
 
 ssl_support = True

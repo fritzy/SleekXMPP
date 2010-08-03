@@ -32,7 +32,7 @@ class TestMessageStanzas(SleekTest):
         msg['type'] = 'chat'
         p = ET.Element('{http://www.w3.org/1999/xhtml}p')
         p.text = "This is the htmlim message"
-        msg['html']['html'] = p
+        msg['html']['body'] = p
         self.checkMessage(msg, """
           <message to="fritzy@netflint.net/sleekxmpp" type="chat">
             <body>this is the plaintext message</body>

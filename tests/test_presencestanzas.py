@@ -53,5 +53,15 @@ class TestPresenceStanzas(SleekTest):
         self.failUnless(c.roster == {},
             "Roster updated for superfulous unavailable presence")
 
+    def testNickPlugin(self):
+        """Test presence/nick/nick stanza."""
+        p = self.Presence()
+        p['nick']['nick'] = 'A nickname!'
+        self.checkPresence(p, """
+          <presence>
+            <nick xmlns="http://jabber.org/nick/nick">A nickname!</nick>
+          </presence>
+        """)
+
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestPresenceStanzas)

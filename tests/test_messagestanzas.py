@@ -25,7 +25,7 @@ class TestMessageStanzas(SleekTest):
         self.failUnless(str(msg['to']) == 'usr@server.tld')
 
     def testHTMLPlugin(self):
-        "Test message/html/html stanza"
+        "Test message/html/body stanza"
         msg = self.Message()
         msg['to'] = "fritzy@netflint.net/sleekxmpp"
         msg['body'] = "this is the plaintext message"
@@ -42,5 +42,16 @@ class TestMessageStanzas(SleekTest):
              </body>
             </html>
           </message>""")
+
+    def testNickPlugin(self):
+        "Test message/nick/nick stanza."
+        msg = self.Message()
+        msg['nick']['nick'] = 'A nickname!'
+        self.checkMessage(msg, """
+          <message>
+            <nick xmlns="http://jabber.org/nick/nick">A nickname!</nick>
+          </message>
+        """)
+
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestMessageStanzas)

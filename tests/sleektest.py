@@ -21,7 +21,7 @@ from sleekxmpp.xmlstream.stanzabase import registerStanzaPlugin
 
 
 class TestSocket(object):
-    
+
     def __init__(self, *args, **kwargs):
         self.socket = socket.socket(*args, **kwargs)
         self.recv_queue = queue.Queue()
@@ -104,10 +104,10 @@ class SleekTest(unittest.TestCase):
 
     def checkMessage(self, msg, xml_string, use_values=True):
         """
-        Create and compare several message stanza objects to a 
-        correct XML string. 
+        Create and compare several message stanza objects to a
+        correct XML string.
 
-        If use_values is False, the test using getValues() and 
+        If use_values is False, the test using getValues() and
         setValues() will not be used.
         """
 
@@ -118,10 +118,10 @@ class SleekTest(unittest.TestCase):
         self.fix_namespaces(xml, 'jabber:client')
 
         debug += "XML String:\n%s\n" % ET.tostring(xml)
-        
+
         msg2 = self.Message(xml)
         debug += "Constructed Stanza:\n%s\n" % ET.tostring(msg2.xml)
-        
+
         if use_values:
             # Ugly, but need to make sure the type attribute is set.
             msg['type'] = msg['type']
@@ -133,10 +133,10 @@ class SleekTest(unittest.TestCase):
             values = msg2.getStanzaValues()
             msg3 = self.Message()
             msg3.setStanzaValues(values)
-            
+
             debug += "Second Constructed Stanza:\n%s\n" % ET.tostring(msg3.xml)
             debug = "Three methods for creating stanza do not match:\n" + debug
-            self.failUnless(self.compare([xml, msg.xml, msg2.xml, msg3.xml]), 
+            self.failUnless(self.compare([xml, msg.xml, msg2.xml, msg3.xml]),
                             debug)
         else:
             debug = "Two methods for creating stanza do not match:\n" + debug
@@ -144,10 +144,10 @@ class SleekTest(unittest.TestCase):
 
     def checkIq(self, iq, xml_string, use_values=True):
         """
-        Create and compare several iq stanza objects to a 
-        correct XML string. 
+        Create and compare several iq stanza objects to a
+        correct XML string.
 
-        If use_values is False, the test using getValues() and 
+        If use_values is False, the test using getValues() and
         setValues() will not be used.
         """
 
@@ -157,10 +157,10 @@ class SleekTest(unittest.TestCase):
         xml = ET.fromstring(xml_string)
         self.fix_namespaces(xml, 'jabber:client')
         debug += "XML String:\n%s\n" % ET.tostring(xml)
-        
+
         iq2 = self.Iq(xml)
         debug += "Constructed Stanza:\n%s\n" % ET.tostring(iq2.xml)
-        
+
         if use_values:
             values = iq.getStanzaValues()
             iq3 = self.Iq()
@@ -168,7 +168,7 @@ class SleekTest(unittest.TestCase):
 
             debug += "Second Constructed Stanza:\n%s\n" % ET.tostring(iq3.xml)
             debug = "Three methods for creating stanza do not match:\n" + debug
-            self.failUnless(self.compare([xml, iq.xml, iq2.xml, iq3.xml]), 
+            self.failUnless(self.compare([xml, iq.xml, iq2.xml, iq3.xml]),
                             debug)
         else:
             debug = "Two methods for creating stanza do not match:\n" + debug
@@ -176,26 +176,27 @@ class SleekTest(unittest.TestCase):
 
     def checkPresence(self, pres, xml_string, use_values=True):
         """
-        Create and compare several presence stanza objects to a 
-        correct XML string. 
+        Create and compare several presence stanza objects to a
+        correct XML string.
 
-        If use_values is False, the test using getValues() and 
+        If use_values is False, the test using getValues() and
         setValues() will not be used.
         """
         self.fix_namespaces(pres.xml, 'jabber:client')
-        debug = "Given Stanza:\n%s\n" % ET.tostring(pres.xml)
 
         xml = ET.fromstring(xml_string)
         self.fix_namespaces(xml, 'jabber:client')
-        debug += "XML String:\n%s\n" % ET.tostring(xml)
-        
+
         pres2 = self.Presence(xml)
-        debug += "Constructed Stanza:\n%s\n" % ET.tostring(pres2.xml)
 
         # Ugly, but 'priority' has a default value and need to make
         # sure it is set
         pres['priority'] = pres['priority']
         pres2['priority'] = pres2['priority']
+
+        debug = "Given Stanza:\n%s\n" % ET.tostring(pres.xml)
+        debug += "XML String:\n%s\n" % ET.tostring(xml)
+        debug += "Constructed Stanza:\n%s\n" % ET.tostring(pres2.xml)
 
         if use_values:
             values = pres.getStanzaValues()
@@ -204,7 +205,7 @@ class SleekTest(unittest.TestCase):
 
             debug += "Second Constructed Stanza:\n%s\n" % ET.tostring(pres3.xml)
             debug = "Three methods for creating stanza do not match:\n" + debug
-            self.failUnless(self.compare([xml, pres.xml, pres2.xml, pres3.xml]), 
+            self.failUnless(self.compare([xml, pres.xml, pres2.xml, pres3.xml]),
                             debug)
         else:
             debug = "Two methods for creating stanza do not match:\n" + debug
@@ -229,7 +230,7 @@ class SleekTest(unittest.TestCase):
         self.xmpp.connectTCP = lambda a, b, c, d: True
         self.xmpp.startTLS = lambda: True
         self.xmpp.process(threaded=True)
-        if skip: 
+        if skip:
             # Clear startup stanzas
             self.xmpp.socket.nextSent(timeout=0.01)
 
@@ -242,7 +243,7 @@ class SleekTest(unittest.TestCase):
             data = self.Message(xml=ET.fromstring(data))
         sent = self.xmpp.socket.nextSent(timeout)
         self.checkMessage(data, sent, use_values)
-            
+
     def streamSendIq(self, data, use_values=True, timeout=.1):
         if isinstance(data, str):
             data = self.Iq(xml=ET.fromstring(data))
@@ -265,7 +266,7 @@ class SleekTest(unittest.TestCase):
 
     def fix_namespaces(self, xml, ns):
         """
-        Assign a namespace to an element and any children that 
+        Assign a namespace to an element and any children that
         don't have a namespace.
         """
         if xml.tag.startswith('{'):

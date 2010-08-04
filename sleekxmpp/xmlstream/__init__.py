@@ -6,5 +6,6 @@
     See the file LICENSE for copying permission.
 """
 
+from sleekxmpp.xmlstream.jid import JID
 from sleekxmpp.xmlstream.stanzabase import StanzaBase, ElementBase
 from sleekxmpp.xmlstream.xmlstream import XMLStream, RESPONSE_TIMEOUT

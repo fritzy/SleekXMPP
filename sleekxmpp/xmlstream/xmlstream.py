@@ -73,6 +73,7 @@ class XMLStream(object):
 		self.use_ssl = False
 		self.use_tls = False
 
+		self.default_ns = ''
 		self.stream_header = "<stream>"
 		self.stream_footer = "</stream>"
 
@@ -304,7 +305,7 @@ class XMLStream(object):
 	def __spawnEvent(self, xmlobj):
 		"watching xmlOut and processes handlers"
 		#convert XML into Stanza
-		logging.debug("RECV: %s" % tostring(xmlobj))
+		logging.debug("RECV: %s" % tostring(xmlobj, xmlns=self.default_ns, stream=self))
 		xmlobj = self.incoming_filter(xmlobj)
 		stanza_type = StanzaBase
 		for stanza_class in self.__root_stanza:

@@ -23,6 +23,7 @@ import types
 import copy
 import xml.sax.saxutils
 from . import scheduler
+from sleekxmpp.xmlstream.tostring import tostring
 
 RESPONSE_TIMEOUT = 10
 HANDLER_THREADS = 1
@@ -37,7 +38,7 @@ if sys.version_info < (3, 0):
 	#monkey patch broken filesocket object
 	from . import filesocket
 	#socket._fileobject = filesocket.filesocket
-	
+
 
 class RestartStream(Exception):
 	pass
@@ -82,7 +83,7 @@ class XMLStream(object):
 		self.namespace_map = {}
 
 		self.run = True
-	
+
 	def setSocket(self, socket):
 		"Set the socket"
 		self.socket = socket
@@ -90,10 +91,10 @@ class XMLStream(object):
 			self.filesocket = socket.makefile('rb', 0) # ElementTree.iterparse requires a file.  0 buffer files have to be binary
 			self.state.set('connected', True)
 
-	
+
 	def setFileSocket(self, filesocket):
 		self.filesocket = filesocket
-	
+
 	def connect(self, host='', port=0, use_ssl=False, use_tls=True):
 		"Link to connectTCP"
 		return self.connectTCP(host, port, use_ssl, use_tls)
@@ -125,7 +126,7 @@ class XMLStream(object):
 			except socket.error as serr:
 				logging.error("Could not connect. Socket Error #%s: %s" % (serr.errno, serr.strerror))
 				time.sleep(1)
-	
+
 	def connectUnix(self, filepath):
 		"Connect to Unix file and create socket"
 
@@ -146,7 +147,7 @@ class XMLStream(object):
 			logging.warning("Tried to enable TLS, but ssl module not found.")
 			return False
 		raise RestartStream()
-	
+
 	def process(self, threaded=True):
 		self.scheduler.process(threaded=True)
 		for t in range(0, HANDLER_THREADS):
@@ -160,10 +161,10 @@ class XMLStream(object):
 			self.__thread['process'].start()
 		else:
 			self._process()
-	
+
 	def schedule(self, name, seconds, callback, args=None, kwargs=None, repeat=False):
 		self.scheduler.add(name, seconds, callback, args, kwargs, repeat, qpointer=self.eventqueue)
-	
+
 	def _process(self):
 		"Start processing the socket."
 		firstrun = True
@@ -212,7 +213,7 @@ class XMLStream(object):
 		#self.__thread['readXML'].start()
 		#self.__thread['spawnEvents'] = threading.Thread(name='spawnEvents', target=self.__spawnEvents)
 		#self.__thread['spawnEvents'].start()
-	
+
 	def __readXML(self):
 		"Parses the incoming stream, adding to xmlin queue as it goes"
 		#build cElementTree object from expat was we go
@@ -245,7 +246,7 @@ class XMLStream(object):
 			if event == b'start':
 				edepth += 1
 		logging.debug("Ending readXML loop")
-	
+
 	def _sendThread(self):
 		while self.run:
 			data = self.sendqueue.get(True)
@@ -260,11 +261,11 @@ class XMLStream(object):
 				if self.state.reconnect:
 					logging.exception("Disconnected. Socket Error.")
 					self.disconnect(reconnect=True)
-	
+
 	def sendRaw(self, data):
 		self.sendqueue.put(data)
 		return True
-	
+
 	def disconnect(self, reconnect=False):
 		self.state.set('reconnect', reconnect)
 		if self.state['disconnecting']:
@@ -290,20 +291,20 @@ class XMLStream(object):
 		if self.state['processing']:
 			#raise CloseStream
 			pass
-	
+
 	def reconnect(self):
 		self.state.set('tls',False)
 		self.state.set('ssl',False)
 		time.sleep(1)
 		self.connect()
-	
+
 	def incoming_filter(self, xmlobj):
 		return xmlobj
-		
+
 	def __spawnEvent(self, xmlobj):
 		"watching xmlOut and processes handlers"
 		#convert XML into Stanza
-		logging.debug("RECV: %s" % cElementTree.tostring(xmlobj))
+		logging.debug("RECV: %s" % tostring(xmlobj))
 		xmlobj = self.incoming_filter(xmlobj)
 		stanza_type = StanzaBase
 		for stanza_class in self.__root_stanza:
@@ -323,7 +324,7 @@ class XMLStream(object):
 			stanza.unhandled()
 			#loop through handlers and test match
 			#spawn threads as necessary, call handlers, sending Stanza
-	
+
 	def _eventRunner(self):
 		logging.debug("Loading event runner")
 		while self.run:
@@ -354,11 +355,11 @@ class XMLStream(object):
 				elif etype == 'quit':
 					logging.debug("Quitting eventRunner thread")
 					return False
-	
+
 	def registerHandler(self, handler, before=None, after=None):
 		"Add handler with matcher class and parameters."
 		self.__handlers.append(handler)
-	
+
 	def removeHandler(self, name):
 		"Removes the handler."
 		idx = 0
@@ -367,81 +368,27 @@ class XMLStream(object):
 				self.__handlers.pop(idx)
 				return
 			idx += 1
-	
+
 	def registerStanza(self, stanza_class):
 		"Adds stanza.  If root stanzas build stanzas sent in events while non-root stanzas build substanza objects."
 		self.__root_stanza.append(stanza_class)
-	
+
 	def registerStanzaExtension(self, stanza_class, stanza_extension):
 		if stanza_class not in stanza_extensions:
 			stanza_extensions[stanza_class] = [stanza_extension]
 		else:
 			stanza_extensions[stanza_class].append(stanza_extension)
-	
+
 	def removeStanza(self, stanza_class, root=False):
 		"Removes the stanza's registration."
 		if root:
 			del self.__root_stanza[stanza_class]
 		else:
 			del self.__stanza[stanza_class]
-	
+
 	def removeStanzaExtension(self, stanza_class, stanza_extension):
 		stanza_extension[stanza_class].pop(stanza_extension)
 
-	def tostring(self, xml, xmlns='', stringbuffer=''):
-		newoutput = [stringbuffer]
-		#TODO respect ET mapped namespaces
-		itag = xml.tag.split('}', 1)[-1]
-		if '}' in xml.tag:
-			ixmlns = xml.tag.split('}', 1)[0][1:]
-		else:
-			ixmlns = ''
-		nsbuffer = ''
-		if xmlns != ixmlns and ixmlns != '':
-			if ixmlns in self.namespace_map:
-				if self.namespace_map[ixmlns] != '':
-					itag = "%s:%s" % (self.namespace_map[ixmlns], itag)
-			else:
-				nsbuffer = """ xmlns="%s\"""" % ixmlns
-		newoutput.append("<%s" % itag)
-		newoutput.append(nsbuffer)
-		for attrib in xml.attrib:
-			newoutput.append(""" %s="%s\"""" % (attrib, self.xmlesc(xml.attrib[attrib])))
-		if len(xml) or xml.text or xml.tail:
-			newoutput.append(">")
-			if xml.text:
-				newoutput.append(self.xmlesc(xml.text))
-			if len(xml):
-				for child in xml.getchildren():
-					newoutput.append(self.tostring(child, ixmlns))
-			newoutput.append("</%s>" % (itag, ))
-			if xml.tail:
-				newoutput.append(self.xmlesc(xml.tail))
-		elif xml.text:
-			newoutput.append(">%s</%s>" % (self.xmlesc(xml.text), itag))
-		else:
-			newoutput.append(" />")
-		return ''.join(newoutput)
-
-	def xmlesc(self, text):
-		text = list(text)
-		cc = 0
-		matches = ('&', '<', '"', '>', "'")
-		for c in text:
-			if c in matches:
-				if c == '&':
-					text[cc] = '&amp;'
-				elif c == '<':
-					text[cc] = '&lt;'
-				elif c == '>':
-					text[cc] = '&gt;'
-				elif c == "'":
-					text[cc] = '&apos;'
-				elif self.escape_quotes:
-					text[cc] = '&quot;'
-			cc += 1
-		return ''.join(text)
-	
 	def start_stream_handler(self, xml):
 		"""Meant to be overridden"""
 		pass

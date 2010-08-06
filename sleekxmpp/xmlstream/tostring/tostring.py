@@ -1,60 +1,91 @@
+"""
+    SleekXMPP: The Sleek XMPP Library
+    Copyright (C) 2010  Nathanael C. Fritz
+    This file is part of SleekXMPP.
 
-class ToString(object):
-	def __str__(self, xml=None, xmlns='', stringbuffer=''):
-		if xml is None:
-			xml = self.xml
-		newoutput = [stringbuffer]
-		#TODO respect ET mapped namespaces
-		itag = xml.tag.split('}', 1)[-1]
-		if '}' in xml.tag:
-			ixmlns = xml.tag.split('}', 1)[0][1:]
-		else:
-			ixmlns = ''
-		nsbuffer = ''
-		if xmlns != ixmlns and ixmlns != '' and ixmlns != self.namespace:
-			if self.stream is not None and ixmlns in self.stream.namespace_map:
-				if self.stream.namespace_map[ixmlns] != '':
-					itag = "%s:%s" % (self.stream.namespace_map[ixmlns], itag)
-			else:
-				nsbuffer = """ xmlns="%s\"""" % ixmlns
-		if ixmlns not in ('', xmlns, self.namespace):
-			nsbuffer = """ xmlns="%s\"""" % ixmlns
-		newoutput.append("<%s" % itag)
-		newoutput.append(nsbuffer)
-		for attrib in xml.attrib:
-			if '{' not in attrib:
-				newoutput.append(""" %s="%s\"""" % (attrib, self.xmlesc(xml.attrib[attrib])))
-		if len(xml) or xml.text or xml.tail:
-			newoutput.append(">")
-			if xml.text:
-				newoutput.append(self.xmlesc(xml.text))
-			if len(xml):
-				for child in xml.getchildren():
-					newoutput.append(self.__str__(child, ixmlns))
-			newoutput.append("</%s>" % (itag, ))
-			if xml.tail:
-				newoutput.append(self.xmlesc(xml.tail))
-		elif xml.text:
-			newoutput.append(">%s</%s>" % (self.xmlesc(xml.text), itag))
-		else:
-			newoutput.append(" />")
-		return ''.join(newoutput)
+    See the file LICENSE for copying permission.
+"""
 
-	def xmlesc(self, text):
-		text = list(text)
-		cc = 0
-		matches = ('&', '<', '"', '>', "'")
-		for c in text:
-			if c in matches:
-				if c == '&':
-					text[cc] = '&amp;'
-				elif c == '<':
-					text[cc] = '&lt;'
-				elif c == '>':
-					text[cc] = '&gt;'
-				elif c == "'":
-					text[cc] = '&apos;'
-				else:
-					text[cc] = '&quot;'
-			cc += 1
-		return ''.join(text)
+
+def tostring(xml=None, xmlns='', stanza_ns='', stream=None, outbuffer=''):
+    """
+    Serialize an XML object to a Unicode string.
+
+    Arguments:
+        xml       -- The XML object to serialize. If the value is None,
+                     then the XML object contained in this stanza
+                     object will be used.
+        xmlns     -- Optional namespace of an element wrapping the XML
+                     object.
+        stanza_ns -- The namespace of the stanza object that contains
+                     the XML object.
+        stream    -- The XML stream that generated the XML object.
+        outbuffer -- Optional buffer for storing serializations during
+                     recursive calls.
+    """
+    # Add previous results to the start of the output.
+    output = [outbuffer]
+
+    # Extract the element's tag name.
+    tag_name = xml.tag.split('}', 1)[-1]
+
+    # Extract the element's namespace if it is defined.
+    if '}' in xml.tag:
+        tag_xmlns = xml.tag.split('}', 1)[0][1:]
+    else:
+        tag_xmlns = ''
+
+    # Output the tag name and derived namespace of the element.
+    namespace = ''
+    if tag_xmlns not in ['', xmlns, stanza_ns]:
+        namespace = ' xmlns="%s"' % tag_xmlns
+        if stream and tag_xmlns in stream.namespace_map:
+            mapped_namespace = stream.namespace_map[tag_xmlns]
+            if mapped_namespace:
+                tag = "%s:%s" % (mapped_namespace, tag_name)
+    output.append("<%s" % tag_name)
+    output.append(namespace)
+
+    # Output escaped attribute values.
+    for attrib, value in xml.attrib.items():
+        if '{' not in attrib:
+            value = xml_escape(value)
+            output.append(' %s="%s"' % (attrib, value))
+
+    if len(xml) or xml.text:
+        # If there are additional child elements to serialize.
+        output.append(">")
+        if xml.text:
+            output.append(xml_escape(xml.text))
+        if len(xml):
+            for child in xml.getchildren():
+                output.append(tostring(child, tag_xmlns, stanza_ns, stream))
+        output.append("</%s>" % tag_name)
+    elif xml.text:
+        # If we only have text content.
+        output.append(">%s</%s>" % (xml_escape(xml.text), tag_name))
+    else:
+        # Empty element.
+        output.append(" />")
+    if xml.tail:
+        # If there is additional text after the element.
+        output.append(xml_escape(xml.tail))
+    return ''.join(output)
+
+
+def xml_escape(text):
+    """
+    Convert special characters in XML to escape sequences.
+
+    Arguments:
+        text -- The XML text to convert.
+    """
+    text = list(text)
+    escapes = {'&': '&amp;',
+               '<': '&lt;',
+               '>': '&gt;',
+               "'": '&apos;',
+               '"': '&quot;'}
+    for i, c in enumerate(text):
+        text[i] = escapes.get(c, c)
+    return ''.join(text)

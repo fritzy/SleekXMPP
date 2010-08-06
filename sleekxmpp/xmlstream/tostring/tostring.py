@@ -11,6 +11,10 @@ def tostring(xml=None, xmlns='', stanza_ns='', stream=None, outbuffer=''):
     """
     Serialize an XML object to a Unicode string.
 
+    If namespaces are provided using xmlns or stanza_ns, then elements
+    that use those namespaces will not include the xmlns attribute in
+    the output.
+
     Arguments:
         xml       -- The XML object to serialize. If the value is None,
                      then the XML object contained in this stanza

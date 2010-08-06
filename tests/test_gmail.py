@@ -1,4 +1,4 @@
-from sleektest import *
+from . sleektest import *
 import sleekxmpp.plugins.gmail_notify as gmail
 
 

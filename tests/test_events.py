@@ -1,5 +1,5 @@
 import sleekxmpp
-from sleektest import *
+from . sleektest import *
 
 
 class TestEvents(SleekTest):

@@ -1,7 +1,7 @@
-from sleektest import *
+from . sleektest import *
 
 class TestErrorStanzas(SleekTest):
-    
+
     def testSetup(self):
         """Test setting initial values in error stanza."""
         msg = self.Message()
@@ -16,7 +16,7 @@ class TestErrorStanzas(SleekTest):
 
     def testCondition(self):
         """Test modifying the error condition."""
-	msg = self.Message()
+        msg = self.Message()
         msg['error']['condition'] = 'item-not-found'
 
         self.checkMessage(msg, """
@@ -42,7 +42,7 @@ class TestErrorStanzas(SleekTest):
         msg = self.Message()
         msg['error']['text'] = 'Error!'
         msg['error']['condition'] = 'internal-server-error'
-         
+
         del msg['error']['condition']
 
         self.checkMessage(msg, """

@@ -1,4 +1,4 @@
-from sleektest import *
+from . sleektest import *
 from sleekxmpp.stanza.message import Message
 from sleekxmpp.stanza.htmlim import HTMLIM
 

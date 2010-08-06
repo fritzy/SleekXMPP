@@ -1,4 +1,4 @@
-from sleektest import *
+from . sleektest import *
 import sleekxmpp.plugins.xep_0004 as xep_0004
 import sleekxmpp.plugins.stanza_pubsub as pubsub
 
@@ -25,7 +25,7 @@ class TestPubsubStanzas(SleekTest):
               </affiliations>
             </pubsub>
           </iq>""")
-	
+
     def testSubscriptions(self):
         "Testing iq/pubsub/subscriptions/subscription stanzas"
         iq = self.Iq()
@@ -38,7 +38,7 @@ class TestPubsubStanzas(SleekTest):
         sub2['subscription'] = 'subscribed'
         iq['pubsub']['subscriptions'].append(sub1)
         iq['pubsub']['subscriptions'].append(sub2)
-	self.checkIq(iq, """
+        self.checkIq(iq, """
           <iq id="0">
             <pubsub xmlns="http://jabber.org/protocol/pubsub">
               <subscriptions>
@@ -55,7 +55,7 @@ class TestPubsubStanzas(SleekTest):
         iq['pubsub']['subscription']['node'] = 'testnode alsdkjfas'
         iq['pubsub']['subscription']['jid'] = "fritzy@netflint.net/sleekxmpp"
         iq['pubsub']['subscription']['subscription'] = 'unconfigured'
-	self.checkIq(iq, """
+        self.checkIq(iq, """
           <iq id="0">
             <pubsub xmlns="http://jabber.org/protocol/pubsub">
               <subscription node="testnode alsdkjfas" jid="fritzy@netflint.net/sleekxmpp" subscription="unconfigured">
@@ -88,7 +88,7 @@ class TestPubsubStanzas(SleekTest):
         item2['payload'] = payload2
         iq['pubsub']['items'].append(item)
         iq['pubsub']['items'].append(item2)
-	self.checkIq(iq, """
+        self.checkIq(iq, """
           <iq id="0">
             <pubsub xmlns="http://jabber.org/protocol/pubsub">
               <items>
@@ -112,8 +112,8 @@ class TestPubsubStanzas(SleekTest):
         "Testing iq/pubsub/create&configure stanzas"
         iq = self.Iq()
         iq['pubsub']['create']['node'] = 'mynode'
-        iq['pubsub']['configure']['form'].addField('pubsub#title', 
-                                                   ftype='text-single', 
+        iq['pubsub']['configure']['form'].addField('pubsub#title',
+                                                   ftype='text-single',
                                                    value='This thing is awesome')
         self.checkIq(iq, """
           <iq id="0">
@@ -131,12 +131,12 @@ class TestPubsubStanzas(SleekTest):
 
     def testState(self):
         "Testing iq/psstate stanzas"
-	iq = self.Iq()
-	iq['psstate']['node']= 'mynode'
+        iq = self.Iq()
+        iq['psstate']['node']= 'mynode'
         iq['psstate']['item']= 'myitem'
         pl = ET.Element('{http://andyet.net/protocol/pubsubqueue}claimed')
         iq['psstate']['payload'] = pl
- 	self.checkIq(iq, """
+        self.checkIq(iq, """
           <iq id="0">
             <state xmlns="http://jabber.org/protocol/psstate" node="mynode" item="myitem">
               <claimed xmlns="http://andyet.net/protocol/pubsubqueue" />
@@ -144,16 +144,16 @@ class TestPubsubStanzas(SleekTest):
           </iq>""")
 
     def testDefault(self):
-	"Testing iq/pubsub_owner/default stanzas"
-	iq = self.Iq()
-	iq['pubsub_owner']['default']
-	iq['pubsub_owner']['default']['node'] = 'mynode'
-	iq['pubsub_owner']['default']['type'] = 'leaf'
-	iq['pubsub_owner']['default']['form'].addField('pubsub#title', 
-                                                       ftype='text-single', 
+        "Testing iq/pubsub_owner/default stanzas"
+        iq = self.Iq()
+        iq['pubsub_owner']['default']
+        iq['pubsub_owner']['default']['node'] = 'mynode'
+        iq['pubsub_owner']['default']['type'] = 'leaf'
+        iq['pubsub_owner']['default']['form'].addField('pubsub#title',
+                                                       ftype='text-single',
                                                        value='This thing is awesome')
         self.checkIq(iq, """
-	  <iq id="0">
+	      <iq id="0">
             <pubsub xmlns="http://jabber.org/protocol/pubsub#owner">
               <default node="mynode" type="leaf">
                 <x xmlns="jabber:x:data" type="form">
@@ -166,54 +166,54 @@ class TestPubsubStanzas(SleekTest):
          </iq>""", use_values=False)
 
     def testSubscribe(self):
-	"Testing iq/pubsub/subscribe stanzas"
-	iq = self.Iq()
-	iq['pubsub']['subscribe']['options']
-	iq['pubsub']['subscribe']['node'] = 'cheese'
-	iq['pubsub']['subscribe']['jid'] = 'fritzy@netflint.net/sleekxmpp'
-	iq['pubsub']['subscribe']['options']['node'] = 'cheese'
-	iq['pubsub']['subscribe']['options']['jid'] = 'fritzy@netflint.net/sleekxmpp'
-	form = xep_0004.Form()
-	form.addField('pubsub#title', ftype='text-single', value='This thing is awesome')
-	iq['pubsub']['subscribe']['options']['options'] = form
+        "testing iq/pubsub/subscribe stanzas"
+        iq = self.Iq()
+        iq['pubsub']['subscribe']['options']
+        iq['pubsub']['subscribe']['node'] = 'cheese'
+        iq['pubsub']['subscribe']['jid'] = 'fritzy@netflint.net/sleekxmpp'
+        iq['pubsub']['subscribe']['options']['node'] = 'cheese'
+        iq['pubsub']['subscribe']['options']['jid'] = 'fritzy@netflint.net/sleekxmpp'
+        form = xep_0004.Form()
+        form.addField('pubsub#title', ftype='text-single', value='this thing is awesome')
+        iq['pubsub']['subscribe']['options']['options'] = form
         self.checkIq(iq, """
-	  <iq id="0">
-            <pubsub xmlns="http://jabber.org/protocol/pubsub">
-              <subscribe node="cheese" jid="fritzy@netflint.net/sleekxmpp">
-                <options node="cheese" jid="fritzy@netflint.net/sleekxmpp">
-                  <x xmlns="jabber:x:data" type="form">
-                    <field var="pubsub#title" type="text-single">
-                      <value>This thing is awesome</value>
-                    </field>
-                  </x>
-                </options>
-              </subscribe>
-            </pubsub>
-          </iq>""", use_values=False)
+        <iq id="0">
+          <pubsub xmlns="http://jabber.org/protocol/pubsub">
+            <subscribe node="cheese" jid="fritzy@netflint.net/sleekxmpp">
+              <options node="cheese" jid="fritzy@netflint.net/sleekxmpp">
+                <x xmlns="jabber:x:data" type="form">
+                  <field var="pubsub#title" type="text-single">
+                    <value>this thing is awesome</value>
+                  </field>
+                </x>
+              </options>
+            </subscribe>
+          </pubsub>
+        </iq>""", use_values=False)
 
     def testPublish(self):
-	"Testing iq/pubsub/publish stanzas"
-	iq = self.Iq()
-	iq['pubsub']['publish']['node'] = 'thingers'
-	payload = ET.fromstring("""
+        "Testing iq/pubsub/publish stanzas"
+        iq = self.Iq()
+        iq['pubsub']['publish']['node'] = 'thingers'
+        payload = ET.fromstring("""
           <thinger xmlns="http://andyet.net/protocol/thinger" x="1" y='2'>
              <child1 />
              <child2 normandy='cheese' foo='bar' />
            </thinger>""")
-	payload2 = ET.fromstring("""
+        payload2 = ET.fromstring("""
           <thinger2 xmlns="http://andyet.net/protocol/thinger2" x="12" y='22'>
             <child12 />
             <child22 normandy='cheese2' foo='bar2' />
            </thinger2>""")
-	item = pubsub.Item()
-	item['id'] = 'asdf'
-	item['payload'] = payload
-	item2 = pubsub.Item()
-	item2['id'] = 'asdf2'
-	item2['payload'] = payload2
-	iq['pubsub']['publish'].append(item)
-	iq['pubsub']['publish'].append(item2)
-	
+        item = pubsub.Item()
+        item['id'] = 'asdf'
+        item['payload'] = payload
+        item2 = pubsub.Item()
+        item2['id'] = 'asdf2'
+        item2['payload'] = payload2
+        iq['pubsub']['publish'].append(item)
+        iq['pubsub']['publish'].append(item2)
+
         self.checkIq(iq, """
           <iq id="0">
             <pubsub xmlns="http://jabber.org/protocol/pubsub">
@@ -235,19 +235,19 @@ class TestPubsubStanzas(SleekTest):
           </iq>""")
 
     def testDelete(self):
-	"Testing iq/pubsub_owner/delete stanzas"
-	iq = self.Iq()
-	iq['pubsub_owner']['delete']['node'] = 'thingers'
+        "Testing iq/pubsub_owner/delete stanzas"
+        iq = self.Iq()
+        iq['pubsub_owner']['delete']['node'] = 'thingers'
         self.checkIq(iq, """
-	  <iq id="0">
+          <iq id="0">
             <pubsub xmlns="http://jabber.org/protocol/pubsub#owner">
               <delete node="thingers" />
             </pubsub>
           </iq>""")
 
     def testCreateConfigGet(self):
-	"""Testing getting config from full create"""
-	iq = self.Iq()
+        """Testing getting config from full create"""
+        iq = self.Iq()
         iq['to'] = 'pubsub.asdf'
         iq['from'] = 'fritzy@asdf/87292ede-524d-4117-9076-d934ed3db8e7'
         iq['type'] = 'set'
@@ -348,16 +348,16 @@ class TestPubsubStanzas(SleekTest):
           </iq>""")
 
     def testItemEvent(self):
-	"""Testing message/pubsub_event/items/item"""
-	msg = self.Message()
-	item = pubsub.EventItem()
-	pl = ET.Element('{http://netflint.net/protocol/test}test', {'failed':'3', 'passed':'24'})
-	item['payload'] = pl
-	item['id'] = 'abc123'
-	msg['pubsub_event']['items'].append(item)
-	msg['pubsub_event']['items']['node'] = 'cheese'
-	msg['type'] = 'normal'
-	self.checkMessage(msg, """
+        """Testing message/pubsub_event/items/item"""
+        msg = self.Message()
+        item = pubsub.EventItem()
+        pl = ET.Element('{http://netflint.net/protocol/test}test', {'failed':'3', 'passed':'24'})
+        item['payload'] = pl
+        item['id'] = 'abc123'
+        msg['pubsub_event']['items'].append(item)
+        msg['pubsub_event']['items']['node'] = 'cheese'
+        msg['type'] = 'normal'
+        self.checkMessage(msg, """
           <message type="normal">
             <event xmlns="http://jabber.org/protocol/pubsub#event">
               <items node="cheese">
@@ -369,21 +369,21 @@ class TestPubsubStanzas(SleekTest):
           </message>""")
 
     def testItemsEvent(self):
-	"""Testing multiple message/pubsub_event/items/item"""
-	msg = self.Message()
-	item = pubsub.EventItem()
-	item2 = pubsub.EventItem()
-	pl = ET.Element('{http://netflint.net/protocol/test}test', {'failed':'3', 'passed':'24'})
-	pl2 = ET.Element('{http://netflint.net/protocol/test-other}test', {'total':'27', 'failed':'3'})
-	item2['payload'] = pl2
-	item['payload'] = pl
-	item['id'] = 'abc123'
-	item2['id'] = '123abc'
-	msg['pubsub_event']['items'].append(item)
-	msg['pubsub_event']['items'].append(item2)
-	msg['pubsub_event']['items']['node'] = 'cheese'
-	msg['type'] = 'normal'
-	self.checkMessage(msg, """
+        """Testing multiple message/pubsub_event/items/item"""
+        msg = self.Message()
+        item = pubsub.EventItem()
+        item2 = pubsub.EventItem()
+        pl = ET.Element('{http://netflint.net/protocol/test}test', {'failed':'3', 'passed':'24'})
+        pl2 = ET.Element('{http://netflint.net/protocol/test-other}test', {'total':'27', 'failed':'3'})
+        item2['payload'] = pl2
+        item['payload'] = pl
+        item['id'] = 'abc123'
+        item2['id'] = '123abc'
+        msg['pubsub_event']['items'].append(item)
+        msg['pubsub_event']['items'].append(item2)
+        msg['pubsub_event']['items']['node'] = 'cheese'
+        msg['type'] = 'normal'
+        self.checkMessage(msg, """
           <message type="normal">
             <event xmlns="http://jabber.org/protocol/pubsub#event">
               <items node="cheese">
@@ -398,24 +398,24 @@ class TestPubsubStanzas(SleekTest):
           </message>""")
 
     def testItemsEvent(self):
-	"""Testing message/pubsub_event/items/item & retract mix"""
-	msg = self.Message()
-	item = pubsub.EventItem()
-	item2 = pubsub.EventItem()
-	pl = ET.Element('{http://netflint.net/protocol/test}test', {'failed':'3', 'passed':'24'})
-	pl2 = ET.Element('{http://netflint.net/protocol/test-other}test', {'total':'27', 'failed':'3'})
-	item2['payload'] = pl2
-	retract = pubsub.EventRetract()
-	retract['id'] = 'aabbcc'
-	item['payload'] = pl
-	item['id'] = 'abc123'
-	item2['id'] = '123abc'
-	msg['pubsub_event']['items'].append(item)
-	msg['pubsub_event']['items'].append(retract)
-	msg['pubsub_event']['items'].append(item2)
-	msg['pubsub_event']['items']['node'] = 'cheese'
-	msg['type'] = 'normal'
-	self.checkMessage(msg, """
+        """Testing message/pubsub_event/items/item & retract mix"""
+        msg = self.Message()
+        item = pubsub.EventItem()
+        item2 = pubsub.EventItem()
+        pl = ET.Element('{http://netflint.net/protocol/test}test', {'failed':'3', 'passed':'24'})
+        pl2 = ET.Element('{http://netflint.net/protocol/test-other}test', {'total':'27', 'failed':'3'})
+        item2['payload'] = pl2
+        retract = pubsub.EventRetract()
+        retract['id'] = 'aabbcc'
+        item['payload'] = pl
+        item['id'] = 'abc123'
+        item2['id'] = '123abc'
+        msg['pubsub_event']['items'].append(item)
+        msg['pubsub_event']['items'].append(retract)
+        msg['pubsub_event']['items'].append(item2)
+        msg['pubsub_event']['items']['node'] = 'cheese'
+        msg['type'] = 'normal'
+        self.checkMessage(msg, """
           <message type="normal">
             <event xmlns="http://jabber.org/protocol/pubsub#event">
               <items node="cheese">
@@ -430,12 +430,12 @@ class TestPubsubStanzas(SleekTest):
           </message>""")
 
     def testCollectionAssociate(self):
-	"""Testing message/pubsub_event/collection/associate"""
-	msg = self.Message()
-	msg['pubsub_event']['collection']['associate']['node'] = 'cheese'
-	msg['pubsub_event']['collection']['node'] = 'cheeseburger'
-	msg['type'] = 'headline'
-	self.checkMessage(msg, """
+        """Testing message/pubsub_event/collection/associate"""
+        msg = self.Message()
+        msg['pubsub_event']['collection']['associate']['node'] = 'cheese'
+        msg['pubsub_event']['collection']['node'] = 'cheeseburger'
+        msg['type'] = 'headline'
+        self.checkMessage(msg, """
           <message type="headline">
             <event xmlns="http://jabber.org/protocol/pubsub#event">
               <collection node="cheeseburger">
@@ -445,12 +445,12 @@ class TestPubsubStanzas(SleekTest):
           </message>""")
 
     def testCollectionDisassociate(self):
-	"""Testing message/pubsub_event/collection/disassociate"""
-	msg = self.Message()
-	msg['pubsub_event']['collection']['disassociate']['node'] = 'cheese'
-	msg['pubsub_event']['collection']['node'] = 'cheeseburger'
-	msg['type'] = 'headline'
-	self.checkMessage(msg, """
+        """Testing message/pubsub_event/collection/disassociate"""
+        msg = self.Message()
+        msg['pubsub_event']['collection']['disassociate']['node'] = 'cheese'
+        msg['pubsub_event']['collection']['node'] = 'cheeseburger'
+        msg['type'] = 'headline'
+        self.checkMessage(msg, """
           <message type="headline">
             <event xmlns="http://jabber.org/protocol/pubsub#event">
               <collection node="cheeseburger">
@@ -460,15 +460,15 @@ class TestPubsubStanzas(SleekTest):
           </message>""")
 
     def testEventConfiguration(self):
-	"""Testing message/pubsub_event/configuration/config"""
-	msg = self.Message()
-	msg['pubsub_event']['configuration']['node'] = 'cheese'
-	msg['pubsub_event']['configuration']['form'].addField('pubsub#title', 
-                                                              ftype='text-single', 
+        """Testing message/pubsub_event/configuration/config"""
+        msg = self.Message()
+        msg['pubsub_event']['configuration']['node'] = 'cheese'
+        msg['pubsub_event']['configuration']['form'].addField('pubsub#title',
+                                                              ftype='text-single',
                                                               value='This thing is awesome')
-	msg['type'] = 'headline'
+        msg['type'] = 'headline'
         self.checkMessage(msg, """
-	  <message type="headline">
+        <message type="headline">
             <event xmlns="http://jabber.org/protocol/pubsub#event">
               <configuration node="cheese">
                 <x xmlns="jabber:x:data" type="form">
@@ -481,11 +481,11 @@ class TestPubsubStanzas(SleekTest):
           </message>""")
 
     def testEventPurge(self):
-	"""Testing message/pubsub_event/purge"""
-	msg = self.Message()
-	msg['pubsub_event']['purge']['node'] = 'pickles'
-	msg['type'] = 'headline'
-	self.checkMessage(msg, """
+        """Testing message/pubsub_event/purge"""
+        msg = self.Message()
+        msg['pubsub_event']['purge']['node'] = 'pickles'
+        msg['type'] = 'headline'
+        self.checkMessage(msg, """
           <message type="headline">
             <event xmlns="http://jabber.org/protocol/pubsub#event">
               <purge node="pickles" />
@@ -493,15 +493,15 @@ class TestPubsubStanzas(SleekTest):
           </message>""")
 
     def testEventSubscription(self):
-	"""Testing message/pubsub_event/subscription"""
-	msg = self.Message()
-	msg['pubsub_event']['subscription']['node'] = 'pickles'
-	msg['pubsub_event']['subscription']['jid'] = 'fritzy@netflint.net/test'
-	msg['pubsub_event']['subscription']['subid'] = 'aabb1122'
-	msg['pubsub_event']['subscription']['subscription'] = 'subscribed'
-	msg['pubsub_event']['subscription']['expiry'] = 'presence'
-	msg['type'] = 'headline'
-	self.checkMessage(msg, """
+        """Testing message/pubsub_event/subscription"""
+        msg = self.Message()
+        msg['pubsub_event']['subscription']['node'] = 'pickles'
+        msg['pubsub_event']['subscription']['jid'] = 'fritzy@netflint.net/test'
+        msg['pubsub_event']['subscription']['subid'] = 'aabb1122'
+        msg['pubsub_event']['subscription']['subscription'] = 'subscribed'
+        msg['pubsub_event']['subscription']['expiry'] = 'presence'
+        msg['type'] = 'headline'
+        self.checkMessage(msg, """
           <message type="headline">
             <event xmlns="http://jabber.org/protocol/pubsub#event">
               <subscription node="pickles" subid="aabb1122" jid="fritzy@netflint.net/test" subscription="subscribed" expiry="presence" />

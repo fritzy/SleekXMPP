@@ -1,4 +1,4 @@
-from sleektest import *
+from . sleektest import *
 from sleekxmpp.xmlstream.stanzabase import ET
 
 
@@ -18,7 +18,7 @@ class TestIqStanzas(SleekTest):
         self.checkIq(iq, """
           <iq id="0" />
         """)
-    
+
     def testPayload(self):
         """Test setting Iq stanza payload."""
         iq = self.Iq()
@@ -38,10 +38,10 @@ class TestIqStanzas(SleekTest):
            </iq>
         """)
 
-	iq = self.Iq()
+        iq = self.Iq()
         iq['id'] = 'test'
-	iq['error']['condition'] = 'feature-not-implemented'
-	iq['error']['text'] = 'No handlers registered for this request.'
+        iq['error']['condition'] = 'feature-not-implemented'
+        iq['error']['text'] = 'No handlers registered for this request.'
 
         self.streamSendIq(iq, """
           <iq id="test" type="error">
@@ -72,21 +72,21 @@ class TestIqStanzas(SleekTest):
           </iq>
         """)
 
-	self.failUnless(iq['query'] == 'query_ns2', "Query namespace doesn't match")
+        self.failUnless(iq['query'] == 'query_ns2', "Query namespace doesn't match")
 
-	del iq['query']
-	self.checkIq(iq, """
+        del iq['query']
+        self.checkIq(iq, """
           <iq id="0" />
         """)
 
     def testReply(self):
         """Test setting proper result type in Iq replies."""
         iq = self.Iq()
-	iq['to'] = 'user@localhost'
-	iq['type'] = 'get'
+        iq['to'] = 'user@localhost'
+        iq['type'] = 'get'
         iq.reply()
 
-	self.checkIq(iq, """
+        self.checkIq(iq, """
           <iq id="0" type="result" />
         """)
 

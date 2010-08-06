@@ -1,4 +1,4 @@
-from sleektest import *
+from . sleektest import *
 import sleekxmpp.plugins.xep_0030 as xep_0030
 
 
@@ -7,7 +7,7 @@ class TestDisco(SleekTest):
     def setUp(self):
         registerStanzaPlugin(Iq, xep_0030.DiscoInfo)
         registerStanzaPlugin(Iq, xep_0030.DiscoItems)
-        
+
     def testCreateInfoQueryNoNode(self):
         """Testing disco#info query with no node."""
         iq = self.Iq()
@@ -61,7 +61,7 @@ class TestDisco(SleekTest):
         iq = self.Iq()
         iq['id'] = "0"
         iq['disco_info']['node'] = 'foo'
-	iq['disco_info'].addIdentity('conference', 'text', 'Chatroom')
+        iq['disco_info'].addIdentity('conference', 'text', 'Chatroom')
 
         self.checkIq(iq, """
           <iq id="0">
@@ -76,8 +76,8 @@ class TestDisco(SleekTest):
         iq = self.Iq()
         iq['id'] = "0"
         iq['disco_info']['node'] = 'foo'
-	iq['disco_info'].addFeature('foo')
-	iq['disco_info'].addFeature('bar')
+        iq['disco_info'].addFeature('foo')
+        iq['disco_info'].addFeature('bar')
 
         self.checkIq(iq, """
           <iq id="0">
@@ -93,9 +93,9 @@ class TestDisco(SleekTest):
         iq = self.Iq()
         iq['id'] = "0"
         iq['disco_items']['node'] = 'foo'
-	iq['disco_items'].addItem('user@localhost')
-	iq['disco_items'].addItem('user@localhost', 'foo')
-	iq['disco_items'].addItem('user@localhost', 'bar', 'Testing')
+        iq['disco_items'].addItem('user@localhost')
+        iq['disco_items'].addItem('user@localhost', 'foo')
+        iq['disco_items'].addItem('user@localhost', 'bar', 'Testing')
 
         self.checkIq(iq, """
           <iq id="0">
@@ -109,68 +109,68 @@ class TestDisco(SleekTest):
 
     def testAddRemoveIdentities(self):
         """Test adding and removing identities to disco#info stanza"""
-	ids = [('automation', 'commands', 'AdHoc'),
-	       ('conference', 'text', 'ChatRoom')]
+        ids = [('automation', 'commands', 'AdHoc'),
+               ('conference', 'text', 'ChatRoom')]
 
-	info = xep_0030.DiscoInfo()
-	info.addIdentity(*ids[0])
-	self.failUnless(info.getIdentities() == [ids[0]])
+        info = xep_0030.DiscoInfo()
+        info.addIdentity(*ids[0])
+        self.failUnless(info.getIdentities() == [ids[0]])
 
-	info.delIdentity('automation', 'commands')
-	self.failUnless(info.getIdentities() == [])
+        info.delIdentity('automation', 'commands')
+        self.failUnless(info.getIdentities() == [])
 
-	info.setIdentities(ids)
-	self.failUnless(info.getIdentities() == ids)
+        info.setIdentities(ids)
+        self.failUnless(info.getIdentities() == ids)
 
-	info.delIdentity('automation', 'commands')
-	self.failUnless(info.getIdentities() == [ids[1]])
+        info.delIdentity('automation', 'commands')
+        self.failUnless(info.getIdentities() == [ids[1]])
 
-	info.delIdentities()
-	self.failUnless(info.getIdentities() == [])
+        info.delIdentities()
+        self.failUnless(info.getIdentities() == [])
 
     def testAddRemoveFeatures(self):
         """Test adding and removing features to disco#info stanza"""
-	features = ['foo', 'bar', 'baz']
+        features = ['foo', 'bar', 'baz']
 
-	info = xep_0030.DiscoInfo()
-	info.addFeature(features[0])
-	self.failUnless(info.getFeatures() == [features[0]])
+        info = xep_0030.DiscoInfo()
+        info.addFeature(features[0])
+        self.failUnless(info.getFeatures() == [features[0]])
 
-	info.delFeature('foo')
-	self.failUnless(info.getFeatures() == [])
+        info.delFeature('foo')
+        self.failUnless(info.getFeatures() == [])
 
-	info.setFeatures(features)
-	self.failUnless(info.getFeatures() == features)
+        info.setFeatures(features)
+        self.failUnless(info.getFeatures() == features)
 
-	info.delFeature('bar')
-	self.failUnless(info.getFeatures() == ['foo', 'baz'])
+        info.delFeature('bar')
+        self.failUnless(info.getFeatures() == ['foo', 'baz'])
 
-	info.delFeatures()
-	self.failUnless(info.getFeatures() == [])
+        info.delFeatures()
+        self.failUnless(info.getFeatures() == [])
 
     def testAddRemoveItems(self):
         """Test adding and removing items to disco#items stanza"""
-	items = [('user@localhost', None, None),
-		 ('user@localhost', 'foo', None),
-		 ('user@localhost', 'bar', 'Test')]
+        items = [('user@localhost', None, None),
+             ('user@localhost', 'foo', None),
+             ('user@localhost', 'bar', 'Test')]
 
-	info = xep_0030.DiscoItems()
-	self.failUnless(True, ""+str(items[0]))
+        info = xep_0030.DiscoItems()
+        self.failUnless(True, ""+str(items[0]))
 
-	info.addItem(*(items[0]))
-	self.failUnless(info.getItems() == [items[0]], info.getItems())
+        info.addItem(*(items[0]))
+        self.failUnless(info.getItems() == [items[0]], info.getItems())
 
-	info.delItem('user@localhost')
-	self.failUnless(info.getItems() == [])
+        info.delItem('user@localhost')
+        self.failUnless(info.getItems() == [])
 
-	info.setItems(items)
-	self.failUnless(info.getItems() == items)
+        info.setItems(items)
+        self.failUnless(info.getItems() == items)
 
-	info.delItem('user@localhost', 'foo')
-	self.failUnless(info.getItems() == [items[0], items[2]])
+        info.delItem('user@localhost', 'foo')
+        self.failUnless(info.getItems() == [items[0], items[2]])
 
-	info.delItems()
-	self.failUnless(info.getItems() == [])
-	
+        info.delItems()
+        self.failUnless(info.getItems() == [])
+
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestDisco)

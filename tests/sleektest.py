@@ -18,6 +18,7 @@ from sleekxmpp import Message, Iq
 from sleekxmpp.stanza.presence import Presence
 from sleekxmpp.xmlstream.matcher.stanzapath import StanzaPath
 from sleekxmpp.xmlstream.stanzabase import registerStanzaPlugin
+from sleekxmpp.xmlstream.tostring import tostring
 
 
 class TestSocket(object):
@@ -112,15 +113,15 @@ class SleekTest(unittest.TestCase):
         """
 
         self.fix_namespaces(msg.xml, 'jabber:client')
-        debug = "Given Stanza:\n%s\n" % ET.tostring(msg.xml)
+        debug = "Given Stanza:\n%s\n" % tostring(msg.xml)
 
         xml = ET.fromstring(xml_string)
         self.fix_namespaces(xml, 'jabber:client')
 
-        debug += "XML String:\n%s\n" % ET.tostring(xml)
+        debug += "XML String:\n%s\n" % tostring(xml)
 
         msg2 = self.Message(xml)
-        debug += "Constructed Stanza:\n%s\n" % ET.tostring(msg2.xml)
+        debug += "Constructed Stanza:\n%s\n" % tostring(msg2.xml)
 
         if use_values:
             # Ugly, but need to make sure the type attribute is set.
@@ -128,13 +129,13 @@ class SleekTest(unittest.TestCase):
             if xml.attrib.get('type', None) is None:
                 xml.attrib['type'] = 'normal'
             msg2['type'] = msg2['type']
-            debug += "XML String:\n%s\n" % ET.tostring(xml)
+            debug += "XML String:\n%s\n" % tostring(xml)
 
             values = msg2.getStanzaValues()
             msg3 = self.Message()
             msg3.setStanzaValues(values)
 
-            debug += "Second Constructed Stanza:\n%s\n" % ET.tostring(msg3.xml)
+            debug += "Second Constructed Stanza:\n%s\n" % tostring(msg3.xml)
             debug = "Three methods for creating stanza do not match:\n" + debug
             self.failUnless(self.compare([xml, msg.xml, msg2.xml, msg3.xml]),
                             debug)
@@ -152,21 +153,21 @@ class SleekTest(unittest.TestCase):
         """
 
         self.fix_namespaces(iq.xml, 'jabber:client')
-        debug = "Given Stanza:\n%s\n" % ET.tostring(iq.xml)
+        debug = "Given Stanza:\n%s\n" % tostring(iq.xml)
 
         xml = ET.fromstring(xml_string)
         self.fix_namespaces(xml, 'jabber:client')
-        debug += "XML String:\n%s\n" % ET.tostring(xml)
+        debug += "XML String:\n%s\n" % tostring(xml)
 
         iq2 = self.Iq(xml)
-        debug += "Constructed Stanza:\n%s\n" % ET.tostring(iq2.xml)
+        debug += "Constructed Stanza:\n%s\n" % tostring(iq2.xml)
 
         if use_values:
             values = iq.getStanzaValues()
             iq3 = self.Iq()
             iq3.setStanzaValues(values)
 
-            debug += "Second Constructed Stanza:\n%s\n" % ET.tostring(iq3.xml)
+            debug += "Second Constructed Stanza:\n%s\n" % tostring(iq3.xml)
             debug = "Three methods for creating stanza do not match:\n" + debug
             self.failUnless(self.compare([xml, iq.xml, iq2.xml, iq3.xml]),
                             debug)
@@ -194,16 +195,16 @@ class SleekTest(unittest.TestCase):
         pres['priority'] = pres['priority']
         pres2['priority'] = pres2['priority']
 
-        debug = "Given Stanza:\n%s\n" % ET.tostring(pres.xml)
-        debug += "XML String:\n%s\n" % ET.tostring(xml)
-        debug += "Constructed Stanza:\n%s\n" % ET.tostring(pres2.xml)
+        debug = "Given Stanza:\n%s\n" % tostring(pres.xml)
+        debug += "XML String:\n%s\n" % tostring(xml)
+        debug += "Constructed Stanza:\n%s\n" % tostring(pres2.xml)
 
         if use_values:
             values = pres.getStanzaValues()
             pres3 = self.Presence()
             pres3.setStanzaValues(values)
 
-            debug += "Second Constructed Stanza:\n%s\n" % ET.tostring(pres3.xml)
+            debug += "Second Constructed Stanza:\n%s\n" % tostring(pres3.xml)
             debug = "Three methods for creating stanza do not match:\n" + debug
             self.failUnless(self.compare([xml, pres.xml, pres2.xml, pres3.xml]),
                             debug)

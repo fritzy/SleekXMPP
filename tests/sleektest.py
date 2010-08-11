@@ -258,7 +258,7 @@ class SleekTest(unittest.TestCase):
         self.checkPresence(data, sent, use_values)
 
     def streamClose(self):
-        if self.xmpp is not None:
+        if hasattr(self, 'xmpp') and self.xmpp is not None:
             self.xmpp.disconnect()
             self.xmpp.socket.recvData(self.xmpp.stream_footer)
 

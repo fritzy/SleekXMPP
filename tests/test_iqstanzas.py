@@ -4,10 +4,6 @@ from sleekxmpp.xmlstream.stanzabase import ET
 
 class TestIqStanzas(SleekTest):
 
-    def setUp(self):
-        """Start XML stream for testing."""
-        self.streamStart()
-
     def tearDown(self):
         """Shutdown the XML stream after testing."""
         self.streamClose()
@@ -32,6 +28,7 @@ class TestIqStanzas(SleekTest):
 
     def testUnhandled(self):
         """Test behavior for Iq.unhandled."""
+        self.streamStart()
         self.streamRecv("""
           <iq id="test" type="get">
             <query xmlns="test" />

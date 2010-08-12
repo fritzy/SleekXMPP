@@ -9,38 +9,73 @@
 import unittest
 import socket
 try:
-	import queue
+    import queue
 except ImportError:
-	import Queue as queue
-from xml.etree import cElementTree as ET
+    import Queue as queue
+
 from sleekxmpp import ClientXMPP
-from sleekxmpp import Message, Iq
-from sleekxmpp.stanza.presence import Presence
-from sleekxmpp.xmlstream.matcher.stanzapath import StanzaPath
-from sleekxmpp.xmlstream.stanzabase import registerStanzaPlugin
+from sleekxmpp.stanza import Message, Iq, Presence
+from sleekxmpp.xmlstream.stanzabase import registerStanzaPlugin, ET
 from sleekxmpp.xmlstream.tostring import tostring
 
 
 class TestSocket(object):
 
+    """
+    A dummy socket that reads and writes to queues instead
+    of an actual networking socket.
+
+    Methods:
+        nextSent -- Return the next sent stanza.
+        recvData -- Make a stanza available to read next.
+        recv     -- Read the next stanza from the socket.
+        send     -- Write a stanza to the socket.
+        makefile -- Dummy call, returns self.
+        read     -- Read the next stanza from the socket.
+    """
+
     def __init__(self, *args, **kwargs):
+        """
+        Create a new test socket.
+
+        Arguments:
+            Same as arguments for socket.socket
+        """
         self.socket = socket.socket(*args, **kwargs)
         self.recv_queue = queue.Queue()
         self.send_queue = queue.Queue()
 
     def __getattr__(self, name):
-        """Pass requests through to actual socket"""
-        # Override a few methods to prevent actual socket connections
-        overrides = {'connect': lambda *args: None,
-                     'close': lambda *args: None,
-                     'shutdown': lambda *args: None}
+        """
+        Return attribute values of internal, dummy socket.
+
+        Some attributes and methods are disabled to prevent the
+        socket from connecting to the network.
+
+        Arguments:
+            name -- Name of the attribute requested.
+        """
+
+        def dummy(*args):
+            """Method to do nothing and prevent actual socket connections."""
+            return None
+
+        overrides = {'connect': dummy,
+                     'close': dummy,
+                     'shutdown': dummy}
+
         return overrides.get(name, getattr(self.socket, name))
 
     # ------------------------------------------------------------------
     # Testing Interface
 
     def nextSent(self, timeout=None):
-        """Get the next stanza that has been 'sent'"""
+        """
+        Get the next stanza that has been 'sent'.
+
+        Arguments:
+            timeout -- Optional timeout for waiting for a new value.
+        """
         args = {'block': False}
         if timeout is not None:
             args = {'block': True, 'timeout': timeout}
@@ -50,27 +85,58 @@ class TestSocket(object):
             return None
 
     def recvData(self, data):
-        """Add data to the receiving queue"""
+        """
+        Add data to the receiving queue.
+
+        Arguments:
+            data -- String data to 'write' to the socket to be received
+                    by the XMPP client.
+        """
         self.recv_queue.put(data)
 
     # ------------------------------------------------------------------
     # Socket Interface
 
     def recv(self, *args, **kwargs):
+        """
+        Read a value from the received queue.
+
+        Arguments:
+            Placeholders. Same as for socket.Socket.recv.
+        """
         return self.read(block=True)
 
     def send(self, data):
+        """
+        Send data by placing it in the send queue.
+
+        Arguments:
+            data -- String value to write.
+        """
         self.send_queue.put(data)
 
     # ------------------------------------------------------------------
     # File Socket
 
-    def makefile(self, mode='r', bufsize=-1):
-        """File socket version to use with ElementTree"""
+    def makefile(self, *args, **kwargs):
+        """
+        File socket version to use with ElementTree.
+
+        Arguments:
+            Placeholders, same as socket.Socket.makefile()
+        """
         return self
 
-    def read(self, size=4096, block=True, timeout=None):
-        """Implement the file socket interface"""
+    def read(self, block=True, timeout=None, **kwargs):
+        """
+        Implement the file socket interface.
+
+        Arguments:
+            block   -- Indicate if the read should block until a
+                       value is ready.
+            timeout -- Time in seconds a block should last before
+                       returning None.
+        """
         if timeout is not None:
             block = True
         try:
@@ -80,24 +146,65 @@ class TestSocket(object):
 
 
 class SleekTest(unittest.TestCase):
+
     """
     A SleekXMPP specific TestCase class that provides
     methods for comparing message, iq, and presence stanzas.
+
+    Methods:
+        Message            -- Create a Message stanza object.
+        Iq                 -- Create an Iq stanza object.
+        Presence           -- Create a Presence stanza object.
+        checkMessage       -- Compare a Message stanza against an XML string.
+        checkIq            -- Compare an Iq stanza against an XML string.
+        checkPresence      -- Compare a Presence stanza against an XML string.
+        streamStart        -- Initialize a dummy XMPP client.
+        streamRecv         -- Queue data for XMPP client to receive.
+        streamSendMessage  -- Check that the XMPP client sent the given
+                              Message stanza.
+        streamSendIq       -- Check that the XMPP client sent the given
+                              Iq stanza.
+        streamSendPresence -- Check taht the XMPP client sent the given
+                              Presence stanza.
+        streamClose        -- Disconnect the XMPP client.
+        fix_namespaces     -- Add top-level namespace to an XML object.
+        compare            -- Compare XML objects against each other.
     """
 
     # ------------------------------------------------------------------
     # Shortcut methods for creating stanza objects
 
     def Message(self, *args, **kwargs):
-        """Create a message stanza."""
+        """
+        Create a Message stanza.
+
+        Uses same arguments as StanzaBase.__init__
+
+        Arguments:
+            xml -- An XML object to use for the Message's values.
+        """
         return Message(None, *args, **kwargs)
 
     def Iq(self, *args, **kwargs):
-        """Create an iq stanza."""
+        """
+        Create an Iq stanza.
+
+        Uses same arguments as StanzaBase.__init__
+
+        Arguments:
+            xml -- An XML object to use for the Iq's values.
+        """
         return Iq(None, *args, **kwargs)
 
     def Presence(self, *args, **kwargs):
-        """Create a presence stanza."""
+        """
+        Create a Presence stanza.
+
+        Uses same arguments as StanzaBase.__init__
+
+        Arguments:
+            xml -- An XML object to use for the Iq's values.
+        """
         return Presence(None, *args, **kwargs)
 
     # ------------------------------------------------------------------
@@ -108,8 +215,15 @@ class SleekTest(unittest.TestCase):
         Create and compare several message stanza objects to a
         correct XML string.
 
-        If use_values is False, the test using getValues() and
-        setValues() will not be used.
+        If use_values is False, the test using getStanzaValues() and
+        setStanzaValues() will not be used.
+
+        Arguments:
+            msg        -- The Message stanza object to check.
+            xml_string -- The XML contents to compare against.
+            use_values -- Indicates if the test using getStanzaValues
+                          and setStanzaValues should be used. Defaults
+                          to True.
         """
 
         self.fix_namespaces(msg.xml, 'jabber:client')
@@ -137,19 +251,26 @@ class SleekTest(unittest.TestCase):
 
             debug += "Second Constructed Stanza:\n%s\n" % tostring(msg3.xml)
             debug = "Three methods for creating stanza do not match:\n" + debug
-            self.failUnless(self.compare([xml, msg.xml, msg2.xml, msg3.xml]),
+            self.failUnless(self.compare(xml, msg.xml, msg2.xml, msg3.xml),
                             debug)
         else:
             debug = "Two methods for creating stanza do not match:\n" + debug
-            self.failUnless(self.compare([xml, msg.xml, msg2.xml]), debug)
+            self.failUnless(self.compare(xml, msg.xml, msg2.xml), debug)
 
     def checkIq(self, iq, xml_string, use_values=True):
         """
         Create and compare several iq stanza objects to a
         correct XML string.
 
-        If use_values is False, the test using getValues() and
-        setValues() will not be used.
+        If use_values is False, the test using getStanzaValues() and
+        setStanzaValues() will not be used.
+
+        Arguments:
+            iq         -- The Iq stanza object to check.
+            xml_string -- The XML contents to compare against.
+            use_values -- Indicates if the test using getStanzaValues
+                          and setStanzaValues should be used. Defaults
+                          to True.
         """
 
         self.fix_namespaces(iq.xml, 'jabber:client')
@@ -169,20 +290,28 @@ class SleekTest(unittest.TestCase):
 
             debug += "Second Constructed Stanza:\n%s\n" % tostring(iq3.xml)
             debug = "Three methods for creating stanza do not match:\n" + debug
-            self.failUnless(self.compare([xml, iq.xml, iq2.xml, iq3.xml]),
+            self.failUnless(self.compare(xml, iq.xml, iq2.xml, iq3.xml),
                             debug)
         else:
             debug = "Two methods for creating stanza do not match:\n" + debug
-            self.failUnless(self.compare([xml, iq.xml, iq2.xml]), debug)
+            self.failUnless(self.compare(xml, iq.xml, iq2.xml), debug)
 
     def checkPresence(self, pres, xml_string, use_values=True):
         """
         Create and compare several presence stanza objects to a
         correct XML string.
 
-        If use_values is False, the test using getValues() and
-        setValues() will not be used.
+        If use_values is False, the test using getStanzaValues() and
+        setStanzaValues() will not be used.
+
+        Arguments:
+            iq         -- The Iq stanza object to check.
+            xml_string -- The XML contents to compare against.
+            use_values -- Indicates if the test using getStanzaValues
+                          and setStanzaValues should be used. Defaults
+                          to True.
         """
+
         self.fix_namespaces(pres.xml, 'jabber:client')
 
         xml = ET.fromstring(xml_string)
@@ -206,17 +335,26 @@ class SleekTest(unittest.TestCase):
 
             debug += "Second Constructed Stanza:\n%s\n" % tostring(pres3.xml)
             debug = "Three methods for creating stanza do not match:\n" + debug
-            self.failUnless(self.compare([xml, pres.xml, pres2.xml, pres3.xml]),
+            self.failUnless(self.compare(xml, pres.xml, pres2.xml, pres3.xml),
                             debug)
         else:
             debug = "Two methods for creating stanza do not match:\n" + debug
-            self.failUnless(self.compare([xml, pres.xml, pres2.xml]), debug)
-
+            self.failUnless(self.compare(xml, pres.xml, pres2.xml), debug)
 
     # ------------------------------------------------------------------
     # Methods for simulating stanza streams.
 
     def streamStart(self, mode='client', skip=True):
+        """
+        Initialize an XMPP client or component using a dummy XML stream.
+
+        Arguments:
+            mode -- Either 'client' or 'component'. Defaults to 'client'.
+            skip -- Indicates if the first item in the sent queue (the
+                    stream header) should be removed. Tests that wish
+                    to test initializing the stream should set this to
+                    False. Otherwise, the default of True should be used.
+        """
         if mode == 'client':
             self.xmpp = ClientXMPP('tester@localhost', 'test')
             self.xmpp.setSocket(TestSocket())
@@ -236,28 +374,82 @@ class SleekTest(unittest.TestCase):
             self.xmpp.socket.nextSent(timeout=0.01)
 
     def streamRecv(self, data):
+        """
+        Pass data to the dummy XMPP client as if it came from an XMPP server.
+
+        Arguments:
+            data -- String stanza XML to be received and processed by the
+                    XMPP client or component.
+        """
         data = str(data)
         self.xmpp.socket.recvData(data)
 
     def streamSendMessage(self, data, use_values=True, timeout=.1):
+        """
+        Check that the XMPP client sent the given stanza XML.
+
+        Extracts the next sent stanza and compares it with the given
+        XML using checkMessage.
+
+        Arguments:
+            data       -- The XML string of the expected Message stanza,
+                          or an equivalent stanza object.
+            use_values -- Modifies the type of tests used by checkMessage.
+            timeout    -- Time in seconds to wait for a stanza before
+                          failing the check.
+        """
         if isinstance(data, str):
             data = self.Message(xml=ET.fromstring(data))
         sent = self.xmpp.socket.nextSent(timeout)
         self.checkMessage(data, sent, use_values)
 
     def streamSendIq(self, data, use_values=True, timeout=.1):
+        """
+        Check that the XMPP client sent the given stanza XML.
+
+        Extracts the next sent stanza and compares it with the given
+        XML using checkIq.
+
+        Arguments:
+            data       -- The XML string of the expected Iq stanza,
+                          or an equivalent stanza object.
+            use_values -- Modifies the type of tests used by checkIq.
+            timeout    -- Time in seconds to wait for a stanza before
+                          failing the check.
+        """
         if isinstance(data, str):
             data = self.Iq(xml=ET.fromstring(data))
         sent = self.xmpp.socket.nextSent(timeout)
         self.checkIq(data, sent, use_values)
 
     def streamSendPresence(self, data, use_values=True, timeout=.1):
+        """
+        Check that the XMPP client sent the given stanza XML.
+
+        Extracts the next sent stanza and compares it with the given
+        XML using checkPresence.
+
+        Arguments:
+            data       -- The XML string of the expected Presence stanza,
+                          or an equivalent stanza object.
+            use_values -- Modifies the type of tests used by checkPresence.
+            timeout    -- Time in seconds to wait for a stanza before
+                          failing the check.
+        """
         if isinstance(data, str):
             data = self.Presence(xml=ET.fromstring(data))
         sent = self.xmpp.socket.nextSent(timeout)
         self.checkPresence(data, sent, use_values)
 
     def streamClose(self):
+        """
+        Disconnect the dummy XMPP client.
+
+        Can be safely called even if streamStart has not been called.
+
+        Must be placed in the tearDown method of a test class to ensure
+        that the XMPP client is disconnected after an error.
+        """
         if hasattr(self, 'xmpp') and self.xmpp is not None:
             self.xmpp.disconnect()
             self.xmpp.socket.recvData(self.xmpp.stream_footer)
@@ -269,6 +461,10 @@ class SleekTest(unittest.TestCase):
         """
         Assign a namespace to an element and any children that
         don't have a namespace.
+
+        Arguments:
+            xml -- The XML object to fix.
+            ns  -- The namespace to add to the XML object.
         """
         if xml.tag.startswith('{'):
             return
@@ -276,36 +472,37 @@ class SleekTest(unittest.TestCase):
         for child in xml.getchildren():
             self.fix_namespaces(child, ns)
 
-    def compare(self, xml1, xml2=None):
+    def compare(self, xml, *other):
         """
         Compare XML objects.
 
-        If given a list of XML objects, then
-        all of the elements in the list will be
-        compared.
+        Arguments:
+            xml   -- The XML object to compare against.
+            *other -- The list of XML objects to compare.
         """
+        if not other:
+            return False
 
         # Compare multiple objects
-        if type(xml1) is list:
-            xmls = xml1
-            xml1 = xmls[0]
-            for xml in xmls[1:]:
-                xml2 = xml
-                if not self.compare(xml1, xml2):
+        if len(other) > 1:
+            for xml2 in other:
+                if not self.compare(xml, xml2):
                     return False
             return True
 
+        other = other[0]
+
         # Step 1: Check tags
-        if xml1.tag != xml2.tag:
+        if xml.tag != other.tag:
             return False
 
         # Step 2: Check attributes
-        if xml1.attrib != xml2.attrib:
+        if xml.attrib != other.attrib:
             return False
 
         # Step 3: Recursively check children
-        for child in xml1:
-            child2s = xml2.findall("%s" % child.tag)
+        for child in xml:
+            child2s = other.findall("%s" % child.tag)
             if child2s is None:
                 return False
             for child2 in child2s:

@@ -13,6 +13,7 @@ try:
 except ImportError:
     import Queue as queue
 
+import sleekxmpp
 from sleekxmpp import ClientXMPP
 from sleekxmpp.stanza import Message, Iq, Presence
 from sleekxmpp.xmlstream.stanzabase import registerStanzaPlugin, ET
@@ -210,6 +211,84 @@ class SleekTest(unittest.TestCase):
     # ------------------------------------------------------------------
     # Methods for comparing stanza objects to XML strings
 
+    def checkStanza(self, stanza_class, stanza, xml_string,
+        defaults=None, use_values=True):
+        """
+        Create and compare several stanza objects to a correct XML string.
+
+        If use_values is False, test using getStanzaValues() and
+        setStanzaValues() will not be used.
+
+        Some stanzas provide default values for some interfaces, but
+        these defaults can be problematic for testing since they can easily
+        be forgotten when supplying the XML string. A list of interfaces that
+        use defaults may be provided and the generated stanzas will use the
+        default values for those interfaces if needed.
+
+        However, correcting the supplied XML is not possible for interfaces
+        that add or remove XML elements. Only interfaces that map to XML
+        attributes may be set using the defaults parameter. The supplied XML
+        must take into account any extra elements that are included by default.
+
+        Arguments:
+            stanza_class -- The class of the stanza being tested.
+            stanza       -- The stanza object to test.
+            xml_string   -- A string version of the correct XML expected.
+            defaults     -- A list of stanza interfaces that have default
+                            values. These interfaces will be set to their
+                            defaults for the given and generated stanzas to
+                            prevent unexpected test failures.
+            use_values   -- Indicates if testing using getStanzaValues() and
+                            setStanzaValues() should be used. Defaults to
+                            True.
+        """
+        xml = ET.fromstring(xml_string)
+
+        # Ensure that top level namespaces are used, even if they
+        # were not provided.
+        self.fix_namespaces(stanza.xml, 'jabber:client')
+        self.fix_namespaces(xml, 'jabber:client')
+
+        stanza2 = stanza_class(xml=xml)
+
+        if use_values:
+            # Using getStanzaValues() and setStanzaValues() will add
+            # XML for any interface that has a default value. We need
+            # to set those defaults on the existing stanzas and XML
+            # so that they will compare correctly.
+            default_stanza = stanza_class()
+            if defaults is None:
+                defaults = []
+            for interface in defaults:
+                stanza[interface] = stanza[interface]
+                stanza2[interface] = stanza2[interface]
+                # Can really only automatically add defaults for top
+                # level attribute values. Anything else must be accounted
+                # for in the provided XML string.
+                if interface not in xml.attrib:
+                    if interface in default_stanza.xml.attrib:
+                        value = default_stanza.xml.attrib[interface]
+                        xml.attrib[interface] = value
+
+            values = stanza2.getStanzaValues()
+            stanza3 = stanza_class()
+            stanza3.setStanzaValues(values)
+
+            debug = "Three methods for creating stanzas do not match.\n"
+            debug += "Given XML:\n%s\n" % tostring(xml)
+            debug += "Given stanza:\n%s\n" % tostring(stanza.xml)
+            debug += "Generated stanza:\n%s\n" % tostring(stanza2.xml)
+            debug += "Second generated stanza:\n%s\n" % tostring(stanza3.xml)
+            result = self.compare(xml, stanza.xml, stanza2.xml, stanza3.xml)
+        else:
+            debug = "Two methods for creating stanzas do not match.\n"
+            debug += "Given XML:\n%s\n" % tostring(xml)
+            debug += "Given stanza:\n%s\n" % tostring(stanza.xml)
+            debug += "Generated stanza:\n%s\n" % tostring(stanza2.xml)
+            result = self.compare(xml, stanza.xml, stanza2.xml)
+
+        self.failUnless(result, debug)
+
     def checkMessage(self, msg, xml_string, use_values=True):
         """
         Create and compare several message stanza objects to a
@@ -226,36 +305,9 @@ class SleekTest(unittest.TestCase):
                           to True.
         """
 
-        self.fix_namespaces(msg.xml, 'jabber:client')
-        debug = "Given Stanza:\n%s\n" % tostring(msg.xml)
-
-        xml = ET.fromstring(xml_string)
-        self.fix_namespaces(xml, 'jabber:client')
-
-        debug += "XML String:\n%s\n" % tostring(xml)
-
-        msg2 = self.Message(xml)
-        debug += "Constructed Stanza:\n%s\n" % tostring(msg2.xml)
-
-        if use_values:
-            # Ugly, but need to make sure the type attribute is set.
-            msg['type'] = msg['type']
-            if xml.attrib.get('type', None) is None:
-                xml.attrib['type'] = 'normal'
-            msg2['type'] = msg2['type']
-            debug += "XML String:\n%s\n" % tostring(xml)
-
-            values = msg2.getStanzaValues()
-            msg3 = self.Message()
-            msg3.setStanzaValues(values)
-
-            debug += "Second Constructed Stanza:\n%s\n" % tostring(msg3.xml)
-            debug = "Three methods for creating stanza do not match:\n" + debug
-            self.failUnless(self.compare(xml, msg.xml, msg2.xml, msg3.xml),
-                            debug)
-        else:
-            debug = "Two methods for creating stanza do not match:\n" + debug
-            self.failUnless(self.compare(xml, msg.xml, msg2.xml), debug)
+        return self.checkStanza(Message, msg, xml_string,
+                                defaults=['type'],
+                                use_values = use_values)
 
     def checkIq(self, iq, xml_string, use_values=True):
         """
@@ -272,29 +324,7 @@ class SleekTest(unittest.TestCase):
                           and setStanzaValues should be used. Defaults
                           to True.
         """
-
-        self.fix_namespaces(iq.xml, 'jabber:client')
-        debug = "Given Stanza:\n%s\n" % tostring(iq.xml)
-
-        xml = ET.fromstring(xml_string)
-        self.fix_namespaces(xml, 'jabber:client')
-        debug += "XML String:\n%s\n" % tostring(xml)
-
-        iq2 = self.Iq(xml)
-        debug += "Constructed Stanza:\n%s\n" % tostring(iq2.xml)
-
-        if use_values:
-            values = iq.getStanzaValues()
-            iq3 = self.Iq()
-            iq3.setStanzaValues(values)
-
-            debug += "Second Constructed Stanza:\n%s\n" % tostring(iq3.xml)
-            debug = "Three methods for creating stanza do not match:\n" + debug
-            self.failUnless(self.compare(xml, iq.xml, iq2.xml, iq3.xml),
-                            debug)
-        else:
-            debug = "Two methods for creating stanza do not match:\n" + debug
-            self.failUnless(self.compare(xml, iq.xml, iq2.xml), debug)
+        return self.checkStanza(Iq, iq, xml_string, use_values=use_values)
 
     def checkPresence(self, pres, xml_string, use_values=True):
         """
@@ -311,35 +341,9 @@ class SleekTest(unittest.TestCase):
                           and setStanzaValues should be used. Defaults
                           to True.
         """
-
-        self.fix_namespaces(pres.xml, 'jabber:client')
-
-        xml = ET.fromstring(xml_string)
-        self.fix_namespaces(xml, 'jabber:client')
-
-        pres2 = self.Presence(xml)
-
-        # Ugly, but 'priority' has a default value and need to make
-        # sure it is set
-        pres['priority'] = pres['priority']
-        pres2['priority'] = pres2['priority']
-
-        debug = "Given Stanza:\n%s\n" % tostring(pres.xml)
-        debug += "XML String:\n%s\n" % tostring(xml)
-        debug += "Constructed Stanza:\n%s\n" % tostring(pres2.xml)
-
-        if use_values:
-            values = pres.getStanzaValues()
-            pres3 = self.Presence()
-            pres3.setStanzaValues(values)
-
-            debug += "Second Constructed Stanza:\n%s\n" % tostring(pres3.xml)
-            debug = "Three methods for creating stanza do not match:\n" + debug
-            self.failUnless(self.compare(xml, pres.xml, pres2.xml, pres3.xml),
-                            debug)
-        else:
-            debug = "Two methods for creating stanza do not match:\n" + debug
-            self.failUnless(self.compare(xml, pres.xml, pres2.xml), debug)
+        return self.checkStanza(Presence, pres, xml_string,
+                                defaults=['priority'],
+                                use_values=use_values)
 
     # ------------------------------------------------------------------
     # Methods for simulating stanza streams.

@@ -45,24 +45,36 @@ class ElementBase(object):
     subitem = None
 
     def __init__(self, xml=None, parent=None):
-            if parent is None:
-                    self.parent = None
-            else:
-                    self.parent = weakref.ref(parent)
-            self.xml = xml
-            self.plugins = {}
-            self.iterables = []
-            self.idx = 0
-            if not self.setup(xml):
-                    for child in self.xml.getchildren():
-                            if child.tag in self.plugin_tag_map:
-                                    self.plugins[self.plugin_tag_map[child.tag].plugin_attrib] = self.plugin_tag_map[child.tag](xml=child, parent=self)
-                            if self.subitem is not None:
-                                    for sub in self.subitem:
-                                            if child.tag == "{%s}%s" % (sub.namespace, sub.name):
-                                                    self.iterables.append(sub(xml=child, parent=self))
-                                                    break
+        """
+        Create a new stanza object.
 
+        Arguments:
+            xml    -- Initialize the stanza with optional existing XML.
+            parent -- Optional stanza object that contains this stanza.
+        """
+        self.xml = xml
+        self.plugins = {}
+        self.iterables = []
+        self.idx = 0
+        if parent is None:
+            self.parent = None
+        else:
+            self.parent = weakref.ref(parent)
+
+        if self.setup(xml):
+            # If we generated our own XML, then everything is ready.
+            return
+
+        # Initialize values using provided XML
+        for child in self.xml.getchildren():
+            if child.tag in self.plugin_tag_map:
+                plugin = self.plugin_tag_map[child.tag]
+                self.plugins[plugin.plugin_attrib] = plugin(child, self)
+            if self.subitem is not None:
+                for sub in self.subitem:
+                    if child.tag == "{%s}%s" % (sub.namespace, sub.name):
+                        self.iterables.append(sub(child, self))
+                        break
 
     @property
     def attrib(self): #backwards compatibility

@@ -76,6 +76,38 @@ class ElementBase(object):
                         self.iterables.append(sub(child, self))
                         break
 
+    def setup(self, xml=None):
+        """
+        Initialize the stanza's XML contents.
+
+        Will return True if XML was generated according to the stanza's
+        definition.
+
+        Arguments:
+            xml -- Optional XML object to use for the stanza's content
+                   instead of generating XML.
+        """
+        if self.xml is None:
+            self.xml = xml
+
+        if self.xml is None:
+            # Generate XML from the stanza definition
+            for ename in self.name.split('/'):
+                new = ET.Element("{%s}%s" % (self.namespace, ename))
+                if self.xml is None:
+                    self.xml = new
+                else:
+                    last_xml.append(new)
+                last_xml = new
+            if self.parent is not None:
+                self.parent().xml.append(self.xml)
+
+            # We had to generate XML
+            return True
+        else:
+            # We did not generate XML
+            return False
+
     @property
     def attrib(self): #backwards compatibility
             return self
@@ -158,22 +190,6 @@ class ElementBase(object):
 
     def findall(self, xpath):
             return self.xml.findall(xpath)
-
-    def setup(self, xml=None):
-            if self.xml is None:
-                    self.xml = xml
-            if self.xml is None:
-                    for ename in self.name.split('/'):
-                            new = ET.Element("{%(namespace)s}%(name)s" % {'name': self.name, 'namespace': self.namespace})
-                            if self.xml is None:
-                                    self.xml = new
-                            else:
-                                    self.xml.append(new)
-                    if self.parent is not None:
-                            self.parent().xml.append(self.xml)
-                    return True #had to generate XML
-            else:
-                    return False
 
     def enable(self, attrib):
             self.initPlugin(attrib)

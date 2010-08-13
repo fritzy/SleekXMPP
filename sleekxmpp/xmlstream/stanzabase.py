@@ -15,16 +15,22 @@ from xml.etree import cElementTree as ET
 from sleekxmpp.xmlstream import JID
 from sleekxmpp.xmlstream.tostring import tostring
 
-xmltester = type(ET.Element('xml'))
+
+# Used to check if an argument is an XML object.
+XML_TYPE = type(ET.Element('xml'))
 
 
 def registerStanzaPlugin(stanza, plugin):
-        """
-        Associate a stanza object as a plugin for another stanza.
-        """
-        tag = "{%s}%s" % (plugin.namespace, plugin.name)
-        stanza.plugin_attrib_map[plugin.plugin_attrib] = plugin
-        stanza.plugin_tag_map[tag] = plugin
+    """
+    Associate a stanza object as a plugin for another stanza.
+
+    Arguments:
+        stanza -- The class of the parent stanza.
+        plugin -- The class of the plugin stanza.
+    """
+    tag = "{%s}%s" % (plugin.namespace, plugin.name)
+    stanza.plugin_attrib_map[plugin.plugin_attrib] = plugin
+    stanza.plugin_tag_map[tag] = plugin
 
 
 class ElementBase(object):
@@ -84,7 +90,7 @@ class ElementBase(object):
 
         def append(self, item):
                 if not isinstance(item, ElementBase):
-                        if type(item) == xmltester:
+                        if type(item) == XML_TYPE:
                                 return self.appendxml(item)
                         else:
                                 raise TypeError

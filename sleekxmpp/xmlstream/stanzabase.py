@@ -108,6 +108,29 @@ class ElementBase(object):
             # We did not generate XML
             return False
 
+    def enable(self, attrib):
+        """
+        Enable and initialize a stanza plugin.
+
+        Alias for initPlugin.
+
+        Arguments:
+            attrib -- The stanza interface for the plugin.
+        """
+        return self.initPlugin(attrib)
+
+    def initPlugin(self, attrib):
+        """
+        Enable and initialize a stanza plugin.
+
+        Arguments:
+            attrib -- The stanza interface for the plugin.
+        """
+        if attrib not in self.plugins:
+            plugin_class = self.plugin_attrib_map[attrib]
+            self.plugins[attrib] = plugin_class(parent=self)
+        return self
+
     @property
     def attrib(self): #backwards compatibility
             return self
@@ -190,14 +213,6 @@ class ElementBase(object):
 
     def findall(self, xpath):
             return self.xml.findall(xpath)
-
-    def enable(self, attrib):
-            self.initPlugin(attrib)
-            return self
-
-    def initPlugin(self, attrib):
-            if attrib not in self.plugins:
-                    self.plugins[attrib] = self.plugin_attrib_map[attrib](parent=self)
 
     def __getitem__(self, attrib):
             if attrib == 'substanzas':

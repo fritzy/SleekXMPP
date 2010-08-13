@@ -5,13 +5,14 @@
 
     See the file LICENSE for copying permission.
 """
-from xml.etree import cElementTree as ET
+
+import copy
 import logging
 import sys
 import weakref
-import copy
-from . jid import JID
+from xml.etree import cElementTree as ET
 
+from sleekxmpp.xmlstream import JID
 from sleekxmpp.xmlstream.tostring import tostring
 
 xmltester = type(ET.Element('xml'))

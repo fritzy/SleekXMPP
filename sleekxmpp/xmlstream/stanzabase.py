@@ -183,6 +183,48 @@ class ElementBase(object):
                 self.plugins[interface].setStanzaValues(value)
         return self
 
+    def __getitem__(self, attrib):
+        """
+        Return the value of a stanza interface using dictionary-like syntax.
+
+        Example:
+            >>> msg['body']
+            'Message contents'
+
+        Stanza interfaces are typically mapped directly to the underlying XML
+        object, but can be overridden by the presence of a getAttrib method
+        (or getFoo where the interface is named foo, etc).
+
+        The search order for interface value retrieval for an interface
+        named 'foo' is:
+            1. The list of substanzas.
+            2. The result of calling getFoo.
+            3. The contents of the foo subelement, if foo is a sub interface.
+            4. The value of the foo attribute of the XML object.
+            5. The plugin named 'foo'
+            6. An empty string.
+
+        Arguments:
+            attrib -- The name of the requested stanza interface.
+        """
+        if attrib == 'substanzas':
+            return self.iterables
+        elif attrib in self.interfaces:
+            get_method = "get%s" % attrib.title()
+            if hasattr(self, get_method):
+                return getattr(self, get_method)()
+            else:
+                if attrib in self.sub_interfaces:
+                    return self._getSubText(attrib)
+                else:
+                    return self._getAttr(attrib)
+        elif attrib in self.plugin_attrib_map:
+            if attrib not in self.plugins:
+                self.initPlugin(attrib)
+            return self.plugins[attrib]
+        else:
+            return ''
+
     @property
     def attrib(self): #backwards compatibility
             return self
@@ -265,23 +307,6 @@ class ElementBase(object):
 
     def findall(self, xpath):
             return self.xml.findall(xpath)
-
-    def __getitem__(self, attrib):
-            if attrib == 'substanzas':
-                    return self.iterables
-            elif attrib in self.interfaces:
-                    if hasattr(self, "get%s" % attrib.title()):
-                            return getattr(self, "get%s" % attrib.title())()
-                    else:
-                            if attrib in self.sub_interfaces:
-                                    return self._getSubText(attrib)
-                            else:
-                                    return self._getAttr(attrib)
-            elif attrib in self.plugin_attrib_map:
-                    if attrib not in self.plugins: self.initPlugin(attrib)
-                    return self.plugins[attrib]
-            else:
-                    return ''
 
     def __setitem__(self, attrib, value):
             if attrib in self.interfaces:

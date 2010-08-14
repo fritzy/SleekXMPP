@@ -109,5 +109,46 @@ class TestElementBase(SleekTest):
           </foo>
         """)
 
+    def testGetItem(self):
+        """Test accessing stanza interfaces."""
+
+        class TestStanza(ElementBase):
+            name = "foo"
+            namespace = "foo"
+            interfaces = set(('bar', 'baz'))
+            sub_interfaces = set(('baz',))
+
+        class TestStanzaPlugin(ElementBase):
+            name = "foobar"
+            namespace = "foo"
+            plugin_attrib = "foobar"
+            interfaces = set(('fizz',))
+
+        TestStanza.subitem = (TestStanza,)
+        registerStanzaPlugin(TestStanza, TestStanzaPlugin)
+
+        stanza = TestStanza()
+        substanza = TestStanza()
+        stanza.append(substanza)
+        stanza.setStanzaValues({'bar': 'a',
+                                'baz': 'b',
+                                'foobar': {'fizz': 'c'}})
+
+        # Test non-plugin interfaces
+        expected = {'substanzas': [substanza],
+                    'bar': 'a',
+                    'baz': 'b',
+                    'meh': ''}
+        for interface, value in expected.items():
+            result = stanza[interface]
+            self.failUnless(result == value,
+                "Incorrect stanza interface access result: %s" % result)
+
+        # Test plugin interfaces
+        self.failUnless(isinstance(stanza['foobar'], TestStanzaPlugin),
+                        "Incorrect plugin object result.")
+        self.failUnless(stanza['foobar']['fizz'] == 'c',
+                        "Incorrect plugin subvalue result.")
+
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestElementBase)

@@ -131,6 +131,58 @@ class ElementBase(object):
             self.plugins[attrib] = plugin_class(parent=self)
         return self
 
+    def getStanzaValues(self):
+        """
+        Return a dictionary of the stanza's interface values.
+
+        Stanza plugin values are included as nested dictionaries.
+        """
+        values = {}
+        for interface in self.interfaces:
+            values[interface] = self[interface]
+        for plugin, stanza in self.plugins.items():
+            values[plugin] = stanza.getStanzaValues()
+        if self.iterables:
+            iterables = []
+            for stanza in self.iterables:
+                iterables.append(stanza.getStanzaValues())
+                iterables[-1].update({
+                    '__childtag__': "{%s}%s" % (stanza.namespace, stanza.name)
+                    })
+            values['substanzas'] = iterables
+        return values
+
+    def setStanzaValues(self, values):
+        """
+        Set multiple stanza interface values using a dictionary.
+
+        Stanza plugin values may be set using nested dictionaries.
+
+        Arguments:
+            values -- A dictionary mapping stanza interface with values.
+                      Plugin interfaces may accept a nested dictionary that
+                      will be used recursively.
+        """
+        for interface, value in values.items():
+            if interface == 'substanzas':
+                for subdict in value:
+                    if '__childtag__' in subdict:
+                        for subclass in self.subitem:
+                            child_tag = "{%s}%s" % (subclass.namespace,
+                                                    subclass.name)
+                            if subdict['__childtag__'] == child_tag:
+                                sub = subclass(parent=self)
+                                sub.setStanzaValues(subdict)
+                                self.iterables.append(sub)
+                                break
+            elif interface in self.interfaces:
+                self[interface] = value
+            elif interface in self.plugin_attrib_map:
+                if interface not in self.plugins:
+                    self.initPlugin(interface)
+                self.plugins[interface].setStanzaValues(value)
+        return self
+
     @property
     def attrib(self): #backwards compatibility
             return self
@@ -312,39 +364,6 @@ class ElementBase(object):
             for child in self.xml.getchildren():
                     if child.tag == name:
                             self.xml.remove(child)
-
-    def getStanzaValues(self):
-            out = {}
-            for interface in self.interfaces:
-                    out[interface] = self[interface]
-            for pluginkey in self.plugins:
-                    out[pluginkey] = self.plugins[pluginkey].getStanzaValues()
-            if self.iterables:
-                    iterables = []
-                    for stanza in self.iterables:
-                            iterables.append(stanza.getStanzaValues())
-                            iterables[-1].update({'__childtag__': "{%s}%s" % (stanza.namespace, stanza.name)})
-                    out['substanzas'] = iterables
-            return out
-
-    def setStanzaValues(self, attrib):
-            for interface in attrib:
-                    if interface == 'substanzas':
-                            for subdict in attrib['substanzas']:
-                                    if '__childtag__' in subdict:
-                                            for subclass in self.subitem:
-                                                    if subdict['__childtag__'] == "{%s}%s" % (subclass.namespace, subclass.name):
-                                                            sub = subclass(parent=self)
-                                                            sub.setStanzaValues(subdict)
-                                                            self.iterables.append(sub)
-                                                            break
-                    elif interface in self.interfaces:
-                            self[interface] = attrib[interface]
-                    elif interface in self.plugin_attrib_map and interface not in self.plugins:
-                            self.initPlugin(interface)
-                    if interface in self.plugins:
-                            self.plugins[interface].setStanzaValues(attrib[interface])
-            return self
 
     def appendxml(self, xml):
             self.xml.append(xml)

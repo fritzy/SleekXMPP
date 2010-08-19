@@ -3,61 +3,141 @@
     Copyright (C) 2010  Nathanael C. Fritz
     This file is part of SleekXMPP.
 
-    See the file license.txt for copying permission.
+    See the file LICENSE for copying permission.
 """
-from .. xmlstream.stanzabase import StanzaBase
-from xml.etree import cElementTree as ET
-from . error import Error
-from . rootstanza import RootStanza
+
+from sleekxmpp.stanza import Error
+from sleekxmpp.stanza.rootstanza import RootStanza
+from sleekxmpp.xmlstream.stanzabase import StanzaBase, ET
+
 
 class Message(RootStanza):
-	interfaces = set(('type', 'to', 'from', 'id', 'body', 'subject', 'mucroom', 'mucnick'))
-	types = set((None, 'normal', 'chat', 'headline', 'error', 'groupchat'))
-	sub_interfaces = set(('body', 'subject'))
-	name = 'message'
-	plugin_attrib = name
-	namespace = 'jabber:client'
 
-	def getType(self):
-		return self.xml.attrib.get('type', 'normal')
-	
-	def chat(self):
-		self['type'] = 'chat'
-		return self
-	
-	def normal(self):
-		self['type'] = 'normal'
-		return self
-	
-	def reply(self, body=None):
-		StanzaBase.reply(self)
-		if self['type'] == 'groupchat':
-			self['to'] = self['to'].bare
-		del self['id']
-		if body is not None:
-			self['body'] = body
-		return self
-	
-	def getMucroom(self):
-		if self['type'] == 'groupchat':
-			return self['from'].bare
-		else:
-			return ''
-	
-	def setMucroom(self, value):
-		pass
-	
-	def delMucroom(self):
-		pass
-	
-	def getMucnick(self):
-		if self['type'] == 'groupchat':
-			return self['from'].resource
-		else:
-			return ''
-	
-	def setMucnick(self, value):
-		pass
-	
-	def delMucnick(self):
-		pass
+    """
+    XMPP's <message> stanzas are a "push" mechanism to send information
+    to other XMPP entities without requiring a response.
+
+    Chat clients will typically use <message> stanzas that have a type
+    of either "chat" or "groupchat".
+
+    When handling a message event, be sure to check if the message is
+    an error response.
+
+    Example <message> stanzas:
+        <message to="user1@example.com" from="user2@example.com">
+          <body>Hi!</body>
+        </message>
+
+        <message type="groupchat" to="room@conference.example.com">
+          <body>Hi everyone!</body>
+        </message>
+
+    Stanza Interface:
+        body    -- The main contents of the message.
+        subject -- An optional description of the message's contents.
+        mucroom -- (Read-only) The name of the MUC room that sent the message.
+        mucnick -- (Read-only) The MUC nickname of message's sender.
+
+    Attributes:
+        types -- May be one of: normal, chat, headline, groupchat, or error.
+
+    Methods:
+        chat       -- Set the message type to 'chat'.
+        normal     -- Set the message type to 'normal'.
+        reply      -- Overrides StanzaBase.reply
+        getType    -- Overrides StanzaBase interface
+        getMucroom -- Return the name of the MUC room of the message.
+        setMucroom -- Dummy method to prevent assignment.
+        delMucroom -- Dummy method to prevent deletion.
+        getMucnick -- Return the MUC nickname of the message's sender.
+        setMucnick -- Dummy method to prevent assignment.
+        delMucnick -- Dummy method to prevent deletion.
+    """
+
+    namespace = 'jabber:client'
+    name = 'message'
+    interfaces = set(('type', 'to', 'from', 'id', 'body', 'subject',
+                      'mucroom', 'mucnick'))
+    sub_interfaces = set(('body', 'subject'))
+    plugin_attrib = name
+    types = set((None, 'normal', 'chat', 'headline', 'error', 'groupchat'))
+
+    def getType(self):
+        """
+        Return the message type.
+
+        Overrides default stanza interface behavior.
+
+        Returns 'normal' if no type attribute is present.
+        """
+        return self._getAttr('type', 'normal')
+
+    def chat(self):
+        """Set the message type to 'chat'."""
+        self['type'] = 'chat'
+        return self
+
+    def normal(self):
+        """Set the message type to 'chat'."""
+        self['type'] = 'normal'
+        return self
+
+    def reply(self, body=None):
+        """
+        Create a message reply.
+
+        Overrides StanzaBase.reply.
+
+        Sets proper 'to' attribute if the message is from a MUC, and
+        adds a message body if one is given.
+
+        Arguments:
+            body -- Optional text content for the message.
+        """
+        StanzaBase.reply(self)
+        if self['type'] == 'groupchat':
+            self['to'] = self['to'].bare
+
+        del self['id']
+
+        if body is not None:
+            self['body'] = body
+        return self
+
+    def getMucroom(self):
+        """
+        Return the name of the MUC room where the message originated.
+
+        Read-only stanza interface.
+        """
+        if self['type'] == 'groupchat':
+            return self['from'].bare
+        else:
+            return ''
+
+    def getMucnick(self):
+        """
+        Return the nickname of the MUC user that sent the message.
+
+        Read-only stanza interface.
+        """
+        if self['type'] == 'groupchat':
+            return self['from'].resource
+        else:
+            return ''
+
+    def setMucroom(self, value):
+        """Dummy method to prevent modification."""
+        pass
+
+    def delMucroom(self):
+        """Dummy method to prevent deletion."""
+        pass
+
+    def setMucnick(self, value):
+        """Dummy method to prevent modification."""
+        pass
+
+    def delMucnick(self):
+        """Dummy method to prevent deletion."""
+        pass

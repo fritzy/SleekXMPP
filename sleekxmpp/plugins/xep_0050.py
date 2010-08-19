@@ -1,27 +1,14 @@
 """
-	SleekXMPP: The Sleek XMPP Library
-	Copyright (C) 2007  Nathanael C. Fritz
-	This file is part of SleekXMPP.
-
-	SleekXMPP is free software; you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; either version 2 of the License, or
-	(at your option) any later version.
-
-	SleekXMPP is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with SleekXMPP; if not, write to the Free Software
-	Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+    SleekXMPP: The Sleek XMPP Library
+    Copyright (C) 2010 Nathanael C. Fritz
+    This file is part of SleekXMPP.
+    
+    See the file LICENSE for copying permission.
 """
 from __future__ import with_statement
 from . import base
 import logging
 from xml.etree import cElementTree as ET
-import traceback
 import time
 
 class xep_0050(base.base_plugin):
@@ -32,11 +19,11 @@ class xep_0050(base.base_plugin):
 	def plugin_init(self):
 		self.xep = '0050'
 		self.description = 'Ad-Hoc Commands'
-		self.xmpp.add_handler("<iq type='set' xmlns='%s'><command xmlns='http://jabber.org/protocol/commands' action='__None__'/></iq>" % self.xmpp.default_ns, self.handler_command)
-		self.xmpp.add_handler("<iq type='set' xmlns='%s'><command xmlns='http://jabber.org/protocol/commands' action='execute'/></iq>" % self.xmpp.default_ns, self.handler_command)
-		self.xmpp.add_handler("<iq type='set' xmlns='%s'><command xmlns='http://jabber.org/protocol/commands' action='next'/></iq>" % self.xmpp.default_ns, self.handler_command_next, threaded=True)
-		self.xmpp.add_handler("<iq type='set' xmlns='%s'><command xmlns='http://jabber.org/protocol/commands' action='cancel'/></iq>" % self.xmpp.default_ns, self.handler_command_cancel)
-		self.xmpp.add_handler("<iq type='set' xmlns='%s'><command xmlns='http://jabber.org/protocol/commands' action='complete'/></iq>" % self.xmpp.default_ns, self.handler_command_complete)
+		self.xmpp.add_handler("<iq type='set' xmlns='%s'><command xmlns='http://jabber.org/protocol/commands' action='__None__'/></iq>" % self.xmpp.default_ns, self.handler_command, name='Ad-Hoc None')
+		self.xmpp.add_handler("<iq type='set' xmlns='%s'><command xmlns='http://jabber.org/protocol/commands' action='execute'/></iq>" % self.xmpp.default_ns, self.handler_command, name='Ad-Hoc Execute')
+		self.xmpp.add_handler("<iq type='set' xmlns='%s'><command xmlns='http://jabber.org/protocol/commands' action='next'/></iq>" % self.xmpp.default_ns, self.handler_command_next, name='Ad-Hoc Next', threaded=True)
+		self.xmpp.add_handler("<iq type='set' xmlns='%s'><command xmlns='http://jabber.org/protocol/commands' action='cancel'/></iq>" % self.xmpp.default_ns, self.handler_command_cancel, name='Ad-Hoc Cancel')
+		self.xmpp.add_handler("<iq type='set' xmlns='%s'><command xmlns='http://jabber.org/protocol/commands' action='complete'/></iq>" % self.xmpp.default_ns, self.handler_command_complete, name='Ad-Hoc Complete')
 		self.commands = {}
 		self.sessions = {}
 		self.sd = self.xmpp.plugin['xep_0030']
@@ -83,7 +70,7 @@ class xep_0050(base.base_plugin):
 		in_command = xml.find('{http://jabber.org/protocol/commands}command')
 		sessionid = in_command.get('sessionid', None)
 		pointer = self.sessions[sessionid]['next']
-		results = self.xmpp.plugin['xep_0004'].makeForm('result')
+		results = self.xmpp.plugin['old_0004'].makeForm('result')
 		results.fromXML(in_command.find('{jabber:x:data}x'))
 		pointer(results,sessionid)
 		self.xmpp.send(self.makeCommand(xml.attrib['from'], in_command.attrib['node'], form=None, id=xml.attrib['id'], sessionid=sessionid, status='completed', actions=[]))
@@ -94,7 +81,7 @@ class xep_0050(base.base_plugin):
 		in_command = xml.find('{http://jabber.org/protocol/commands}command')
 		sessionid = in_command.get('sessionid', None)
 		pointer = self.sessions[sessionid]['next']
-		results = self.xmpp.plugin['xep_0004'].makeForm('result')
+		results = self.xmpp.plugin['old_0004'].makeForm('result')
 		results.fromXML(in_command.find('{jabber:x:data}x'))
 		form, npointer, next = pointer(results,sessionid)
 		self.sessions[sessionid]['next'] = npointer

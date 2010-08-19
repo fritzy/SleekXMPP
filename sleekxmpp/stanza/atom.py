@@ -1,4 +1,4 @@
-from .. xmlstream.stanzabase import ElementBase, ET, JID
+from .. xmlstream.stanzabase import registerStanzaPlugin, ElementBase, ET, JID
 from xml.etree import cElementTree as ET
 
 class AtomEntry(ElementBase):

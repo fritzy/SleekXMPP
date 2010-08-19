@@ -4,6 +4,11 @@ Hosted at http://wiki.github.com/fritzy/SleekXMPP/
 Featured in examples in XMPP: The Definitive Guide by Kevin Smith, Remko Tronçon, and Peter Saint-Andre
 If you're coming here from The Definitive Guide, please read http://wiki.github.com/fritzy/SleekXMPP/xmpp-the-definitive-guide
 
+Requirements:
+We try to keep requirements to a minimum, but we suggest that you install http://dnspython.org although it isn't strictly required.
+If you do not install this library, you may need to specify the server/port for services that use SRV records (like GTalk).
+"sudo pip install dnspython" on a *nix system with pip installed.
+
 SleekXMPP has several design goals/philosophies:
 - Low number of dependencies.
 - Every XEP as a plugin.

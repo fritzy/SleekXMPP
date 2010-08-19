@@ -16,13 +16,13 @@ import sys
 #     min_version = '0.6c6'
 # else:
 #     min_version = '0.6a9'
-# 
+#
 # try:
 #     use_setuptools(min_version=min_version)
 # except TypeError:
 #     # locally installed ez_setup won't have min_version
 #     use_setuptools()
-# 
+#
 # from setuptools import setup, find_packages, Extension, Feature
 
 VERSION          = '0.2.3.1'
@@ -37,17 +37,13 @@ CLASSIFIERS      = [ 'Intended Audience :: Developers',
                      'Topic :: Software Development :: Libraries :: Python Modules',
                    ]
 
-packages     = [ 'sleekxmpp', 
+packages     = [ 'sleekxmpp',
 				 'sleekxmpp/plugins',
 				 'sleekxmpp/stanza',
 				 'sleekxmpp/xmlstream',
 				 'sleekxmpp/xmlstream/matcher',
-				 'sleekxmpp/xmlstream/handler' ]
-
-if sys.version_info < (3, 0):
-	packages.append('sleekxmpp/xmlstream/tostring26')
-else:
-	packages.append('sleekxmpp/xmlstream/tostring')
+				 'sleekxmpp/xmlstream/handler',
+                 'sleekxmpp/xmlstream/tostring']
 
 setup(
     name             = "sleekxmpp",

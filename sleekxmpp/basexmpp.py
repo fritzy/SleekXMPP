@@ -3,7 +3,7 @@
     Copyright (C) 2010  Nathanael C. Fritz
     This file is part of SleekXMPP.
 
-    See the file license.txt for copying permission.
+    See the file LICENSE for copying permission.
 """
 from __future__ import with_statement, unicode_literals
 
@@ -16,6 +16,7 @@ from . xmlstream.handler.xmlcallback import XMLCallback
 from . xmlstream.handler.xmlwaiter import XMLWaiter
 from . xmlstream.handler.waiter import Waiter
 from . xmlstream.handler.callback import Callback
+from . xmlstream.stanzabase import registerStanzaPlugin
 from . import plugins
 from . stanza.message import Message
 from . stanza.iq import Iq
@@ -24,21 +25,17 @@ from . stanza.roster import Roster
 from . stanza.nick import Nick
 from . stanza.htmlim import HTMLIM
 from . stanza.error import Error
+from sleekxmpp.xmlstream.tostring import tostring
 
 import logging
 import threading
+import copy
 
 import sys
 
 if sys.version_info < (3,0):
 	reload(sys)
 	sys.setdefaultencoding('utf8')
-
-
-def stanzaPlugin(stanza, plugin):
-	stanza.plugin_attrib_map[plugin.plugin_attrib] = plugin
-	stanza.plugin_tag_map["{%s}%s" % (plugin.namespace, plugin.name)] = plugin
-
 
 class basexmpp(object):
 	def __init__(self):
@@ -61,14 +58,10 @@ class basexmpp(object):
 		self.registerStanza(Message)
 		self.registerStanza(Iq)
 		self.registerStanza(Presence)
-		self.stanzaPlugin(Iq, Roster)
-		self.stanzaPlugin(Message, Nick)
-		self.stanzaPlugin(Message, HTMLIM)
+		registerStanzaPlugin(Iq, Roster)
+		registerStanzaPlugin(Message, Nick)
+		registerStanzaPlugin(Message, HTMLIM)
 
-	def stanzaPlugin(self, stanza, plugin):
-		stanza.plugin_attrib_map[plugin.plugin_attrib] = plugin
-		stanza.plugin_tag_map["{%s}%s" % (plugin.namespace, plugin.name)] = plugin
-	
 	def Message(self, *args, **kwargs):
 		return Message(self, *args, **kwargs)
 
@@ -77,7 +70,7 @@ class basexmpp(object):
 
 	def Presence(self, *args, **kwargs):
 		return Presence(self, *args, **kwargs)
-	
+
 	def set_jid(self, jid):
 		"""Rip a JID apart and claim it as our own."""
 		self.fulljid = jid
@@ -85,12 +78,12 @@ class basexmpp(object):
 		self.jid = self.getjidbare(jid)
 		self.username = jid.split('@', 1)[0]
 		self.server = jid.split('@',1)[-1].split('/', 1)[0]
-	
+
 	def process(self, *args, **kwargs):
 		for idx in self.plugin:
 			if not self.plugin[idx].post_inited: self.plugin[idx].post_init()
 		return super(basexmpp, self).process(*args, **kwargs)
-		
+
 	def registerPlugin(self, plugin, pconfig = {}):
 		"""Register a plugin not in plugins.__init__.__all__ but in the plugins
 		directory."""
@@ -105,7 +98,7 @@ class basexmpp(object):
 		if hasattr(self.plugin[plugin], 'xep'):
 			xep = "(XEP-%s) " % self.plugin[plugin].xep
 		logging.debug("Loaded Plugin %s%s" % (xep, self.plugin[plugin].description))
-	
+
 	def register_plugins(self):
 		"""Initiates all plugins in the plugins/__init__.__all__"""
 		if self.plugin_whitelist:
@@ -120,22 +113,24 @@ class basexmpp(object):
 		# run post_init() for cross-plugin interaction
 		for plugin in self.plugin:
 			self.plugin[plugin].post_init()
-	
+
 	def getNewId(self):
 		with self.id_lock:
 			self.id += 1
 			return self.getId()
-	
-	def add_handler(self, mask, pointer, disposable=False, threaded=False, filter=False, instream=False):
-		#logging.warning("Deprecated add_handler used for %s: %s." % (mask, pointer))
-		self.registerHandler(XMLCallback('add_handler_%s' % self.getNewId(), MatchXMLMask(mask), pointer, threaded, disposable, instream))
-	
+
+	def add_handler(self, mask, pointer, name=None, disposable=False, threaded=False, filter=False, instream=False):
+                # threaded is no longer needed, but leaving it for backwards compatibility for now
+		if name is None:
+			name = 'add_handler_%s' % self.getNewId()
+		self.registerHandler(XMLCallback(name, MatchXMLMask(mask), pointer, threaded, disposable, instream))
+
 	def getId(self):
 		return "%x".upper() % self.id
 
 	def sendXML(self, data, mask=None, timeout=10):
-		return self.send(self.tostring(data), mask, timeout)
-	
+		return self.send(tostring(data), mask, timeout)
+
 	def send(self, data, mask=None, timeout=10):
 		#logging.warning("Deprecated send used for \"%s\"" % (data,))
 		#if not type(data) == type(''):
@@ -150,41 +145,41 @@ class basexmpp(object):
 		self.sendRaw(data)
 		if mask is not None:
 			return waitfor.wait(timeout)
-	
+
 	def makeIq(self, id=0, ifrom=None):
-		return self.Iq().setValues({'id': id, 'from': ifrom})
-	
+		return self.Iq().setStanzaValues({'id': str(id), 'from': ifrom})
+
 	def makeIqGet(self, queryxmlns = None):
-		iq = self.Iq().setValues({'type': 'get'})
+		iq = self.Iq().setStanzaValues({'type': 'get'})
 		if queryxmlns:
 			iq.append(ET.Element("{%s}query" % queryxmlns))
 		return iq
-	
+
 	def makeIqResult(self, id):
-		return self.Iq().setValues({'id': id, 'type': 'result'})
-	
+		return self.Iq().setStanzaValues({'id': id, 'type': 'result'})
+
 	def makeIqSet(self, sub=None):
-		iq = self.Iq().setValues({'type': 'set'})
+		iq = self.Iq().setStanzaValues({'type': 'set'})
 		if sub != None:
 			iq.append(sub)
 		return iq
 
 	def makeIqError(self, id, type='cancel', condition='feature-not-implemented', text=None):
-		iq = self.Iq().setValues({'id': id})
-		iq['error'].setValues({'type': type, 'condition': condition, 'text': text})
+		iq = self.Iq().setStanzaValues({'id': id})
+		iq['error'].setStanzaValues({'type': type, 'condition': condition, 'text': text})
 		return iq
 
 	def makeIqQuery(self, iq, xmlns):
 		query = ET.Element("{%s}query" % xmlns)
 		iq.append(query)
 		return iq
-	
+
 	def makeQueryRoster(self, iq=None):
 		query = ET.Element("{jabber:iq:roster}query")
 		if iq:
 			iq.append(query)
 		return query
-	
+
 	def add_event_handler(self, name, pointer, threaded=False, disposable=False):
 		if not name in self.event_handlers:
 			self.event_handlers[name] = []
@@ -194,27 +189,28 @@ class basexmpp(object):
 		"""Remove a handler for an event."""
 		if not name in self.event_handlers:
 			return
-		
+
 		# Need to keep handlers that do not use
 		# the given function pointer
 		def filter_pointers(handler):
 			return handler[0] != pointer
 
-		self.event_handlers[name] = filter(filter_pointers, 
+		self.event_handlers[name] = filter(filter_pointers,
 						   self.event_handlers[name])
 
 	def event(self, name, eventdata = {}): # called on an event
 		for handler in self.event_handlers.get(name, []):
+			handlerdata = copy.copy(eventdata)
 			if handler[1]: #if threaded
 				#thread.start_new(handler[0], (eventdata,))
-				x = threading.Thread(name="Event_%s" % str(handler[0]), target=handler[0], args=(eventdata,))
+				x = threading.Thread(name="Event_%s" % str(handler[0]), target=handler[0], args=(handlerdata,))
 				x.start()
 			else:
-				handler[0](eventdata)
+				handler[0](handlerdata)
 			if handler[2]: #disposable
 				with self.lock:
 					self.event_handlers[name].pop(self.event_handlers[name].index(handler))
-	
+
 	def makeMessage(self, mto, mbody=None, msubject=None, mtype=None, mhtml=None, mfrom=None, mnick=None):
 		message = self.Message(sto=mto, stype=mtype, sfrom=mfrom)
 		message['body'] = mbody
@@ -222,7 +218,7 @@ class basexmpp(object):
 		if mnick is not None: message['nick'] = mnick
 		if mhtml is not None: message['html']['html'] = mhtml
 		return message
-	
+
 	def makePresence(self, pshow=None, pstatus=None, ppriority=None, pto=None, ptype=None, pfrom=None):
 		presence = self.Presence(stype=ptype, sfrom=pfrom, sto=pto)
 		if pshow is not None: presence['type'] = pshow
@@ -231,10 +227,10 @@ class basexmpp(object):
 		presence['priority'] = ppriority
 		presence['status'] = pstatus
 		return presence
-	
+
 	def sendMessage(self, mto, mbody, msubject=None, mtype=None, mhtml=None, mfrom=None, mnick=None):
 		self.send(self.makeMessage(mto,mbody,msubject,mtype,mhtml,mfrom,mnick))
-	
+
 	def sendPresence(self, pshow=None, pstatus=None, ppriority=None, pto=None, pfrom=None, ptype=None):
 		self.send(self.makePresence(pshow,pstatus,ppriority,pto, ptype=ptype, pfrom=pfrom))
 		if not self.sentpresence:
@@ -248,19 +244,19 @@ class basexmpp(object):
 			nick.text = pnick
 			presence.append(nick)
 		self.send(presence)
-	
+
 	def getjidresource(self, fulljid):
 		if '/' in fulljid:
 			return fulljid.split('/', 1)[-1]
 		else:
 			return ''
-	
+
 	def getjidbare(self, fulljid):
 		return fulljid.split('/', 1)[0]
 
 	def _handleMessage(self, msg):
 		self.event('message', msg)
-	
+
 	def _handlePresence(self, presence):
 		"""Update roster items based on presence"""
 		self.event("presence_%s" % presence['type'], presence)
@@ -301,7 +297,7 @@ class basexmpp(object):
 		if name:
 			name = "(%s) " % name
 		logging.debug("STATUS: %s%s/%s[%s]: %s" % (name, jid, resource, show,status))
-	
+
 	def _handlePresenceSubscribe(self, presence):
 		"""Handling subscriptions automatically."""
 		if self.auto_authorize == True:

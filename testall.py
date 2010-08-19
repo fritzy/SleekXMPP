@@ -1,4 +1,4 @@
-#!/usr/bin/python2.6
+#!/usr/bin/env python
 import unittest
 import logging
 import sys
@@ -21,7 +21,7 @@ class testoverall(unittest.TestCase):
 		self.failIf(tabnanny.check("." + os.sep + 'sleekxmpp'))
 		#raise "Help!"
 
-	def testMethodLength(self):
+	def disabled_testMethodLength(self):
 		"""Testing for excessive method lengths"""
 		import re
 		dirs = os.walk(sys.path[0] + os.sep + 'sleekxmpp')

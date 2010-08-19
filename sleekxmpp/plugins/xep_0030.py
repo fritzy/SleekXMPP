@@ -3,14 +3,14 @@
     Copyright (C) 2010 Nathanael C. Fritz, Lance J.T. Stout
     This file is part of SleekXMPP.
 
-    See the file license.txt for copying permissio
+    See the file LICENSE for copying permission.
 """
 
 import logging
 from . import base
 from .. xmlstream.handler.callback import Callback
 from .. xmlstream.matcher.xpath import MatchXPath
-from .. xmlstream.stanzabase import ElementBase, ET, JID
+from .. xmlstream.stanzabase import registerStanzaPlugin, ElementBase, ET, JID
 from .. stanza.iq import Iq
 
 class DiscoInfo(ElementBase):
@@ -138,6 +138,9 @@ class DiscoNode(object):
 		self.info = DiscoInfo()
 		self.items = DiscoItems()
 
+		self.info['node'] = name
+		self.items['node'] = name
+
 		# This is a bit like poor man's inheritance, but
 		# to simplify adding information to the node we 
 		# map node functions to either the info or items
@@ -201,8 +204,8 @@ class xep_0030(base.base_plugin):
 								  DiscoInfo.namespace)),
 				 self.handle_info_query))
 
-		self.xmpp.stanzaPlugin(Iq, DiscoInfo)
-		self.xmpp.stanzaPlugin(Iq, DiscoItems)
+		registerStanzaPlugin(Iq, DiscoInfo)
+		registerStanzaPlugin(Iq, DiscoItems)
 
 		self.xmpp.add_event_handler('disco_items_request', self.handle_disco_items)
 		self.xmpp.add_event_handler('disco_info_request', self.handle_disco_info)
@@ -290,21 +293,21 @@ class xep_0030(base.base_plugin):
 
 	# Older interface methods for backwards compatibility
 
-	def getInfo(self, jid, node=''):
+	def getInfo(self, jid, node='', dfrom=None):
 		iq = self.xmpp.Iq()
 		iq['type'] = 'get'
 		iq['to'] = jid
-		iq['from'] = self.xmpp.fulljid
+		iq['from'] = dfrom
 		iq['disco_info']['node'] = node
-		iq.send()
+		return iq.send()
 
-	def getItems(self, jid, node=''):
+	def getItems(self, jid, node='', dfrom=None):
 		iq = self.xmpp.Iq()
 		iq['type'] = 'get'
 		iq['to'] = jid
-		iq['from'] = self.xmpp.fulljid
+		iq['from'] = dfrom
 		iq['disco_items']['node'] = node
-		iq.send()
+		return iq.send()
 	
 	def add_feature(self, feature, node='main'):
 		self.add_node(node)

@@ -1,27 +1,15 @@
 """
-	SleekXMPP: The Sleek XMPP Library
-	Copyright (C) 2007  Nathanael C. Fritz
-	This file is part of SleekXMPP.
-
-	SleekXMPP is free software; you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; either version 2 of the License, or
-	(at your option) any later version.
-
-	SleekXMPP is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with SleekXMPP; if not, write to the Free Software
-	Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+    SleekXMPP: The Sleek XMPP Library
+    Copyright (C) 2010 Nathanael C. Fritz
+    This file is part of SleekXMPP.
+    
+    See the file LICENSE for copying permission.
 """
 from __future__ import with_statement
 from . import base
 import logging
 from xml.etree import cElementTree as ET
-from .. xmlstream.stanzabase import ElementBase, JID
+from .. xmlstream.stanzabase import registerStanzaPlugin, ElementBase, JID
 from .. stanza.presence import Presence
 from .. xmlstream.handler.callback import Callback
 from .. xmlstream.matcher.xpath import MatchXPath
@@ -125,7 +113,7 @@ class xep_0045(base.base_plugin):
 		self.xep = '0045'
 		self.description = 'Multi User Chat'
 		# load MUC support in presence stanzas
-		self.xmpp.stanzaPlugin(Presence, MUCPresence)
+		registerStanzaPlugin(Presence, MUCPresence)
 		self.xmpp.registerHandler(Callback('MUCPresence', MatchXMLMask("<presence xmlns='%s' />" % self.xmpp.default_ns), self.handle_groupchat_presence))
 		self.xmpp.registerHandler(Callback('MUCMessage', MatchXMLMask("<message xmlns='%s' type='groupchat'><body/></message>" % self.xmpp.default_ns), self.handle_groupchat_message))
 	
@@ -134,7 +122,7 @@ class xep_0045(base.base_plugin):
 		"""
 		if pr['muc']['room'] not in self.rooms.keys():
 			return
-		entry = pr['muc'].getValues()
+		entry = pr['muc'].getStanzaValues()
 		if pr['type'] == 'unavailable':
 			del self.rooms[entry['room']][entry['nick']]
 		else:
@@ -166,13 +154,13 @@ class xep_0045(base.base_plugin):
 			return False
 		xform = result.xml.find('{http://jabber.org/protocol/muc#owner}query/{jabber:x:data}x')
 		if xform is None: return False
-		form = self.xmpp.plugin['xep_0004'].buildForm(xform)
+		form = self.xmpp.plugin['old_0004'].buildForm(xform)
 		return form
 	
 	def configureRoom(self, room, form=None, ifrom=None):
 		if form is None:
 			form = self.getRoomForm(room, ifrom=ifrom)
-			#form = self.xmpp.plugin['xep_0004'].makeForm(ftype='submit')
+			#form = self.xmpp.plugin['old_0004'].makeForm(ftype='submit')
 			#form.addField('FORM_TYPE', value='http://jabber.org/protocol/muc#roomconfig')	
 		iq = self.xmpp.makeIqSet()
 		iq['to'] = room
@@ -274,7 +262,7 @@ class xep_0045(base.base_plugin):
 		form = result.xml.find('{http://jabber.org/protocol/muc#owner}query/{jabber:x:data}x')
 		if form is None:
 			raise ValueError
-		return self.xmpp.plugin['xep_0004'].buildForm(form)
+		return self.xmpp.plugin['old_0004'].buildForm(form)
 	
 	def cancelConfig(self, room):
 		query = ET.Element('{http://jabber.org/protocol/muc#owner}query')

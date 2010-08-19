@@ -178,9 +178,12 @@ class xep_0009(base.base_plugin):
 	def plugin_init(self):
 		self.xep = '0009'
 		self.description = 'Jabber-RPC'
-		self.xmpp.add_handler("<iq type='set'><query xmlns='jabber:iq:rpc' /></iq>", self._callMethod)
-		self.xmpp.add_handler("<iq type='result'><query xmlns='jabber:iq:rpc' /></iq>", self._callResult)
-		self.xmpp.add_handler("<iq type='error'><query xmlns='jabber:iq:rpc' /></iq>", self._callError)
+		self.xmpp.add_handler("<iq type='set'><query xmlns='jabber:iq:rpc' /></iq>", 
+                                      self._callMethod, name='Jabber RPC Call')
+		self.xmpp.add_handler("<iq type='result'><query xmlns='jabber:iq:rpc' /></iq>", 
+                                      self._callResult, name='Jabber RPC Result')
+		self.xmpp.add_handler("<iq type='error'><query xmlns='jabber:iq:rpc' /></iq>", 
+                                      self._callError, name='Jabber RPC Error')
 		self.entries = {}
 		self.activeCalls = []
 

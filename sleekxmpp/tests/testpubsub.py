@@ -1,19 +1,9 @@
 """
+    SleekXMPP: The Sleek XMPP Library
+    Copyright (C) 2010 Nathanael C. Fritz
     This file is part of SleekXMPP.
-
-    SleekXMPP is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    SleekXMPP is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with SleekXMPP; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+    
+    See the file LICENSE for copying permission.
 """
 
 import logging
@@ -34,9 +24,9 @@ class testps(sleekxmpp.ClientXMPP):
 		self.registerPlugin('xep_0030')
 		self.registerPlugin('xep_0060')
 		self.registerPlugin('xep_0092')
-		self.add_handler("<message xmlns='jabber:client'><event xmlns='http://jabber.org/protocol/pubsub#event' /></message>", self.pubsubEventHandler, threaded=True)
+		self.add_handler("<message xmlns='jabber:client'><event xmlns='http://jabber.org/protocol/pubsub#event' /></message>", self.pubsubEventHandler, name='Pubsub Event', threaded=True)
 		self.add_event_handler("session_start", self.start, threaded=True)
-		self.add_handler("<iq type='error' />", self.handleError)
+		self.add_handler("<iq type='error' />", self.handleError, name='Iq Error')
 		self.events = Queue.Queue()
 		self.default_config = None
 		self.ps = self.plugin['xep_0060']

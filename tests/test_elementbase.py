@@ -115,8 +115,11 @@ class TestElementBase(SleekTest):
         class TestStanza(ElementBase):
             name = "foo"
             namespace = "foo"
-            interfaces = set(('bar', 'baz'))
+            interfaces = set(('bar', 'baz', 'qux'))
             sub_interfaces = set(('baz',))
+
+            def getQux(self):
+              return 'qux'
 
         class TestStanzaPlugin(ElementBase):
             name = "foobar"
@@ -132,12 +135,14 @@ class TestElementBase(SleekTest):
         stanza.append(substanza)
         stanza.setStanzaValues({'bar': 'a',
                                 'baz': 'b',
+                                'qux': 42,
                                 'foobar': {'fizz': 'c'}})
 
         # Test non-plugin interfaces
         expected = {'substanzas': [substanza],
                     'bar': 'a',
                     'baz': 'b',
+                    'qux': 'qux',
                     'meh': ''}
         for interface, value in expected.items():
             result = stanza[interface]
@@ -149,6 +154,40 @@ class TestElementBase(SleekTest):
                         "Incorrect plugin object result.")
         self.failUnless(stanza['foobar']['fizz'] == 'c',
                         "Incorrect plugin subvalue result.")
+
+    def testSetItem(self):
+        """Test assigning to stanza interfaces."""
+
+        class TestStanza(ElementBase):
+            name = "foo"
+            namespace = "foo"
+            interfaces = set(('bar', 'baz', 'qux'))
+            sub_interfaces = set(('baz',))
+
+            def setQux(self, value):
+                pass
+
+        class TestStanzaPlugin(ElementBase):
+            name = "foobar"
+            namespace = "foo"
+            plugin_attrib = "foobar"
+            interfaces = set(('foobar',))
+
+        registerStanzaPlugin(TestStanza, TestStanzaPlugin)
+
+        stanza = TestStanza()
+
+        stanza['bar'] = 'attribute!'
+        stanza['baz'] = 'element!'
+        stanza['qux'] = 'overridden'
+        stanza['foobar'] = 'plugin'
+
+        self.checkStanza(TestStanza, stanza, """
+          <foo xmlns="foo" bar="attribute!">
+            <baz>element!</baz>
+            <foobar foobar="plugin" />
+          </foo>
+        """)
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestElementBase)

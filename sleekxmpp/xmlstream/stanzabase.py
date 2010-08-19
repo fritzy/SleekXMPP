@@ -225,6 +225,50 @@ class ElementBase(object):
         else:
             return ''
 
+    def __setitem__(self, attrib, value):
+        """
+        Set the value of a stanza interface using dictionary-like syntax.
+
+        Example:
+            >>> msg['body'] = "Hi!"
+            >>> msg['body']
+            'Hi!'
+
+        Stanza interfaces are typically mapped directly to the underlying XML
+        object, but can be overridden by the presence of a setAttrib method
+        (or setFoo where the interface is named foo, etc).
+
+        The effect of interface value assignment for an interface
+        named 'foo' will be one of:
+            1. Delete the interface's contents if the value is None.
+            2. Call setFoo, if it exists.
+            3. Set the text of a foo element, if foo is in sub_interfaces.
+            4. Set the value of a top level XML attribute name foo.
+            5. Attempt to pass value to a plugin named foo using the plugin's
+               foo interface.
+            6. Do nothing.
+
+        Arguments:
+            attrib -- The name of the stanza interface to modify.
+            value  -- The new value of the stanza interface.
+        """
+        if attrib in self.interfaces:
+            if value is not None:
+                if hasattr(self, "set%s" % attrib.title()):
+                    getattr(self, "set%s" % attrib.title())(value,)
+                else:
+                    if attrib in self.sub_interfaces:
+                        return self._setSubText(attrib, text=value)
+                    else:
+                        self._setAttr(attrib, value)
+            else:
+                self.__delitem__(attrib)
+        elif attrib in self.plugin_attrib_map:
+            if attrib not in self.plugins:
+                self.initPlugin(attrib)
+            self.plugins[attrib][attrib] = value
+        return self
+
     @property
     def attrib(self): #backwards compatibility
             return self
@@ -307,24 +351,6 @@ class ElementBase(object):
 
     def findall(self, xpath):
             return self.xml.findall(xpath)
-
-    def __setitem__(self, attrib, value):
-            if attrib in self.interfaces:
-                    if value is not None:
-                            if hasattr(self, "set%s" % attrib.title()):
-                                    getattr(self, "set%s" % attrib.title())(value,)
-                            else:
-                                    if attrib in self.sub_interfaces:
-                                            return self._setSubText(attrib, text=value)
-                                    else:
-                                            self._setAttr(attrib, value)
-                    else:
-                            self.__delitem__(attrib)
-            elif attrib in self.plugin_attrib_map:
-                    if attrib not in self.plugins: self.initPlugin(attrib)
-                    self.initPlugin(attrib)
-                    self.plugins[attrib][attrib] = value
-            return self
 
     def __delitem__(self, attrib):
             if attrib.lower() in self.interfaces:

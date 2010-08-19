@@ -254,8 +254,9 @@ class ElementBase(object):
         """
         if attrib in self.interfaces:
             if value is not None:
-                if hasattr(self, "set%s" % attrib.title()):
-                    getattr(self, "set%s" % attrib.title())(value,)
+                set_method = "set%s" % attrib.title()
+                if hasattr(self, set_method):
+                    getattr(self, set_method)(value,)
                 else:
                     if attrib in self.sub_interfaces:
                         return self._setSubText(attrib, text=value)

@@ -189,5 +189,46 @@ class TestElementBase(SleekTest):
           </foo>
         """)
 
+    def testDelItem(self):
+        """Test deleting stanza interface values."""
+
+        class TestStanza(ElementBase):
+            name = "foo"
+            namespace = "foo"
+            interfaces = set(('bar', 'baz', 'qux'))
+            sub_interfaces = set(('bar',))
+
+            def delQux(self):
+                pass
+
+        class TestStanzaPlugin(ElementBase):
+            name = "foobar"
+            namespace = "foo"
+            plugin_attrib = "foobar"
+            interfaces = set(('foobar',))
+
+        registerStanzaPlugin(TestStanza, TestStanzaPlugin)
+
+        stanza = TestStanza()
+        stanza['bar'] = 'a'
+        stanza['baz'] = 'b'
+        stanza['qux'] = 'c'
+        stanza['foobar']['foobar'] = 'd'
+
+        self.checkStanza(TestStanza, stanza, """
+          <foo xmlns="foo" baz="b" qux="c">
+            <bar>a</bar>
+            <foobar foobar="d" />
+          </foo>
+        """)
+
+        del stanza['bar']
+        del stanza['baz']
+        del stanza['qux']
+        del stanza['foobar']
+
+        self.checkStanza(TestStanza, stanza, """
+          <foo xmlns="foo" qux="c" />
+        """)
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestElementBase)

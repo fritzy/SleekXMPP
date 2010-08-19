@@ -269,6 +269,44 @@ class ElementBase(object):
             self.plugins[attrib][attrib] = value
         return self
 
+    def __delitem__(self, attrib):
+        """
+        Delete the value of a stanza interface using dictionary-like syntax.
+
+        Example:
+            >>> msg['body'] = "Hi!"
+            >>> msg['body']
+            'Hi!'
+            >>> del msg['body']
+            >>> msg['body']
+            ''
+
+        Stanza interfaces are typically mapped directly to the underlyig XML
+        object, but can be overridden by the presence of a delAttrib method
+        (or delFoo where the interface is named foo, etc).
+
+        The effect of deleting a stanza interface value named foo will be
+        one of:
+            1. Call delFoo, if it exists.
+            2. Delete foo element, if foo is in sub_interfaces.
+            3. Delete top level XML attribute named foo.
+            4. Remove the foo plugin, if it was loaded.
+            5. Do nothing.
+        """
+        if attrib in self.interfaces:
+            del_method = "del%s" % attrib.title()
+            if hasattr(self, del_method):
+                getattr(self, del_method)()
+            else:
+                if attrib in self.sub_interfaces:
+                    return self._delSub(attrib)
+                else:
+                    self._delAttr(attrib)
+        elif attrib in self.plugin_attrib_map:
+            if attrib in self.plugins:
+                del self.plugins[attrib]
+        return self
+
     @property
     def attrib(self): #backwards compatibility
             return self
@@ -351,20 +389,6 @@ class ElementBase(object):
 
     def findall(self, xpath):
             return self.xml.findall(xpath)
-
-    def __delitem__(self, attrib):
-            if attrib.lower() in self.interfaces:
-                    if hasattr(self, "del%s" % attrib.title()):
-                            getattr(self, "del%s" % attrib.title())()
-                    else:
-                            if attrib in self.sub_interfaces:
-                                    return self._delSub(attrib)
-                            else:
-                                    self._delAttr(attrib)
-            elif attrib in self.plugin_attrib_map:
-                    if attrib in self.plugins:
-                            del self.plugins[attrib]
-            return self
 
     def __eq__(self, other):
             if not isinstance(other, ElementBase):

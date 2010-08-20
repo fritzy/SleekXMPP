@@ -40,7 +40,7 @@ class jobs(base.base_plugin):
 		iq['psstate']['payload'] = state
 		result = iq.send()
 		if result is None or type(result) == types.BooleanType or result['type'] != 'result':
-            logging.error("Unable to change %s:%s to %s" % (node, jobid, state))
+			logging.error("Unable to change %s:%s to %s" % (node, jobid, state))
 			return False
 		return True
 

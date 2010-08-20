@@ -23,6 +23,15 @@ class Form(ElementBase):
 	sub_interfaces = set(('title',))
 	form_types = set(('cancel', 'form', 'result', 'submit'))
 
+	def __init__(self, *args, **kwargs):
+		title = None
+		if 'title' in kwargs:
+			title = kwargs['title']
+			del kwargs['title']
+		ElementBase.__init__(self, *args, **kwargs)
+		if title is not None:
+			self['title'] = title
+	
 	def setup(self, xml=None):
 		if ElementBase.setup(self, xml): #if we had to generate xml
 			self['type'] = 'form'
@@ -338,6 +347,13 @@ class xep_0004(base.base_plugin):
 		registerStanzaPlugin(FormField, FieldOption)
 		registerStanzaPlugin(Form, FormField)
 		registerStanzaPlugin(Message, Form)
+	
+	def makeForm(self, ftype='form', title='', instructions=''):
+		f = Form()
+		f['type'] = ftype
+		f['title'] = title
+		f['instructions'] = instructions
+		return f
 	
 	def post_init(self):
 		base.base_plugin.post_init(self)

@@ -254,8 +254,9 @@ class ElementBase(object):
         """
         if attrib in self.interfaces:
             if value is not None:
-                if hasattr(self, "set%s" % attrib.title()):
-                    getattr(self, "set%s" % attrib.title())(value,)
+                set_method = "set%s" % attrib.title()
+                if hasattr(self, set_method):
+                    getattr(self, set_method)(value,)
                 else:
                     if attrib in self.sub_interfaces:
                         return self._setSubText(attrib, text=value)
@@ -268,6 +269,90 @@ class ElementBase(object):
                 self.initPlugin(attrib)
             self.plugins[attrib][attrib] = value
         return self
+
+    def __delitem__(self, attrib):
+        """
+        Delete the value of a stanza interface using dictionary-like syntax.
+
+        Example:
+            >>> msg['body'] = "Hi!"
+            >>> msg['body']
+            'Hi!'
+            >>> del msg['body']
+            >>> msg['body']
+            ''
+
+        Stanza interfaces are typically mapped directly to the underlyig XML
+        object, but can be overridden by the presence of a delAttrib method
+        (or delFoo where the interface is named foo, etc).
+
+        The effect of deleting a stanza interface value named foo will be
+        one of:
+            1. Call delFoo, if it exists.
+            2. Delete foo element, if foo is in sub_interfaces.
+            3. Delete top level XML attribute named foo.
+            4. Remove the foo plugin, if it was loaded.
+            5. Do nothing.
+
+        Arguments:
+            attrib -- The name of the affected stanza interface.
+        """
+        if attrib in self.interfaces:
+            del_method = "del%s" % attrib.title()
+            if hasattr(self, del_method):
+                getattr(self, del_method)()
+            else:
+                if attrib in self.sub_interfaces:
+                    return self._delSub(attrib)
+                else:
+                    self._delAttr(attrib)
+        elif attrib in self.plugin_attrib_map:
+            if attrib in self.plugins:
+                del self.plugins[attrib]
+        return self
+
+    def _setAttr(self, name, value):
+        """
+        Set the value of a top level attribute of the underlying XML object.
+
+        If the new value is None or an empty string, then the attribute will
+        be removed.
+
+        Arguments:
+            name  -- The name of the attribute.
+            value -- The new value of the attribute, or None or '' to
+                     remove it.
+        """
+        if value is None or value == '':
+            self.__delitem__(name)
+        else:
+            self.xml.attrib[name] = value
+
+    def _delAttr(self, name):
+        """
+        Remove a top level attribute of the underlying XML object.
+
+        Arguments:
+            name -- The name of the attribute.
+        """
+        if name in self.xml.attrib:
+            del self.xml.attrib[name]
+
+    def _getAttr(self, name, default=''):
+        """
+        Return the value of a top level attribute of the underlying
+        XML object.
+
+        In case the attribute has not been set, a default value can be
+        returned instead. An empty string is returned if no other default
+        is supplied.
+
+        Arguments:
+            name    -- The name of the attribute.
+            default -- Optional value to return if the attribute has not
+                       been set. An empty string is returned otherwise.
+        """
+        return self.xml.attrib.get(name, default)
 
     @property
     def attrib(self): #backwards compatibility
@@ -352,20 +437,6 @@ class ElementBase(object):
     def findall(self, xpath):
             return self.xml.findall(xpath)
 
-    def __delitem__(self, attrib):
-            if attrib.lower() in self.interfaces:
-                    if hasattr(self, "del%s" % attrib.title()):
-                            getattr(self, "del%s" % attrib.title())()
-                    else:
-                            if attrib in self.sub_interfaces:
-                                    return self._delSub(attrib)
-                            else:
-                                    self._delAttr(attrib)
-            elif attrib in self.plugin_attrib_map:
-                    if attrib in self.plugins:
-                            del self.plugins[attrib]
-            return self
-
     def __eq__(self, other):
             if not isinstance(other, ElementBase):
                     return False
@@ -374,19 +445,6 @@ class ElementBase(object):
                     if key not in values or values[key] != other[key]:
                             return False
             return True
-
-    def _setAttr(self, name, value):
-            if value is None or value == '':
-                    self.__delitem__(name)
-            else:
-                    self.xml.attrib[name] = value
-
-    def _delAttr(self, name):
-            if name in self.xml.attrib:
-                    del self.xml.attrib[name]
-
-    def _getAttr(self, name, default=''):
-            return self.xml.attrib.get(name, default)
 
     def _getSubText(self, name):
             if '}' not in name:

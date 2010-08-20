@@ -189,5 +189,83 @@ class TestElementBase(SleekTest):
           </foo>
         """)
 
+    def testDelItem(self):
+        """Test deleting stanza interface values."""
+
+        class TestStanza(ElementBase):
+            name = "foo"
+            namespace = "foo"
+            interfaces = set(('bar', 'baz', 'qux'))
+            sub_interfaces = set(('bar',))
+
+            def delQux(self):
+                pass
+
+        class TestStanzaPlugin(ElementBase):
+            name = "foobar"
+            namespace = "foo"
+            plugin_attrib = "foobar"
+            interfaces = set(('foobar',))
+
+        registerStanzaPlugin(TestStanza, TestStanzaPlugin)
+
+        stanza = TestStanza()
+        stanza['bar'] = 'a'
+        stanza['baz'] = 'b'
+        stanza['qux'] = 'c'
+        stanza['foobar']['foobar'] = 'd'
+
+        self.checkStanza(TestStanza, stanza, """
+          <foo xmlns="foo" baz="b" qux="c">
+            <bar>a</bar>
+            <foobar foobar="d" />
+          </foo>
+        """)
+
+        del stanza['bar']
+        del stanza['baz']
+        del stanza['qux']
+        del stanza['foobar']
+
+        self.checkStanza(TestStanza, stanza, """
+          <foo xmlns="foo" qux="c" />
+        """)
+
+    def testModifyingAttributes(self):
+        """Test modifying top level attributes of a stanza's XML object."""
+
+        class TestStanza(ElementBase):
+            name = "foo"
+            namespace = "foo"
+            interfaces = set(('bar', 'baz'))
+
+        stanza = TestStanza()
+
+        self.checkStanza(TestStanza, stanza, """
+          <foo xmlns="foo" />
+        """)
+
+        self.failUnless(stanza._getAttr('bar') == '',
+            "Incorrect value returned for an unset XML attribute.")
+
+        stanza._setAttr('bar', 'a')
+        stanza._setAttr('baz', 'b')
+
+        self.checkStanza(TestStanza, stanza, """
+          <foo xmlns="foo" bar="a" baz="b" />
+        """)
+
+        self.failUnless(stanza._getAttr('bar') == 'a',
+            "Retrieved XML attribute value is incorrect.")
+
+        stanza._setAttr('bar', None)
+        stanza._delAttr('baz')
+
+        self.checkStanza(TestStanza, stanza, """
+          <foo xmlns="foo" />
+        """)
+
+        self.failUnless(stanza._getAttr('bar', 'c') == 'c',
+            "Incorrect default value returned for an unset XML attribute.")
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestElementBase)

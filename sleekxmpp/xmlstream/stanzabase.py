@@ -293,6 +293,9 @@ class ElementBase(object):
             3. Delete top level XML attribute named foo.
             4. Remove the foo plugin, if it was loaded.
             5. Do nothing.
+
+        Arguments:
+            attrib -- The name of the affected stanza interface.
         """
         if attrib in self.interfaces:
             del_method = "del%s" % attrib.title()
@@ -307,6 +310,49 @@ class ElementBase(object):
             if attrib in self.plugins:
                 del self.plugins[attrib]
         return self
+
+    def _setAttr(self, name, value):
+        """
+        Set the value of a top level attribute of the underlying XML object.
+
+        If the new value is None or an empty string, then the attribute will
+        be removed.
+
+        Arguments:
+            name  -- The name of the attribute.
+            value -- The new value of the attribute, or None or '' to
+                     remove it.
+        """
+        if value is None or value == '':
+            self.__delitem__(name)
+        else:
+            self.xml.attrib[name] = value
+
+    def _delAttr(self, name):
+        """
+        Remove a top level attribute of the underlying XML object.
+
+        Arguments:
+            name -- The name of the attribute.
+        """
+        if name in self.xml.attrib:
+            del self.xml.attrib[name]
+
+    def _getAttr(self, name, default=''):
+        """
+        Return the value of a top level attribute of the underlying
+        XML object.
+
+        In case the attribute has not been set, a default value can be
+        returned instead. An empty string is returned if no other default
+        is supplied.
+
+        Arguments:
+            name    -- The name of the attribute.
+            default -- Optional value to return if the attribute has not
+                       been set. An empty string is returned otherwise.
+        """
+        return self.xml.attrib.get(name, default)
 
     @property
     def attrib(self): #backwards compatibility
@@ -399,19 +445,6 @@ class ElementBase(object):
                     if key not in values or values[key] != other[key]:
                             return False
             return True
-
-    def _setAttr(self, name, value):
-            if value is None or value == '':
-                    self.__delitem__(name)
-            else:
-                    self.xml.attrib[name] = value
-
-    def _delAttr(self, name):
-            if name in self.xml.attrib:
-                    del self.xml.attrib[name]
-
-    def _getAttr(self, name, default=''):
-            return self.xml.attrib.get(name, default)
 
     def _getSubText(self, name):
             if '}' not in name:

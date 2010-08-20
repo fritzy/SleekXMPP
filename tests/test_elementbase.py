@@ -231,4 +231,41 @@ class TestElementBase(SleekTest):
           <foo xmlns="foo" qux="c" />
         """)
 
+    def testModifyingAttributes(self):
+        """Test modifying top level attributes of a stanza's XML object."""
+
+        class TestStanza(ElementBase):
+            name = "foo"
+            namespace = "foo"
+            interfaces = set(('bar', 'baz'))
+
+        stanza = TestStanza()
+
+        self.checkStanza(TestStanza, stanza, """
+          <foo xmlns="foo" />
+        """)
+
+        self.failUnless(stanza._getAttr('bar') == '',
+            "Incorrect value returned for an unset XML attribute.")
+
+        stanza._setAttr('bar', 'a')
+        stanza._setAttr('baz', 'b')
+
+        self.checkStanza(TestStanza, stanza, """
+          <foo xmlns="foo" bar="a" baz="b" />
+        """)
+
+        self.failUnless(stanza._getAttr('bar') == 'a',
+            "Retrieved XML attribute value is incorrect.")
+
+        stanza._setAttr('bar', None)
+        stanza._delAttr('baz')
+
+        self.checkStanza(TestStanza, stanza, """
+          <foo xmlns="foo" />
+        """)
+
+        self.failUnless(stanza._getAttr('bar', 'c') == 'c',
+            "Incorrect default value returned for an unset XML attribute.")
+
 suite = unittest.TestLoader().loadTestsFromTestCase(TestElementBase)

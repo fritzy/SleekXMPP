@@ -284,6 +284,14 @@ class DefaultConfig(ElementBase):
 		t = self._getAttr('type')
 		if not t: t = 'leaf'
 		return t
+	
+	def getConfig(self):
+		return self['form']
+	
+	def setConfig(self, value):
+		self['form'].setStanzaValues(value.getStanzaValues())
+		print self['form']['title']
+		return self
 
 registerStanzaPlugin(PubsubOwner, DefaultConfig)
 registerStanzaPlugin(DefaultConfig, xep_0004.Form)
@@ -356,8 +364,17 @@ class OwnerDefault(OwnerConfigure):
 	interfaces = set(('node', 'config'))
 	plugin_attrib_map = {}
 	plugin_tag_map = {}
+	
+	def getConfig(self):
+		return self['form']
+	
+	def setConfig(self, value):
+		self['form'].setStanzaValues(value.getStanzaValues())
+		print self['from']['title']
+		return self
 
 registerStanzaPlugin(PubsubOwner, OwnerDefault)
+registerStanzaPlugin(OwnerDefault, xep_0004.Form)
 
 class OwnerDelete(ElementBase, OptionalSetting):
 	namespace = 'http://jabber.org/protocol/pubsub#owner'

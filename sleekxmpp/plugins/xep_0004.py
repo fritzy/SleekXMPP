@@ -31,6 +31,7 @@ class Form(ElementBase):
 		ElementBase.__init__(self, *args, **kwargs)
 		if title is not None:
 			self['title'] = title
+		self.field = FieldAccessor(self)
 	
 	def setup(self, xml=None):
 		if ElementBase.setup(self, xml): #if we had to generate xml
@@ -111,7 +112,7 @@ class Form(ElementBase):
 		reportedXML = self.xml.find('{%s}reported' % self.namespace)
 		if reportedXML is not None:
 			self.xml.remove(reportedXML)
-
+	
 	def getFields(self, use_dict=False):
 		fields = {} if use_dict else []
 		fieldsXML = self.xml.findall('{%s}field' % FormField.namespace)    
@@ -195,6 +196,27 @@ class Form(ElementBase):
 		fields = self.getFields(use_dict=True)
 		for field in values:
 			fields[field]['value'] = values[field]
+	
+	def merge(self, other):
+		new = copy.copy(self)
+		nfields = new.getFields(use_dict=True)
+		ofields = other.getFields(use_dict=True)
+		nfields.update(ofields)
+		new.setFields([(x, nfields[x]) for x in nfields])
+		return new
+
+class FieldAccessor(object):
+	def __init__(self, form):
+		self.form = form
+	
+	def __getitem__(self, key):
+		return self.form.getFields(use_dict=True)[key]
+
+	def __contains__(self, key):
+		return key in self.form.getFields(use_dict=True)
+
+	def has_key(self, key):
+		return key in self.form.getFields(use_dict=True)
 
 
 class FormField(ElementBase):

@@ -4,6 +4,7 @@ import logging
 #from xml.etree import cElementTree as ET
 from .. xmlstream.stanzabase import registerStanzaPlugin, ElementBase, ET
 from . import stanza_pubsub
+from . xep_0004 import Form
 
 class xep_0060(base.base_plugin):
 	"""
@@ -41,7 +42,8 @@ class xep_0060(base.base_plugin):
 					submitform.field['pubsub#node_type'].setValue('leaf')
 				else:
 					submitform.addField('pubsub#node_type', value='leaf')
-			configure.append(submitform.getXML('submit'))
+			submitform['type'] = 'submit'
+			configure.append(submitform.xml)
 		pubsub.append(configure)
 		iq = self.xmpp.makeIqSet(pubsub)
 		iq.attrib['to'] = jid
@@ -117,7 +119,7 @@ class xep_0060(base.base_plugin):
 		if not form or form is None:
 			logging.error("No form found.")
 			return False
-		return self.xmpp.plugin['xep_0004'].buildForm(form)
+		return Form(xml=form)
 	
 	def getNodeSubscriptions(self, jid, node):
 		pubsub = ET.Element('{http://jabber.org/protocol/pubsub#owner}pubsub')

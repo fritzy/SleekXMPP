@@ -362,7 +362,10 @@ class ElementBase(object):
             self.idx = 0
             return self
 
-    def __bool__(self):
+    def __bool__(self): #python 3.x
+            return True
+    
+    def __nonzero__(self): #python 2.x
             return True
 
     def __next__(self):

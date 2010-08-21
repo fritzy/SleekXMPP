@@ -59,24 +59,24 @@ class JID(object):
         if name == 'resource':
             if self._resource is None:
                 self._resource = self._jid.split('/', 1)[-1]
-            return self._resource
+            return self._resource or ""
         elif name == 'user':
             if self._user is None:
                 if '@' in self._jid:
                     self._user = self._jid.split('@', 1)[0]
                 else:
                     self._user = self._user
-            return self._user
+            return self._user or ""
         elif name in ('server', 'domain'):
             if self._domain is None:
                 self._domain = self._jid.split('@', 1)[-1].split('/', 1)[0]
-            return self._domain
+            return self._domain or ""
         elif name == 'full':
-            return self._jid
+            return self._jid or ""
         elif name == 'bare':
             if self._bare is None:
                 self._bare = self._jid.split('/', 1)[0]
-            return self._bare
+            return self._bare or ""
 
     def __setattr__(self, name, value):
         """

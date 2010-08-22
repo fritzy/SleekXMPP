@@ -69,7 +69,7 @@ class TestPubsubStanzas(SleekTest):
     def testItems(self):
         "Testing iq/pubsub/items stanzas"
         iq = self.Iq()
-        iq['pubsub']['items']
+        iq['pubsub']['items']['node'] = 'crap'
         payload = ET.fromstring("""
           <thinger xmlns="http://andyet.net/protocol/thinger" x="1" y='2'>
             <child1 />
@@ -91,7 +91,7 @@ class TestPubsubStanzas(SleekTest):
         self.checkIq(iq, """
           <iq id="0">
             <pubsub xmlns="http://jabber.org/protocol/pubsub">
-              <items>
+              <items node="crap">
                 <item id="asdf">
                   <thinger xmlns="http://andyet.net/protocol/thinger" y="2" x="1">
                     <child1 />

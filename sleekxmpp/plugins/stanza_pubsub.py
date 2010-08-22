@@ -170,7 +170,7 @@ class Items(ElementBase):
 	namespace = 'http://jabber.org/protocol/pubsub'
 	name = 'items'
 	plugin_attrib = 'items'
-	interfaces = set(tuple())
+	interfaces = set(('node',))
 	plugin_attrib_map = {}
 	plugin_tag_map = {}
 	subitem = (Item,)

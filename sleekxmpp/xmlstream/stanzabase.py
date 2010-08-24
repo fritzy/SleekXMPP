@@ -355,24 +355,24 @@ class ElementBase(object):
         return self.xml.attrib.get(name, default)
 
     def _getSubText(self, name, default=''):
-      """
-      Return the text contents of a sub element.
+        """
+        Return the text contents of a sub element.
 
-      In case the element does not exist, or it has no textual content,
-      a default value can be returned instead. An empty string is returned 
-      if no other default is supplied.
+        In case the element does not exist, or it has no textual content,
+        a default value can be returned instead. An empty string is returned 
+        if no other default is supplied.
 
-      Arguments:
-          name    -- The name or XPath expression of the element.
-          default -- Optional default to return if the element does
-                     not exists. An empty string is returned otherwise.
-      """
-      name = self._fix_ns(name)
-      stanza = self.xml.find(name)
-      if stanza is None or stanza.text is None:
-          return default
-      else:
-          return stanza.text
+        Arguments:
+            name    -- The name or XPath expression of the element.
+            default -- Optional default to return if the element does
+                       not exists. An empty string is returned otherwise.
+        """
+        name = self._fix_ns(name)
+        stanza = self.xml.find(name)
+        if stanza is None or stanza.text is None:
+            return default
+        else:
+            return stanza.text
 
     def _setSubText(self, name, text=None, keep=False):
         """

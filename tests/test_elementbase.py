@@ -301,5 +301,56 @@ class TestElementBase(SleekTest):
         self.failUnless(stanza['bar'] == 'found', 
             "_getSubText value incorrect: %s." % stanza['bar'])
 
+    def testSubElement(self):
+        """Test setting the contents of a sub element."""
+
+        class TestStanza(ElementBase):
+            name = "foo"
+            namespace = "foo"
+            interfaces = set(('bar', 'baz'))
+
+            def setBaz(self, value):
+                self._setSubText("wrapper/baz", text=value)
+
+            def getBaz(self):
+                return self._getSubText("wrapper/baz")
+
+            def setBar(self, value):
+                self._setSubText("wrapper/bar", text=value)
+
+            def getBar(self):
+                return self._getSubText("wrapper/bar")
+
+        stanza = TestStanza()
+        stanza['bar'] = 'a'
+        stanza['baz'] = 'b'
+        self.checkStanza(TestStanza, stanza, """
+          <foo xmlns="foo">
+            <wrapper>
+              <bar>a</bar>
+              <baz>b</baz>
+            </wrapper>
+          </foo>
+        """)
+        stanza._setSubText('bar', text='', keep=True)
+        self.checkStanza(TestStanza, stanza, """
+          <foo xmlns="foo">
+            <wrapper>
+              <bar />
+              <baz>b</baz>
+            </wrapper>
+          </foo>
+        """, use_values=False)
+
+        stanza['bar'] = 'a'
+        stanza._setSubText('bar', text='')
+        self.checkStanza(TestStanza, stanza, """
+          <foo xmlns="foo">
+            <wrapper>
+              <baz>b</baz>
+            </wrapper>
+          </foo>
+        """)
+
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestElementBase)

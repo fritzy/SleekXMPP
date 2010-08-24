@@ -354,6 +354,26 @@ class ElementBase(object):
         """
         return self.xml.attrib.get(name, default)
 
+    def _getSubText(self, name, default=''):
+      """
+      Return the text contents of a sub element.
+
+      In case the element does not exist, or it has no textual content,
+      a default value can be returned instead. An empty string is returned 
+      if no other default is supplied.
+
+      Arguments:
+          name    -- The name or XPath expression of the element.
+          default -- Optional default to return if the element does
+                     not exists. An empty string is returned otherwise.
+      """
+      name = self._fix_ns(name)
+      stanza = self.xml.find(name)
+      if stanza is None or stanza.text is None:
+          return default
+      else:
+          return stanza.text
+
     @property
     def attrib(self): #backwards compatibility
             return self
@@ -449,15 +469,6 @@ class ElementBase(object):
                             return False
             return True
 
-    def _getSubText(self, name):
-            if '}' not in name:
-                    name = "{%s}%s" % (self.namespace, name)
-            stanza = self.xml.find(name)
-            if stanza is None or stanza.text is None:
-                    return ''
-            else:
-                    return stanza.text
-
     def _setSubText(self, name, attrib={}, text=None):
             if '}' not in name:
                     name = "{%s}%s" % (self.namespace, name)
@@ -489,6 +500,23 @@ class ElementBase(object):
 
     def __repr__(self):
             return self.__str__()
+
+    def _fix_ns(self, xpath):
+        """
+        Apply the stanza's namespace to elements in an XPath expression.
+
+        Arguments:
+            xpath -- The XPath expression to fix with namespaces.
+        """
+
+        def fix_ns(name):
+            """Apply namespace to an element if needed."""
+            if "}" in name:
+                return name
+            return "{%s}%s" % (self.namespace, name)
+
+        return "/".join(map(fix_ns, xpath.split("/")))
+        
 
 #def __del__(self): #prevents garbage collection of reference cycle
 #       if self.parent is not None:

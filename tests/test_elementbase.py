@@ -267,5 +267,39 @@ class TestElementBase(SleekTest):
 
         self.failUnless(stanza._getAttr('bar', 'c') == 'c',
             "Incorrect default value returned for an unset XML attribute.")
+        
+    def testGetSubText(self):
+        """Test retrieving the contents of a sub element."""
+
+        class TestStanza(ElementBase):
+            name = "foo"
+            namespace = "foo"
+            interfaces = set(('bar',))
+
+            def setBar(self, value):
+                wrapper = ET.Element("{foo}wrapper")
+                bar = ET.Element("{foo}bar")
+                bar.text = value
+                wrapper.append(bar)
+                self.xml.append(wrapper)
+
+            def getBar(self):
+                return self._getSubText("wrapper/bar", default="not found")
+
+        stanza = TestStanza()
+        self.failUnless(stanza['bar'] == 'not found', 
+            "Default _getSubText value incorrect.")
+
+        stanza['bar'] = 'found'
+        self.checkStanza(TestStanza, stanza, """
+          <foo xmlns="foo">
+            <wrapper>
+              <bar>found</bar>
+            </wrapper>
+          </foo>
+        """)
+        self.failUnless(stanza['bar'] == 'found', 
+            "_getSubText value incorrect: %s." % stanza['bar'])
+
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestElementBase)

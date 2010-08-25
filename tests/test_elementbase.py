@@ -433,7 +433,7 @@ class TestElementBase(SleekTest):
 
         class TestSubStanza(ElementBase):
             name = "sub"
-            namespace = "foo"
+            namespace = "baz"
             interfaces = set(('attrib',))
 
         class TestStanza(ElementBase):
@@ -444,7 +444,7 @@ class TestElementBase(SleekTest):
 
         class TestStanzaPlugin(ElementBase):
             name = "plugin"
-            namespace = "foo"
+            namespace = "bar"
             interfaces = set(('attrib',))
 
         registerStanzaPlugin(TestStanza, TestStanzaPlugin)
@@ -452,6 +452,9 @@ class TestElementBase(SleekTest):
         stanza = TestStanza()
         self.failUnless(stanza.match("foo"), 
             "Stanza did not match its own tag name.")
+
+        self.failUnless(stanza.match("{foo}foo"),
+            "Stanza did not match its own namespaced name.")
 
         stanza['bar'] = 'a'
         self.failUnless(stanza.match("foo@bar=a"),
@@ -465,11 +468,17 @@ class TestElementBase(SleekTest):
         self.failUnless(stanza.match("foo/plugin@attrib=c"),
             "Stanza did not match with plugin and attribute.")
 
+        self.failUnless(stanza.match("foo/{bar}plugin"),
+            "Stanza did not match with namespaced plugin.")
+
         substanza = TestSubStanza()
         substanza['attrib'] = 'd'
         stanza.append(substanza)
         self.failUnless(stanza.match("foo/sub@attrib=d"),
             "Stanza did not match with substanzas and attribute.")
+
+        self.failUnless(stanza.match("foo/{baz}sub"),
+            "Stanza did not match with namespaced substanza.")
             
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestElementBase)

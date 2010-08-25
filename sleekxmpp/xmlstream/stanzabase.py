@@ -478,7 +478,8 @@ class ElementBase(object):
         tag = components[0]
         attributes = components[1:]
         
-        if tag not in (self.name, self.plugins, self.plugin_attrib):
+        if tag not in (self.name, "{%s}%s" % (self.namespace, self.name),
+                       self.plugins, self.plugin_attrib):
             # The requested tag is not in this stanza, so no match.
             return False
 
@@ -499,7 +500,8 @@ class ElementBase(object):
 
         # Attempt to continue matching the XPath using the stanza's plugins.
         if not matched_substanzas and len(xpath) > 1:
-            next_tag = xpath[1].split('@')[0]
+            # Convert {namespace}tag@attribs to just tag
+            next_tag = xpath[1].split('@')[0].split('}')[-1]
             if next_tag in self.plugins:
                 return self.plugins[next_tag].match(xpath[1:])
             else:

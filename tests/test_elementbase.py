@@ -352,5 +352,81 @@ class TestElementBase(SleekTest):
           </foo>
         """)
 
+    def testDelSub(self):
+        """Test removing sub elements."""
+
+        class TestStanza(ElementBase):
+            name = "foo"
+            namespace = "foo"
+            interfaces = set(('bar', 'baz'))
+
+            def setBar(self, value):
+                self._setSubText("path/to/only/bar", value);
+
+            def getBar(self):
+                return self._getSubText("path/to/only/bar")
+
+            def delBar(self):
+                self._delSub("path/to/only/bar")
+
+            def setBaz(self, value):
+                self._setSubText("path/to/just/baz", value);
+
+            def getBaz(self):
+                return self._getSubText("path/to/just/baz")
+
+            def delBaz(self):
+                self._delSub("path/to/just/baz")
+
+        stanza = TestStanza()
+        stanza['bar'] = 'a'
+        stanza['baz'] = 'b'
+
+        self.checkStanza(TestStanza, stanza, """
+          <foo xmlns="foo">
+            <path>
+              <to>
+                <only>
+                  <bar>a</bar>
+                </only>
+                <just>
+                  <baz>b</baz>
+                </just>
+              </to>
+            </path>
+          </foo>
+        """)
+
+        del stanza['bar']
+        del stanza['baz']
+
+        self.checkStanza(TestStanza, stanza, """
+          <foo xmlns="foo">
+            <path>
+              <to>
+                <only />
+                <just />
+              </to>
+            </path>
+          </foo>
+        """, use_values=False)
+
+        stanza['bar'] = 'a'
+        stanza['baz'] = 'b'
+
+        stanza._delSub('path/to/only/bar', all=True)
+
+        self.checkStanza(TestStanza, stanza, """
+          <foo xmlns="foo">
+            <path>
+              <to>
+                <just>
+                  <baz>b</baz>
+                </just>
+              </to>
+            </path>
+          </foo>
+        """)
+
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestElementBase)

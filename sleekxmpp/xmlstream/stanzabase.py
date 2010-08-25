@@ -417,6 +417,44 @@ class ElementBase(object):
         element.text = text
         return element 
 
+    def _delSub(self, name, all=False):
+        """
+        Remove sub elements that match the given name or XPath.
+
+        If the element is in a path, then any parent elements that become
+        empty after deleting the element may also be deleted if requested
+        by setting all=True.
+
+        Arguments:
+            name -- The name or XPath expression for the element(s) to remove.
+            all  -- If True, remove all empty elements in the path to the 
+                    deleted element. Defaults to False.
+        """
+        name = self._fix_ns(name)
+        path = name.split("/")
+        original_target = path[-1]
+
+        for level, _ in enumerate(path):
+            # Generate the paths to the target elements and their parent.
+            element_path = "/".join(path[:len(path) - level])
+            parent_path = "/".join(path[:len(path) - level - 1])
+
+            elements = self.xml.findall(element_path)
+            parent = self.xml.find(parent_path)
+
+            if elements:
+                if parent is None:
+                    parent = self.xml
+                for element in elements:
+                    if element.tag == original_target or not element.getchildren():
+                        # Only delete the originally requested elements, and any
+                        # parent elements that have become empty.
+                        parent.remove(element)
+            if not all:
+                # If we don't want to delete elements up the tree, stop
+                # after deleting the first level of elements.
+                return
+        
     @property
     def attrib(self): #backwards compatibility
             return self
@@ -511,13 +549,6 @@ class ElementBase(object):
                     if key not in values or values[key] != other[key]:
                             return False
             return True
-
-    def _delSub(self, name):
-            if '}' not in name:
-                    name = "{%s}%s" % (self.namespace, name)
-            for child in self.xml.getchildren():
-                    if child.tag == name:
-                            self.xml.remove(child)
 
     def appendxml(self, xml):
             self.xml.append(xml)

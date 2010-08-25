@@ -428,5 +428,48 @@ class TestElementBase(SleekTest):
           </foo>
         """)
 
+    def testMatch(self):
+        """Test matching a stanza against an XPath expression."""
+
+        class TestSubStanza(ElementBase):
+            name = "sub"
+            namespace = "foo"
+            interfaces = set(('attrib',))
+
+        class TestStanza(ElementBase):
+            name = "foo"
+            namespace = "foo"
+            interfaces = set(('bar','baz'))
+            subitem = (TestSubStanza,)
+
+        class TestStanzaPlugin(ElementBase):
+            name = "plugin"
+            namespace = "foo"
+            interfaces = set(('attrib',))
+
+        registerStanzaPlugin(TestStanza, TestStanzaPlugin)
+
+        stanza = TestStanza()
+        self.failUnless(stanza.match("foo"), 
+            "Stanza did not match its own tag name.")
+
+        stanza['bar'] = 'a'
+        self.failUnless(stanza.match("foo@bar=a"),
+            "Stanza did not match its own name with attribute value check.")
+
+        stanza['baz'] = 'b'
+        self.failUnless(stanza.match("foo@bar=a@baz=b"),
+            "Stanza did not match its own name with multiple attributes.")
+
+        stanza['plugin']['attrib'] = 'c'
+        self.failUnless(stanza.match("foo/plugin@attrib=c"),
+            "Stanza did not match with plugin and attribute.")
+
+        substanza = TestSubStanza()
+        substanza['attrib'] = 'd'
+        stanza.append(substanza)
+        self.failUnless(stanza.match("foo/sub@attrib=d"),
+            "Stanza did not match with substanzas and attribute.")
+            
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestElementBase)

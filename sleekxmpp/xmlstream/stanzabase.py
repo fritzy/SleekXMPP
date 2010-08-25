@@ -454,7 +454,60 @@ class ElementBase(object):
                 # If we don't want to delete elements up the tree, stop
                 # after deleting the first level of elements.
                 return
+     
+    def match(self, xpath):
+        """
+        Compare a stanza object with an XPath expression. If the XPath matches
+        the contents of the stanza object, the match is successful.
+
+        The XPath expression may include checks for stanza attributes.
+        For example:
+            presence@show=xa@priority=2/status
+        Would match a presence stanza whose show value is set to 'xa', has a 
+        priority value of '2', and has a status element.
+
+        Arguments:
+            xpath -- The XPath expression to check against. It may be either a
+                     string or a list of element names with attribute checks.
+        """
+        if isinstance(xpath, str):
+            xpath = xpath.split('/')
+
+        # Extract the tag name and attribute checks for the first XPath node.
+        components = xpath[0].split('@')
+        tag = components[0]
+        attributes = components[1:]
         
+        if tag not in (self.name, self.plugins, self.plugin_attrib):
+            # The requested tag is not in this stanza, so no match.
+            return False
+
+        # Check the rest of the XPath against any substanzas.
+        matched_substanzas = False
+        for substanza in self.iterables:
+            if xpath[1:] == []:
+                break
+            matched_substanzas = substanza.match(xpath[1:])
+            if matched_substanzas: 
+                break
+
+        # Check attribute values.
+        for attribute in attributes:
+            name, value = attribute.split('=')
+            if self[name] != value:
+                return False
+
+        # Attempt to continue matching the XPath using the stanza's plugins.
+        if not matched_substanzas and len(xpath) > 1:
+            next_tag = xpath[1].split('@')[0]
+            if next_tag in self.plugins:
+                return self.plugins[next_tag].match(xpath[1:])
+            else:
+                return False
+
+        # Everything matched.
+        return True
+
     @property
     def attrib(self): #backwards compatibility
             return self
@@ -510,30 +563,6 @@ class ElementBase(object):
             if self.iterables:
                     out.append('substanzas')
             return tuple(out)
-
-    def match(self, matchstring):
-            if isinstance(matchstring, str):
-                    nodes = matchstring.split('/')
-            else:
-                    nodes = matchstring
-            tagargs = nodes[0].split('@')
-            if tagargs[0] not in (self.plugins, self.plugin_attrib): return False
-            founditerable = False
-            for iterable in self.iterables:
-                    if nodes[1:] == []:
-                            break
-                    founditerable = iterable.match(nodes[1:])
-                    if founditerable: break;
-            for evals in tagargs[1:]:
-                    x,y = evals.split('=')
-                    if self[x] != y: return False
-            if not founditerable and len(nodes) > 1:
-                    next = nodes[1].split('@')[0]
-                    if next in self.plugins:
-                            return self.plugins[next].match(nodes[1:])
-                    else:
-                            return False
-            return True
 
     def find(self, xpath): # for backwards compatiblity, expose elementtree interface
             return self.xml.find(xpath)

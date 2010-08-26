@@ -875,85 +875,90 @@ class ElementBase(object):
 
 
 class StanzaBase(ElementBase):
-        name = 'stanza'
-        namespace = 'jabber:client'
-        interfaces = set(('type', 'to', 'from', 'id', 'payload'))
-        types = set(('get', 'set', 'error', None, 'unavailable', 'normal', 'chat'))
-        sub_interfaces = tuple()
+    name = 'stanza'
+    namespace = 'jabber:client'
+    interfaces = set(('type', 'to', 'from', 'id', 'payload'))
+    types = set(('get', 'set', 'error', None, 'unavailable', 'normal', 'chat'))
+    sub_interfaces = tuple()
 
-        def __init__(self, stream=None, xml=None, stype=None, sto=None, sfrom=None, sid=None):
-                self.stream = stream
-                if stream is not None:
-                        self.namespace = stream.default_ns
-                ElementBase.__init__(self, xml)
-                if stype is not None:
-                        self['type'] = stype
-                if sto is not None:
-                        self['to'] = sto
-                if sfrom is not None:
-                        self['from'] = sfrom
-                self.tag = "{%s}%s" % (self.namespace, self.name)
+    def __init__(self, stream=None, xml=None, stype=None,
+                 sto=None, sfrom=None, sid=None):
+        self.stream = stream
+        if stream is not None:
+            self.namespace = stream.default_ns
+        ElementBase.__init__(self, xml)
+        if stype is not None:
+            self['type'] = stype
+        if sto is not None:
+            self['to'] = sto
+        if sfrom is not None:
+            self['from'] = sfrom
+        self.tag = "{%s}%s" % (self.namespace, self.name)
 
-        def setType(self, value):
-                if value in self.types:
-                        self.xml.attrib['type'] = value
-                return self
+    def setType(self, value):
+        if value in self.types:
+            self.xml.attrib['type'] = value
+        return self
 
-        def getPayload(self):
-                return self.xml.getchildren()
+    def getPayload(self):
+        return self.xml.getchildren()
 
-        def setPayload(self, value):
-                self.xml.append(value)
-                return self
+    def setPayload(self, value):
+        self.xml.append(value)
+        return self
 
-        def delPayload(self):
-                self.clear()
-                return self
+    def delPayload(self):
+        self.clear()
+        return self
 
-        def clear(self):
-                for child in self.xml.getchildren():
-                        self.xml.remove(child)
-                for plugin in list(self.plugins.keys()):
-                        del self.plugins[plugin]
-                return self
+    def clear(self):
+        for child in self.xml.getchildren():
+            self.xml.remove(child)
+        for plugin in list(self.plugins.keys()):
+            del self.plugins[plugin]
+        return self
 
-        def reply(self):
-                # if it's a component, use from
-                if self.stream and hasattr(self.stream, "is_component") and self.stream.is_component:
-                        self['from'], self['to'] = self['to'], self['from']
-                else:
-                        self['to'] = self['from']
-                        del self['from']
-                self.clear()
-                return self
+    def reply(self):
+        # if it's a component, use from
+        if self.stream and hasattr(self.stream, "is_component") and \
+            self.stream.is_component:
+            self['from'], self['to'] = self['to'], self['from']
+        else:
+            self['to'] = self['from']
+            del self['from']
+        self.clear()
+        return self
 
-        def error(self):
-                self['type'] = 'error'
-                return self
+    def error(self):
+        self['type'] = 'error'
+        return self
 
-        def getTo(self):
-                return JID(self._getAttr('to'))
+    def getTo(self):
+        return JID(self._getAttr('to'))
 
-        def setTo(self, value):
-                return self._setAttr('to', str(value))
+    def setTo(self, value):
+        return self._setAttr('to', str(value))
 
-        def getFrom(self):
-                return JID(self._getAttr('from'))
+    def getFrom(self):
+        return JID(self._getAttr('from'))
 
-        def setFrom(self, value):
-                return self._setAttr('from', str(value))
+    def setFrom(self, value):
+        return self._setAttr('from', str(value))
 
-        def unhandled(self):
-                pass
+    def unhandled(self):
+        pass
 
-        def exception(self, e):
-                logging.exception('Error handling {%s}%s stanza' % (self.namespace, self.name))
+    def exception(self, e):
+        logging.exception('Error handling {%s}%s stanza' % (self.namespace,
+                                                            self.name))
 
-        def send(self):
-                self.stream.sendRaw(self.__str__())
+    def send(self):
+        self.stream.sendRaw(self.__str__())
 
-        def __copy__(self):
-                return self.__class__(xml=copy.deepcopy(self.xml), stream=self.stream)
+    def __copy__(self):
+        return self.__class__(xml=copy.deepcopy(self.xml), stream=self.stream)
 
-        def __str__(self):
-                return tostring(self.xml, xmlns='', stanza_ns=self.namespace, stream=self.stream)
+    def __str__(self):
+        return tostring(self.xml, xmlns='',
+                        stanza_ns=self.namespace,
+                        stream=self.stream)

@@ -765,17 +765,24 @@ class ElementBase(object):
                      False, which returns a flat string path.
         """
         fixed = []
+        # Split the XPath into a series of blocks, where a block
+        # is started by an element with a namespace.
         ns_blocks = xpath.split('{')
         for ns_block in ns_blocks:
             if '}' in ns_block:
+                # Apply the found namespace to following elements
+                # that do not have namespaces.
                 namespace = ns_block.split('}')[0]
                 elements = ns_block.split('}')[1].split('/')
             else:
+                # Apply the stanza's namespace to the following
+                # elements since no namespace was provided.
                 namespace = self.namespace
                 elements = ns_block.split('/')
 
             for element in elements:
                 if element:
+                    # Skip empty entry artifacts from splitting.
                     fixed.append('{%s}%s' % (namespace,
                                              element))
         if split:

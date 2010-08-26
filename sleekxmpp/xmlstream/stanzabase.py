@@ -257,8 +257,8 @@ class ElementBase(object):
             for stanza in self.iterables:
                 iterables.append(stanza.getStanzaValues())
                 iterables[-1].update({
-                    '__childtag__': "{%s}%s" % (stanza.namespace, stanza.name)
-                    })
+                    '__childtag__': "{%s}%s" % (stanza.namespace,
+                                                stanza.name)})
             values['substanzas'] = iterables
         return values
 
@@ -556,9 +556,10 @@ class ElementBase(object):
                 if parent is None:
                     parent = self.xml
                 for element in elements:
-                    if element.tag == original_target or not element.getchildren():
-                        # Only delete the originally requested elements, and any
-                        # parent elements that have become empty.
+                    if element.tag == original_target or \
+                        not element.getchildren():
+                        # Only delete the originally requested elements, and
+                        # any parent elements that have become empty.
                         parent.remove(element)
             if not all:
                 # If we don't want to delete elements up the tree, stop

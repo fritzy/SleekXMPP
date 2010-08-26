@@ -54,6 +54,11 @@ class ElementBase(object):
 
     >>> message['to'] = "user@example.com"
     >>> message['body'] = "Hi!"
+    >>> message['body']
+    "Hi!"
+    >>> del message['body']
+    >>> message['body']
+    ""
 
     The interface values map to either custom access methods, stanza
     XML attributes, or (if the interface is also in sub_interfaces) the
@@ -61,7 +66,7 @@ class ElementBase(object):
 
     Custom access methods may be created by adding methods of the
     form "getInterface", "setInterface", or "delInterface", where
-    "Interface" is the  titlecase version of the interface name.
+    "Interface" is the titlecase version of the interface name.
 
     Stanzas may be extended through the use of plugins. A plugin
     is simply a stanza that has a plugin_attrib value. For example:

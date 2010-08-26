@@ -34,6 +34,116 @@ def registerStanzaPlugin(stanza, plugin):
 
 
 class ElementBase(object):
+
+    """
+    The core of SleekXMPP's stanza XML manipulation and handling is provided
+    by ElementBase. ElementBase wraps XML cElementTree objects and enables
+    access to the XML contents through dictionary syntax, similar in style
+    to the Ruby XMPP library Blather's stanza implementation.
+
+    Stanzas are defined by their name, namespace, and interfaces. For
+    example, a simplistic Message stanza could be defined as:
+
+    >>> class Message(ElementBase):
+    ...     name = "message"
+    ...     namespace = "jabber:client"
+    ...     interfaces = set(('to', 'from', 'type', 'body'))
+    ...     sub_interfaces = set(('body',))
+
+    The resulting Message stanza's contents may be accessed as so:
+
+    >>> message['to'] = "user@example.com"
+    >>> message['body'] = "Hi!"
+
+    The interface values map to either custom access methods, stanza
+    XML attributes, or (if the interface is also in sub_interfaces) the
+    text contents of a stanza's subelement.
+
+    Custom access methods may be created by adding methods of the
+    form "getInterface", "setInterface", or "delInterface", where
+    "Interface" is the  titlecase version of the interface name.
+
+    Stanzas may be extended through the use of plugins. A plugin
+    is simply a stanza that has a plugin_attrib value. For example:
+
+    >>> class MessagePlugin(ElementBase):
+    ...     name = "custom_plugin"
+    ...     namespace = "custom"
+    ...     interfaces = set(('useful_thing', 'custom'))
+    ...     plugin_attrib = "custom"
+
+    The plugin stanza class must be associated with its intended
+    container stanza by using registerStanzaPlugin as so:
+
+    >>> registerStanzaPlugin(Message, MessagePlugin)
+
+    The plugin may then be accessed as if it were built-in to the parent
+    stanza.
+
+    >>> message['custom']['useful_thing'] = 'foo'
+
+    If a plugin provides an interface that is the same as the plugin's
+    plugin_attrib value, then the plugin's interface may be accessed
+    directly from the parent stanza, as so:
+
+    >>> message['custom'] = 'bar' # Same as using message['custom']['custom']
+
+    Class Attributes:
+        name              -- The name of the stanza's main element.
+        namespace         -- The namespace of the stanza's main element.
+        interfaces        -- A set of attribute and element names that may
+                             be accessed using dictionary syntax.
+        sub_interfaces    -- A subset of the set of interfaces which map
+                             to subelements instead of attributes.
+        subitem           -- A set of stanza classes which are allowed to
+                             be added as substanzas.
+        types             -- A set of generic type attribute values.
+        plugin_attrib     -- The interface name that the stanza uses to be
+                             accessed as a plugin from another stanza.
+        plugin_attrib_map -- A mapping of plugin attribute names with the
+                             associated plugin stanza classes.
+        plugin_tag_map    -- A mapping of plugin stanza tag names with
+                             the associated plugin stanza classes.
+
+    Instance Attributes:
+        xml               -- The stanza's XML contents.
+        parent            -- The parent stanza of this stanza.
+        plugins           -- A map of enabled plugin names with the
+                             initialized plugin stanza objects.
+
+    Methods:
+        setup           -- Initialize the stanza's XML contents.
+        enable          -- Instantiate a stanza plugin. Alias for initPlugin.
+        initPlugin      -- Instantiate a stanza plugin.
+        getStanzaValues -- Return a dictionary of stanza interfaces and
+                           their values.
+        setStanzaValues -- Set stanza interface values given a dictionary of
+                           interfaces and values.
+        __getitem__     -- Return the value of a stanza interface.
+        __setitem__     -- Set the value of a stanza interface.
+        __delitem__     -- Remove the value of a stanza interface.
+        _setAttr        -- Set an attribute value of the main stanza element.
+        _delAttr        -- Remove an attribute from the main stanza element.
+        _getAttr        -- Return an attribute's value from the main
+                           stanza element.
+        _getSubText     -- Return the text contents of a subelement.
+        _setSubText     -- Set the text contents of a subelement.
+        _delSub         -- Remove a subelement.
+        match           -- Compare the stanza against an XPath expression.
+        find            -- Return subelement matching an XPath expression.
+        findall         -- Return subelements matching an XPath expression.
+        get             -- Return the value of a stanza interface, with an
+                           optional default value.
+        keys            -- Return the set of interface names accepted by
+                           the stanza.
+        append          -- Add XML content or a substanza to the stanza.
+        appendxml       -- Add XML content to the stanza.
+        pop             -- Remove a substanza.
+        next            -- Return the next iterable substanza.
+        _fix_ns         -- Apply the stanza's namespace to non-namespaced
+                           elements in an XPath expression.
+    """
+
     name = 'stanza'
     plugin_attrib = 'plugin'
     namespace = 'jabber:client'
@@ -567,7 +677,7 @@ class ElementBase(object):
         out += [x for x in self.plugins]
         if self.iterables:
             out.append('substanzas')
-        return tuple(out)
+        return out
 
     def append(self, item):
         """
@@ -667,11 +777,34 @@ class ElementBase(object):
         """
         if not isinstance(other, ElementBase):
             return False
+
+        # Check that this stanza is a superset of the other stanza.
         values = self.getStanzaValues()
-        for key in other:
+        for key in other.keys():
             if key not in values or values[key] != other[key]:
                 return False
+
+        # Check that the other stanza is a superset of this stanza.
+        values = other.getStanzaValues()
+        for key in self.keys():
+            if key not in values or values[key] != self[key]:
+                return False
+
+        # Both stanzas are supersets of each other, therefore they
+        # must be equal.
         return True
+
+    def __ne__(self, other):
+        """
+        Compare the stanza object with another to test for inequality.
+
+        Stanzas are not equal if their interfaces return different values,
+        or if they are not both instances of ElementBase.
+
+        Arguments:
+            other -- The stanza object to compare against.
+        """
+        return not self.__eq__(other)
 
     def __bool__(self):
         """

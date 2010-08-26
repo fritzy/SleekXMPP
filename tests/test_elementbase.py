@@ -267,7 +267,7 @@ class TestElementBase(SleekTest):
 
         self.failUnless(stanza._getAttr('bar', 'c') == 'c',
             "Incorrect default value returned for an unset XML attribute.")
-        
+
     def testGetSubText(self):
         """Test retrieving the contents of a sub element."""
 
@@ -287,7 +287,7 @@ class TestElementBase(SleekTest):
                 return self._getSubText("wrapper/bar", default="not found")
 
         stanza = TestStanza()
-        self.failUnless(stanza['bar'] == 'not found', 
+        self.failUnless(stanza['bar'] == 'not found',
             "Default _getSubText value incorrect.")
 
         stanza['bar'] = 'found'
@@ -298,7 +298,7 @@ class TestElementBase(SleekTest):
             </wrapper>
           </foo>
         """)
-        self.failUnless(stanza['bar'] == 'found', 
+        self.failUnless(stanza['bar'] == 'found',
             "_getSubText value incorrect: %s." % stanza['bar'])
 
     def testSubElement(self):
@@ -450,7 +450,7 @@ class TestElementBase(SleekTest):
         registerStanzaPlugin(TestStanza, TestStanzaPlugin)
 
         stanza = TestStanza()
-        self.failUnless(stanza.match("foo"), 
+        self.failUnless(stanza.match("foo"),
             "Stanza did not match its own tag name.")
 
         self.failUnless(stanza.match("{foo}foo"),
@@ -479,6 +479,148 @@ class TestElementBase(SleekTest):
 
         self.failUnless(stanza.match("foo/{baz}sub"),
             "Stanza did not match with namespaced substanza.")
-            
+
+    def testComparisons(self):
+        """Test comparing ElementBase objects."""
+
+        class TestStanza(ElementBase):
+            name = "foo"
+            namespace = "foo"
+            interfaces = set(('bar', 'baz'))
+
+        stanza1 = TestStanza()
+        stanza1['bar'] = 'a'
+
+        self.failUnless(stanza1,
+            "Stanza object does not evaluate to True")
+
+        stanza2 = TestStanza()
+        stanza2['baz'] = 'b'
+
+        self.failUnless(stanza1 != stanza2,
+            "Different stanza objects incorrectly compared equal.")
+
+        stanza1['baz'] = 'b'
+        stanza2['bar'] = 'a'
+
+        self.failUnless(stanza1 == stanza2,
+            "Equal stanzas incorrectly compared inequal.")
+
+    def testKeys(self):
+        """Test extracting interface names from a stanza object."""
+
+        class TestStanza(ElementBase):
+            name = "foo"
+            namespace = "foo"
+            interfaces = set(('bar', 'baz'))
+            plugin_attrib = 'qux'
+
+        registerStanzaPlugin(TestStanza, TestStanza)
+
+        stanza = TestStanza()
+
+        self.failUnless(set(stanza.keys()) == set(('bar', 'baz')),
+            "Returned set of interface keys does not match expected.")
+
+        stanza.enable('qux')
+
+        self.failUnless(set(stanza.keys()) == set(('bar', 'baz', 'qux')),
+            "Incorrect set of interface and plugin keys.")
+
+    def testGet(self):
+        """Test accessing stanza interfaces using get()."""
+
+        class TestStanza(ElementBase):
+            name = "foo"
+            namespace = "foo"
+            interfaces = set(('bar', 'baz'))
+
+        stanza = TestStanza()
+        stanza['bar'] = 'a'
+
+        self.failUnless(stanza.get('bar') == 'a',
+            "Incorrect value returned by stanza.get")
+
+        self.failUnless(stanza.get('baz', 'b') == 'b',
+            "Incorrect default value returned by stanza.get")
+
+    def testSubStanzas(self):
+        """Test manipulating substanzas of a stanza object."""
+
+        class TestSubStanza(ElementBase):
+            name = "foobar"
+            namespace = "foo"
+            interfaces = set(('qux',))
+
+        class TestStanza(ElementBase):
+            name = "foo"
+            namespace = "foo"
+            interfaces = set(('bar', 'baz'))
+            subitem = (TestSubStanza,)
+
+        stanza = TestStanza()
+        substanza1 = TestSubStanza()
+        substanza2 = TestSubStanza()
+        substanza1['qux'] = 'a'
+        substanza2['qux'] = 'b'
+
+        # Test appending substanzas
+        self.failUnless(len(stanza) == 0,
+            "Incorrect empty stanza size.")
+
+        stanza.append(substanza1)
+        self.checkStanza(TestStanza, stanza, """
+          <foo xmlns="foo">
+            <foobar qux="a" />
+          </foo>
+        """)
+        self.failUnless(len(stanza) == 1,
+            "Incorrect stanza size with 1 substanza.")
+
+        stanza.append(substanza2)
+        self.checkStanza(TestStanza, stanza, """
+          <foo xmlns="foo">
+            <foobar qux="a" />
+            <foobar qux="b" />
+          </foo>
+        """)
+        self.failUnless(len(stanza) == 2,
+            "Incorrect stanza size with 2 substanzas.")
+
+        # Test popping substanzas
+        stanza.pop(0)
+        self.checkStanza(TestStanza, stanza, """
+          <foo xmlns="foo">
+            <foobar qux="b" />
+          </foo>
+        """)
+
+        # Test iterating over substanzas
+        stanza.append(substanza1)
+        results = []
+        for substanza in stanza:
+            results.append(substanza['qux'])
+        self.failUnless(results == ['b', 'a'],
+            "Iteration over substanzas failed: %s." % str(results))
+
+    def testCopy(self):
+        """Test copying stanza objects."""
+
+        class TestStanza(ElementBase):
+            name = "foo"
+            namespace = "foo"
+            interfaces = set(('bar', 'baz'))
+
+        stanza1 = TestStanza()
+        stanza1['bar'] = 'a'
+
+        stanza2 = stanza1.__copy__()
+
+        self.failUnless(stanza1 == stanza2,
+            "Copied stanzas are not equal to each other.")
+
+        stanza1['baz'] = 'b'
+        self.failUnless(stanza1 != stanza2,
+            "Divergent stanza copies incorrectly compared equal.")
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestElementBase)

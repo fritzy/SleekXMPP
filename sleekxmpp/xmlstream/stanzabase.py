@@ -507,7 +507,7 @@ class ElementBase(object):
             keep -- Indicates if the element should be kept if its text is
                     removed. Defaults to False.
         """
-        name = self._fix_ns(name)
+        path = self._fix_ns(name, split=True)
         element = self.xml.find(name)
 
         if not text and not keep:
@@ -520,7 +520,7 @@ class ElementBase(object):
             # of generating new elements.
             last_xml = self.xml
             walked = []
-            for ename in name.split('/'):
+            for ename in path:
                 walked.append(ename)
                 element = self.xml.find("/".join(walked))
                 if element is None:
@@ -545,8 +545,7 @@ class ElementBase(object):
             all  -- If True, remove all empty elements in the path to the
                     deleted element. Defaults to False.
         """
-        name = self._fix_ns(name)
-        path = name.split("/")
+        path = self._fix_ns(name, split=True)
         original_target = path[-1]
 
         for level, _ in enumerate(path):
@@ -755,21 +754,33 @@ class ElementBase(object):
         """
         return self
 
-    def _fix_ns(self, xpath):
+    def _fix_ns(self, xpath, split=False):
         """
         Apply the stanza's namespace to elements in an XPath expression.
 
         Arguments:
             xpath -- The XPath expression to fix with namespaces.
+            split -- Indicates if the fixed XPath should be left as a
+                     list of element names with namespaces. Defaults to
+                     False, which returns a flat string path.
         """
+        fixed = []
+        ns_blocks = xpath.split('{')
+        for ns_block in ns_blocks:
+            if '}' in ns_block:
+                namespace = ns_block.split('}')[0]
+                elements = ns_block.split('}')[1].split('/')
+            else:
+                namespace = self.namespace
+                elements = ns_block.split('/')
 
-        def fix_ns(name):
-            """Apply namespace to an element if needed."""
-            if "}" in name:
-                return name
-            return "{%s}%s" % (self.namespace, name)
-
-        return "/".join(map(fix_ns, xpath.split("/")))
+            for element in elements:
+                if element:
+                    fixed.append('{%s}%s' % (namespace,
+                                             element))
+        if split:
+            return fixed
+        return '/'.join(fixed)
 
     def __eq__(self, other):
         """

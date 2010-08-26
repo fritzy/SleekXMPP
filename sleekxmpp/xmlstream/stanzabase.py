@@ -55,7 +55,7 @@ class ElementBase(object):
         self.xml = xml
         self.plugins = {}
         self.iterables = []
-        self.idx = 0
+        self._index = 0
         if parent is None:
             self.parent = None
         else:
@@ -359,7 +359,7 @@ class ElementBase(object):
         Return the text contents of a sub element.
 
         In case the element does not exist, or it has no textual content,
-        a default value can be returned instead. An empty string is returned 
+        a default value can be returned instead. An empty string is returned
         if no other default is supplied.
 
         Arguments:
@@ -381,7 +381,7 @@ class ElementBase(object):
         In case the element does not exist, a element will be created,
         and its text contents will be set.
 
-        If the text is set to an empty string, or None, then the 
+        If the text is set to an empty string, or None, then the
         element will be removed, unless keep is set to True.
 
         Arguments:
@@ -415,7 +415,7 @@ class ElementBase(object):
             element = last_xml
 
         element.text = text
-        return element 
+        return element
 
     def _delSub(self, name, all=False):
         """
@@ -427,7 +427,7 @@ class ElementBase(object):
 
         Arguments:
             name -- The name or XPath expression for the element(s) to remove.
-            all  -- If True, remove all empty elements in the path to the 
+            all  -- If True, remove all empty elements in the path to the
                     deleted element. Defaults to False.
         """
         name = self._fix_ns(name)
@@ -454,7 +454,7 @@ class ElementBase(object):
                 # If we don't want to delete elements up the tree, stop
                 # after deleting the first level of elements.
                 return
-     
+
     def match(self, xpath):
         """
         Compare a stanza object with an XPath expression. If the XPath matches
@@ -463,7 +463,7 @@ class ElementBase(object):
         The XPath expression may include checks for stanza attributes.
         For example:
             presence@show=xa@priority=2/status
-        Would match a presence stanza whose show value is set to 'xa', has a 
+        Would match a presence stanza whose show value is set to 'xa', has a
         priority value of '2', and has a status element.
 
         Arguments:
@@ -477,7 +477,7 @@ class ElementBase(object):
         components = xpath[0].split('@')
         tag = components[0]
         attributes = components[1:]
-        
+
         if tag not in (self.name, "{%s}%s" % (self.namespace, self.name),
                        self.plugins, self.plugin_attrib):
             # The requested tag is not in this stanza, so no match.
@@ -489,7 +489,7 @@ class ElementBase(object):
             if xpath[1:] == []:
                 break
             matched_substanzas = substanza.match(xpath[1:])
-            if matched_substanzas: 
+            if matched_substanzas:
                 break
 
         # Check attribute values.
@@ -510,89 +510,134 @@ class ElementBase(object):
         # Everything matched.
         return True
 
-    @property
-    def attrib(self): #backwards compatibility
-            return self
+    def find(self, xpath):
+        """
+        Find an XML object in this stanza given an XPath expression.
 
-    def __iter__(self):
-            self.idx = 0
-            return self
+        Exposes ElementTree interface for backwards compatibility.
 
-    def __bool__(self): #python 3.x
-            return True
-    
-    def __nonzero__(self): #python 2.x
-            return True
+        Note that matching on attribute values is not supported in Python 2.6
+        or Python 3.1
 
-    def __next__(self):
-            self.idx += 1
-            if self.idx > len(self.iterables):
-                    self.idx = 0
-                    raise StopIteration
-            return self.iterables[self.idx - 1]
-
-    def next(self):
-            return self.__next__()
-
-    def __len__(self):
-            return len(self.iterables)
-
-    def append(self, item):
-            if not isinstance(item, ElementBase):
-                    if type(item) == XML_TYPE:
-                            return self.appendxml(item)
-                    else:
-                            raise TypeError
-            self.xml.append(item.xml)
-            self.iterables.append(item)
-            return self
-
-    def pop(self, idx=0):
-            aff = self.iterables.pop(idx)
-            self.xml.remove(aff.xml)
-            return aff
-
-    def get(self, key, defaultvalue=None):
-            value = self[key]
-            if value is None or value == '':
-                    return defaultvalue
-            return value
-
-    def keys(self):
-            out = []
-            out += [x for x in self.interfaces]
-            out += [x for x in self.plugins]
-            if self.iterables:
-                    out.append('substanzas')
-            return tuple(out)
-
-    def find(self, xpath): # for backwards compatiblity, expose elementtree interface
-            return self.xml.find(xpath)
+        Arguments:
+            xpath -- An XPath expression matching a single desired element.
+        """
+        return self.xml.find(xpath)
 
     def findall(self, xpath):
-            return self.xml.findall(xpath)
+        """
+        Find multiple XML objects in this stanza given an XPath expression.
 
-    def __eq__(self, other):
-            if not isinstance(other, ElementBase):
-                    return False
-            values = self.getStanzaValues()
-            for key in other:
-                    if key not in values or values[key] != other[key]:
-                            return False
-            return True
+        Exposes ElementTree interface for backwards compatibility.
+
+        Note that matching on attribute values is not supported in Python 2.6
+        or Python 3.1.
+
+        Arguments:
+            xpath -- An XPath expression matching multiple desired elements.
+        """
+        return self.xml.findall(xpath)
+
+    def get(self, key, default=None):
+        """
+        Return the value of a stanza interface. If the found value is None
+        or an empty string, return the supplied default value.
+
+        Allows stanza objects to be used like dictionaries.
+
+        Arguments:
+            key     -- The name of the stanza interface to check.
+            default -- Value to return if the stanza interface has a value
+                       of None or "". Will default to returning None.
+        """
+        value = self[key]
+        if value is None or value == '':
+            return default
+        return value
+
+    def keys(self):
+        """
+        Return the names of all stanza interfaces provided by the
+        stanza object.
+
+        Allows stanza objects to be used like dictionaries.
+        """
+        out = []
+        out += [x for x in self.interfaces]
+        out += [x for x in self.plugins]
+        if self.iterables:
+            out.append('substanzas')
+        return tuple(out)
+
+    def append(self, item):
+        """
+        Append either an XML object or a substanza to this stanza object.
+
+        If a substanza object is appended, it will be added to the list
+        of iterable stanzas.
+
+        Allows stanza objects to be used like lists.
+
+        Arguments:
+            item -- Either an XML object or a stanza object to add to
+                    this stanza's contents.
+        """
+        if not isinstance(item, ElementBase):
+            if type(item) == XML_TYPE:
+                return self.appendxml(item)
+            else:
+                raise TypeError
+        self.xml.append(item.xml)
+        self.iterables.append(item)
+        return self
 
     def appendxml(self, xml):
-            self.xml.append(xml)
-            return self
+        """
+        Append an XML object to the stanza's XML.
 
-    def __copy__(self):
-            return self.__class__(xml=copy.deepcopy(self.xml), parent=self.parent)
+        The added XML will not be included in the list of
+        iterable substanzas.
 
-    def __str__(self):
-            return tostring(self.xml, xmlns='', stanza_ns=self.namespace)
+        Arguments:
+            xml -- The XML object to add to the stanza.
+        """
+        self.xml.append(xml)
+        return self
 
-    def __repr__(self):
-            return self.__str__()
+    def pop(self, index=0):
+        """
+        Remove and return the last substanza in the list of
+        iterable substanzas.
+
+        Allows stanza objects to be used like lists.
+
+        Arguments:
+            index -- The index of the substanza to remove.
+        """
+        substanza = self.iterables.pop(index)
+        self.xml.remove(substanza.xml)
+        return substanza
+
+    def next(self):
+        """
+        Return the next iterable substanza.
+        """
+        return self.__next__()
+
+    @property
+    def attrib(self):
+        """
+        DEPRECATED
+
+        For backwards compatibility, stanza.attrib returns the stanza itself.
+
+        Older implementations of stanza objects used XML objects directly,
+        requiring the use of .attrib to access attribute values.
+
+        Use of the dictionary syntax with the stanza object itself for
+        accessing stanza interfaces is preferred.
+        """
+        return self
 
     def _fix_ns(self, xpath):
         """
@@ -609,11 +654,86 @@ class ElementBase(object):
             return "{%s}%s" % (self.namespace, name)
 
         return "/".join(map(fix_ns, xpath.split("/")))
-        
 
-#def __del__(self): #prevents garbage collection of reference cycle
-#       if self.parent is not None:
-#               self.parent.xml.remove(self.xml)
+    def __eq__(self, other):
+        """
+        Compare the stanza object with another to test for equality.
+
+        Stanzas are equal if their interfaces return the same values,
+        and if they are both instances of ElementBase.
+
+        Arguments:
+            other -- The stanza object to compare against.
+        """
+        if not isinstance(other, ElementBase):
+            return False
+        values = self.getStanzaValues()
+        for key in other:
+            if key not in values or values[key] != other[key]:
+                return False
+        return True
+
+    def __bool__(self):
+        """
+        Stanza objects should be treated as True in boolean contexts.
+
+        Python 3.x version.
+        """
+        return True
+
+    def __nonzero__(self):
+        """
+        Stanza objects should be treated as True in boolean contexts.
+
+        Python 2.x version.
+        """
+        return True
+
+    def __len__(self):
+        """
+        Return the number of iterable substanzas contained in this stanza.
+        """
+        return len(self.iterables)
+
+    def __iter__(self):
+        """
+        Return an iterator object for iterating over the stanza's substanzas.
+
+        The iterator is the stanza object itself. Attempting to use two
+        iterators on the same stanza at the same time is discouraged.
+        """
+        self._index = 0
+        return self
+
+    def __next__(self):
+        """
+        Return the next iterable substanza.
+        """
+        self._index += 1
+        if self._index > len(self.iterables):
+            self._index = 0
+            raise StopIteration
+        return self.iterables[self._index - 1]
+
+    def __copy__(self):
+        """
+        Return a copy of the stanza object that does not share the same
+        underlying XML object.
+        """
+        return self.__class__(xml=copy.deepcopy(self.xml), parent=self.parent)
+
+    def __str__(self):
+        """
+        Return a string serialization of the underlying XML object.
+        """
+        return tostring(self.xml, xmlns='', stanza_ns=self.namespace)
+
+    def __repr__(self):
+        """
+        Use the stanza's serialized XML as its representation.
+        """
+        return self.__str__()
+
 
 class StanzaBase(ElementBase):
         name = 'stanza'

@@ -3,6 +3,21 @@ from sleekxmpp.xmlstream.stanzabase import ElementBase
 
 class TestElementBase(SleekTest):
 
+    def testFixNs(self):
+        """Test fixing namespaces in an XPath expression."""
+
+        e = ElementBase()
+        ns = "http://jabber.org/protocol/disco#items"
+        result = e._fix_ns("{%s}foo/bar/{abc}baz/{%s}more" % (ns, ns))
+
+        expected = "/".join(["{%s}foo" % ns,
+                             "{%s}bar" % ns,
+                             "{abc}baz",
+                             "{%s}more" % ns])
+        self.failUnless(expected == result,
+            "Incorrect namespace fixing result: %s" % str(result))
+
+
     def testExtendedName(self):
         """Test element names of the form tag1/tag2/tag3."""
 

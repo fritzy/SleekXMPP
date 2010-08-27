@@ -33,6 +33,14 @@ class Waiter(BaseHandler):
     """
 
     def __init__(self, name, matcher, stream=None):
+        """
+        Create a new Waiter.
+
+        Arguments:
+            name    -- The name of the waiter.
+            matcher -- A matcher object to detect the desired stanza.
+            stream  -- Optional XMLStream instance to monitor.
+        """
         BaseHandler.__init__(self, name, matcher)
         self._payload = queue.Queue()
 

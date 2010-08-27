@@ -38,7 +38,7 @@ class Callback(BaseHandler):
             name     -- The name of the handler.
             matcher  -- A matcher object for matching stanza objects.
             pointer  -- The function to execute during callback.
-            threaded -- DEPRECATED. Remains only for backwards compatibility.
+            thread   -- DEPRECATED. Remains only for backwards compatibility.
             once     -- Indicates if the handler should be used only
                         once. Defaults to False.
             instream -- Indicates if the callback should be executed

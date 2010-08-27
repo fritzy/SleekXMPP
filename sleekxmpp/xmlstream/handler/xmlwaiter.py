@@ -5,9 +5,29 @@
 
     See the file LICENSE for copying permission.
 """
-from . waiter import Waiter
+
+from sleekxmpp.xmlstream.handler import Waiter
+
 
 class XMLWaiter(Waiter):
-	
-	def prerun(self, payload):
-		Waiter.prerun(self, payload.xml)
+
+    """
+    The XMLWaiter class is identical to the normal Waiter class
+    except that it returns the XML contents of the stanza instead
+    of the full stanza object itself.
+
+    Methods:
+        prerun -- Overrides Waiter.prerun
+    """
+
+    def prerun(self, payload):
+        """
+        Store the XML contents of the stanza to return to the
+        waiting event handler.
+
+        Overrides Waiter.prerun
+
+        Arguments:
+            payload -- The matched stanza object.
+        """
+        Waiter.prerun(self, payload.xml)

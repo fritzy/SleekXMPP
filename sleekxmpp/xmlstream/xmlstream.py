@@ -357,8 +357,10 @@ class XMLStream(object):
 					return False
 
 	def registerHandler(self, handler, before=None, after=None):
-		"Add handler with matcher class and parameters."
-		self.__handlers.append(handler)
+ 		"Add handler with matcher class and parameters."
+ 		if handler.stream is None:
+ 			self.__handlers.append(handler)
+ 			handler.stream = self
 
 	def removeHandler(self, name):
 		"Removes the handler."
@@ -366,8 +368,10 @@ class XMLStream(object):
 		for handler in self.__handlers:
 			if handler.name == name:
 				self.__handlers.pop(idx)
-				return
+				return True
 			idx += 1
+		return False
+
 
 	def registerStanza(self, stanza_class):
 		"Adds stanza.  If root stanzas build stanzas sent in events while non-root stanzas build substanza objects."

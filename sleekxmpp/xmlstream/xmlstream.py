@@ -139,8 +139,7 @@ class XMLStream(object):
 			self.socket = ssl.wrap_socket(self.socket, ssl_version=ssl.PROTOCOL_TLSv1, do_handshake_on_connect=False)
 			self.socket.do_handshake()
 			if sys.version_info < (3,0):
-				from . filesocket import filesocket
-				self.filesocket = filesocket(self.socket)
+				self.filesocket = filesocket.FileSocket(self.socket)
 			else:
 				self.filesocket = self.socket.makefile('rb', 0)
 			return True

@@ -347,7 +347,7 @@ class TestElementBase(SleekTest):
             </wrapper>
           </foo>
         """)
-        stanza._setSubText('bar', text='', keep=True)
+        stanza._setSubText('wrapper/bar', text='', keep=True)
         self.checkStanza(TestStanza, stanza, """
           <foo xmlns="foo">
             <wrapper>
@@ -358,7 +358,7 @@ class TestElementBase(SleekTest):
         """, use_values=False)
 
         stanza['bar'] = 'a'
-        stanza._setSubText('bar', text='')
+        stanza._setSubText('wrapper/bar', text='')
         self.checkStanza(TestStanza, stanza, """
           <foo xmlns="foo">
             <wrapper>

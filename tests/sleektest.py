@@ -504,7 +504,18 @@ class SleekTest(unittest.TestCase):
         if xml.attrib != other.attrib:
             return False
 
-        # Step 3: Recursively check children
+        # Step 3: Check text
+        if xml.text is None:
+            xml.text = ""
+        if other.text is None:
+            other.text = ""
+        xml.text = xml.text.strip()
+        other.text = other.text.strip()
+
+        if xml.text != other.text:
+            return False
+
+        # Step 4: Recursively check children
         for child in xml:
             child2s = other.findall("%s" % child.tag)
             if child2s is None:

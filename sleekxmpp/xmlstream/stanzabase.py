@@ -1014,9 +1014,13 @@ class StanzaBase(ElementBase):
         Add XML content to the stanza.
 
         Arguments:
-            value -- An XML object, or a stanza object.
+            value -- Either an XML or a stanza object, or a list
+                     of XML or stanza objects.
         """
-        self.xml.append(value)
+        if not isinstance(value, list):
+            value = [value]
+        for val in value:
+            self.append(val)
         return self
 
     def delPayload(self):

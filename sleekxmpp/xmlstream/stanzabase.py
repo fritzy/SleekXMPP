@@ -614,6 +614,12 @@ class ElementBase(object):
             if self[name] != value:
                 return False
 
+        # Check sub interfaces.
+        if len(xpath) > 1:
+            next_tag = xpath[1]
+            if next_tag in self.sub_interfaces and self[next_tag]:
+                return True
+
         # Attempt to continue matching the XPath using the stanza's plugins.
         if not matched_substanzas and len(xpath) > 1:
             # Convert {namespace}tag@attribs to just tag

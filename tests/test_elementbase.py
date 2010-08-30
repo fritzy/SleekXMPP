@@ -454,8 +454,15 @@ class TestElementBase(SleekTest):
         class TestStanza(ElementBase):
             name = "foo"
             namespace = "foo"
-            interfaces = set(('bar','baz'))
+            interfaces = set(('bar','baz', 'qux'))
+            sub_interfaces = set(('qux',))
             subitem = (TestSubStanza,)
+
+            def setQux(self, value):
+                self._setSubText('qux', text=value)
+
+            def getQux(self):
+                return self._getSubText('qux')
 
         class TestStanzaPlugin(ElementBase):
             name = "plugin"
@@ -478,6 +485,17 @@ class TestElementBase(SleekTest):
         stanza['baz'] = 'b'
         self.failUnless(stanza.match("foo@bar=a@baz=b"),
             "Stanza did not match its own name with multiple attributes.")
+
+        stanza['qux'] = 'c'
+        self.failUnless(stanza.match("foo/qux"),
+            "Stanza did not match with subelements.")
+
+        stanza['qux'] = ''
+        self.failUnless(stanza.match("foo/qux") == False,
+            "Stanza matched missing subinterface element.")
+
+        self.failUnless(stanza.match("foo/bar") == False,
+            "Stanza matched nonexistent element.")
 
         stanza['plugin']['attrib'] = 'c'
         self.failUnless(stanza.match("foo/plugin@attrib=c"),

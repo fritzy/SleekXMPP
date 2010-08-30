@@ -586,7 +586,8 @@ class ElementBase(object):
                      string or a list of element names with attribute checks.
         """
         if isinstance(xpath, str):
-            xpath = xpath.split('/')
+            xpath = self._fix_ns(xpath, split=True, propagate_ns=False)
+
 
         # Extract the tag name and attribute checks for the first XPath node.
         components = xpath[0].split('@')
@@ -754,15 +755,20 @@ class ElementBase(object):
         """
         return self
 
-    def _fix_ns(self, xpath, split=False):
+    def _fix_ns(self, xpath, split=False, propagate_ns=True):
         """
         Apply the stanza's namespace to elements in an XPath expression.
 
         Arguments:
-            xpath -- The XPath expression to fix with namespaces.
-            split -- Indicates if the fixed XPath should be left as a
-                     list of element names with namespaces. Defaults to
-                     False, which returns a flat string path.
+            xpath        -- The XPath expression to fix with namespaces.
+            split        -- Indicates if the fixed XPath should be left as a
+                            list of element names with namespaces. Defaults to
+                            False, which returns a flat string path.
+            propagate_ns -- Overrides propagating parent element namespaces
+                            to child elements. Useful if you wish to simply
+                            split an XPath that has non-specified namespaces,
+                            and child and parent namespaces are known not to
+                            always match. Defaults to True.
         """
         fixed = []
         # Split the XPath into a series of blocks, where a block
@@ -774,17 +780,23 @@ class ElementBase(object):
                 # that do not have namespaces.
                 namespace = ns_block.split('}')[0]
                 elements = ns_block.split('}')[1].split('/')
-            else:
+            elif use_ns:
                 # Apply the stanza's namespace to the following
                 # elements since no namespace was provided.
                 namespace = self.namespace
+                elements = ns_block.split('/')
+            else:
+                # We don't want to propagate namespaces.
                 elements = ns_block.split('/')
 
             for element in elements:
                 if element:
                     # Skip empty entry artifacts from splitting.
-                    fixed.append('{%s}%s' % (namespace,
-                                             element))
+                    if use_ns:
+                        tag = '{%s}%s' % (namespace, element)
+                    else:
+                        tag = element
+                    fixed.append(tag)
         if split:
             return fixed
         return '/'.join(fixed)

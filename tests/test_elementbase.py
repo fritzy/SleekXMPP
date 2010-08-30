@@ -459,7 +459,7 @@ class TestElementBase(SleekTest):
 
         class TestStanzaPlugin(ElementBase):
             name = "plugin"
-            namespace = "bar"
+            namespace = "http://test/slash/bar"
             interfaces = set(('attrib',))
 
         registerStanzaPlugin(TestStanza, TestStanzaPlugin)
@@ -483,7 +483,7 @@ class TestElementBase(SleekTest):
         self.failUnless(stanza.match("foo/plugin@attrib=c"),
             "Stanza did not match with plugin and attribute.")
 
-        self.failUnless(stanza.match("foo/{bar}plugin"),
+        self.failUnless(stanza.match("foo/{http://test/slash/bar}plugin"),
             "Stanza did not match with namespaced plugin.")
 
         substanza = TestSubStanza()

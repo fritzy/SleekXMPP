@@ -780,7 +780,7 @@ class ElementBase(object):
                 # that do not have namespaces.
                 namespace = ns_block.split('}')[0]
                 elements = ns_block.split('}')[1].split('/')
-            elif use_ns:
+            elif propagate_ns:
                 # Apply the stanza's namespace to the following
                 # elements since no namespace was provided.
                 namespace = self.namespace
@@ -792,7 +792,7 @@ class ElementBase(object):
             for element in elements:
                 if element:
                     # Skip empty entry artifacts from splitting.
-                    if use_ns:
+                    if propagate_ns:
                         tag = '{%s}%s' % (namespace, element)
                     else:
                         tag = element

@@ -13,6 +13,7 @@ from .. xmlstream.handler.callback import Callback
 from .. xmlstream.matcher.xpath import MatchXPath
 from .. xmlstream.stanzabase import registerStanzaPlugin, ElementBase, ET, JID
 from .. stanza.message import Message
+import types
 
 
 class Form(ElementBase):
@@ -199,6 +200,9 @@ class Form(ElementBase):
 	
 	def merge(self, other):
 		new = copy.copy(self)
+		if type(other) == types.DictType:
+			new.setValues(other)
+			return new
 		nfields = new.getFields(use_dict=True)
 		ofields = other.getFields(use_dict=True)
 		nfields.update(ofields)

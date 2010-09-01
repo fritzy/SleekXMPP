@@ -594,8 +594,8 @@ class ElementBase(object):
         tag = components[0]
         attributes = components[1:]
 
-        if tag not in (self.name, "{%s}%s" % (self.namespace, self.name),
-                       self.plugins, self.plugin_attrib):
+        if tag not in (self.name, "{%s}%s" % (self.namespace, self.name)) and \
+            tag not in self.plugins and tag not in self.plugin_attrib:
             # The requested tag is not in this stanza, so no match.
             return False
 
@@ -786,13 +786,10 @@ class ElementBase(object):
                 # that do not have namespaces.
                 namespace = ns_block.split('}')[0]
                 elements = ns_block.split('}')[1].split('/')
-            elif propagate_ns:
+            else:
                 # Apply the stanza's namespace to the following
                 # elements since no namespace was provided.
                 namespace = self.namespace
-                elements = ns_block.split('/')
-            else:
-                # We don't want to propagate namespaces.
                 elements = ns_block.split('/')
 
             for element in elements:

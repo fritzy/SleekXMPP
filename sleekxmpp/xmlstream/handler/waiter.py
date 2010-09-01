@@ -41,7 +41,7 @@ class Waiter(BaseHandler):
             matcher -- A matcher object to detect the desired stanza.
             stream  -- Optional XMLStream instance to monitor.
         """
-        BaseHandler.__init__(self, name, matcher)
+        BaseHandler.__init__(self, name, matcher, stream=stream)
         self._payload = queue.Queue()
 
     def prerun(self, payload):

@@ -9,6 +9,7 @@
 from socket import _fileobject
 import socket
 
+
 class FileSocket(_fileobject):
 
     """
@@ -25,6 +26,7 @@ class FileSocket(_fileobject):
         if data is not None:
             return data
 
+
 class Socket26(socket._socketobject):
 
     """
@@ -37,4 +39,3 @@ class Socket26(socket._socketobject):
         Return a regular file object corresponding to the socket.  The mode
         and bufsize arguments are as for the built-in open() function."""
         return FileSocket(self._sock, mode, bufsize)
-

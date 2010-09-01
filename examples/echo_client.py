@@ -20,7 +20,7 @@ import sleekxmpp
 # by default. To ensure that Unicode is handled properly
 # throughout SleekXMPP, we will set the default encoding
 # ourselves to UTF-8.
-if sys.version_info < (3,0):
+if sys.version_info < (3, 0):
     reload(sys)
     sys.setdefaultencoding('utf8')
 
@@ -83,13 +83,13 @@ if __name__ == '__main__':
     optp = OptionParser()
 
     # Output verbosity options.
-    optp.add_option('-q','--quiet', help='set logging to ERROR',
+    optp.add_option('-q', '--quiet', help='set logging to ERROR',
                     action='store_const', dest='loglevel',
                     const=logging.ERROR, default=logging.INFO)
-    optp.add_option('-d','--debug', help='set logging to DEBUG',
+    optp.add_option('-d', '--debug', help='set logging to DEBUG',
                     action='store_const', dest='loglevel',
                     const=logging.DEBUG, default=logging.INFO)
-    optp.add_option('-v','--verbose', help='set logging to COMM',
+    optp.add_option('-v', '--verbose', help='set logging to COMM',
                     action='store_const', dest='loglevel',
                     const=5, default=logging.INFO)
 

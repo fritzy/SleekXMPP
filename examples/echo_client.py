@@ -14,12 +14,12 @@ if sys.version_info < (3,0):
 
 
 class Example(sleekxmpp.ClientXMPP):
-    
+
     def __init__(self, jid, password):
         sleekxmpp.ClientXMPP.__init__(self, jid, password)
         self.add_event_handler("session_start", self.start)
         self.add_event_handler("message", self.message)
-    
+
     def start(self, event):
         self.getRoster()
         self.sendPresence()
@@ -36,18 +36,18 @@ if __name__ == '__main__':
     optp.add_option("-j","--jid", dest="jid", help="JID to use")
     optp.add_option("-p","--password", dest="password", help="password to use")
     opts,args = optp.parse_args()
-    
+
     logging.basicConfig(level=opts.loglevel, format='%(levelname)-8s %(message)s')
     xmpp = Example(opts.jid, opts.password)
-    xmpp.registerPlugin('xep_0030') 
+    xmpp.registerPlugin('xep_0030')
     xmpp.registerPlugin('xep_0004')
     xmpp.registerPlugin('xep_0060')
     xmpp.registerPlugin('xep_0199')
 
     # use this if you don't have pydns, and want to
     # talk to GoogleTalk (e.g.)
-#   if xmpp.connect(('talk.google.com', 5222)):
-    if xmpp.connect():
+    if xmpp.connect(('talk.google.com', 5222)):
+    #khif xmpp.connect():
         xmpp.process(threaded=False)
         print("done")
     else:

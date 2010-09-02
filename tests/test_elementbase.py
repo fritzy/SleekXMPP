@@ -3,6 +3,21 @@ from sleekxmpp.xmlstream.stanzabase import ElementBase
 
 class TestElementBase(SleekTest):
 
+    def testFixNs(self):
+        """Test fixing namespaces in an XPath expression."""
+
+        e = ElementBase()
+        ns = "http://jabber.org/protocol/disco#items"
+        result = e._fix_ns("{%s}foo/bar/{abc}baz/{%s}more" % (ns, ns))
+
+        expected = "/".join(["{%s}foo" % ns,
+                             "{%s}bar" % ns,
+                             "{abc}baz",
+                             "{%s}more" % ns])
+        self.failUnless(expected == result,
+            "Incorrect namespace fixing result: %s" % str(result))
+
+
     def testExtendedName(self):
         """Test element names of the form tag1/tag2/tag3."""
 
@@ -332,7 +347,7 @@ class TestElementBase(SleekTest):
             </wrapper>
           </foo>
         """)
-        stanza._setSubText('bar', text='', keep=True)
+        stanza._setSubText('wrapper/bar', text='', keep=True)
         self.checkStanza(TestStanza, stanza, """
           <foo xmlns="foo">
             <wrapper>
@@ -343,7 +358,7 @@ class TestElementBase(SleekTest):
         """, use_values=False)
 
         stanza['bar'] = 'a'
-        stanza._setSubText('bar', text='')
+        stanza._setSubText('wrapper/bar', text='')
         self.checkStanza(TestStanza, stanza, """
           <foo xmlns="foo">
             <wrapper>
@@ -439,12 +454,19 @@ class TestElementBase(SleekTest):
         class TestStanza(ElementBase):
             name = "foo"
             namespace = "foo"
-            interfaces = set(('bar','baz'))
+            interfaces = set(('bar','baz', 'qux'))
+            sub_interfaces = set(('qux',))
             subitem = (TestSubStanza,)
+
+            def setQux(self, value):
+                self._setSubText('qux', text=value)
+
+            def getQux(self):
+                return self._getSubText('qux')
 
         class TestStanzaPlugin(ElementBase):
             name = "plugin"
-            namespace = "bar"
+            namespace = "http://test/slash/bar"
             interfaces = set(('attrib',))
 
         registerStanzaPlugin(TestStanza, TestStanzaPlugin)
@@ -464,11 +486,22 @@ class TestElementBase(SleekTest):
         self.failUnless(stanza.match("foo@bar=a@baz=b"),
             "Stanza did not match its own name with multiple attributes.")
 
+        stanza['qux'] = 'c'
+        self.failUnless(stanza.match("foo/qux"),
+            "Stanza did not match with subelements.")
+
+        stanza['qux'] = ''
+        self.failUnless(stanza.match("foo/qux") == False,
+            "Stanza matched missing subinterface element.")
+
+        self.failUnless(stanza.match("foo/bar") == False,
+            "Stanza matched nonexistent element.")
+
         stanza['plugin']['attrib'] = 'c'
         self.failUnless(stanza.match("foo/plugin@attrib=c"),
             "Stanza did not match with plugin and attribute.")
 
-        self.failUnless(stanza.match("foo/{bar}plugin"),
+        self.failUnless(stanza.match("foo/{http://test/slash/bar}plugin"),
             "Stanza did not match with namespaced plugin.")
 
         substanza = TestSubStanza()

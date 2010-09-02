@@ -37,7 +37,7 @@ except ImportError:
 
 
 #class PresenceStanzaType(object):
-#       
+#
 #       def fromXML(self, xml):
 #               self.ptype = xml.get('type')
 
@@ -69,24 +69,24 @@ class ClientXMPP(basexmpp, XMLStream):
                 self.bound = False
                 self.bindfail = False
                 self.is_component = False
-                self.registerHandler(Callback('Stream Features', MatchXPath('{http://etherx.jabber.org/streams}features'), self._handleStreamFeatures, thread=True))
-                self.registerHandler(Callback('Roster Update', MatchXPath('{%s}iq/{jabber:iq:roster}query' % self.default_ns), self._handleRoster, thread=True))
+                self.registerHandler(Callback('Stream Features', MatchXPath('{http://etherx.jabber.org/streams}features'), self._handleStreamFeatures))
+                self.registerHandler(Callback('Roster Update', MatchXPath('{%s}iq/{jabber:iq:roster}query' % self.default_ns), self._handleRoster))
                 #self.registerHandler(Callback('Roster Update', MatchXMLMask("<presence xmlns='%s' type='subscribe' />" % self.default_ns), self._handlePresenceSubscribe, thread=True))
                 self.registerFeature("<starttls xmlns='urn:ietf:params:xml:ns:xmpp-tls' />", self.handler_starttls, True)
                 self.registerFeature("<mechanisms xmlns='urn:ietf:params:xml:ns:xmpp-sasl' />", self.handler_sasl_auth, True)
                 self.registerFeature("<bind xmlns='urn:ietf:params:xml:ns:xmpp-bind' />", self.handler_bind_resource)
                 self.registerFeature("<session xmlns='urn:ietf:params:xml:ns:xmpp-session' />", self.handler_start_session)
-                
+
                 #self.registerStanzaExtension('PresenceStanza', PresenceStanzaType)
                 #self.register_plugins()
-        
+
         def __getitem__(self, key):
                 if key in self.plugin:
                         return self.plugin[key]
                 else:
                         logging.warning("""Plugin "%s" is not loaded.""" % key)
                         return False
-        
+
         def get(self, key, default):
                 return self.plugin.get(key, default)
 
@@ -104,7 +104,7 @@ class ClientXMPP(basexmpp, XMLStream):
                                         logging.debug("No appropriate SRV record found.  Using JID server name.")
                                 else:
                                         # pick a random answer, weighted by priority
-                                        # there are less verbose ways of doing this (random.choice() with answer * priority), but I chose this way anyway 
+                                        # there are less verbose ways of doing this (random.choice() with answer * priority), but I chose this way anyway
                                         # suggestions are welcome
                                         addresses = {}
                                         intmax = 0
@@ -128,18 +128,18 @@ class ClientXMPP(basexmpp, XMLStream):
                         logging.warning("Failed to connect")
                         self.event("disconnected")
                 return result
-        
+
         # overriding reconnect and disconnect so that we can get some events
         # should events be part of or required by xmlstream?  Maybe that would be cleaner
         def reconnect(self):
                 logging.info("Reconnecting")
                 self.event("disconnected")
                 XMLStream.reconnect(self)
-        
+
         def disconnect(self, init=True, close=False, reconnect=False):
                 self.event("disconnected")
                 XMLStream.disconnect(self, reconnect)
-        
+
         def registerFeature(self, mask, pointer, breaker = False):
                 """Register a stream feature."""
                 self.registered_features.append((MatchXMLMask(mask), pointer, breaker))
@@ -157,12 +157,12 @@ class ClientXMPP(basexmpp, XMLStream):
                 iq['type'] = 'set'
                 iq['roster']['items'] = {jid: {'subscription': 'remove'}}
                 return iq.send()['type'] == 'result'
-        
+
         def getRoster(self):
                 """Request the roster be sent."""
                 iq = self.Iq().setStanzaValues({'type': 'get'}).enable('roster').send()
                 self._handleRoster(iq, request=True)
-        
+
         def _handleStreamFeatures(self, features):
                 self.features = []
                 for sub in features.xml:
@@ -173,7 +173,7 @@ class ClientXMPP(basexmpp, XMLStream):
                                 #if self.maskcmp(subelement, feature[0], True):
                                         if feature[1](subelement) and feature[2]: #if breaker, don't continue
                                                 return True
-        
+
         def handler_starttls(self, xml):
                 if not self.authenticated and self.ssl_support:
                         self.add_handler("<proceed xmlns='urn:ietf:params:xml:ns:xmpp-tls' />", self.handler_tls_start, name='TLS Proceed', instream=True)
@@ -187,7 +187,7 @@ class ClientXMPP(basexmpp, XMLStream):
                 logging.debug("Starting TLS")
                 if self.startTLS():
                         raise RestartStream()
-        
+
         def handler_sasl_auth(self, xml):
                 if '{urn:ietf:params:xml:ns:xmpp-tls}starttls' in self.features:
                         return False
@@ -209,7 +209,7 @@ class ClientXMPP(basexmpp, XMLStream):
                                 #if 'sasl:DIGEST-MD5' in self.features:
                                 #       self._auth_digestmd5()
                 return True
-        
+
         def handler_auth_success(self, xml):
                 self.authenticated = True
                 self.features = []
@@ -219,7 +219,7 @@ class ClientXMPP(basexmpp, XMLStream):
                 logging.info("Authentication failed.")
                 self.disconnect()
                 self.event("failed_auth")
-        
+
         def handler_bind_resource(self, xml):
                 logging.debug("Requesting resource: %s" % self.resource)
                 xml.clear()
@@ -238,7 +238,7 @@ class ClientXMPP(basexmpp, XMLStream):
                         logging.debug("Established Session")
                         self.sessionstarted = True
                         self.event("session_start")
-        
+
         def handler_start_session(self, xml):
                 if self.authenticated and self.bound:
                         iq = self.makeIqSet(xml)
@@ -249,7 +249,7 @@ class ClientXMPP(basexmpp, XMLStream):
                 else:
                         #bind probably hasn't happened yet
                         self.bindfail = True
-        
+
         def _handleRoster(self, iq, request=False):
                 if iq['type'] == 'set' or (iq['type'] == 'result' and request):
                         for jid in iq['roster']['items']:

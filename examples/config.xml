@@ -1,0 +1,10 @@
+<config xmlns="sleekxmpp:config">
+  <jid>component.localhost</jid>
+  <secret>ssshh</secret>
+  <server>localhost</server>
+  <port>8888</port>
+
+  <query xmlns="jabber:iq:roster">
+    <item jid="user@example.com" subscription="both" />
+  </query>
+</config>

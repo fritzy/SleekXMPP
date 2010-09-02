@@ -586,15 +586,16 @@ class ElementBase(object):
                      string or a list of element names with attribute checks.
         """
         if isinstance(xpath, str):
-            xpath = xpath.split('/')
+            xpath = self._fix_ns(xpath, split=True, propagate_ns=False)
+
 
         # Extract the tag name and attribute checks for the first XPath node.
         components = xpath[0].split('@')
         tag = components[0]
         attributes = components[1:]
 
-        if tag not in (self.name, "{%s}%s" % (self.namespace, self.name),
-                       self.plugins, self.plugin_attrib):
+        if tag not in (self.name, "{%s}%s" % (self.namespace, self.name)) and \
+            tag not in self.plugins and tag not in self.plugin_attrib:
             # The requested tag is not in this stanza, so no match.
             return False
 
@@ -612,6 +613,12 @@ class ElementBase(object):
             name, value = attribute.split('=')
             if self[name] != value:
                 return False
+
+        # Check sub interfaces.
+        if len(xpath) > 1:
+            next_tag = xpath[1]
+            if next_tag in self.sub_interfaces and self[next_tag]:
+                return True
 
         # Attempt to continue matching the XPath using the stanza's plugins.
         if not matched_substanzas and len(xpath) > 1:
@@ -754,30 +761,45 @@ class ElementBase(object):
         """
         return self
 
-    def _fix_ns(self, xpath, split=False):
+    def _fix_ns(self, xpath, split=False, propagate_ns=True):
         """
         Apply the stanza's namespace to elements in an XPath expression.
 
         Arguments:
-            xpath -- The XPath expression to fix with namespaces.
-            split -- Indicates if the fixed XPath should be left as a
-                     list of element names with namespaces. Defaults to
-                     False, which returns a flat string path.
+            xpath        -- The XPath expression to fix with namespaces.
+            split        -- Indicates if the fixed XPath should be left as a
+                            list of element names with namespaces. Defaults to
+                            False, which returns a flat string path.
+            propagate_ns -- Overrides propagating parent element namespaces
+                            to child elements. Useful if you wish to simply
+                            split an XPath that has non-specified namespaces,
+                            and child and parent namespaces are known not to
+                            always match. Defaults to True.
         """
         fixed = []
+        # Split the XPath into a series of blocks, where a block
+        # is started by an element with a namespace.
         ns_blocks = xpath.split('{')
         for ns_block in ns_blocks:
             if '}' in ns_block:
+                # Apply the found namespace to following elements
+                # that do not have namespaces.
                 namespace = ns_block.split('}')[0]
                 elements = ns_block.split('}')[1].split('/')
             else:
+                # Apply the stanza's namespace to the following
+                # elements since no namespace was provided.
                 namespace = self.namespace
                 elements = ns_block.split('/')
 
             for element in elements:
                 if element:
-                    fixed.append('{%s}%s' % (namespace,
-                                             element))
+                    # Skip empty entry artifacts from splitting.
+                    if propagate_ns:
+                        tag = '{%s}%s' % (namespace, element)
+                    else:
+                        tag = element
+                    fixed.append(tag)
         if split:
             return fixed
         return '/'.join(fixed)
@@ -886,6 +908,48 @@ class ElementBase(object):
 
 
 class StanzaBase(ElementBase):
+
+    """
+    StanzaBase provides the foundation for all other stanza objects used by
+    SleekXMPP, and defines a basic set of interfaces common to nearly
+    all stanzas. These interfaces are the 'id', 'type', 'to', and 'from'
+    attributes. An additional interface, 'payload', is available to access
+    the XML contents of the stanza. Most stanza objects will provided more
+    specific interfaces, however.
+
+    Stanza Interface:
+        from    -- A JID object representing the sender's JID.
+        id      -- An optional id value that can be used to associate stanzas
+                   with their replies.
+        payload -- The XML contents of the stanza.
+        to      -- A JID object representing the recipient's JID.
+        type    -- The type of stanza, typically will be 'normal', 'error',
+                   'get', or 'set', etc.
+
+    Attributes:
+        stream -- The XMLStream instance that will handle sending this stanza.
+        tag    -- The namespaced version of the stanza's name.
+
+    Methods:
+        setType    -- Set the type of the stanza.
+        getTo      -- Return the stanza recipients JID.
+        setTo      -- Set the stanza recipient's JID.
+        getFrom    -- Return the stanza sender's JID.
+        setFrom    -- Set the stanza sender's JID.
+        getPayload -- Return the stanza's XML contents.
+        setPayload -- Append to the stanza's XML contents.
+        delPayload -- Remove the stanza's XML contents.
+        clear      -- Reset the stanza's XML contents.
+        reply      -- Reset the stanza and modify the 'to' and 'from'
+                      attributes to prepare for sending a reply.
+        error      -- Set the stanza's type to 'error'.
+        unhandled  -- Callback for when the stanza is not handled by a
+                      stream handler.
+        exception  -- Callback for if an exception is raised while
+                      handling the stanza.
+        send       -- Send the stanza using the stanza's stream.
+    """
+
     name = 'stanza'
     namespace = 'jabber:client'
     interfaces = set(('type', 'to', 'from', 'id', 'payload'))
@@ -894,6 +958,17 @@ class StanzaBase(ElementBase):
 
     def __init__(self, stream=None, xml=None, stype=None,
                  sto=None, sfrom=None, sid=None):
+        """
+        Create a new stanza.
+
+        Arguments:
+            stream -- Optional XMLStream responsible for sending this stanza.
+            xml    -- Optional XML contents to initialize stanza values.
+            stype  -- Optional stanza type value.
+            sto    -- Optional string or JID object of the recipient's JID.
+            sfrom  -- Optional string or JID object of the sender's JID.
+            sid    -- Optional ID value for the stanza.
+        """
         self.stream = stream
         if stream is not None:
             self.namespace = stream.default_ns
@@ -907,22 +982,73 @@ class StanzaBase(ElementBase):
         self.tag = "{%s}%s" % (self.namespace, self.name)
 
     def setType(self, value):
+        """
+        Set the stanza's 'type' attribute.
+
+        Only type values contained in StanzaBase.types are accepted.
+
+        Arguments:
+            value -- One of the values contained in StanzaBase.types
+        """
         if value in self.types:
             self.xml.attrib['type'] = value
         return self
 
+    def getTo(self):
+        """Return the value of the stanza's 'to' attribute."""
+        return JID(self._getAttr('to'))
+
+    def setTo(self, value):
+        """
+        Set the 'to' attribute of the stanza.
+
+        Arguments:
+            value -- A string or JID object representing the recipient's JID.
+        """
+        return self._setAttr('to', str(value))
+
+    def getFrom(self):
+        """Return the value of the stanza's 'from' attribute."""
+        return JID(self._getAttr('from'))
+
+    def setFrom(self, value):
+        """
+        Set the 'from' attribute of the stanza.
+
+        Arguments:
+            from -- A string or JID object representing the sender's JID.
+        """
+        return self._setAttr('from', str(value))
+
     def getPayload(self):
+        """Return a list of XML objects contained in the stanza."""
         return self.xml.getchildren()
 
     def setPayload(self, value):
-        self.xml.append(value)
+        """
+        Add XML content to the stanza.
+
+        Arguments:
+            value -- Either an XML or a stanza object, or a list
+                     of XML or stanza objects.
+        """
+        if not isinstance(value, list):
+            value = [value]
+        for val in value:
+            self.append(val)
         return self
 
     def delPayload(self):
+        """Remove the XML contents of the stanza."""
         self.clear()
         return self
 
     def clear(self):
+        """
+        Remove all XML element contents and plugins.
+
+        Any attribute values will be preserved.
+        """
         for child in self.xml.getchildren():
             self.xml.remove(child)
         for plugin in list(self.plugins.keys()):
@@ -930,6 +1056,12 @@ class StanzaBase(ElementBase):
         return self
 
     def reply(self):
+        """
+        Reset the stanza and swap its 'from' and 'to' attributes to prepare
+        for sending a reply stanza.
+
+        For client streams, the 'from' attribute is removed.
+        """
         # if it's a component, use from
         if self.stream and hasattr(self.stream, "is_component") and \
             self.stream.is_component:
@@ -941,35 +1073,42 @@ class StanzaBase(ElementBase):
         return self
 
     def error(self):
+        """Set the stanza's type to 'error'."""
         self['type'] = 'error'
         return self
 
-    def getTo(self):
-        return JID(self._getAttr('to'))
-
-    def setTo(self, value):
-        return self._setAttr('to', str(value))
-
-    def getFrom(self):
-        return JID(self._getAttr('from'))
-
-    def setFrom(self, value):
-        return self._setAttr('from', str(value))
-
     def unhandled(self):
+        """
+        Called when no handlers have been registered to process this
+        stanza.
+
+        Meant to be overridden.
+        """
         pass
 
     def exception(self, e):
+        """
+        Handle exceptions raised during stanza processing.
+
+        Meant to be overridden.
+        """
         logging.exception('Error handling {%s}%s stanza' % (self.namespace,
                                                             self.name))
 
     def send(self):
+        """Queue the stanza to be sent on the XML stream."""
         self.stream.sendRaw(self.__str__())
 
     def __copy__(self):
-        return self.__class__(xml=copy.deepcopy(self.xml), stream=self.stream)
+        """
+        Return a copy of the stanza object that does not share the
+        same underlying XML object, but does share the same XML stream.
+        """
+        return self.__class__(xml=copy.deepcopy(self.xml),
+                              stream=self.stream)
 
     def __str__(self):
+        """Serialize the stanza's XML to a string."""
         return tostring(self.xml, xmlns='',
                         stanza_ns=self.namespace,
                         stream=self.stream)

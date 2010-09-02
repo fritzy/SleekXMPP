@@ -139,8 +139,7 @@ class XMLStream(object):
 			self.socket = ssl.wrap_socket(self.socket, ssl_version=ssl.PROTOCOL_TLSv1, do_handshake_on_connect=False)
 			self.socket.do_handshake()
 			if sys.version_info < (3,0):
-				from . filesocket import filesocket
-				self.filesocket = filesocket(self.socket)
+				self.filesocket = filesocket.FileSocket(self.socket)
 			else:
 				self.filesocket = self.socket.makefile('rb', 0)
 			return True
@@ -358,8 +357,10 @@ class XMLStream(object):
 					return False
 
 	def registerHandler(self, handler, before=None, after=None):
-		"Add handler with matcher class and parameters."
-		self.__handlers.append(handler)
+ 		"Add handler with matcher class and parameters."
+ 		if handler.stream is None:
+ 			self.__handlers.append(handler)
+ 			handler.stream = self
 
 	def removeHandler(self, name):
 		"Removes the handler."
@@ -367,8 +368,10 @@ class XMLStream(object):
 		for handler in self.__handlers:
 			if handler.name == name:
 				self.__handlers.pop(idx)
-				return
+				return True
 			idx += 1
+		return False
+
 
 	def registerStanza(self, stanza_class):
 		"Adds stanza.  If root stanzas build stanzas sent in events while non-root stanzas build substanza objects."

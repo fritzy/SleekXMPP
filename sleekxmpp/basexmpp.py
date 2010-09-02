@@ -123,7 +123,7 @@ class basexmpp(object):
                 # threaded is no longer needed, but leaving it for backwards compatibility for now
 		if name is None:
 			name = 'add_handler_%s' % self.getNewId()
-		self.registerHandler(XMLCallback(name, MatchXMLMask(mask), pointer, threaded, disposable, instream))
+		self.registerHandler(XMLCallback(name, MatchXMLMask(mask), pointer, once=disposable, instream=instream))
 
 	def getId(self):
 		return "%x".upper() % self.id

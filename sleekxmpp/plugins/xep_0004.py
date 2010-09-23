@@ -54,7 +54,7 @@ class Form(ElementBase):
 			field['options'] = options
 		return field
 
-	def getXML(self):
+	def getXML(self, type='submit'):
 		logging.warning("Form.getXML() is deprecated API compatibility with plugins/old_0004.py")
 		return self.xml
 	
@@ -387,3 +387,6 @@ class xep_0004(base.base_plugin):
 
 	def handle_form(self, message):
 		self.xmpp.event("message_xform", message)
+
+	def buildForm(self, xml):
+		return Form(xml=xml)

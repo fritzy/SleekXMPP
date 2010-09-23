@@ -120,20 +120,34 @@ class xep_0045(base.base_plugin):
 	def handle_groupchat_presence(self, pr):
 		""" Handle a presence in a muc.
 		"""
+		got_offline = False
+		got_online = False
 		if pr['muc']['room'] not in self.rooms.keys():
 			return
 		entry = pr['muc'].getStanzaValues()
+		entry['show'] = pr['show']
+		entry['status'] = pr['status']
 		if pr['type'] == 'unavailable':
-			del self.rooms[entry['room']][entry['nick']]
+			if entry['nick'] in self.rooms[entry['room']]:
+				del self.rooms[entry['room']][entry['nick']]
+			got_offline = True
 		else:
+			if entry['nick'] not in self.rooms[entry['room']]:
+				got_online = True
 			self.rooms[entry['room']][entry['nick']] = entry
 		logging.debug("MUC presence from %s/%s : %s" % (entry['room'],entry['nick'], entry))
 		self.xmpp.event("groupchat_presence", pr)
+		self.xmpp.event("muc::%s::presence" % entry['room'], pr)
+		if got_offline:
+			self.xmpp.event("muc::%s::got_offline" % entry['room'], pr)
+		if got_online:
+			self.xmpp.event("muc::%s::got_online" % entry['room'], pr)
 	
 	def handle_groupchat_message(self, msg):
 		""" Handle a message event in a muc.
 		"""
 		self.xmpp.event('groupchat_message', msg)
+		self.xmpp.event("muc::%s::message" % msg['from'].bare, msg)
 		       
 	def jidInRoom(self, room, jid):
 		for nick in self.rooms[room]:
@@ -141,6 +155,12 @@ class xep_0045(base.base_plugin):
 			if entry is not None and entry['jid'].full == jid:
 				return True
 		return False
+	
+	def getNick(self, room, jid):
+		for nick in self.rooms[room]:
+			entry = self.rooms[room][nick]
+			if entry is not None and entry['jid'].full == jid:
+				return nick
 
 	def getRoomForm(self, room, ifrom=None):
 		iq = self.xmpp.makeIqGet()
@@ -256,13 +276,14 @@ class xep_0045(base.base_plugin):
 	def getRoomConfig(self, room):
 		iq = self.xmpp.makeIqGet('http://jabber.org/protocol/muc#owner')
 		iq['to'] = room
+		iq['from'] = self.xmpp.jid
 		result = iq.send()
 		if result is None or result['type'] != 'result':
 			raise ValueError
 		form = result.xml.find('{http://jabber.org/protocol/muc#owner}query/{jabber:x:data}x')
 		if form is None:
 			raise ValueError
-		return self.xmpp.plugin['old_0004'].buildForm(form)
+		return self.xmpp.plugin['xep_0004'].buildForm(form)
 	
 	def cancelConfig(self, room):
 		query = ET.Element('{http://jabber.org/protocol/muc#owner}query')
@@ -277,6 +298,7 @@ class xep_0045(base.base_plugin):
 		query.append(x)
 		iq = self.xmpp.makeIqSet(query)
 		iq['to'] = room
+		iq['from'] = self.xmpp.jid
 		iq.send()
 		
 	def getJoinedRooms(self):

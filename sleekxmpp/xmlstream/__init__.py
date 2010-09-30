@@ -7,5 +7,8 @@
 """
 
 from sleekxmpp.xmlstream.jid import JID
-from sleekxmpp.xmlstream.stanzabase import StanzaBase, ElementBase
+from sleekxmpp.xmlstream.scheduler import Scheduler
+from sleekxmpp.xmlstream.stanzabase import StanzaBase, ElementBase, ET
+from sleekxmpp.xmlstream.statemachine import StateMachine
+from sleekxmpp.xmlstream.tostring import tostring
 from sleekxmpp.xmlstream.xmlstream import XMLStream, RESPONSE_TIMEOUT

@@ -117,7 +117,8 @@ class XMLStream(object):
         send_xml             -- Send an XML string on the stream.
         set_socket           -- Set the stream's socket and generate a new
                                 filesocket.
-        start_stream_handler -- Meant to be overridden.
+        start_stream_handler -- Perform any stream initialization such
+                                as handshakes.
         start_tls            -- Establish a TLS connection and restart
                                 the stream.
     """
@@ -313,7 +314,12 @@ class XMLStream(object):
             return False
 
     def start_stream_handler(self, xml):
-        """Meant to be overridden"""
+        """
+        Perform any initialization actions, such as handshakes, once the
+        stream header has been sent.
+
+        Meant to be overridden.
+        """
         pass
 
     def register_stanza(self, stanza_class):
@@ -464,7 +470,7 @@ class XMLStream(object):
                 if self.state['is client']:
                     self.send_raw(self.stream_header)
                 # The call to self.__read_xml will block and prevent
-                # the body of the loop from running until a diconnect
+                # the body of the loop from running until a disconnect
                 # occurs. After any reconnection, the stream header will
                 # be resent and processing will resume.
                 while self.run and self.__read_xml():

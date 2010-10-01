@@ -49,7 +49,7 @@ def tostring(xml=None, xmlns='', stanza_ns='', stream=None, outbuffer=''):
         if stream and tag_xmlns in stream.namespace_map:
             mapped_namespace = stream.namespace_map[tag_xmlns]
             if mapped_namespace:
-                tag = u"%s:%s" % (mapped_namespace, tag_name)
+                tag_name = u"%s:%s" % (mapped_namespace, tag_name)
     output.append(u"<%s" % tag_name)
     output.append(namespace)
 

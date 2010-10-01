@@ -39,8 +39,6 @@ if sys.version_info < (3,0):
 
 class basexmpp(object):
 	def __init__(self):
-		self.id = 0
-		self.id_lock = threading.Lock()
 		self.sentpresence = False
 		self.fulljid = ''
 		self.resource = ''
@@ -50,7 +48,6 @@ class basexmpp(object):
 		self.plugin = {}
 		self.auto_authorize = True
 		self.auto_subscribe = True
-		self.event_handlers = {}
 		self.roster = {}
 		self.registerHandler(Callback('IM', MatchXMLMask("<message xmlns='%s'><body /></message>" % self.default_ns), self._handleMessage))
 		self.registerHandler(Callback('Presence', MatchXMLMask("<presence xmlns='%s' />" % self.default_ns), self._handlePresence))
@@ -147,37 +144,6 @@ class basexmpp(object):
 		if iq:
 			iq.append(query)
 		return query
-
-	def add_event_handler(self, name, pointer, threaded=False, disposable=False):
-		if not name in self.event_handlers:
-			self.event_handlers[name] = []
-		self.event_handlers[name].append((pointer, threaded, disposable))
-
-	def del_event_handler(self, name, pointer):
-		"""Remove a handler for an event."""
-		if not name in self.event_handlers:
-			return
-
-		# Need to keep handlers that do not use
-		# the given function pointer
-		def filter_pointers(handler):
-			return handler[0] != pointer
-
-		self.event_handlers[name] = filter(filter_pointers,
-						   self.event_handlers[name])
-
-	def event(self, name, eventdata = {}): # called on an event
-		for handler in self.event_handlers.get(name, []):
-			handlerdata = copy.copy(eventdata)
-			if handler[1]: #if threaded
-				#thread.start_new(handler[0], (eventdata,))
-				x = threading.Thread(name="Event_%s" % str(handler[0]), target=handler[0], args=(handlerdata,))
-				x.start()
-			else:
-				handler[0](handlerdata)
-			if handler[2]: #disposable
-				with self.lock:
-					self.event_handlers[name].pop(self.event_handlers[name].index(handler))
 
 	def makeMessage(self, mto, mbody=None, msubject=None, mtype=None, mhtml=None, mfrom=None, mnick=None):
 		message = self.Message(sto=mto, stype=mtype, sfrom=mfrom)

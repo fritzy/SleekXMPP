@@ -182,6 +182,8 @@ class XMLStream(object):
         self.__thread = {}
         self.__root_stanza = []
         self.__handlers = []
+        self.__event_handlers = {}
+        self.__event_handlers_lock = threading.Lock()
 
         self._id = 0
         self._id_lock = threading.Lock()
@@ -192,8 +194,8 @@ class XMLStream(object):
         """
         Generate and return a new stream ID in hexadecimal form.
 
-        Many stanzas, handlers, or matchers may require unique 
-        ID values. Using this method ensures that all new ID values 
+        Many stanzas, handlers, or matchers may require unique
+        ID values. Using this method ensures that all new ID values
         are unique in this stream.
         """
         with self._id_lock:
@@ -377,7 +379,7 @@ class XMLStream(object):
         """
         del self.__root_stanza[stanza_class]
 
-    def add_handler(self, mask, pointer, name=None, disposable=False, 
+    def add_handler(self, mask, pointer, name=None, disposable=False,
                     threaded=False, filter=False, instream=False):
         """
         A shortcut method for registering a handler using XML masks.
@@ -398,7 +400,7 @@ class XMLStream(object):
         """
         if name is None:
             name = 'add_handler_%s' % self.getNewId()
-        self.registerHandler(XMLCallback(name, MatchXMLMask(mask), pointer, 
+        self.registerHandler(XMLCallback(name, MatchXMLMask(mask), pointer,
                                          once=disposable, instream=instream))
 
     def register_handler(self, handler, before=None, after=None):
@@ -427,6 +429,69 @@ class XMLStream(object):
                 return True
             idx += 1
         return False
+
+    def add_event_handler(self, name, pointer,
+                          threaded=False, disposable=False):
+        """
+        Add a custom event handler that will be executed whenever
+        its event is manually triggered.
+
+        Arguments:
+            name       -- The name of the event that will trigger
+                          this handler.
+            pointer    -- The function to execute.
+            threaded   -- If set to True, the handler will execute
+                          in its own thread. Defaults to False.
+            disposable -- If set to True, the handler will be
+                          discarded after one use. Defaults to False.
+        """
+        if not name in self.__event_handlers:
+            self.__event_handlers[name] = []
+        self.__event_handlers[name].append((pointer, threaded, disposable))
+
+    def del_event_handler(self, name, pointer):
+        """
+        Remove a function as a handler for an event.
+
+        Arguments:
+            name    -- The name of the event.
+            pointer -- The function to remove as a handler.
+        """
+        if not name in self.__event_handlers:
+            return
+
+        # Need to keep handlers that do not use
+        # the given function pointer
+        def filter_pointers(handler):
+            return handler[0] != pointer
+
+        self.__event_handlers[name] = filter(filter_pointers,
+                                             self.__event_handlers[name])
+
+    def event(self, name, data={}):
+        """
+        Manually trigger a custom event.
+
+        Arguments:
+            name -- The name of the event to trigger.
+            data -- Data that will be passed to each event handler.
+                    Defaults to an empty dictionary.
+        """
+        for handler in self.__event_handlers.get(name, []):
+            func, threaded, disposable = handler
+
+            handler_data = copy.copy(data)
+            if threaded:
+                x = threading.Thread(name="Event_%s" % str(func),
+                                     target=func,
+                                     args=(handler_data,))
+                x.start()
+            else:
+                func(handler_data)
+            if disposable:
+                with self.__event_handlers_lock:
+                    handler_index = self.event_handlers[name].index(handler)
+                    self.__event_handlers[name].pop(handler_index)
 
     def schedule(self, name, seconds, callback, args=None,
                  kwargs=None, repeat=False):
@@ -477,7 +542,7 @@ class XMLStream(object):
         data = str(data)
         if mask is not None:
             logging.warning("Use of send mask waiters is deprecated.")
-            wait_for = Waiter("SendWait_%s" % self.new_id(), 
+            wait_for = Waiter("SendWait_%s" % self.new_id(),
                               MatchXMLMask(mask))
             self.register_handler(wait_for)
         self.send_raw(data)

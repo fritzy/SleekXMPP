@@ -101,7 +101,9 @@ class XMLStream(object):
         disconnect           -- Disconnect from the server and terminate
                                 processing.
         event                -- Trigger a custom event.
+        get_id               -- Return the current stream ID.
         incoming_filter      -- Optionally filter stanzas before processing.
+        new_id               -- Generate a new, unique ID value.
         process              -- Read XML stanzas from the stream and apply
                                 matching stream handlers.
         reconnect            -- Reestablish a connection to the server.
@@ -144,6 +146,8 @@ class XMLStream(object):
         self.removeHandler = self.remove_handler
         self.setSocket = self.set_socket
         self.sendRaw = self.send_raw
+        self.getId = self.get_id
+        self.getNewId = self.new_id
 
         self.ssl_support = SSL_SUPPORT
 
@@ -178,7 +182,28 @@ class XMLStream(object):
         self.__root_stanza = []
         self.__handlers = []
 
+        self._id = 0
+        self._id_lock = threading.Lock()
+
         self.run = True
+
+    def new_id(self):
+        """
+        Generate and return a new stream ID in hexadecimal form.
+
+        Many stanzas, handlers, or matchers may require unique 
+        ID values. Using this method ensures that all new ID values 
+        are unique in this stream.
+        """
+        with self._id_lock:
+            self._id += 1
+            return self.get_id()
+
+    def get_id(self):
+        """
+        Return the current unique stream ID in hexadecimal form.
+        """
+        return "%X" % self._id
 
     def connect(self, host='', port=0, use_ssl=False,
                 use_tls=True, reattempt=True):

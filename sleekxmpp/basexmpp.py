@@ -114,19 +114,11 @@ class basexmpp(object):
 		for plugin in self.plugin:
 			self.plugin[plugin].post_init()
 
-	def getNewId(self):
-		with self.id_lock:
-			self.id += 1
-			return self.getId()
-
 	def add_handler(self, mask, pointer, name=None, disposable=False, threaded=False, filter=False, instream=False):
                 # threaded is no longer needed, but leaving it for backwards compatibility for now
 		if name is None:
 			name = 'add_handler_%s' % self.getNewId()
 		self.registerHandler(XMLCallback(name, MatchXMLMask(mask), pointer, once=disposable, instream=instream))
-
-	def getId(self):
-		return "%x".upper() % self.id
 
 	def sendXML(self, data, mask=None, timeout=10):
 		return self.send(tostring(data), mask, timeout)

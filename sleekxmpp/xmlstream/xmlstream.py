@@ -148,6 +148,7 @@ class XMLStream(object):
         self.sendRaw = self.send_raw
         self.getId = self.get_id
         self.getNewId = self.new_id
+        self.sendXML = self.send_xml
 
         self.ssl_support = SSL_SUPPORT
 
@@ -376,6 +377,30 @@ class XMLStream(object):
         """
         del self.__root_stanza[stanza_class]
 
+    def add_handler(self, mask, pointer, name=None, disposable=False, 
+                    threaded=False, filter=False, instream=False):
+        """
+        A shortcut method for registering a handler using XML masks.
+
+        Arguments:
+            mask       -- An XML snippet matching the structure of the
+                          stanzas that will be passed to this handler.
+            pointer    -- The handler function itself.
+            name       -- A unique name for the handler. A name will
+                          be generated if one is not provided.
+            disposable -- Indicates if the handler should be discarded
+                          after one use.
+            threaded   -- Deprecated. Remains for backwards compatibility.
+            filter     -- Deprecated. Remains for backwards compatibility.
+            instream   -- Indicates if the handler should execute during
+                          stream processing and not during normal event
+                          processing.
+        """
+        if name is None:
+            name = 'add_handler_%s' % self.getNewId()
+        self.registerHandler(XMLCallback(name, MatchXMLMask(mask), pointer, 
+                                         once=disposable, instream=instream))
+
     def register_handler(self, handler, before=None, after=None):
         """
         Add a stream event handler that will be executed when a matching
@@ -432,6 +457,33 @@ class XMLStream(object):
         """
         return xml
 
+    def send(self, data, mask, timeout=RESPONSE_TIMEOUT):
+        """
+        A wrapper for send_raw for sending stanza objects.
+
+        May optionally block until an expected response is received.
+
+        Arguments:
+            data    -- The stanza object to send on the stream.
+            mask    -- Deprecated. An XML snippet matching the structure
+                       of the expected response. Execution will block
+                       in this thread until the response is received
+                       or a timeout occurs.
+            timeout -- Time in seconds to wait for a response before
+                       continuing. Defaults to RESPONSE_TIMEOUT.
+        """
+        if hasattr(mask, 'xml'):
+            mask = mask.xml
+        data = str(data)
+        if mask is not None:
+            logging.warning("Use of send mask waiters is deprecated.")
+            wait_for = Waiter("SendWait_%s" % self.new_id(), 
+                              MatchXMLMask(mask))
+            self.register_handler(wait_for)
+        self.send_raw(data)
+        if mask is not None:
+            return wait_for.wait(timeout)
+
     def send_raw(self, data):
         """
         Send raw data across the stream.
@@ -441,6 +493,22 @@ class XMLStream(object):
         """
         self.send_queue.put(data)
         return True
+
+    def send_xml(self, data, mask=None, timeout=RESPONSE_TIMEOUT):
+        """
+        Send an XML object on the stream, and optionally wait
+        for a response.
+
+        Arguments:
+            data    -- The XML object to send on the stream.
+            mask    -- Deprecated. An XML snippet matching the structure
+                       of the expected response. Execution will block
+                       in this thread until the response is received
+                       or a timeout occurs.
+            timeout -- Time in seconds to wait for a response before
+                       continuing. Defaults to RESPONSE_TIMEOUT.
+        """
+        return self.send(tostring(data), mask, timeout)
 
     def process(self, threaded=True):
         """

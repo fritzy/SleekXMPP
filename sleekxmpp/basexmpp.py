@@ -114,30 +114,6 @@ class basexmpp(object):
 		for plugin in self.plugin:
 			self.plugin[plugin].post_init()
 
-	def add_handler(self, mask, pointer, name=None, disposable=False, threaded=False, filter=False, instream=False):
-                # threaded is no longer needed, but leaving it for backwards compatibility for now
-		if name is None:
-			name = 'add_handler_%s' % self.getNewId()
-		self.registerHandler(XMLCallback(name, MatchXMLMask(mask), pointer, once=disposable, instream=instream))
-
-	def sendXML(self, data, mask=None, timeout=10):
-		return self.send(tostring(data), mask, timeout)
-
-	def send(self, data, mask=None, timeout=10):
-		#logging.warning("Deprecated send used for \"%s\"" % (data,))
-		#if not type(data) == type(''):
-		#	data = self.tostring(data)
-		if hasattr(mask, 'xml'):
-			mask = mask.xml
-		data = str(data)
-		if mask is not None:
-			logging.warning("Use of send mask waiters is deprecated")
-			waitfor = Waiter('SendWait_%s' % self.getNewId(), MatchXMLMask(mask))
-			self.registerHandler(waitfor)
-		self.sendRaw(data)
-		if mask is not None:
-			return waitfor.wait(timeout)
-
 	def makeIq(self, id=0, ifrom=None):
 		return self.Iq().setStanzaValues({'id': str(id), 'from': ifrom})
 

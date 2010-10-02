@@ -145,7 +145,7 @@ class Address(ElementBase):
 			del self.xml.attrib['uri']
 
 
-class xep_0030(base.base_plugin):
+class xep_0033(base.base_plugin):
 	"""
 	XEP-0033: Extended Stanza Addressing
 	"""

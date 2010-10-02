@@ -8,7 +8,7 @@
     See the file LICENSE for copying permission.
 """
 from __future__ import absolute_import, unicode_literals
-from . basexmpp import basexmpp
+from . basexmpp import BaseXMPP, basexmpp
 from xml.etree import cElementTree as ET
 from . xmlstream.xmlstream import XMLStream
 from . xmlstream.xmlstream import RestartStream
@@ -39,17 +39,17 @@ except ImportError:
 #class PresenceStanzaType(object):
 #
 #       def fromXML(self, xml):
+
 #               self.ptype = xml.get('type')
 
 
-class ClientXMPP(basexmpp, XMLStream):
+class ClientXMPP(BaseXMPP):
         """SleekXMPP's client class.  Use only for good, not evil."""
 
         def __init__(self, jid, password, ssl=False, plugin_config = {}, plugin_whitelist=[], escape_quotes=True):
+                BaseXMPP.__init__(self, 'jabber:client')
                 global srvsupport
-                XMLStream.__init__(self)
                 self.default_ns = 'jabber:client'
-                basexmpp.__init__(self)
                 self.plugin_config = plugin_config
                 self.escape_quotes = escape_quotes
                 self.set_jid(jid)
@@ -79,16 +79,6 @@ class ClientXMPP(basexmpp, XMLStream):
 
                 #self.registerStanzaExtension('PresenceStanza', PresenceStanzaType)
                 #self.register_plugins()
-
-        def __getitem__(self, key):
-                if key in self.plugin:
-                        return self.plugin[key]
-                else:
-                        logging.warning("""Plugin "%s" is not loaded.""" % key)
-                        return False
-
-        def get(self, key, default):
-                return self.plugin.get(key, default)
 
         def connect(self, address=tuple()):
                 """Connect to the Jabber Server.  Attempts SRV lookup, and if it fails, uses

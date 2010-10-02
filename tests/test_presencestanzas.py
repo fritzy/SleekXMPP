@@ -46,7 +46,7 @@ class TestPresenceStanzas(SleekTest):
             happened.append(True)
 
         c.add_event_handler("changed_status", handlechangedpresence)
-        c._handlePresence(p)
+        c._handle_presence(p)
 
         self.failUnless(happened == [],
             "changed_status event triggered for extra unavailable presence")

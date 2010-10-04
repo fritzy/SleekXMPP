@@ -1,48 +1,12 @@
-Atom stanza? Should stanzas for plugins go in sleekxmpp.stanza or sleekxmpp.plugins.stanza?
-
-sleekxmpp.stanza __all__ out of date?
-
-stanza.error could be cleaned up, use _delSubText, etc
-
-stanza.htmlim could use _delSubText, etc. Why not msg['html']['body'] instead of msg['html']['html']?
-
-Unify timeout values - maybe xmlstream.stanzabase.TIMEOUT?
-
-Need to use registerStanzaPlugin in rootstanza instead of the manual steps
-
-Is exceptions.XMPPError raised anywhere? grep says no, is it still needed?
-
-Extra tostring method in xmlstream. Maybe modify the tostring/ packages to accept a stream and top namespace instead of assuming a stanza object? Change ElementBase __str__ to pass its stream object to new function instead of extending ToString.
-
-Move tostring and tostring26 to be a single package with import switch in a __init__.py that selects appropriate file to import.
-
-Remove thread remains from handler classes.
-
-Clarify what is meant by 'instream' for a handler.
-
-Allow for XPath matching to use basic [@att="value"] filter. <- eek? Alternative is to use xml mask, but those are longer. 
-
 ElementBase sub_items not subitem?
-
-Only import cElementTree in stanzabase, everything else reference that. Would make using lxml instead of cElementTree easier if needed.
 
 *XMPP needs to use JID class instead of lots of fields.
 
 BaseXMPP set_jid, makeIqQuery, getjidresource, getjidbare not needed
 
-Is BaseXMPP.send used anywhere?
-
-Make top level examples folder, put example.py, component_example.py there. Maybe even the disco browser too.
-
-__getitem__ should be in BaseXMPP. get too, or remove it?
-
 xmlstreammod in ComponentXMPP can be removed, just use XMLStream.
 
 Why CamelCase and underscore_names? Document semantics.
-
-Make the common classes available using __init__.py
-
-Need to unit test stanzabase/elementbase. Heavily.
 
 conn_tests and sleekxmpp/tests and sleekxmpp/xmlstresm/test.* -> convert to either unit tests, or at least put in same place
 
@@ -51,6 +15,10 @@ Update setup.py - github url, version #
 scheduler needs unit tests
 
 __init__.py stream:features handler should use new state machine
+
+Move ClientXMPP out of __init__.py and into clientxmpp.py
+
+Write stream tests for startls, features, etc.
 
 
 

@@ -60,7 +60,7 @@ class ComponentXMPP(BaseXMPP):
         self.auto_authorize = None
         self.stream_header = "<stream:stream %s %s to='%s'>" % (
                 'xmlns="jabber:component:accept"',
-                'xmlns:stream="http://etherx.jabber.org/streams"',
+                'xmlns:stream="%s"' % self.stream_ns,
                 jid)
         self.stream_footer = "</stream:stream>"
         self.server_host = host

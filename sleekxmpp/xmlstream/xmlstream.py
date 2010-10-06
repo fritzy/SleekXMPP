@@ -269,6 +269,7 @@ class XMLStream(object):
                          and processing should be restarted.
                          Defaults to False.
         """
+        self.event("disconnected")
         self.state.set('reconnect', reconnect)
         if self.state['disconnecting']:
             return
@@ -294,6 +295,8 @@ class XMLStream(object):
         """
         Reset the stream's state and reconnect to the server.
         """
+        logging.info("Reconnecting")
+        self.event("disconnected")
         self.state.set('tls', False)
         self.state.set('ssl', False)
         time.sleep(1)

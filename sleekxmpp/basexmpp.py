@@ -111,6 +111,7 @@ class BaseXMPP(XMLStream):
         self.sendPresenceSubscription = self.send_presence_subscription
 
         self.default_ns = default_ns
+        self.stream_ns = 'http://etherx.jabber.org/streams'
 
         self.jid = ''
         self.fulljid = ''

@@ -7,13 +7,13 @@ class TestStreamTester(SleekTest):
     Test that we can simulate and test a stanza stream.
     """
 
-    def setUp(self):
-        self.streamStart()
-
     def tearDown(self):
         self.streamClose()
 
-    def testEcho(self):
+    def testClientEcho(self):
+        """Test that we can interact with a ClientXMPP instance."""
+        self.streamStart(mode='client')
+
         def echo(msg):
             msg.reply('Thanks for sending: %(body)s' % msg).send()
         
@@ -27,6 +27,27 @@ class TestStreamTester(SleekTest):
         
         self.streamSendMessage("""
           <message to="user@localhost">
+            <body>Thanks for sending: Hi!</body>
+          </message>
+        """)
+
+    def testComponentEcho(self):
+        """Test that we can interact with a ComponentXMPP instance."""
+        self.streamStart(mode='component')
+
+        def echo(msg):
+            msg.reply('Thanks for sending: %(body)s' % msg).send()
+
+        self.xmpp.add_event_handler('message', echo)
+
+        self.streamRecv("""
+          <message to="tester.localhost" from="user@localhost">
+            <body>Hi!</body>
+          </message>
+        """)
+
+        self.streamSendMessage("""
+          <message to="user@localhost" from="tester.localhost">
             <body>Thanks for sending: Hi!</body>
           </message>
         """)

@@ -5,7 +5,7 @@ from sleekxmpp.xmlstream.matcher import *
 
 class TestHandlers(SleekTest):
     """
-    Test that we can simulate and test a stanza stream.
+    Test using handlers and waiters.
     """
 
     def setUp(self):

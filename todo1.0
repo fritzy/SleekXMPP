@@ -4,8 +4,6 @@ ElementBase sub_items not subitem?
 
 BaseXMPP set_jid, makeIqQuery, getjidresource, getjidbare not needed
 
-xmlstreammod in ComponentXMPP can be removed, just use XMLStream.
-
 Why CamelCase and underscore_names? Document semantics.
 
 conn_tests and sleekxmpp/tests and sleekxmpp/xmlstresm/test.* -> convert to either unit tests, or at least put in same place
@@ -14,9 +12,7 @@ Update setup.py - github url, version #
 
 scheduler needs unit tests
 
-__init__.py stream:features handler should use new state machine
-
-Move ClientXMPP out of __init__.py and into clientxmpp.py
+ClientXMPP stream:features handler should use new state machine
 
 Write stream tests for startls, features, etc.
 

@@ -239,6 +239,12 @@ class ClientXMPP(BaseXMPP):
                         return True
 
     def _handle_starttls(self, xml):
+        """
+        Handle notification that the server supports TLS.
+        
+        Arguments:
+            xml -- The STARTLS proceed element.
+        """
         if not self.authenticated and self.ssl_support:
             tls_ns = 'urn:ietf:params:xml:ns:xmpp-tls'
             self.add_handler("<proceed xmlns='%s' />" % tls_ns,
@@ -253,11 +259,22 @@ class ClientXMPP(BaseXMPP):
             return False
 
     def _handle_tls_start(self, xml):
+        """
+        Handle encrypting the stream using TLS.
+
+        Restarts the stream.
+        """
         logging.debug("Starting TLS")
         if self.start_tls():
             raise RestartStream()
 
     def _handle_sasl_auth(self, xml):
+        """
+        Handle authenticating using SASL.
+
+        Arguments:
+            xml -- The SASL mechanisms stanza.
+        """
         if '{urn:ietf:params:xml:ns:xmpp-tls}starttls' in self.features:
             return False
 

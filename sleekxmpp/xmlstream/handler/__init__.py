@@ -10,3 +10,5 @@ from sleekxmpp.xmlstream.handler.callback import Callback
 from sleekxmpp.xmlstream.handler.waiter import Waiter
 from sleekxmpp.xmlstream.handler.xmlcallback import XMLCallback
 from sleekxmpp.xmlstream.handler.xmlwaiter import XMLWaiter
+
+__all__ = ['Callback', 'Waiter', 'XMLCallback', 'XMLWaiter']

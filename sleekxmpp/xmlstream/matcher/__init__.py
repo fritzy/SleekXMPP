@@ -11,3 +11,6 @@ from sleekxmpp.xmlstream.matcher.many import MatchMany
 from sleekxmpp.xmlstream.matcher.stanzapath import StanzaPath
 from sleekxmpp.xmlstream.matcher.xmlmask import MatchXMLMask
 from sleekxmpp.xmlstream.matcher.xpath import MatchXPath
+
+__all__ = ['MatcherId', 'MatchMany', 'StanzaPath', 
+           'MatchXMLMask', 'MatchXPath']

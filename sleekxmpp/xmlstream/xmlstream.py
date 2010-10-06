@@ -486,7 +486,7 @@ class XMLStream(object):
             self.event_queue.put(('event', handler, copy.copy(data)))
             if handler[2]:
                 # If the handler is disposable, we will go ahead and
-                # remove it now instead of waiting for it to be 
+                # remove it now instead of waiting for it to be
                 # processed in the queue.
                 with self.__event_handlers_lock:
                     handler_index = self.__event_handlers[name].index(handler)

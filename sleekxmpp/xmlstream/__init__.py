@@ -12,3 +12,4 @@ from sleekxmpp.xmlstream.stanzabase import StanzaBase, ElementBase, ET
 from sleekxmpp.xmlstream.statemachine import StateMachine
 from sleekxmpp.xmlstream.tostring import tostring
 from sleekxmpp.xmlstream.xmlstream import XMLStream, RESPONSE_TIMEOUT
+from sleekxmpp.xmlstream.xmlstream import RestartStream

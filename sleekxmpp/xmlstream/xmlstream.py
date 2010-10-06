@@ -493,7 +493,10 @@ class XMLStream(object):
                 # processed in the queue.
                 with self.__event_handlers_lock:
                     handler_index = self.__event_handlers[name].index(handler)
-                    self.__event_handlers[name].pop(handler_index)
+                    try:
+                        self.__event_handlers[name].pop(handler_index)
+                    except:
+                        pass
 
     def schedule(self, name, seconds, callback, args=None,
                  kwargs=None, repeat=False):

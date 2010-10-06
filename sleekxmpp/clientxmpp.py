@@ -93,27 +93,27 @@ class ClientXMPP(BaseXMPP):
         self.bound = False
         self.bindfail = False
 
-        self.registerHandler(
+        self.register_handler(
                 Callback('Stream Features',
                          MatchXPath('{%s}features' % self.stream_ns),
                          self._handle_stream_features))
-        self.registerHandler(
+        self.register_handler(
                 Callback('Roster Update',
                          MatchXPath('{%s}iq/{%s}query' % (
                              self.default_ns,
                              'jabber:iq:roster')),
                          self._handle_roster))
 
-        self.registerFeature(
+        self.register_feature(
             "<starttls xmlns='urn:ietf:params:xml:ns:xmpp-tls' />",
             self._handle_starttls, True)
-        self.registerFeature(
+        self.register_feature(
             "<mechanisms xmlns='urn:ietf:params:xml:ns:xmpp-sasl' />",
             self._handle_sasl_auth, True)
-        self.registerFeature(
+        self.register_feature(
             "<bind xmlns='urn:ietf:params:xml:ns:xmpp-bind' />",
             self._handle_bind_resource)
-        self.registerFeature(
+        self.register_feature(
             "<session xmlns='urn:ietf:params:xml:ns:xmpp-session' />",
             self._handle_start_session)
 

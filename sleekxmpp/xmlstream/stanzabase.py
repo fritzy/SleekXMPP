@@ -588,7 +588,6 @@ class ElementBase(object):
         if isinstance(xpath, str):
             xpath = self._fix_ns(xpath, split=True, propagate_ns=False)
 
-
         # Extract the tag name and attribute checks for the first XPath node.
         components = xpath[0].split('@')
         tag = components[0]

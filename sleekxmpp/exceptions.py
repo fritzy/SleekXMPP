@@ -6,6 +6,7 @@
     See the file LICENSE for copying permission.
 """
 
+
 class XMPPError(Exception):
 
     """

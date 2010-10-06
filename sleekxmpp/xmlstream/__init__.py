@@ -14,6 +14,6 @@ from sleekxmpp.xmlstream.tostring import tostring
 from sleekxmpp.xmlstream.xmlstream import XMLStream, RESPONSE_TIMEOUT
 from sleekxmpp.xmlstream.xmlstream import RestartStream
 
-__all__ = ['JID', 'Scheduler', 'StanzaBase', 'ElementBase', 
-           'ET', 'StateMachine', 'tostring', 'XMLStream', 
+__all__ = ['JID', 'Scheduler', 'StanzaBase', 'ElementBase',
+           'ET', 'StateMachine', 'tostring', 'XMLStream',
            'RESPONSE_TIMEOUT', 'RestartStream']

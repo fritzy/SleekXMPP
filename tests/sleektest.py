@@ -378,7 +378,6 @@ class SleekTest(unittest.TestCase):
         self.xmpp.socket.recvData(header)
 
         self.xmpp.connect = lambda a=None, b=None, c=None, d=None: True
-        self.xmpp.start_tls = lambda: True
         self.xmpp.process(threaded=True)
         if skip:
             # Clear startup stanzas
@@ -420,6 +419,7 @@ class SleekTest(unittest.TestCase):
                           appended before the stream header.
         """
         header = '<stream:stream %s>'
+        parts = []
         if xml_header:
             header = '<?xml version="1.0"?>' + header
         if sto:
@@ -467,8 +467,8 @@ class SleekTest(unittest.TestCase):
 
         # Apply closing elements so that we can construct
         # XML objects for comparison.
-        header2 += '</stream:stream>'
-        sent_header2 += '</stream:stream>'
+        header2 = header + '</stream:stream>'
+        sent_header2 = sent_header + '</stream:stream>'
 
         xml = ET.fromstring(header2)
         sent_xml = ET.fromstring(sent_header2)

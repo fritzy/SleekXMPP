@@ -16,15 +16,15 @@ class TestStreamTester(SleekTest):
 
         def echo(msg):
             msg.reply('Thanks for sending: %(body)s' % msg).send()
-        
+
         self.xmpp.add_event_handler('message', echo)
-        
+
         self.streamRecv("""
           <message to="tester@localhost" from="user@localhost">
             <body>Hi!</body>
           </message>
         """)
-        
+
         self.streamSendMessage("""
           <message to="user@localhost">
             <body>Thanks for sending: Hi!</body>
@@ -51,5 +51,10 @@ class TestStreamTester(SleekTest):
             <body>Thanks for sending: Hi!</body>
           </message>
         """)
+
+    def testSendStreamHeader(self):
+        """Test that we can check a sent stream header."""
+        self.streamStart(mode='client', skip=False)
+        self.streamSendHeader(sto='localhost')
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestStreamTester)

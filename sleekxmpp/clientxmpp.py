@@ -30,6 +30,7 @@ try:
 except:
     SRV_SUPPORT = False
 
+
 class ClientXMPP(BaseXMPP):
 
     """
@@ -241,7 +242,7 @@ class ClientXMPP(BaseXMPP):
     def _handle_starttls(self, xml):
         """
         Handle notification that the server supports TLS.
-        
+
         Arguments:
             xml -- The STARTLS proceed element.
         """

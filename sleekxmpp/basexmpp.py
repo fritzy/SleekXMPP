@@ -26,6 +26,14 @@ from sleekxmpp.xmlstream.matcher import *
 from sleekxmpp.xmlstream.handler import *
 
 
+# Flag indicating if DNS SRV records are available for use.
+SRV_SUPPORT = True
+try:
+    import dns.resolver
+except:
+    SRV_SUPPORT = False
+
+
 # In order to make sure that Unicode is handled properly
 # in Python 2.x, reset the default encoding.
 if sys.version_info < (3, 0):

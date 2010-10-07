@@ -7,4 +7,5 @@
 """
 
 from sleekxmpp.test.mocksocket import TestSocket
+from sleekxmpp.test.livesocket import TestLiveSocket
 from sleekxmpp.test.sleektest import *

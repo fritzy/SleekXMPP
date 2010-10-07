@@ -166,6 +166,11 @@ class XMLStream(object):
         self.filesocket = None
         self.set_socket(socket)
 
+        if sys.version_info < (3, 0):
+            self.socket_class = Socket26
+        else:
+            self.socket_class = socket.socket
+
         self.use_ssl = False
         self.use_tls = False
 
@@ -238,14 +243,17 @@ class XMLStream(object):
         # Repeatedly attempt to connect until a successful connection
         # is established.
         while reattempt and not self.state['connected']:
-            if sys.version_info < (3, 0):
-                self.socket = Socket26(socket.AF_INET, socket.SOCK_STREAM)
-            else:
-                self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.socket = self.socket_class(socket.AF_INET, socket.SOCK_STREAM)
             self.socket.settimeout(None)
             if self.use_ssl and self.ssl_support:
                 logging.debug("Socket Wrapped for SSL")
-                self.socket = ssl.wrap_socket(self.socket)
+                ssl_socket = ssl.wrap_socket(self.socket)
+                if hasattr(self.socket, 'socket'):
+                    # We are using a testing socket, so preserve the top
+                    # layer of wrapping.
+                    self.socket.socket = ssl_socket
+                else:
+                    self.socket = ssl_socket
 
             try:
                 self.socket.connect(self.address)
@@ -334,9 +342,15 @@ class XMLStream(object):
         """
         if self.ssl_support:
             logging.info("Negotiating TLS")
-            self.socket = ssl.wrap_socket(self.socket,
-                                          ssl_version=ssl.PROTOCOL_TLSv1,
-                                          do_handshake_on_connect=False)
+            ssl_socket = ssl.wrap_socket(self.socket,
+                                         ssl_version=ssl.PROTOCOL_TLSv1,
+                                         do_handshake_on_connect=False)
+            if hasattr(self.socket, 'socket'):
+                # We are using a testing socket, so preserve the top
+                # layer of wrapping.
+                self.socket.socket = ssl_socket
+            else:
+                self.socket = ssl_socket
             self.socket.do_handshake()
             self.set_socket(self.socket)
             return True

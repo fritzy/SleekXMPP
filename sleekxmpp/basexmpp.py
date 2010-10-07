@@ -128,7 +128,6 @@ class BaseXMPP(XMLStream):
 
         self.sentpresence = False
 
-        logging.warning(self.default_ns)
         self.register_handler(
             Callback('IM',
                      MatchXPath('{%s}message/{%s}body' % (self.default_ns,

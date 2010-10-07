@@ -6,10 +6,10 @@ from . sleektest import *
 class TestEvents(SleekTest):
 
     def setUp(self):
-        self.streamStart()
+        self.stream_start()
 
     def tearDown(self):
-        self.streamClose()
+        self.stream_close()
 
     def testEventHappening(self):
         """Test handler working"""

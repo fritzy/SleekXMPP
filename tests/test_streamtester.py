@@ -8,24 +8,24 @@ class TestStreamTester(SleekTest):
     """
 
     def tearDown(self):
-        self.streamClose()
+        self.stream_close()
 
     def testClientEcho(self):
         """Test that we can interact with a ClientXMPP instance."""
-        self.streamStart(mode='client')
+        self.stream_start(mode='client')
 
         def echo(msg):
             msg.reply('Thanks for sending: %(body)s' % msg).send()
 
         self.xmpp.add_event_handler('message', echo)
 
-        self.streamRecv("""
+        self.stream_recv("""
           <message to="tester@localhost" from="user@localhost">
             <body>Hi!</body>
           </message>
         """)
 
-        self.streamSendMessage("""
+        self.stream_send_message("""
           <message to="user@localhost">
             <body>Thanks for sending: Hi!</body>
           </message>
@@ -33,20 +33,20 @@ class TestStreamTester(SleekTest):
 
     def testComponentEcho(self):
         """Test that we can interact with a ComponentXMPP instance."""
-        self.streamStart(mode='component')
+        self.stream_start(mode='component')
 
         def echo(msg):
             msg.reply('Thanks for sending: %(body)s' % msg).send()
 
         self.xmpp.add_event_handler('message', echo)
 
-        self.streamRecv("""
+        self.stream_recv("""
           <message to="tester.localhost" from="user@localhost">
             <body>Hi!</body>
           </message>
         """)
 
-        self.streamSendMessage("""
+        self.stream_send_message("""
           <message to="user@localhost" from="tester.localhost">
             <body>Thanks for sending: Hi!</body>
           </message>
@@ -54,7 +54,7 @@ class TestStreamTester(SleekTest):
 
     def testSendStreamHeader(self):
         """Test that we can check a sent stream header."""
-        self.streamStart(mode='client', skip=False)
+        self.stream_start(mode='client', skip=False)
         self.streamSendHeader(sto='localhost')
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestStreamTester)

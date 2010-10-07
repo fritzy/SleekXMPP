@@ -26,7 +26,7 @@ class TestElementBase(SleekTest):
             namespace = "test"
 
         stanza = TestStanza()
-        self.checkStanza(TestStanza, stanza, """
+        self.check_stanza(TestStanza, stanza, """
           <foo xmlns="test">
             <bar>
               <baz />
@@ -116,7 +116,7 @@ class TestElementBase(SleekTest):
                                   'baz': ''}]}
         stanza.setStanzaValues(values)
 
-        self.checkStanza(TestStanza, stanza, """
+        self.check_stanza(TestStanza, stanza, """
           <foo xmlns="foo" bar="a">
             <pluginfoo baz="b" />
             <pluginfoo2 bar="d" baz="e" />
@@ -197,7 +197,7 @@ class TestElementBase(SleekTest):
         stanza['qux'] = 'overridden'
         stanza['foobar'] = 'plugin'
 
-        self.checkStanza(TestStanza, stanza, """
+        self.check_stanza(TestStanza, stanza, """
           <foo xmlns="foo" bar="attribute!">
             <baz>element!</baz>
             <foobar foobar="plugin" />
@@ -230,7 +230,7 @@ class TestElementBase(SleekTest):
         stanza['qux'] = 'c'
         stanza['foobar']['foobar'] = 'd'
 
-        self.checkStanza(TestStanza, stanza, """
+        self.check_stanza(TestStanza, stanza, """
           <foo xmlns="foo" baz="b" qux="c">
             <bar>a</bar>
             <foobar foobar="d" />
@@ -242,7 +242,7 @@ class TestElementBase(SleekTest):
         del stanza['qux']
         del stanza['foobar']
 
-        self.checkStanza(TestStanza, stanza, """
+        self.check_stanza(TestStanza, stanza, """
           <foo xmlns="foo" qux="c" />
         """)
 
@@ -256,7 +256,7 @@ class TestElementBase(SleekTest):
 
         stanza = TestStanza()
 
-        self.checkStanza(TestStanza, stanza, """
+        self.check_stanza(TestStanza, stanza, """
           <foo xmlns="foo" />
         """)
 
@@ -266,7 +266,7 @@ class TestElementBase(SleekTest):
         stanza._setAttr('bar', 'a')
         stanza._setAttr('baz', 'b')
 
-        self.checkStanza(TestStanza, stanza, """
+        self.check_stanza(TestStanza, stanza, """
           <foo xmlns="foo" bar="a" baz="b" />
         """)
 
@@ -276,7 +276,7 @@ class TestElementBase(SleekTest):
         stanza._setAttr('bar', None)
         stanza._delAttr('baz')
 
-        self.checkStanza(TestStanza, stanza, """
+        self.check_stanza(TestStanza, stanza, """
           <foo xmlns="foo" />
         """)
 
@@ -306,7 +306,7 @@ class TestElementBase(SleekTest):
             "Default _getSubText value incorrect.")
 
         stanza['bar'] = 'found'
-        self.checkStanza(TestStanza, stanza, """
+        self.check_stanza(TestStanza, stanza, """
           <foo xmlns="foo">
             <wrapper>
               <bar>found</bar>
@@ -339,7 +339,7 @@ class TestElementBase(SleekTest):
         stanza = TestStanza()
         stanza['bar'] = 'a'
         stanza['baz'] = 'b'
-        self.checkStanza(TestStanza, stanza, """
+        self.check_stanza(TestStanza, stanza, """
           <foo xmlns="foo">
             <wrapper>
               <bar>a</bar>
@@ -348,7 +348,7 @@ class TestElementBase(SleekTest):
           </foo>
         """)
         stanza._setSubText('wrapper/bar', text='', keep=True)
-        self.checkStanza(TestStanza, stanza, """
+        self.check_stanza(TestStanza, stanza, """
           <foo xmlns="foo">
             <wrapper>
               <bar />
@@ -359,7 +359,7 @@ class TestElementBase(SleekTest):
 
         stanza['bar'] = 'a'
         stanza._setSubText('wrapper/bar', text='')
-        self.checkStanza(TestStanza, stanza, """
+        self.check_stanza(TestStanza, stanza, """
           <foo xmlns="foo">
             <wrapper>
               <baz>b</baz>
@@ -397,7 +397,7 @@ class TestElementBase(SleekTest):
         stanza['bar'] = 'a'
         stanza['baz'] = 'b'
 
-        self.checkStanza(TestStanza, stanza, """
+        self.check_stanza(TestStanza, stanza, """
           <foo xmlns="foo">
             <path>
               <to>
@@ -415,7 +415,7 @@ class TestElementBase(SleekTest):
         del stanza['bar']
         del stanza['baz']
 
-        self.checkStanza(TestStanza, stanza, """
+        self.check_stanza(TestStanza, stanza, """
           <foo xmlns="foo">
             <path>
               <to>
@@ -431,7 +431,7 @@ class TestElementBase(SleekTest):
 
         stanza._delSub('path/to/only/bar', all=True)
 
-        self.checkStanza(TestStanza, stanza, """
+        self.check_stanza(TestStanza, stanza, """
           <foo xmlns="foo">
             <path>
               <to>
@@ -602,7 +602,7 @@ class TestElementBase(SleekTest):
             "Incorrect empty stanza size.")
 
         stanza.append(substanza1)
-        self.checkStanza(TestStanza, stanza, """
+        self.check_stanza(TestStanza, stanza, """
           <foo xmlns="foo">
             <foobar qux="a" />
           </foo>
@@ -611,7 +611,7 @@ class TestElementBase(SleekTest):
             "Incorrect stanza size with 1 substanza.")
 
         stanza.append(substanza2)
-        self.checkStanza(TestStanza, stanza, """
+        self.check_stanza(TestStanza, stanza, """
           <foo xmlns="foo">
             <foobar qux="a" />
             <foobar qux="b" />
@@ -622,7 +622,7 @@ class TestElementBase(SleekTest):
 
         # Test popping substanzas
         stanza.pop(0)
-        self.checkStanza(TestStanza, stanza, """
+        self.check_stanza(TestStanza, stanza, """
           <foo xmlns="foo">
             <foobar qux="b" />
           </foo>

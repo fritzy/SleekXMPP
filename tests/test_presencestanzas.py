@@ -9,26 +9,26 @@ class TestPresenceStanzas(SleekTest):
         """Regression check presence['type'] = 'dnd' show value working"""
         p = self.Presence()
         p['type'] = 'dnd'
-        self.checkPresence(p, "<presence><show>dnd</show></presence>")
+        self.check_presence(p, "<presence><show>dnd</show></presence>")
 
     def testPresenceType(self):
         """Test manipulating presence['type']"""
         p = self.Presence()
         p['type'] = 'available'
-        self.checkPresence(p, "<presence />")
+        self.check_presence(p, "<presence />")
         self.failUnless(p['type'] == 'available',
                 "Incorrect presence['type'] for type 'available'")
 
         for showtype in ['away', 'chat', 'dnd', 'xa']:
             p['type'] = showtype
-            self.checkPresence(p, """
+            self.check_presence(p, """
               <presence><show>%s</show></presence>
             """ % showtype)
             self.failUnless(p['type'] == showtype,
                 "Incorrect presence['type'] for type '%s'" % showtype)
 
         p['type'] = None
-        self.checkPresence(p, "<presence />")
+        self.check_presence(p, "<presence />")
 
     def testPresenceUnsolicitedOffline(self):
         """
@@ -57,7 +57,7 @@ class TestPresenceStanzas(SleekTest):
         """Test presence/nick/nick stanza."""
         p = self.Presence()
         p['nick']['nick'] = 'A nickname!'
-        self.checkPresence(p, """
+        self.check_presence(p, """
           <presence>
             <nick xmlns="http://jabber.org/nick/nick">A nickname!</nick>
           </presence>

@@ -9,10 +9,10 @@ class TestHandlers(SleekTest):
     """
 
     def setUp(self):
-        self.streamStart()
+        self.stream_start()
 
     def tearDown(self):
-        self.streamClose()
+        self.stream_close()
 
     def testCallback(self):
         """Test using stream callback handlers."""
@@ -30,11 +30,11 @@ class TestHandlers(SleekTest):
 
         self.xmpp.registerHandler(callback)
 
-        self.streamRecv("""<tester xmlns="test" />""")
+        self.stream_recv("""<tester xmlns="test" />""")
 
         msg = self.Message()
         msg['body'] = 'Success!'
-        self.streamSendMessage(msg)
+        self.stream_send_message(msg)
 
     def testWaiter(self):
         """Test using stream waiter handler."""
@@ -55,7 +55,7 @@ class TestHandlers(SleekTest):
         self.xmpp.add_event_handler('message', waiter_handler, threaded=True)
 
         # Send message to trigger waiter_handler
-        self.streamRecv("""
+        self.stream_recv("""
           <message>
             <body>Testing</body>
           </message>
@@ -66,10 +66,10 @@ class TestHandlers(SleekTest):
         iq['id'] = 'test'
         iq['type'] = 'set'
         iq['query'] = 'test'
-        self.streamSendIq(iq)
+        self.stream_send_iq(iq)
 
         # Send the reply Iq
-        self.streamRecv("""
+        self.stream_recv("""
           <iq id="test" type="result">
             <query xmlns="test" />
           </iq>
@@ -78,7 +78,7 @@ class TestHandlers(SleekTest):
         # Check that waiter_handler received the reply
         msg = self.Message()
         msg['body'] = 'Successful: test'
-        self.streamSendMessage(msg)
+        self.stream_send_message(msg)
 
     def testWaiterTimeout(self):
         """Test that waiter handler is removed after timeout."""
@@ -93,14 +93,14 @@ class TestHandlers(SleekTest):
         self.xmpp.add_event_handler('message', waiter_handler, threaded=True)
 
         # Start test by triggerig waiter_handler
-        self.streamRecv("""<message><body>Start Test</body></message>""")
+        self.stream_recv("""<message><body>Start Test</body></message>""")
 
         # Check that Iq was sent to trigger start of timeout period
         iq = self.Iq()
         iq['id'] = 'test2'
         iq['type'] = 'set'
         iq['query'] = 'test2'
-        self.streamSendIq(iq)
+        self.stream_send_iq(iq)
 
         # Check that the waiter is no longer registered
         waiter_exists = self.xmpp.removeHandler('IqWait_test2')

@@ -18,7 +18,7 @@ class TestGmail(SleekTest):
         iq['gmail']['newer-than-time'] = '1140638252542'
         iq['gmail']['newer-than-tid'] = '11134623426430234'
 
-        self.checkIq(iq, """
+        self.check_iq(iq, """
           <iq type="get">
             <query xmlns="google:mail:notify"
                    newer-than-time="1140638252542"

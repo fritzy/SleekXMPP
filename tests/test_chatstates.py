@@ -21,24 +21,24 @@ class TestChatStates(SleekTest):
 
         msg = self.Message()
         msg['chat_state'].active()
-        self.checkMessage(msg, xmlstring % 'active',
+        self.check_message(msg, xmlstring % 'active',
                           use_values=False)
 
         msg['chat_state'].composing()
-        self.checkMessage(msg, xmlstring % 'composing',
+        self.check_message(msg, xmlstring % 'composing',
                           use_values=False)
 
 
         msg['chat_state'].gone()
-        self.checkMessage(msg, xmlstring % 'gone',
+        self.check_message(msg, xmlstring % 'gone',
                           use_values=False)
 
         msg['chat_state'].inactive()
-        self.checkMessage(msg, xmlstring % 'inactive',
+        self.check_message(msg, xmlstring % 'inactive',
                           use_values=False)
 
         msg['chat_state'].paused()
-        self.checkMessage(msg, xmlstring % 'paused',
+        self.check_message(msg, xmlstring % 'paused',
                           use_values=False)
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestChatStates)

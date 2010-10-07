@@ -6,7 +6,7 @@ class TestErrorStanzas(SleekTest):
         """Test setting initial values in error stanza."""
         msg = self.Message()
         msg.enable('error')
-        self.checkMessage(msg, """
+        self.check_message(msg, """
           <message type="error">
             <error type="cancel">
               <feature-not-implemented xmlns="urn:ietf:params:xml:ns:xmpp-stanzas" />
@@ -19,7 +19,7 @@ class TestErrorStanzas(SleekTest):
         msg = self.Message()
         msg['error']['condition'] = 'item-not-found'
 
-        self.checkMessage(msg, """
+        self.check_message(msg, """
           <message type="error">
             <error type="cancel">
               <item-not-found xmlns="urn:ietf:params:xml:ns:xmpp-stanzas" />
@@ -31,7 +31,7 @@ class TestErrorStanzas(SleekTest):
 
         del msg['error']['condition']
 
-        self.checkMessage(msg, """
+        self.check_message(msg, """
           <message type="error">
             <error type="cancel" />
           </message>
@@ -45,7 +45,7 @@ class TestErrorStanzas(SleekTest):
 
         del msg['error']['condition']
 
-        self.checkMessage(msg, """
+        self.check_message(msg, """
           <message type="error">
             <error type="cancel">
               <text xmlns="urn:ietf:params:xml:ns:xmpp-stanzas">Error!</text>

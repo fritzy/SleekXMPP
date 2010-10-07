@@ -27,12 +27,12 @@ class TestSocket(object):
     of an actual networking socket.
 
     Methods:
-        nextSent -- Return the next sent stanza.
-        recvData -- Make a stanza available to read next.
-        recv     -- Read the next stanza from the socket.
-        send     -- Write a stanza to the socket.
-        makefile -- Dummy call, returns self.
-        read     -- Read the next stanza from the socket.
+        next_sent -- Return the next sent stanza.
+        recv_data -- Make a stanza available to read next.
+        recv      -- Read the next stanza from the socket.
+        send      -- Write a stanza to the socket.
+        makefile  -- Dummy call, returns self.
+        read      -- Read the next stanza from the socket.
     """
 
     def __init__(self, *args, **kwargs):
@@ -70,7 +70,7 @@ class TestSocket(object):
     # ------------------------------------------------------------------
     # Testing Interface
 
-    def nextSent(self, timeout=None):
+    def next_sent(self, timeout=None):
         """
         Get the next stanza that has been 'sent'.
 
@@ -85,7 +85,7 @@ class TestSocket(object):
         except:
             return None
 
-    def recvData(self, data):
+    def recv_data(self, data):
         """
         Add data to the receiving queue.
 
@@ -153,23 +153,28 @@ class SleekTest(unittest.TestCase):
     methods for comparing message, iq, and presence stanzas.
 
     Methods:
-        Message            -- Create a Message stanza object.
-        Iq                 -- Create an Iq stanza object.
-        Presence           -- Create a Presence stanza object.
-        checkMessage       -- Compare a Message stanza against an XML string.
-        checkIq            -- Compare an Iq stanza against an XML string.
-        checkPresence      -- Compare a Presence stanza against an XML string.
-        streamStart        -- Initialize a dummy XMPP client.
-        streamRecv         -- Queue data for XMPP client to receive.
-        streamSendMessage  -- Check that the XMPP client sent the given
-                              Message stanza.
-        streamSendIq       -- Check that the XMPP client sent the given
-                              Iq stanza.
-        streamSendPresence -- Check taht the XMPP client sent the given
-                              Presence stanza.
-        streamClose        -- Disconnect the XMPP client.
-        fix_namespaces     -- Add top-level namespace to an XML object.
-        compare            -- Compare XML objects against each other.
+        Message              -- Create a Message stanza object.
+        Iq                   -- Create an Iq stanza object.
+        Presence             -- Create a Presence stanza object.
+        check_stanza         -- Compare a generic stanza against an XML string.
+        check_message        -- Compare a Message stanza against an XML string.
+        check_iq             -- Compare an Iq stanza against an XML string.
+        check_presence       -- Compare a Presence stanza against an XML string.
+        stream_start         -- Initialize a dummy XMPP client.
+        stream_recv          -- Queue data for XMPP client to receive.
+        stream_make_header   -- Create a stream header.
+        stream_send_header   -- Check that the given header has been sent.
+        stream_send_message  -- Check that the XMPP client sent the given
+                                Message stanza.
+        stream_send_iq       -- Check that the XMPP client sent the given
+                                Iq stanza.
+        stream_send_presence -- Check thatt the XMPP client sent the given
+                                Presence stanza.
+        stream_send_stanza   -- Check that the XMPP client sent the given
+                                generic stanza.
+        stream_close         -- Disconnect the XMPP client.
+        fix_namespaces       -- Add top-level namespace to an XML object.
+        compare              -- Compare XML objects against each other.
     """
 
     # ------------------------------------------------------------------
@@ -211,8 +216,8 @@ class SleekTest(unittest.TestCase):
     # ------------------------------------------------------------------
     # Methods for comparing stanza objects to XML strings
 
-    def checkStanza(self, stanza_class, stanza, xml_string,
-        defaults=None, use_values=True):
+    def check_stanza(self, stanza_class, stanza, xml_string,
+                     defaults=None, use_values=True):
         """
         Create and compare several stanza objects to a correct XML string.
 
@@ -289,7 +294,7 @@ class SleekTest(unittest.TestCase):
 
         self.failUnless(result, debug)
 
-    def checkMessage(self, msg, xml_string, use_values=True):
+    def check_message(self, msg, xml_string, use_values=True):
         """
         Create and compare several message stanza objects to a
         correct XML string.
@@ -305,11 +310,11 @@ class SleekTest(unittest.TestCase):
                           to True.
         """
 
-        return self.checkStanza(Message, msg, xml_string,
+        return self.check_stanza(Message, msg, xml_string,
                                 defaults=['type'],
                                 use_values=use_values)
 
-    def checkIq(self, iq, xml_string, use_values=True):
+    def check_iq(self, iq, xml_string, use_values=True):
         """
         Create and compare several iq stanza objects to a
         correct XML string.
@@ -324,9 +329,9 @@ class SleekTest(unittest.TestCase):
                           and setStanzaValues should be used. Defaults
                           to True.
         """
-        return self.checkStanza(Iq, iq, xml_string, use_values=use_values)
+        return self.check_stanza(Iq, iq, xml_string, use_values=use_values)
 
-    def checkPresence(self, pres, xml_string, use_values=True):
+    def check_presence(self, pres, xml_string, use_values=True):
         """
         Create and compare several presence stanza objects to a
         correct XML string.
@@ -341,14 +346,14 @@ class SleekTest(unittest.TestCase):
                           and setStanzaValues should be used. Defaults
                           to True.
         """
-        return self.checkStanza(Presence, pres, xml_string,
+        return self.check_stanza(Presence, pres, xml_string,
                                 defaults=['priority'],
                                 use_values=use_values)
 
     # ------------------------------------------------------------------
     # Methods for simulating stanza streams.
 
-    def streamStart(self, mode='client', skip=True, header=None):
+    def stream_start(self, mode='client', skip=True, header=None):
         """
         Initialize an XMPP client or component using a dummy XML stream.
 
@@ -375,17 +380,17 @@ class SleekTest(unittest.TestCase):
         # Must have the stream header ready for xmpp.process() to work.
         if not header:
             header = self.xmpp.stream_header
-        self.xmpp.socket.recvData(header)
+        self.xmpp.socket.recv_data(header)
 
         self.xmpp.connect = lambda a=None, b=None, c=None, d=None: True
         self.xmpp.process(threaded=True)
         if skip:
             # Clear startup stanzas
-            self.xmpp.socket.nextSent(timeout=0.01)
+            self.xmpp.socket.next_sent(timeout=0.01)
             if mode == 'component':
-                self.xmpp.socket.nextSent(timeout=0.01)
+                self.xmpp.socket.next_sent(timeout=0.01)
 
-    def streamRecv(self, data):
+    def stream_recv(self, data):
         """
         Pass data to the dummy XMPP client as if it came from an XMPP server.
 
@@ -394,9 +399,9 @@ class SleekTest(unittest.TestCase):
                     XMPP client or component.
         """
         data = str(data)
-        self.xmpp.socket.recvData(data)
+        self.xmpp.socket.recv_data(data)
 
-    def makeStreamHeader(self, sto='',
+    def stream_make_header(self, sto='',
                                sfrom='',
                                sid='',
                                stream_ns="http://etherx.jabber.org/streams",
@@ -406,7 +411,7 @@ class SleekTest(unittest.TestCase):
         """
         Create a stream header to be received by the test XMPP agent.
 
-        The header must be saved and passed to streamStart.
+        The header must be saved and passed to stream_start.
 
         Arguments:
             sto        -- The recipient of the stream header.
@@ -433,14 +438,14 @@ class SleekTest(unittest.TestCase):
         parts.append('xmlns="%s"' % default_ns)
         return header % ' '.join(parts)
 
-    def streamSendHeader(self, sto='',
-                               sfrom='',
-                               sid='',
-                               stream_ns="http://etherx.jabber.org/streams",
-                               default_ns="jabber:client",
-                               version="1.0",
-                               xml_header=False,
-                               timeout=0.1):
+    def stream_send_header(self, sto='',
+                                 sfrom='',
+                                 sid='',
+                                 stream_ns="http://etherx.jabber.org/streams",
+                                 default_ns="jabber:client",
+                                 version="1.0",
+                                 xml_header=False,
+                                 timeout=0.1):
         """
         Check that a given stream header was sent.
 
@@ -456,12 +461,12 @@ class SleekTest(unittest.TestCase):
             timeout    -- Length of time to wait in seconds for a
                           response.
         """
-        header = self.makeStreamHeader(sto, sfrom, sid,
-                                       stream_ns=stream_ns,
-                                       default_ns=default_ns,
-                                       version=version,
-                                       xml_header=xml_header)
-        sent_header = self.xmpp.socket.nextSent(timeout)
+        header = self.stream_make_header(sto, sfrom, sid,
+                                         stream_ns=stream_ns,
+                                         default_ns=default_ns,
+                                         version=version,
+                                         xml_header=xml_header)
+        sent_header = self.xmpp.socket.next_sent(timeout)
         if sent_header is None:
             raise ValueError("Socket did not return data.")
 
@@ -478,75 +483,100 @@ class SleekTest(unittest.TestCase):
             "Stream headers do not match:\nDesired:\n%s\nSent:\n%s" % (
                 header, sent_header))
 
-    def streamSendMessage(self, data, use_values=True, timeout=.1):
+    def stream_send_stanza(self, stanza_class, data, defaults=None,
+                           use_values=True, timeout=.1):
         """
         Check that the XMPP client sent the given stanza XML.
 
         Extracts the next sent stanza and compares it with the given
-        XML using checkMessage.
+        XML using check_stanza.
+
+        Arguments:
+            stanza_class -- The class of the sent stanza object.
+            data         -- The XML string of the expected Message stanza,
+                            or an equivalent stanza object.
+            use_values   -- Modifies the type of tests used by check_message.
+            defaults     -- A list of stanza interfaces that have defaults
+                            values which may interfere with comparisons.
+            timeout      -- Time in seconds to wait for a stanza before
+                            failing the check.
+        """
+        if isintance(data, str):
+            data = stanza_class(xml=ET.fromstring(data))
+        sent = self.xmpp.socket.next_sent(timeout)
+        self.check_stanza(stanza_class, data, sent,
+                          defaults=defaults,
+                          use_values=use_values)
+
+    def stream_send_message(self, data, use_values=True, timeout=.1):
+        """
+        Check that the XMPP client sent the given stanza XML.
+
+        Extracts the next sent stanza and compares it with the given
+        XML using check_message.
 
         Arguments:
             data       -- The XML string of the expected Message stanza,
                           or an equivalent stanza object.
-            use_values -- Modifies the type of tests used by checkMessage.
+            use_values -- Modifies the type of tests used by check_message.
             timeout    -- Time in seconds to wait for a stanza before
                           failing the check.
         """
         if isinstance(data, str):
             data = self.Message(xml=ET.fromstring(data))
-        sent = self.xmpp.socket.nextSent(timeout)
-        self.checkMessage(data, sent, use_values)
+        sent = self.xmpp.socket.next_sent(timeout)
+        self.check_message(data, sent, use_values)
 
-    def streamSendIq(self, data, use_values=True, timeout=.1):
+    def stream_send_iq(self, data, use_values=True, timeout=.1):
         """
         Check that the XMPP client sent the given stanza XML.
 
         Extracts the next sent stanza and compares it with the given
-        XML using checkIq.
+        XML using check_iq.
 
         Arguments:
             data       -- The XML string of the expected Iq stanza,
                           or an equivalent stanza object.
-            use_values -- Modifies the type of tests used by checkIq.
+            use_values -- Modifies the type of tests used by check_iq.
             timeout    -- Time in seconds to wait for a stanza before
                           failing the check.
         """
         if isinstance(data, str):
             data = self.Iq(xml=ET.fromstring(data))
-        sent = self.xmpp.socket.nextSent(timeout)
-        self.checkIq(data, sent, use_values)
+        sent = self.xmpp.socket.next_sent(timeout)
+        self.check_iq(data, sent, use_values)
 
-    def streamSendPresence(self, data, use_values=True, timeout=.1):
+    def stream_send_presence(self, data, use_values=True, timeout=.1):
         """
         Check that the XMPP client sent the given stanza XML.
 
         Extracts the next sent stanza and compares it with the given
-        XML using checkPresence.
+        XML using check_presence.
 
         Arguments:
             data       -- The XML string of the expected Presence stanza,
                           or an equivalent stanza object.
-            use_values -- Modifies the type of tests used by checkPresence.
+            use_values -- Modifies the type of tests used by check_presence.
             timeout    -- Time in seconds to wait for a stanza before
                           failing the check.
         """
         if isinstance(data, str):
             data = self.Presence(xml=ET.fromstring(data))
-        sent = self.xmpp.socket.nextSent(timeout)
-        self.checkPresence(data, sent, use_values)
+        sent = self.xmpp.socket.next_sent(timeout)
+        self.check_presence(data, sent, use_values)
 
-    def streamClose(self):
+    def stream_close(self):
         """
         Disconnect the dummy XMPP client.
 
-        Can be safely called even if streamStart has not been called.
+        Can be safely called even if stream_start has not been called.
 
         Must be placed in the tearDown method of a test class to ensure
         that the XMPP client is disconnected after an error.
         """
         if hasattr(self, 'xmpp') and self.xmpp is not None:
             self.xmpp.disconnect()
-            self.xmpp.socket.recvData(self.xmpp.stream_footer)
+            self.xmpp.socket.recv_data(self.xmpp.stream_footer)
 
     # ------------------------------------------------------------------
     # XML Comparison and Cleanup

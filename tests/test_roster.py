@@ -16,7 +16,7 @@ class TestRosterStanzas(SleekTest):
                 'name': 'Other User',
                 'subscription': 'both',
                 'groups': []}})
-        self.checkIq(iq, """
+        self.check_iq(iq, """
           <iq>
             <query xmlns="jabber:iq:roster">
               <item jid="user@example.com" name="User" subscription="both">
@@ -74,7 +74,7 @@ class TestRosterStanzas(SleekTest):
         """
         iq = self.Iq(ET.fromstring(xml_string))
         del iq['roster']['items']
-        self.checkIq(iq, """
+        self.check_iq(iq, """
           <iq>
             <query xmlns="jabber:iq:roster" />
           </iq>

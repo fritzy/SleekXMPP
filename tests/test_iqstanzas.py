@@ -6,12 +6,12 @@ class TestIqStanzas(SleekTest):
 
     def tearDown(self):
         """Shutdown the XML stream after testing."""
-        self.streamClose()
+        self.stream_close()
 
     def testSetup(self):
         """Test initializing default Iq values."""
         iq = self.Iq()
-        self.checkIq(iq, """
+        self.check_iq(iq, """
           <iq id="0" />
         """)
 
@@ -19,7 +19,7 @@ class TestIqStanzas(SleekTest):
         """Test setting Iq stanza payload."""
         iq = self.Iq()
         iq.setPayload(ET.Element('{test}tester'))
-        self.checkIq(iq, """
+        self.check_iq(iq, """
           <iq id="0">
             <tester xmlns="test" />
           </iq>
@@ -28,8 +28,8 @@ class TestIqStanzas(SleekTest):
 
     def testUnhandled(self):
         """Test behavior for Iq.unhandled."""
-        self.streamStart()
-        self.streamRecv("""
+        self.stream_start()
+        self.stream_recv("""
           <iq id="test" type="get">
             <query xmlns="test" />
            </iq>
@@ -40,7 +40,7 @@ class TestIqStanzas(SleekTest):
         iq['error']['condition'] = 'feature-not-implemented'
         iq['error']['text'] = 'No handlers registered for this request.'
 
-        self.streamSendIq(iq, """
+        self.stream_send_iq(iq, """
           <iq id="test" type="error">
             <error type="cancel">
               <feature-not-implemented xmlns="urn:ietf:params:xml:ns:xmpp-stanzas" />
@@ -56,14 +56,14 @@ class TestIqStanzas(SleekTest):
         iq = self.Iq()
 
         iq['query'] = 'query_ns'
-        self.checkIq(iq, """
+        self.check_iq(iq, """
           <iq id="0">
             <query xmlns="query_ns" />
           </iq>
         """)
 
         iq['query'] = 'query_ns2'
-        self.checkIq(iq, """
+        self.check_iq(iq, """
           <iq id="0">
             <query xmlns="query_ns2" />
           </iq>
@@ -72,7 +72,7 @@ class TestIqStanzas(SleekTest):
         self.failUnless(iq['query'] == 'query_ns2', "Query namespace doesn't match")
 
         del iq['query']
-        self.checkIq(iq, """
+        self.check_iq(iq, """
           <iq id="0" />
         """)
 
@@ -83,7 +83,7 @@ class TestIqStanzas(SleekTest):
         iq['type'] = 'get'
         iq.reply()
 
-        self.checkIq(iq, """
+        self.check_iq(iq, """
           <iq id="0" type="result" />
         """)
 

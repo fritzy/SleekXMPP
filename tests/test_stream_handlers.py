@@ -1,7 +1,7 @@
-from . sleektest import *
-import sleekxmpp
+from sleekxmpp.test import *
 from sleekxmpp.xmlstream.handler import *
 from sleekxmpp.xmlstream.matcher import *
+
 
 class TestHandlers(SleekTest):
     """

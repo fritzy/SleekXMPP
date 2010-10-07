@@ -1,4 +1,4 @@
-from . sleektest import *
+from sleekxmpp.test import *
 import sleekxmpp.plugins.gmail_notify as gmail
 
 
@@ -8,10 +8,10 @@ class TestGmail(SleekTest):
         registerStanzaPlugin(Iq, gmail.GmailQuery)
         registerStanzaPlugin(Iq, gmail.MailBox)
         registerStanzaPlugin(Iq, gmail.NewMail)
-        
+
     def testCreateQuery(self):
         """Testing querying Gmail for emails."""
-        
+
         iq = self.Iq()
         iq['type'] = 'get'
         iq['gmail']['search'] = 'is:starred'
@@ -29,20 +29,20 @@ class TestGmail(SleekTest):
 
     def testMailBox(self):
         """Testing reading from Gmail mailbox result"""
-        
+
         # Use the example from Google's documentation at
         # http://code.google.com/apis/talk/jep_extensions/gmail.html#notifications
         xml = ET.fromstring("""
           <iq type="result">
             <mailbox xmlns="google:mail:notify"
                      result-time='1118012394209'
-                     url='http://mail.google.com/mail' 
-                     total-matched='95' 
+                     url='http://mail.google.com/mail'
+                     total-matched='95'
                      total-estimate='0'>
-              <mail-thread-info tid='1172320964060972012' 
+              <mail-thread-info tid='1172320964060972012'
                                 participation='1'
-                                messages='28' 
-                                date='1118012394209' 
+                                messages='28'
+                                date='1118012394209'
                                 url='http://mail.google.com/mail?view=cv'>
                 <senders>
                   <sender name='Me' address='romeo@gmail.com' originator='1' />
@@ -63,7 +63,7 @@ class TestGmail(SleekTest):
         self.failUnless(mailbox['url'] == 'http://mail.google.com/mail', "url doesn't match")
         self.failUnless(mailbox['matched'] == '95', "total-matched incorrect")
         self.failUnless(mailbox['estimate'] == False, "total-estimate incorrect")
-        self.failUnless(len(mailbox['threads']) == 1, "could not extract message threads") 
+        self.failUnless(len(mailbox['threads']) == 1, "could not extract message threads")
 
         thread = mailbox['threads'][0]
         self.failUnless(thread['tid'] == '1172320964060972012', "thread tid doesn't match")
@@ -81,8 +81,8 @@ class TestGmail(SleekTest):
         self.failUnless(sender1['address'] == 'romeo@gmail.com', "sender address doesn't match")
         self.failUnless(sender1['originator'] == True, "sender originator incorrect")
         self.failUnless(sender1['unread'] == False, "sender unread incorrectly True")
-        
-        sender2 = thread['senders'][2]        
+
+        sender2 = thread['senders'][2]
         self.failUnless(sender2['unread'] == True, "sender unread incorrectly False")
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestGmail)

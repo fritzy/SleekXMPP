@@ -1,4 +1,4 @@
-from . sleektest import *
+from sleekxmpp.test import *
 from sleekxmpp.xmlstream.stanzabase import ET
 
 

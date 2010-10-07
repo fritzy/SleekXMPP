@@ -1,6 +1,6 @@
-from . sleektest import *
-import sleekxmpp
+from sleekxmpp.test import *
 from sleekxmpp.xmlstream.stanzabase import ET, StanzaBase
+
 
 class TestStanzaBase(SleekTest):
 

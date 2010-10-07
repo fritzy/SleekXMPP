@@ -1,6 +1,5 @@
-import sleekxmpp
 import time
-from . sleektest import *
+from sleekxmpp.test import *
 
 
 class TestEvents(SleekTest):

@@ -1,5 +1,4 @@
-import sleekxmpp
-from . sleektest import *
+from sleekxmpp.test import *
 from sleekxmpp.stanza.presence import Presence
 
 

@@ -1,4 +1,4 @@
-from . sleektest import *
+from sleekxmpp.test import *
 from sleekxmpp.stanza.roster import Roster
 
 

@@ -1,4 +1,4 @@
-from . sleektest import *
+from sleekxmpp.test import *
 import sleekxmpp.plugins.xep_0085 as xep_0085
 
 class TestChatStates(SleekTest):

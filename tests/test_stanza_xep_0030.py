@@ -1,4 +1,4 @@
-from . sleektest import *
+from sleekxmpp.test import *
 import sleekxmpp.plugins.xep_0030 as xep_0030
 
 

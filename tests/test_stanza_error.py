@@ -1,4 +1,5 @@
-from . sleektest import *
+from sleekxmpp.test import *
+
 
 class TestErrorStanzas(SleekTest):
 

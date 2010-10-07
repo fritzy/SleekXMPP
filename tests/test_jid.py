@@ -1,5 +1,6 @@
-from . sleektest import *
+from sleekxmpp.test import *
 from sleekxmpp.xmlstream.jid import JID
+
 
 class TestJIDClass(SleekTest):
     def testJIDfromfull(self):
@@ -22,5 +23,6 @@ class TestJIDClass(SleekTest):
         self.assertEqual(j.bare, 'user@someserver', "Bare does not match")
         self.assertEqual(j.full, 'user@someserver/some/resource', "Full does not match")
         self.assertEqual(str(j), 'user@someserver/some/resource', "String does not match")
+
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestJIDClass)

@@ -1,4 +1,4 @@
-from . sleektest import *
+from sleekxmpp.test import *
 import sleekxmpp.plugins.xep_0033 as xep_0033
 
 
@@ -55,6 +55,6 @@ class TestStreamTester(SleekTest):
     def testSendStreamHeader(self):
         """Test that we can check a sent stream header."""
         self.stream_start(mode='client', skip=False)
-        self.streamSendHeader(sto='localhost')
+        self.stream_send_header(sto='localhost')
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestStreamTester)

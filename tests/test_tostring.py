@@ -1,4 +1,4 @@
-from . sleektest import *
+from sleekxmpp.test import *
 from sleekxmpp.stanza import Message
 from sleekxmpp.xmlstream.stanzabase import ET
 from sleekxmpp.xmlstream.tostring import tostring, xml_escape

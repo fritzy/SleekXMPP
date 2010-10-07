@@ -492,8 +492,8 @@ class XMLStream(object):
                 # remove it now instead of waiting for it to be
                 # processed in the queue.
                 with self.__event_handlers_lock:
-                    handler_index = self.__event_handlers[name].index(handler)
                     try:
+                        handler_index = self.__event_handlers[name].index(handler)
                         self.__event_handlers[name].pop(handler_index)
                     except:
                         pass

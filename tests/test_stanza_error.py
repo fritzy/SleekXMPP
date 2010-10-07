@@ -30,11 +30,13 @@ class TestErrorStanzas(SleekTest):
 
         self.failUnless(msg['error']['condition'] == 'item-not-found', "Error condition doesn't match.")
 
-        del msg['error']['condition']
+        msg['error']['condition'] = 'resource-constraint'
 
         self.check_message(msg, """
           <message type="error">
-            <error type="cancel" />
+            <error type="cancel">
+              <resource-constraint xmlns="urn:ietf:params:xml:ns:xmpp-stanzas" />
+            </error>
           </message>
          """)
 
@@ -52,6 +54,6 @@ class TestErrorStanzas(SleekTest):
               <text xmlns="urn:ietf:params:xml:ns:xmpp-stanzas">Error!</text>
             </error>
           </message>
-        """)
+        """, use_values=False)
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestErrorStanzas)

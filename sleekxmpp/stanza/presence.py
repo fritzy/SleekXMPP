@@ -78,7 +78,9 @@ class Presence(RootStanza):
         Arguments:
             show -- Must be one of: away, chat, dnd, or xa.
         """
-        if show in self.showtypes:
+        if show is None:
+            self._delSub('show')
+        elif show in self.showtypes:
             self._setSubText('show', text=show)
         return self
 
@@ -98,6 +100,14 @@ class Presence(RootStanza):
         elif value in self.showtypes:
             self['show'] = value
         return self
+
+    def delType(self):
+        """
+        Remove both the type attribute and the <show> element.
+        """
+        self._delAttr('type')
+        self._delSub('show')
+
 
     def setPriority(self, value):
         """

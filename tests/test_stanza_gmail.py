@@ -25,7 +25,7 @@ class TestGmail(SleekTest):
                    newer-than-tid="11134623426430234"
                    q="is:starred" />
           </iq>
-        """)
+        """, use_values=False)
 
     def testMailBox(self):
         """Testing reading from Gmail mailbox result"""

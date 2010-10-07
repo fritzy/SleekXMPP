@@ -423,7 +423,9 @@ class ElementBase(object):
                     self._delAttr(attrib)
         elif attrib in self.plugin_attrib_map:
             if attrib in self.plugins:
+                xml = self.plugins[attrib].xml
                 del self.plugins[attrib]
+                self.xml.remove(xml)
         return self
 
     def _setAttr(self, name, value):
@@ -511,7 +513,7 @@ class ElementBase(object):
         element = self.xml.find(name)
 
         if not text and not keep:
-            return self.__delitem__(name)
+            return self._delSub(name)
 
         if element is None:
             # We need to add the element. If the provided name was

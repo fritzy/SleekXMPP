@@ -607,7 +607,7 @@ class TestElementBase(SleekTest):
           <foo xmlns="foo">
             <foobar qux="a" />
           </foo>
-        """)
+        """, use_values=False)
         self.failUnless(len(stanza) == 1,
             "Incorrect stanza size with 1 substanza.")
 
@@ -617,7 +617,7 @@ class TestElementBase(SleekTest):
             <foobar qux="a" />
             <foobar qux="b" />
           </foo>
-        """)
+        """, use_values=False)
         self.failUnless(len(stanza) == 2,
             "Incorrect stanza size with 2 substanzas.")
 
@@ -627,7 +627,7 @@ class TestElementBase(SleekTest):
           <foo xmlns="foo">
             <foobar qux="b" />
           </foo>
-        """)
+        """, use_values=False)
 
         # Test iterating over substanzas
         stanza.append(substanza1)

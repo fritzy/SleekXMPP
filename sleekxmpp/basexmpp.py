@@ -113,12 +113,7 @@ class BaseXMPP(XMLStream):
         self.default_ns = default_ns
         self.stream_ns = 'http://etherx.jabber.org/streams'
 
-        self.jid = ''
-        self.fulljid = ''
-        self.resource = ''
-        self.jid = ''
-        self.username = ''
-        self.server = ''
+        self.boundjid = JID("")
 
         self.plugin = {}
         self.roster = {}
@@ -440,13 +435,75 @@ class BaseXMPP(XMLStream):
             presence.append(nick)
         presence.send()
 
+    @property
+    def jid(self):
+        """
+        Attribute accessor for bare jid
+        """
+        logging.warning("jid property deprecated. Use boundjid.bare")
+        return self.boundjid.bare
+
+    @jid.setter
+    def jid(self, value):
+        logging.warning("jid property deprecated. Use boundjid.bare")
+        self.boundjid.bare = value
+
+    @property
+    def fulljid(self):
+        """
+        Attribute accessor for full jid
+        """
+        logging.warning("fulljid property deprecated. Use boundjid.full")
+        return self.boundjid.full
+
+    @fulljid.setter
+    def fulljid(self, value):
+        logging.warning("fulljid property deprecated. Use boundjid.full")
+        self.boundjid.full = value
+    
+    @property
+    def resource(self):
+        """
+        Attribute accessor for jid resource
+        """
+        logging.warning("resource property deprecated. Use boundjid.resource")
+        return self.boundjid.resource
+
+    @resource.setter
+    def resource(self, value):
+        logging.warning("fulljid property deprecated. Use boundjid.full")
+        self.boundjid.resource = value
+    
+    @property
+    def username(self):
+        """
+        Attribute accessor for jid usernode
+        """
+        logging.warning("username property deprecated. Use boundjid.user")
+        return self.boundjid.user
+
+    @username.setter
+    def username(self, value):
+        logging.warning("username property deprecated. Use boundjid.user")
+        self.boundjid.user = value
+
+    @property
+    def server(self):
+        """
+        Attribute accessor for jid host
+        """
+        logging.warning("server property deprecated. Use boundjid.host")
+        return self.boundjid.server
+
+    @server.setter
+    def server(self, value):
+        logging.warning("server property deprecated. Use boundjid.host")
+        self.boundjid.server = value
+
     def set_jid(self, jid):
         """Rip a JID apart and claim it as our own."""
-        self.fulljid = jid
-        self.resource = self.getjidresource(jid)
-        self.jid = self.getjidbare(jid)
-        self.username = jid.split('@', 1)[0]
-        self.server = jid.split('@', 1)[-1].split('/', 1)[0]
+        logging.debug("setting jid to %s" % jid)
+        self.boundjid.full = jid
 
     def getjidresource(self, fulljid):
         if '/' in fulljid:

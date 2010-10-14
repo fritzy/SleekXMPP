@@ -25,7 +25,7 @@ import sys
 #
 # from setuptools import setup, find_packages, Extension, Feature
 
-VERSION          = '0.2.3.1'
+VERSION          = '1.0.0.0'
 DESCRIPTION      = 'SleekXMPP is an elegant Python library for XMPP (aka Jabber, Google Talk, etc).'
 LONG_DESCRIPTION = """
 SleekXMPP is an elegant Python library for XMPP (aka Jabber, Google Talk, etc).

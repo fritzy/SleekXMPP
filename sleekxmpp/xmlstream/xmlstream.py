@@ -266,8 +266,8 @@ class XMLStream(object):
                 self.event("connected", direct=True)
                 return True
             except Socket.error as serr:
-                error_msg = "Could not connect. Socket Error #%s: %s"
-                logging.error(error_msg % (serr.errno, serr.strerror))
+                error_msg = "Could not connect to %s:%s. Socket Error #%s: %s"
+                logging.error(error_msg % (self.address[0], self.address[1], serr.errno, serr.strerror))
                 time.sleep(1)
                 return False
 

@@ -290,10 +290,10 @@ class XMLStream(object):
         self.send_raw(self.stream_footer)
         # Wait for confirmation that the stream was
         # closed in the other direction.
-        time.sleep(1)
         if not reconnect:
             self.auto_reconnect = False
             self.stop.set()
+        time.sleep(1)
         try:
             self.socket.close()
             self.filesocket.close()

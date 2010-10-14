@@ -67,7 +67,7 @@ class JID(object):
                 else:
                     self._user = self._user
             return self._user or ""
-        elif name in ('server', 'domain'):
+        elif name in ('server', 'domain', 'host'):
             if self._domain is None:
                 self._domain = self._jid.split('@', 1)[-1].split('/', 1)[0]
             return self._domain or ""
@@ -91,7 +91,7 @@ class JID(object):
         if name in ('resource', 'user', 'domain'):
             object.__setattr__(self, "_%s" % name, value)
             self.regenerate()
-        elif name == 'server':
+        elif name in ('server', 'domain', 'host'):
             self.domain = value
         elif name in ('full', 'jid'):
             self.reset(value)

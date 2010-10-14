@@ -44,9 +44,13 @@ packages     = [ 'sleekxmpp',
 				 'sleekxmpp/xmlstream',
 				 'sleekxmpp/xmlstream/matcher',
 				 'sleekxmpp/xmlstream/handler',
-                 'sleekxmpp/xmlstream/tostring',
                  'sleekxmpp/thirdparty',
                  ]
+
+if sys.version_info < (3, 0):
+    py_modules = ['sleekxmpp.xmlstream.tostring.tostring26']
+else:
+    py_modules = ['sleekxmpp.xmlstream.tostring.tostring']
 
 setup(
     name             = "sleekxmpp",

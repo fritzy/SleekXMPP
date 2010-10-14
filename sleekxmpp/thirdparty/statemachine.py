@@ -268,11 +268,11 @@ class _StateCtx:
 if __name__ == '__main__':
 
 	def callback(s, s2):
-		print 1, s.transition('on', 'off', wait=0.0, func=callback, args=[s,s2])
-		print 2, s2.transition('off', 'on', func=callback, args=[s,s2])
+		print((1, s.transition('on', 'off', wait=0.0, func=callback, args=[s,s2])))
+		print((2, s2.transition('off', 'on', func=callback, args=[s,s2])))
 		return True
 
 	s = StateMachine(('off', 'on'))
 	s2 = StateMachine(('off', 'on'))
-	print 3, s.transition('off', 'on', wait=0.0, func=callback, args=[s,s2]),
-	print s.current_state(), s2.current_state()
+	print((3, s.transition('off', 'on', wait=0.0, func=callback, args=[s,s2]),))
+	print((s.current_state(), s2.current_state()))

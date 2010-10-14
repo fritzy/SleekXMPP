@@ -290,7 +290,6 @@ class DefaultConfig(ElementBase):
 	
 	def setConfig(self, value):
 		self['form'].setStanzaValues(value.getStanzaValues())
-		print self['form']['title']
 		return self
 
 registerStanzaPlugin(PubsubOwner, DefaultConfig)
@@ -370,7 +369,6 @@ class OwnerDefault(OwnerConfigure):
 	
 	def setConfig(self, value):
 		self['form'].setStanzaValues(value.getStanzaValues())
-		print self['from']['title']
 		return self
 
 registerStanzaPlugin(PubsubOwner, OwnerDefault)

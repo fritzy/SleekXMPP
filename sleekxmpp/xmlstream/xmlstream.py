@@ -10,7 +10,7 @@ from __future__ import with_statement, unicode_literals
 
 import copy
 import logging
-import socket
+import socket as Socket
 import ssl
 import sys
 import threading
@@ -165,7 +165,7 @@ class XMLStream(object):
         if sys.version_info < (3, 0):
             self.socket_class = Socket26
         else:
-            self.socket_class = socket.socket
+            self.socket_class = Socket.socket
 
         self.use_ssl = False
         self.use_tls = False
@@ -247,7 +247,7 @@ class XMLStream(object):
 
     def _connect(self):
             self.stop.clear()
-            self.socket = self.socket_class(socket.AF_INET, socket.SOCK_STREAM)
+            self.socket = self.socket_class(Socket.AF_INET, Socket.SOCK_STREAM)
             self.socket.settimeout(None)
             if self.use_ssl and self.ssl_support:
                 logging.debug("Socket Wrapped for SSL")
@@ -265,7 +265,7 @@ class XMLStream(object):
                 #this event is where you should set your application state
                 self.event("connected", direct=True)
                 return True
-            except socket.error as serr:
+            except Socket.error as serr:
                 error_msg = "Could not connect. Socket Error #%s: %s"
                 logging.error(error_msg % (serr.errno, serr.strerror))
                 time.sleep(1)
@@ -297,8 +297,8 @@ class XMLStream(object):
         try:
             self.socket.close()
             self.filesocket.close()
-            self.socket.shutdown(socket.SHUT_RDWR)
-        except socket.error as serr:
+            self.socket.shutdown(Socket.SHUT_RDWR)
+        except Socket.error as serr:
             pass
         finally:
             #clear your application state
@@ -670,7 +670,7 @@ class XMLStream(object):
             except SystemExit:
                 logging.debug("SystemExit in _process")
                 self.stop.set()
-            except socket.error:
+            except Socket.error:
                 logging.exception('Socket Error')
             except:
                 logging.exception('Connection error. Reconnecting.')

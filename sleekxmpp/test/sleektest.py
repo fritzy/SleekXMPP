@@ -53,7 +53,7 @@ class SleekTest(unittest.TestCase):
         try:
             xml = ET.fromstring(xml_string)
             return xml
-        except SyntaxError, e:
+        except SyntaxError as e:
             if 'unbound' in e.msg:
                 known_prefixes = {
                         'stream': 'http://etherx.jabber.org/streams'}

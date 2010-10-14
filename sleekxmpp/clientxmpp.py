@@ -162,7 +162,8 @@ class ClientXMPP(BaseXMPP):
                         intmax += answer.priority
                         addresses[intmax] = (answer.target.to_text()[:-1],
                                              answer.port)
-                    priorities = addresses.keys()
+                    #python3 returns a generator for dictionary keys
+                    priorities = [x for x in addresses.keys()]
                     priorities.sort()
 
                     picked = random.randint(0, intmax)

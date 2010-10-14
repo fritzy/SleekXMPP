@@ -524,7 +524,7 @@ class SleekTest(unittest.TestCase):
         # Apply closing elements so that we can construct
         # XML objects for comparison.
         header2 = header + '</stream:stream>'
-        sent_header2 = sent_header + '</stream:stream>'
+        sent_header2 = sent_header + b'</stream:stream>'
 
         xml = self.parse_xml(header2)
         sent_xml = self.parse_xml(sent_header2)

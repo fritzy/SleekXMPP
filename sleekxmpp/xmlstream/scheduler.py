@@ -104,7 +104,7 @@ class Scheduler(object):
         quit    -- Stop the scheduler.
     """
 
-    def __init__(self, parentqueue=None):
+    def __init__(self, parentqueue=None, parentstop=None):
         """
         Create a new scheduler.
 
@@ -116,6 +116,7 @@ class Scheduler(object):
         self.thread = None
         self.run = False
         self.parentqueue = parentqueue
+        self.parentstop = parentstop
 
     def process(self, threaded=True):
         """
@@ -135,38 +136,41 @@ class Scheduler(object):
     def _process(self):
         """Process scheduled tasks."""
         self.run = True
-        while self.run:
-            try:
-                wait = 1
-                updated = False
-                if self.schedule:
-                    wait = self.schedule[0].next - time.time()
-                try:
-                    if wait <= 0.0:
-                        newtask = self.addq.get(False)
-                    else:
-                        newtask = self.addq.get(True, wait)
-                except queue.Empty:
-                    cleanup = []
-                    for task in self.schedule:
-                        if time.time() >= task.next:
-                            updated = True
-                            if not task.run():
-                                cleanup.append(task)
+        try:
+            while self.run:
+                    wait = 1
+                    updated = False
+                    if self.schedule:
+                        wait = self.schedule[0].next - time.time()
+                    try:
+                        if wait <= 0.0:
+                            newtask = self.addq.get(False)
                         else:
-                            break
-                    for task in cleanup:
-                        x = self.schedule.pop(self.schedule.index(task))
-                else:
-                    updated = True
-                    self.schedule.append(newtask)
-                finally:
-                    if updated:
-                        self.schedule = sorted(self.schedule,
-                                               key=lambda task: task.next)
-            except KeyboardInterrupt:
-                self.run = False
-
+                            newtask = self.addq.get(True, wait)
+                    except queue.Empty:
+                        cleanup = []
+                        for task in self.schedule:
+                            if time.time() >= task.next:
+                                updated = True
+                                if not task.run():
+                                    cleanup.append(task)
+                            else:
+                                break
+                        for task in cleanup:
+                            x = self.schedule.pop(self.schedule.index(task))
+                    else:
+                        updated = True
+                        self.schedule.append(newtask)
+                    finally:
+                        if updated:
+                            self.schedule = sorted(self.schedule,
+                                                   key=lambda task: task.next)
+        except KeyboardInterrupt:
+            self.run = False
+            if self.parentstop is not None: self.parentstop.set()
+        except SystemExit:
+            self.run = False
+            if self.parentstop is not None: self.parentstop.set()
         logging.debug("Qutting Scheduler thread")
         if self.parentqueue is not None:
             self.parentqueue.put(('quit', None, None))

@@ -92,6 +92,7 @@ class ClientXMPP(BaseXMPP):
         self.sessionstarted = False
         self.bound = False
         self.bindfail = False
+        self.add_event_handler('connected', self.handle_connected)
 
         self.register_handler(
                 Callback('Stream Features',
@@ -116,6 +117,14 @@ class ClientXMPP(BaseXMPP):
         self.register_feature(
             "<session xmlns='urn:ietf:params:xml:ns:xmpp-session' />",
             self._handle_start_session)
+	
+    def handle_connected(self, event=None):
+        #TODO: Use stream state here
+        self.authenticated = False
+        self.sessionstarted = False
+        self.bound = False
+        self.bindfail = False
+
 
     def connect(self, address=tuple()):
         """

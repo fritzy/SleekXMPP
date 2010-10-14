@@ -44,7 +44,9 @@ packages     = [ 'sleekxmpp',
 				 'sleekxmpp/xmlstream',
 				 'sleekxmpp/xmlstream/matcher',
 				 'sleekxmpp/xmlstream/handler',
-                 'sleekxmpp/xmlstream/tostring']
+                 'sleekxmpp/xmlstream/tostring',
+                 'sleekxmpp/thirdparty',
+                 ]
 
 setup(
     name             = "sleekxmpp",

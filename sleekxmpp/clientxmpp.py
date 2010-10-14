@@ -174,8 +174,7 @@ class ClientXMPP(BaseXMPP):
 
         if not address:
             # If all else fails, use the server from the JID.
-            address = (self.server, 5222)
-        logging.debug("The server is %s" % self.server)
+            address = (self.boundjid.host, 5222)
 
         return XMLStream.connect(self, address[0], address[1], use_tls=True)
 

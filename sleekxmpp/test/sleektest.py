@@ -638,8 +638,8 @@ class SleekTest(unittest.TestCase):
         that the XMPP client is disconnected after an error.
         """
         if hasattr(self, 'xmpp') and self.xmpp is not None:
-            self.xmpp.disconnect()
             self.xmpp.socket.recv_data(self.xmpp.stream_footer)
+            self.xmpp.disconnect()
 
     # ------------------------------------------------------------------
     # XML Comparison and Cleanup

@@ -129,7 +129,11 @@ class Presence(RootStanza):
         p = self._getSubText('priority')
         if not p:
             p = 0
-        return int(p)
+        try:
+            return int(p)
+        except ValueError:
+            # The priority is not a number: we consider it 0 as a default
+            return 0
 
     def getType(self):
         """

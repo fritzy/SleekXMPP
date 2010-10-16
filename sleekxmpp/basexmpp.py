@@ -380,7 +380,7 @@ class BaseXMPP(XMLStream):
         if pshow is not None:
             presence['type'] = pshow
         if pfrom is None:
-            presence['from'] = self.fulljid
+            presence['from'] = self.boundjid.full
         presence['priority'] = ppriority
         presence['status'] = pstatus
         return presence

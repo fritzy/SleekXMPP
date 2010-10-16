@@ -79,7 +79,7 @@ class ClientXMPP(BaseXMPP):
         self.srv_support = SRV_SUPPORT
 
         self.stream_header = "<stream:stream to='%s' %s %s version='1.0'>" % (
-                self.server,
+                self.boundjid.host,
                 "xmlns:stream='%s'" % self.stream_ns,
                 "xmlns='%s'" % self.default_ns)
         self.stream_footer = "</stream:stream>"
@@ -306,10 +306,10 @@ class ClientXMPP(BaseXMPP):
                 self.features.append("sasl:%s" % sasl_mech.text)
             if 'sasl:PLAIN' in self.features and self.boundjid.user:
                 if sys.version_info < (3, 0):
-                    user = bytes(self.username)
+                    user = bytes(self.boundjid.user)
                     password = bytes(self.password)
                 else:
-                    user = bytes(self.username, 'utf-8')
+                    user = bytes(self.boundjid.user, 'utf-8')
                     password = bytes(self.password, 'utf-8')
 
                 auth = base64.b64encode(b'\x00' + user + \
@@ -354,12 +354,12 @@ class ClientXMPP(BaseXMPP):
         Arguments:
             xml -- The bind feature element.
         """
-        logging.debug("Requesting resource: %s" % self.resource)
+        logging.debug("Requesting resource: %s" % self.boundjid.resource)
         xml.clear()
         iq = self.Iq(stype='set')
-        if self.resource:
+        if self.boundjid.resource:
             res = ET.Element('resource')
-            res.text = self.resource
+            res.text = self.boundjid.resource
             xml.append(res)
         iq.append(xml)
         response = iq.send()
@@ -368,7 +368,7 @@ class ClientXMPP(BaseXMPP):
         self.set_jid(response.xml.find('{%s}bind/{%s}jid' % (bind_ns,
                                                              bind_ns)).text)
         self.bound = True
-        logging.info("Node set to: %s" % self.fulljid)
+        logging.info("Node set to: %s" % self.boundjid.fulljid)
         session_ns = 'urn:ietf:params:xml:ns:xmpp-session'
         if "{%s}session" % session_ns not in self.features or self.bindfail:
             logging.debug("Established Session")

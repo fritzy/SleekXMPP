@@ -102,7 +102,7 @@ class JID(object):
                     d = value
                 object.__setattr__(self, "_domain", d)
             else:
-            self.reset(value)
+                self.reset(value)
         elif name == 'bare':
             if '@' in value:
                 u, d = value.split('@', 1)

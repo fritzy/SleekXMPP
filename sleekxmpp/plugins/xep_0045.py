@@ -195,7 +195,7 @@ class xep_0045(base.base_plugin):
 			return False
 		return True
 	
-	def joinMUC(self, room, nick, maxhistory="0", password='', wait=False, pstatus=None, pshow=None):
+	def joinMUC(self, room, nick, maxhistory=None, password='', wait=False, pstatus=None, pshow=None):
 		""" Join the specified room, requesting 'maxhistory' lines of history.
 		"""
 		stanza = self.xmpp.makePresence(pto="%s/%s" % (room, nick), pstatus=pstatus, pshow=pshow)
@@ -204,9 +204,13 @@ class xep_0045(base.base_plugin):
 			passelement = ET.Element('password')
 			passelement.text = password
 			x.append(passelement)
-		history = ET.Element('history')
-		history.attrib['maxstanzas'] = maxhistory
-		x.append(history)
+		if maxhistory:
+			history = ET.Element('history')
+			if maxhistory ==  "0":
+				history.attrib['maxchars'] = maxhistory
+			else:
+				history.attrib['maxstanzas'] = maxhistory
+			x.append(history)
 		stanza.append(x)
 		if not wait:
 			self.xmpp.send(stanza)
@@ -267,10 +271,13 @@ class xep_0045(base.base_plugin):
 		msg.append(x)
 		self.xmpp.send(msg)
 
-	def leaveMUC(self, room, nick):
+	def leaveMUC(self, room, nick, msg=''):
 		""" Leave the specified room.
 		"""
-		self.xmpp.sendPresence(pshow='unavailable', pto="%s/%s" % (room, nick))
+		if msg:
+			self.xmpp.sendPresence(pshow='unavailable', pto="%s/%s" % (room, nick), pstatus=msg)
+		else:
+			self.xmpp.sendPresence(pshow='unavailable', pto="%s/%s" % (room, nick))
 		del self.rooms[room]
 	
 	def getRoomConfig(self, room):

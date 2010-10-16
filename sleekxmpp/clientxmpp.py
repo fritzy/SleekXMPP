@@ -304,7 +304,7 @@ class ClientXMPP(BaseXMPP):
         if sasl_mechs:
             for sasl_mech in sasl_mechs:
                 self.features.append("sasl:%s" % sasl_mech.text)
-            if 'sasl:PLAIN' in self.features:
+            if 'sasl:PLAIN' in self.features and self.boundjid.user:
                 if sys.version_info < (3, 0):
                     user = bytes(self.username)
                     password = bytes(self.password)
@@ -318,6 +318,8 @@ class ClientXMPP(BaseXMPP):
                 self.send("<auth xmlns='%s' mechanism='PLAIN'>%s</auth>" % (
                     sasl_ns,
                     auth))
+            elif 'sasl:ANONYMOUS' in self.features and not self.boundjid.user:
+                self.send("<auth xmlns='urn:ietf:params:xml:ns:xmpp-sasl' mechanism='ANONYMOUS' />")
             else:
                 logging.error("No appropriate login method.")
                 self.disconnect()

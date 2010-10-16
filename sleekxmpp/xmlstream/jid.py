@@ -94,6 +94,14 @@ class JID(object):
         elif name in ('server', 'domain', 'host'):
             self.domain = value
         elif name in ('full', 'jid'):
+            if '@' not in value:
+                if '/' in value:
+                    d, r = value.split('/', 1)
+                    object.__setattr__(self, "_resource", r)
+                else:
+                    d = value
+                object.__setattr__(self, "_domain", d)
+            else:
             self.reset(value)
         elif name == 'bare':
             if '@' in value:

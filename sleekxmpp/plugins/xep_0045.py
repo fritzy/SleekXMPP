@@ -195,7 +195,7 @@ class xep_0045(base.base_plugin):
 			return False
 		return True
 	
-	def joinMUC(self, room, nick, maxhistory=None, password='', wait=False, pstatus=None, pshow=None):
+	def joinMUC(self, room, nick, maxhistory="0", password='', wait=False, pstatus=None, pshow=None):
 		""" Join the specified room, requesting 'maxhistory' lines of history.
 		"""
 		stanza = self.xmpp.makePresence(pto="%s/%s" % (room, nick), pstatus=pstatus, pshow=pshow)

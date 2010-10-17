@@ -460,7 +460,7 @@ class BaseXMPP(XMLStream):
     def fulljid(self, value):
         logging.warning("fulljid property deprecated. Use boundjid.full")
         self.boundjid.full = value
-    
+
     @property
     def resource(self):
         """
@@ -473,7 +473,7 @@ class BaseXMPP(XMLStream):
     def resource(self, value):
         logging.warning("fulljid property deprecated. Use boundjid.full")
         self.boundjid.resource = value
-    
+
     @property
     def username(self):
         """

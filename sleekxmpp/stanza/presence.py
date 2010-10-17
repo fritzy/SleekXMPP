@@ -108,7 +108,6 @@ class Presence(RootStanza):
         self._delAttr('type')
         self._delSub('show')
 
-
     def setPriority(self, value):
         """
         Set the entity's priority value. Some server use priority to

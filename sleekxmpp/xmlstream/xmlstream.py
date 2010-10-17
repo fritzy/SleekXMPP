@@ -239,37 +239,39 @@ class XMLStream(object):
 
         # Repeatedly attempt to connect until a successful connection
         # is established.
-        connected = self.state.transition('disconnected', 'connected', func=self._connect)
+        connected = self.state.transition('disconnected', 'connected',
+                                          func=self._connect)
         while reattempt and not connected:
-            connected = self.state.transition('disconnected', 'connected', func=self._connect)
+            connected = self.state.transition('disconnected', 'connected',
+                                              func=self._connect)
         return connected
 
-
     def _connect(self):
-            self.stop.clear()
-            self.socket = self.socket_class(Socket.AF_INET, Socket.SOCK_STREAM)
-            self.socket.settimeout(None)
-            if self.use_ssl and self.ssl_support:
-                logging.debug("Socket Wrapped for SSL")
-                ssl_socket = ssl.wrap_socket(self.socket)
-                if hasattr(self.socket, 'socket'):
-                    # We are using a testing socket, so preserve the top
-                    # layer of wrapping.
-                    self.socket.socket = ssl_socket
-                else:
-                    self.socket = ssl_socket
+        self.stop.clear()
+        self.socket = self.socket_class(Socket.AF_INET, Socket.SOCK_STREAM)
+        self.socket.settimeout(None)
+        if self.use_ssl and self.ssl_support:
+            logging.debug("Socket Wrapped for SSL")
+            ssl_socket = ssl.wrap_socket(self.socket)
+            if hasattr(self.socket, 'socket'):
+                # We are using a testing socket, so preserve the top
+                # layer of wrapping.
+                self.socket.socket = ssl_socket
+            else:
+                self.socket = ssl_socket
 
-            try:
-                self.socket.connect(self.address)
-                self.set_socket(self.socket, ignore=True)
-                #this event is where you should set your application state
-                self.event("connected", direct=True)
-                return True
-            except Socket.error as serr:
-                error_msg = "Could not connect to %s:%s. Socket Error #%s: %s"
-                logging.error(error_msg % (self.address[0], self.address[1], serr.errno, serr.strerror))
-                time.sleep(1)
-                return False
+        try:
+            self.socket.connect(self.address)
+            self.set_socket(self.socket, ignore=True)
+            #this event is where you should set your application state
+            self.event("connected", direct=True)
+            return True
+        except Socket.error as serr:
+            error_msg = "Could not connect to %s:%s. Socket Error #%s: %s"
+            logging.error(error_msg % (self.address[0], self.address[1],
+                                       serr.errno, serr.strerror))
+            time.sleep(1)
+            return False
 
     def disconnect(self, reconnect=False):
         """
@@ -283,8 +285,9 @@ class XMLStream(object):
                          and processing should be restarted.
                          Defaults to False.
         """
-        self.state.transition('connected', 'disconnected', wait=0.0, func=self._disconnect, args=(reconnect,))
-    
+        self.state.transition('connected', 'disconnected', wait=0.0,
+                              func=self._disconnect, args=(reconnect,))
+
     def _disconnect(self, reconnect=False):
         # Send the end of stream marker.
         self.send_raw(self.stream_footer)
@@ -305,14 +308,15 @@ class XMLStream(object):
             self.event("disconnected", direct=True)
             return True
 
-
     def reconnect(self):
         """
         Reset the stream's state and reconnect to the server.
         """
         logging.debug("reconnecting...")
-        self.state.transition('connected', 'disconnected', wait=0.0, func=self._disconnect, args=(True,))
-        return self.state.transition('disconnected', 'connected', wait=0.0, func=self._connect)
+        self.state.transition('connected', 'disconnected', wait=0.0,
+                              func=self._disconnect, args=(True,))
+        return self.state.transition('disconnected', 'connected',
+                                     wait=0.0, func=self._connect)
 
     def set_socket(self, socket, ignore=False):
         """
@@ -517,8 +521,8 @@ class XMLStream(object):
                 # processed in the queue.
                 with self.__event_handlers_lock:
                     try:
-                        handler_index = self.__event_handlers[name].index(handler)
-                        self.__event_handlers[name].pop(handler_index)
+                        h_index = self.__event_handlers[name].index(handler)
+                        self.__event_handlers[name].pop(h_index)
                     except:
                         pass
 
@@ -754,7 +758,7 @@ class XMLStream(object):
                     if handler.checkDelete():
                         self.__handlers.pop(self.__handlers.index(handler))
                 except:
-                    pass #not thread safe
+                    pass  # not thread safe
                 unhandled = False
 
         # Some stanzas require responses, such as Iq queries. A default

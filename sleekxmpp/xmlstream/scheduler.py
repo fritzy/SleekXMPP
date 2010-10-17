@@ -167,10 +167,12 @@ class Scheduler(object):
                                                    key=lambda task: task.next)
         except KeyboardInterrupt:
             self.run = False
-            if self.parentstop is not None: self.parentstop.set()
+            if self.parentstop is not None:
+                self.parentstop.set()
         except SystemExit:
             self.run = False
-            if self.parentstop is not None: self.parentstop.set()
+            if self.parentstop is not None:
+                self.parentstop.set()
         logging.debug("Qutting Scheduler thread")
         if self.parentqueue is not None:
             self.parentqueue.put(('quit', None, None))

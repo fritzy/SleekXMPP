@@ -117,14 +117,13 @@ class ClientXMPP(BaseXMPP):
         self.register_feature(
             "<session xmlns='urn:ietf:params:xml:ns:xmpp-session' />",
             self._handle_start_session)
-	
+
     def handle_connected(self, event=None):
         #TODO: Use stream state here
         self.authenticated = False
         self.sessionstarted = False
         self.bound = False
         self.bindfail = False
-
 
     def connect(self, address=tuple()):
         """
@@ -319,7 +318,9 @@ class ClientXMPP(BaseXMPP):
                     sasl_ns,
                     auth))
             elif 'sasl:ANONYMOUS' in self.features and not self.boundjid.user:
-                self.send("<auth xmlns='urn:ietf:params:xml:ns:xmpp-sasl' mechanism='ANONYMOUS' />")
+                self.send("<auth xmlns='%s' mechanism='%s' />" % (
+                    sasl_ns,
+                    'ANONYMOUS'))
             else:
                 logging.error("No appropriate login method.")
                 self.disconnect()

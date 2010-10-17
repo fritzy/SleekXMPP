@@ -38,12 +38,12 @@ CLASSIFIERS      = [ 'Intended Audience :: Developers',
                    ]
 
 packages     = [ 'sleekxmpp',
-				 'sleekxmpp/plugins',
-				 'sleekxmpp/stanza',
+                 'sleekxmpp/plugins',
+                 'sleekxmpp/stanza',
                  'sleekxmpp/test',
-				 'sleekxmpp/xmlstream',
-				 'sleekxmpp/xmlstream/matcher',
-				 'sleekxmpp/xmlstream/handler',
+                 'sleekxmpp/xmlstream',
+                 'sleekxmpp/xmlstream/matcher',
+                 'sleekxmpp/xmlstream/handler',
                  'sleekxmpp/thirdparty',
                  ]
 
@@ -62,7 +62,8 @@ setup(
     url          = 'http://code.google.com/p/sleekxmpp',
     license      = 'MIT',
     platforms    = [ 'any' ],
-	packages	 = packages,
+    packages     = packages,
+    py_modules   = py_modules,
     requires     = [ 'tlslite', 'pythondns' ],
     )
 

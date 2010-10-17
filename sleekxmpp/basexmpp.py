@@ -176,6 +176,10 @@ class BaseXMPP(XMLStream):
                 module = sleekxmpp.plugins
                 module = __import__("%s.%s" % (module.__name__, plugin),
                                     globals(), locals(), [plugin])
+            if isinstance(module, str):
+                # We probably want to load a module from outside
+                # the sleekxmpp package, so leave out the globals().
+                module = __import__(module, fromlist=[plugin])
 
             # Load the plugin class from the module.
             self.plugin[plugin] = getattr(module, plugin)(self, pconfig)

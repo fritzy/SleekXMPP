@@ -8,7 +8,7 @@
 
 from sleekxmpp.stanza import Error
 from sleekxmpp.stanza.rootstanza import RootStanza
-from sleekxmpp.xmlstream.stanzabase import StanzaBase, ET
+from sleekxmpp.xmlstream import StanzaBase, ET
 
 
 class Presence(RootStanza):
@@ -52,12 +52,13 @@ class Presence(RootStanza):
         showtypes -- One of: away, chat, dnd, and xa.
 
     Methods:
-        reply       -- Overrides StanzaBase.reply
-        setShow     -- Set the value of the <show> element.
-        getType     -- Get the value of the type attribute or <show> element.
-        setType     -- Set the value of the type attribute or <show> element.
-        getPriority -- Get the value of the <priority> element.
-        setPriority -- Set the value of the <priority> element.
+        setup        -- Overrides StanzaBase.setup
+        reply        -- Overrides StanzaBase.reply
+        set_show     -- Set the value of the <show> element.
+        get_type     -- Get the value of the type attribute or <show> element.
+        set_type     -- Set the value of the type attribute or <show> element.
+        get_priority -- Get the value of the <priority> element.
+        set_priority -- Set the value of the <priority> element.
     """
 
     namespace = 'jabber:client'
@@ -71,7 +72,27 @@ class Presence(RootStanza):
                  'subscribed', 'unsubscribe', 'unsubscribed'))
     showtypes = set(('dnd', 'chat', 'xa', 'away'))
 
-    def setShow(self, show):
+    def setup(self, xml=None):
+        """
+        Populate the stanza object using an optional XML object.
+
+        Overrides ElementBase.setup.
+
+        Arguments:
+            xml -- Use an existing XML object for the stanza's values.
+        """
+        # To comply with PEP8, method names now use underscores.
+        # Deprecated method names are re-mapped for backwards compatibility.
+        self.setShow = self.set_show
+        self.getType = self.get_type
+        self.setType = self.set_type
+        self.delType = self.get_type
+        self.getPriority = self.get_priority
+        self.setPriority = self.set_priority
+
+        return StanzaBase.setup(self, xml)
+
+    def set_show(self, show):
         """
         Set the value of the <show> element.
 
@@ -79,12 +100,24 @@ class Presence(RootStanza):
             show -- Must be one of: away, chat, dnd, or xa.
         """
         if show is None:
-            self._delSub('show')
+            self._del_sub('show')
         elif show in self.showtypes:
-            self._setSubText('show', text=show)
+            self._set_sub_text('show', text=show)
         return self
 
-    def setType(self, value):
+    def get_type(self):
+        """
+        Return the value of the <presence> stanza's type attribute, or
+        the value of the <show> element.
+        """
+        out = self._get_attr('type')
+        if not out:
+            out = self['show']
+        if not out or out is None:
+            out = 'available'
+        return out
+
+    def set_type(self, value):
         """
         Set the type attribute's value, and the <show> element
         if applicable.
@@ -96,19 +129,19 @@ class Presence(RootStanza):
             self['show'] = None
             if value == 'available':
                 value = ''
-            self._setAttr('type', value)
+            self._set_attr('type', value)
         elif value in self.showtypes:
             self['show'] = value
         return self
 
-    def delType(self):
+    def del_type(self):
         """
         Remove both the type attribute and the <show> element.
         """
-        self._delAttr('type')
-        self._delSub('show')
+        self._del_attr('type')
+        self._del_sub('show')
 
-    def setPriority(self, value):
+    def set_priority(self, value):
         """
         Set the entity's priority value. Some server use priority to
         determine message routing behavior.
@@ -119,13 +152,13 @@ class Presence(RootStanza):
         Arguments:
             value -- An integer value greater than or equal to 0.
         """
-        self._setSubText('priority', text=str(value))
+        self._set_sub_text('priority', text=str(value))
 
-    def getPriority(self):
+    def get_priority(self):
         """
         Return the value of the <presence> element as an integer.
         """
-        p = self._getSubText('priority')
+        p = self._get_sub_text('priority')
         if not p:
             p = 0
         try:
@@ -133,18 +166,6 @@ class Presence(RootStanza):
         except ValueError:
             # The priority is not a number: we consider it 0 as a default
             return 0
-
-    def getType(self):
-        """
-        Return the value of the <presence> stanza's type attribute, or
-        the value of the <show> element.
-        """
-        out = self._getAttr('type')
-        if not out:
-            out = self['show']
-        if not out or out is None:
-            out = 'available'
-        return out
 
     def reply(self):
         """

@@ -8,8 +8,7 @@
 
 from sleekxmpp.stanza import Iq
 from sleekxmpp.xmlstream import JID
-from sleekxmpp.xmlstream.stanzabase import registerStanzaPlugin
-from sleekxmpp.xmlstream.stanzabase import ET, ElementBase
+from sleekxmpp.xmlstream import ET, ElementBase, register_stanza_plugin
 
 
 class Roster(ElementBase):
@@ -29,9 +28,9 @@ class Roster(ElementBase):
                  in the stanza.
 
     Methods:
-        getItems -- Return a dictionary of roster entries.
-        setItems -- Add <item> elements.
-        delItems -- Remove all <item> elements.
+        get_items -- Return a dictionary of roster entries.
+        set_items -- Add <item> elements.
+        del_items -- Remove all <item> elements.
     """
 
     namespace = 'jabber:iq:roster'
@@ -39,7 +38,24 @@ class Roster(ElementBase):
     plugin_attrib = 'roster'
     interfaces = set(('items',))
 
-    def setItems(self, items):
+    def setup(self, xml=None):
+        """
+        Populate the stanza object using an optional XML object.
+
+        Overrides StanzaBase.setup.
+
+        Arguments:
+            xml -- Use an existing XML object for the stanza's values.
+        """
+        # To comply with PEP8, method names now use underscores.
+        # Deprecated method names are re-mapped for backwards compatibility.
+        self.setItems = self.set_items
+        self.getItems = self.get_items
+        self.delItems = self.del_items
+
+        return ElementBase.setup(self, xml)
+
+    def set_items(self, items):
         """
         Set the roster entries in the <roster> stanza.
 
@@ -54,7 +70,7 @@ class Roster(ElementBase):
         Arguments:
             items -- A dictionary of roster entries.
         """
-        self.delItems()
+        self.del_items()
         for jid in items:
             ijid = str(jid)
             item = ET.Element('{jabber:iq:roster}item', {'jid': ijid})
@@ -72,7 +88,7 @@ class Roster(ElementBase):
             self.xml.append(item)
         return self
 
-    def getItems(self):
+    def get_items(self):
         """
         Return a dictionary of roster entries.
 
@@ -98,7 +114,7 @@ class Roster(ElementBase):
                 items[itemxml.get('jid')] = item
         return items
 
-    def delItems(self):
+    def del_items(self):
         """
         Remove all <item> elements from the roster stanza.
         """
@@ -106,4 +122,4 @@ class Roster(ElementBase):
             self.xml.remove(child)
 
 
-registerStanzaPlugin(Iq, Roster)
+register_stanza_plugin(Iq, Roster)

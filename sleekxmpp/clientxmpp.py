@@ -19,9 +19,9 @@ from sleekxmpp import stanza
 from sleekxmpp.basexmpp import BaseXMPP
 from sleekxmpp.stanza import Message, Presence, Iq
 from sleekxmpp.xmlstream import XMLStream, RestartStream
+from sleekxmpp.xmlstream import StanzaBase, ET
 from sleekxmpp.xmlstream.matcher import *
 from sleekxmpp.xmlstream.handler import *
-from sleekxmpp.xmlstream.stanzabase import StanzaBase, ET
 
 # Flag indicating if DNS SRV records are available for use.
 SRV_SUPPORT = True
@@ -203,7 +203,7 @@ class ClientXMPP(BaseXMPP):
                             to 'remove', the entry will be deleted.
             groups       -- The roster groups that contain this item.
         """
-        iq = self.Iq().setStanzaValues({'type': 'set'})
+        iq = self.Iq()._set_stanza_values({'type': 'set'})
         iq['roster']['items'] = {jid: {'name': name,
                                        'subscription': subscription,
                                        'groups': groups}}
@@ -222,7 +222,7 @@ class ClientXMPP(BaseXMPP):
 
     def get_roster(self):
         """Request the roster from the server."""
-        iq = self.Iq().setStanzaValues({'type': 'get'}).enable('roster')
+        iq = self.Iq()._set_stanza_values({'type': 'get'}).enable('roster')
         iq.send()
         self._handle_roster(iq, request=True)
 

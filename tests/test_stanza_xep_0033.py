@@ -5,7 +5,7 @@ import sleekxmpp.plugins.xep_0033 as xep_0033
 class TestAddresses(SleekTest):
 
     def setUp(self):
-        registerStanzaPlugin(Message, xep_0033.Addresses)
+        register_stanza_plugin(Message, xep_0033.Addresses)
 
     def testAddAddress(self):
         """Testing adding extended stanza address."""

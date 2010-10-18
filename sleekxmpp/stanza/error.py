@@ -6,8 +6,7 @@
     See the file LICENSE for copying permission.
 """
 
-from sleekxmpp.xmlstream.stanzabase import registerStanzaPlugin
-from sleekxmpp.xmlstream.stanzabase import ElementBase, ET
+from sleekxmpp.xmlstream import ElementBase, ET, register_stanza_plugin
 
 
 class Error(ElementBase):
@@ -40,13 +39,13 @@ class Error(ElementBase):
                         should be treated.
 
     Methods:
-        setup        -- Overrides ElementBase.setup.
-        getCondition -- Retrieve the name of the condition element.
-        setCondition -- Add a condition element.
-        delCondition -- Remove the condition element.
-        getText      -- Retrieve the contents of the <text> element.
-        setText      -- Set the contents of the <text> element.
-        delText      -- Remove the <text> element.
+        setup         -- Overrides ElementBase.setup.
+        get_condition -- Retrieve the name of the condition element.
+        set_condition -- Add a condition element.
+        del_condition -- Remove the condition element.
+        get_text      -- Retrieve the contents of the <text> element.
+        set_text      -- Set the contents of the <text> element.
+        del_text      -- Remove the <text> element.
     """
 
     namespace = 'jabber:client'
@@ -78,6 +77,15 @@ class Error(ElementBase):
         Arguments:
             xml -- Use an existing XML object for the stanza's values.
         """
+        # To comply with PEP8, method names now use underscores.
+        # Deprecated method names are re-mapped for backwards compatibility.
+        self.getCondition = self.get_condition
+        self.setCondition = self.set_condition
+        self.delCondition = self.del_condition
+        self.getText = self.get_text
+        self.setText = self.set_text
+        self.delText = self.del_text
+
         if ElementBase.setup(self, xml):
             #If we had to generate XML then set default values.
             self['type'] = 'cancel'
@@ -85,14 +93,14 @@ class Error(ElementBase):
         if self.parent is not None:
             self.parent()['type'] = 'error'
 
-    def getCondition(self):
+    def get_condition(self):
         """Return the condition element's name."""
         for child in self.xml.getchildren():
             if "{%s}" % self.condition_ns in child.tag:
                 return child.tag.split('}', 1)[-1]
         return ''
 
-    def setCondition(self, value):
+    def set_condition(self, value):
         """
         Set the tag name of the condition element.
 
@@ -104,7 +112,7 @@ class Error(ElementBase):
             self.xml.append(ET.Element("{%s}%s" % (self.condition_ns, value)))
         return self
 
-    def delCondition(self):
+    def del_condition(self):
         """Remove the condition element."""
         for child in self.xml.getchildren():
             if "{%s}" % self.condition_ns in child.tag:
@@ -113,21 +121,21 @@ class Error(ElementBase):
                     self.xml.remove(child)
         return self
 
-    def getText(self):
+    def get_text(self):
         """Retrieve the contents of the <text> element."""
-        return self._getSubText('{%s}text' % self.condition_ns)
+        return self._get_sub_text('{%s}text' % self.condition_ns)
 
-    def setText(self, value):
+    def set_text(self, value):
         """
         Set the contents of the <text> element.
 
         Arguments:
             value -- The new contents for the <text> element.
         """
-        self._setSubText('{%s}text' % self.condition_ns, text=value)
+        self._set_sub_text('{%s}text' % self.condition_ns, text=value)
         return self
 
-    def delText(self):
+    def del_text(self):
         """Remove the <text> element."""
-        self._delSub('{%s}text' % self.condition_ns)
+        self._del_sub('{%s}text' % self.condition_ns)
         return self

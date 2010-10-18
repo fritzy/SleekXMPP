@@ -7,8 +7,7 @@
 """
 
 from sleekxmpp.stanza import Message, Presence
-from sleekxmpp.xmlstream.stanzabase import registerStanzaPlugin
-from sleekxmpp.xmlstream.stanzabase import ElementBase, ET
+from sleekxmpp.xmlstream import ElementBase, ET, register_stanza_plugin
 
 
 class Nick(ElementBase):
@@ -39,9 +38,10 @@ class Nick(ElementBase):
         nick -- A global, friendly or informal name chosen by a user.
 
     Methods:
-        getNick -- Return the nickname in the <nick> element.
-        setNick -- Add a <nick> element with the given nickname.
-        delNick -- Remove the <nick> element.
+        setup    -- Overrides ElementBase.setup.
+        get_nick -- Return the nickname in the <nick> element.
+        set_nick -- Add a <nick> element with the given nickname.
+        del_nick -- Remove the <nick> element.
     """
 
     namespace = 'http://jabber.org/nick/nick'
@@ -49,7 +49,24 @@ class Nick(ElementBase):
     plugin_attrib = name
     interfaces = set(('nick',))
 
-    def setNick(self, nick):
+    def setup(self, xml=None):
+        """
+        Populate the stanza object using an optional XML object.
+
+        Overrides StanzaBase.setup.
+
+        Arguments:
+            xml -- Use an existing XML object for the stanza's values.
+        """
+        # To comply with PEP8, method names now use underscores.
+        # Deprecated method names are re-mapped for backwards compatibility.
+        self.setNick = self.set_nick
+        self.getNick = self.get_nick
+        self.delNick = self.del_nick
+
+        return ElementBase.setup(self, xml)
+
+    def set_nick(self, nick):
         """
         Add a <nick> element with the given nickname.
 
@@ -58,15 +75,15 @@ class Nick(ElementBase):
         """
         self.xml.text = nick
 
-    def getNick(self):
+    def get_nick(self):
         """Return the nickname in the <nick> element."""
         return self.xml.text
 
-    def delNick(self):
+    def del_nick(self):
         """Remove the <nick> element."""
         if self.parent is not None:
             self.parent().xml.remove(self.xml)
 
 
-registerStanzaPlugin(Message, Nick)
-registerStanzaPlugin(Presence, Nick)
+register_stanza_plugin(Message, Nick)
+register_stanza_plugin(Presence, Nick)

@@ -17,9 +17,9 @@ from sleekxmpp import plugins
 from sleekxmpp import stanza
 from sleekxmpp.basexmpp import BaseXMPP, SRV_SUPPORT
 from sleekxmpp.xmlstream import XMLStream, RestartStream
+from sleekxmpp.xmlstream import StanzaBase, ET
 from sleekxmpp.xmlstream.matcher import *
 from sleekxmpp.xmlstream.handler import *
-from sleekxmpp.xmlstream.stanzabase import StanzaBase, ET
 
 
 class ComponentXMPP(BaseXMPP):

@@ -8,7 +8,7 @@
 
 from sleekxmpp.stanza import Error
 from sleekxmpp.stanza.rootstanza import RootStanza
-from sleekxmpp.xmlstream.stanzabase import StanzaBase, ET
+from sleekxmpp.xmlstream import StanzaBase, ET
 
 
 class Message(RootStanza):
@@ -42,16 +42,17 @@ class Message(RootStanza):
         types -- May be one of: normal, chat, headline, groupchat, or error.
 
     Methods:
-        chat       -- Set the message type to 'chat'.
-        normal     -- Set the message type to 'normal'.
-        reply      -- Overrides StanzaBase.reply
-        getType    -- Overrides StanzaBase interface
-        getMucroom -- Return the name of the MUC room of the message.
-        setMucroom -- Dummy method to prevent assignment.
-        delMucroom -- Dummy method to prevent deletion.
-        getMucnick -- Return the MUC nickname of the message's sender.
-        setMucnick -- Dummy method to prevent assignment.
-        delMucnick -- Dummy method to prevent deletion.
+        setup       -- Overrides StanzaBase.setup.
+        chat        -- Set the message type to 'chat'.
+        normal      -- Set the message type to 'normal'.
+        reply       -- Overrides StanzaBase.reply
+        get_type    -- Overrides StanzaBase interface
+        get_mucroom -- Return the name of the MUC room of the message.
+        set_mucroom -- Dummy method to prevent assignment.
+        del_mucroom -- Dummy method to prevent deletion.
+        get_mucnick -- Return the MUC nickname of the message's sender.
+        set_mucnick -- Dummy method to prevent assignment.
+        del_mucnick -- Dummy method to prevent deletion.
     """
 
     namespace = 'jabber:client'
@@ -62,7 +63,28 @@ class Message(RootStanza):
     plugin_attrib = name
     types = set((None, 'normal', 'chat', 'headline', 'error', 'groupchat'))
 
-    def getType(self):
+    def setup(self, xml=None):
+        """
+        Populate the stanza object using an optional XML object.
+
+        Overrides StanzaBase.setup.
+
+        Arguments:
+            xml -- Use an existing XML object for the stanza's values.
+        """
+        # To comply with PEP8, method names now use underscores.
+        # Deprecated method names are re-mapped for backwards compatibility.
+        self.getType = self.get_type
+        self.getMucroom = self.get_mucroom
+        self.setMucroom = self.set_mucroom
+        self.delMucroom = self.del_mucroom
+        self.getMucnick = self.get_mucnick
+        self.setMucnick = self.set_mucnick
+        self.delMucnick = self.del_mucnick
+
+        return StanzaBase.setup(self, xml)
+
+    def get_type(self):
         """
         Return the message type.
 
@@ -70,7 +92,7 @@ class Message(RootStanza):
 
         Returns 'normal' if no type attribute is present.
         """
-        return self._getAttr('type', 'normal')
+        return self._get_attr('type', 'normal')
 
     def chat(self):
         """Set the message type to 'chat'."""
@@ -104,7 +126,7 @@ class Message(RootStanza):
             self['body'] = body
         return self
 
-    def getMucroom(self):
+    def get_mucroom(self):
         """
         Return the name of the MUC room where the message originated.
 
@@ -115,7 +137,7 @@ class Message(RootStanza):
         else:
             return ''
 
-    def getMucnick(self):
+    def get_mucnick(self):
         """
         Return the nickname of the MUC user that sent the message.
 
@@ -126,18 +148,18 @@ class Message(RootStanza):
         else:
             return ''
 
-    def setMucroom(self, value):
+    def set_mucroom(self, value):
         """Dummy method to prevent modification."""
         pass
 
-    def delMucroom(self):
+    def del_mucroom(self):
         """Dummy method to prevent deletion."""
         pass
 
-    def setMucnick(self, value):
+    def set_mucnick(self, value):
         """Dummy method to prevent modification."""
         pass
 
-    def delMucnick(self):
+    def del_mucnick(self):
         """Dummy method to prevent deletion."""
         pass

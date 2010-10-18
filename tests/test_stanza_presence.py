@@ -16,7 +16,7 @@ class TestPresenceStanzas(SleekTest):
         p['type'] = 'available'
         self.check_presence(p, "<presence />")
         self.failUnless(p['type'] == 'available',
-                "Incorrect presence['type'] for type 'available'")
+            "Incorrect presence['type'] for type 'available': %s" % p['type'])
 
         for showtype in ['away', 'chat', 'dnd', 'xa']:
             p['type'] = showtype

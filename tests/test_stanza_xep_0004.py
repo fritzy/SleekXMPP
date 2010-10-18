@@ -5,9 +5,9 @@ import sleekxmpp.plugins.xep_0004 as xep_0004
 class TestDataForms(SleekTest):
 
     def setUp(self):
-        registerStanzaPlugin(Message, xep_0004.Form)
-        registerStanzaPlugin(xep_0004.Form, xep_0004.FormField)
-        registerStanzaPlugin(xep_0004.FormField, xep_0004.FieldOption)
+        register_stanza_plugin(Message, xep_0004.Form)
+        register_stanza_plugin(xep_0004.Form, xep_0004.FormField)
+        register_stanza_plugin(xep_0004.FormField, xep_0004.FieldOption)
 
     def testMultipleInstructions(self):
         """Testing using multiple instructions elements in a data form."""

@@ -55,7 +55,7 @@ class TestElementBase(SleekTest):
             interfaces = set(('bar', 'baz'))
             subitem = set((TestSubStanza,))
 
-        registerStanzaPlugin(TestStanza, TestStanzaPlugin)
+        register_stanza_plugin(TestStanza, TestStanzaPlugin)
 
         stanza = TestStanza()
         stanza['bar'] = 'a'
@@ -102,8 +102,8 @@ class TestElementBase(SleekTest):
             interfaces = set(('bar', 'baz'))
             subitem = set((TestSubStanza,))
 
-        registerStanzaPlugin(TestStanza, TestStanzaPlugin)
-        registerStanzaPlugin(TestStanza, TestStanzaPlugin2)
+        register_stanza_plugin(TestStanza, TestStanzaPlugin)
+        register_stanza_plugin(TestStanza, TestStanzaPlugin2)
 
         stanza = TestStanza()
         values = {'bar': 'a',
@@ -144,7 +144,7 @@ class TestElementBase(SleekTest):
             interfaces = set(('fizz',))
 
         TestStanza.subitem = (TestStanza,)
-        registerStanzaPlugin(TestStanza, TestStanzaPlugin)
+        register_stanza_plugin(TestStanza, TestStanzaPlugin)
 
         stanza = TestStanza()
         substanza = TestStanza()
@@ -189,7 +189,7 @@ class TestElementBase(SleekTest):
             plugin_attrib = "foobar"
             interfaces = set(('foobar',))
 
-        registerStanzaPlugin(TestStanza, TestStanzaPlugin)
+        register_stanza_plugin(TestStanza, TestStanzaPlugin)
 
         stanza = TestStanza()
 
@@ -223,7 +223,7 @@ class TestElementBase(SleekTest):
             plugin_attrib = "foobar"
             interfaces = set(('foobar',))
 
-        registerStanzaPlugin(TestStanza, TestStanzaPlugin)
+        register_stanza_plugin(TestStanza, TestStanzaPlugin)
 
         stanza = TestStanza()
         stanza['bar'] = 'a'
@@ -261,27 +261,27 @@ class TestElementBase(SleekTest):
           <foo xmlns="foo" />
         """)
 
-        self.failUnless(stanza._getAttr('bar') == '',
+        self.failUnless(stanza._get_attr('bar') == '',
             "Incorrect value returned for an unset XML attribute.")
 
-        stanza._setAttr('bar', 'a')
-        stanza._setAttr('baz', 'b')
+        stanza._set_attr('bar', 'a')
+        stanza._set_attr('baz', 'b')
 
         self.check_stanza(TestStanza, stanza, """
           <foo xmlns="foo" bar="a" baz="b" />
         """)
 
-        self.failUnless(stanza._getAttr('bar') == 'a',
+        self.failUnless(stanza._get_attr('bar') == 'a',
             "Retrieved XML attribute value is incorrect.")
 
-        stanza._setAttr('bar', None)
-        stanza._delAttr('baz')
+        stanza._set_attr('bar', None)
+        stanza._del_attr('baz')
 
         self.check_stanza(TestStanza, stanza, """
           <foo xmlns="foo" />
         """)
 
-        self.failUnless(stanza._getAttr('bar', 'c') == 'c',
+        self.failUnless(stanza._get_attr('bar', 'c') == 'c',
             "Incorrect default value returned for an unset XML attribute.")
 
     def testGetSubText(self):
@@ -300,11 +300,11 @@ class TestElementBase(SleekTest):
                 self.xml.append(wrapper)
 
             def getBar(self):
-                return self._getSubText("wrapper/bar", default="not found")
+                return self._get_sub_text("wrapper/bar", default="not found")
 
         stanza = TestStanza()
         self.failUnless(stanza['bar'] == 'not found',
-            "Default _getSubText value incorrect.")
+            "Default _get_sub_text value incorrect.")
 
         stanza['bar'] = 'found'
         self.check_stanza(TestStanza, stanza, """
@@ -315,7 +315,7 @@ class TestElementBase(SleekTest):
           </foo>
         """)
         self.failUnless(stanza['bar'] == 'found',
-            "_getSubText value incorrect: %s." % stanza['bar'])
+            "_get_sub_text value incorrect: %s." % stanza['bar'])
 
     def testSubElement(self):
         """Test setting the contents of a sub element."""
@@ -326,16 +326,16 @@ class TestElementBase(SleekTest):
             interfaces = set(('bar', 'baz'))
 
             def setBaz(self, value):
-                self._setSubText("wrapper/baz", text=value)
+                self._set_sub_text("wrapper/baz", text=value)
 
             def getBaz(self):
-                return self._getSubText("wrapper/baz")
+                return self._get_sub_text("wrapper/baz")
 
             def setBar(self, value):
-                self._setSubText("wrapper/bar", text=value)
+                self._set_sub_text("wrapper/bar", text=value)
 
             def getBar(self):
-                return self._getSubText("wrapper/bar")
+                return self._get_sub_text("wrapper/bar")
 
         stanza = TestStanza()
         stanza['bar'] = 'a'
@@ -348,7 +348,7 @@ class TestElementBase(SleekTest):
             </wrapper>
           </foo>
         """)
-        stanza._setSubText('wrapper/bar', text='', keep=True)
+        stanza._set_sub_text('wrapper/bar', text='', keep=True)
         self.check_stanza(TestStanza, stanza, """
           <foo xmlns="foo">
             <wrapper>
@@ -359,7 +359,7 @@ class TestElementBase(SleekTest):
         """, use_values=False)
 
         stanza['bar'] = 'a'
-        stanza._setSubText('wrapper/bar', text='')
+        stanza._set_sub_text('wrapper/bar', text='')
         self.check_stanza(TestStanza, stanza, """
           <foo xmlns="foo">
             <wrapper>
@@ -377,22 +377,22 @@ class TestElementBase(SleekTest):
             interfaces = set(('bar', 'baz'))
 
             def setBar(self, value):
-                self._setSubText("path/to/only/bar", value);
+                self._set_sub_text("path/to/only/bar", value);
 
             def getBar(self):
-                return self._getSubText("path/to/only/bar")
+                return self._get_sub_text("path/to/only/bar")
 
             def delBar(self):
-                self._delSub("path/to/only/bar")
+                self._del_sub("path/to/only/bar")
 
             def setBaz(self, value):
-                self._setSubText("path/to/just/baz", value);
+                self._set_sub_text("path/to/just/baz", value);
 
             def getBaz(self):
-                return self._getSubText("path/to/just/baz")
+                return self._get_sub_text("path/to/just/baz")
 
             def delBaz(self):
-                self._delSub("path/to/just/baz")
+                self._del_sub("path/to/just/baz")
 
         stanza = TestStanza()
         stanza['bar'] = 'a'
@@ -430,7 +430,7 @@ class TestElementBase(SleekTest):
         stanza['bar'] = 'a'
         stanza['baz'] = 'b'
 
-        stanza._delSub('path/to/only/bar', all=True)
+        stanza._del_sub('path/to/only/bar', all=True)
 
         self.check_stanza(TestStanza, stanza, """
           <foo xmlns="foo">
@@ -460,17 +460,17 @@ class TestElementBase(SleekTest):
             subitem = (TestSubStanza,)
 
             def setQux(self, value):
-                self._setSubText('qux', text=value)
+                self._set_sub_text('qux', text=value)
 
             def getQux(self):
-                return self._getSubText('qux')
+                return self._get_sub_text('qux')
 
         class TestStanzaPlugin(ElementBase):
             name = "plugin"
             namespace = "http://test/slash/bar"
             interfaces = set(('attrib',))
 
-        registerStanzaPlugin(TestStanza, TestStanzaPlugin)
+        register_stanza_plugin(TestStanza, TestStanzaPlugin)
 
         stanza = TestStanza()
         self.failUnless(stanza.match("foo"),
@@ -549,7 +549,7 @@ class TestElementBase(SleekTest):
             interfaces = set(('bar', 'baz'))
             plugin_attrib = 'qux'
 
-        registerStanzaPlugin(TestStanza, TestStanza)
+        register_stanza_plugin(TestStanza, TestStanza)
 
         stanza = TestStanza()
 

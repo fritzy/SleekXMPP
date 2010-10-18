@@ -7,8 +7,7 @@
 """
 
 from sleekxmpp.stanza import Message
-from sleekxmpp.xmlstream.stanzabase import registerStanzaPlugin
-from sleekxmpp.xmlstream.stanzabase import ElementBase, ET
+from sleekxmpp.xmlstream import ElementBase, ET, register_stanza_plugin
 
 
 class HTMLIM(ElementBase):
@@ -36,9 +35,10 @@ class HTMLIM(ElementBase):
         body -- The contents of the HTML body tag.
 
     Methods:
-        getBody -- Return the HTML body contents.
-        setBody -- Set the HTML body contents.
-        delBody -- Remove the HTML body contents.
+        setup    -- Overrides ElementBase.setup.
+        get_body -- Return the HTML body contents.
+        set_body -- Set the HTML body contents.
+        del_body -- Remove the HTML body contents.
     """
 
     namespace = 'http://jabber.org/protocol/xhtml-im'
@@ -46,7 +46,24 @@ class HTMLIM(ElementBase):
     interfaces = set(('body',))
     plugin_attrib = name
 
-    def setBody(self, html):
+    def setup(self, xml=None):
+        """
+        Populate the stanza object using an optional XML object.
+
+        Overrides StanzaBase.setup.
+
+        Arguments:
+            xml -- Use an existing XML object for the stanza's values.
+        """
+        # To comply with PEP8, method names now use underscores.
+        # Deprecated method names are re-mapped for backwards compatibility.
+        self.setBody = self.set_body
+        self.getBody = self.get_body
+        self.delBody = self.del_body
+
+        return ElementBase.setup(self, xml)
+
+    def set_body(self, html):
         """
         Set the contents of the HTML body.
 
@@ -64,17 +81,17 @@ class HTMLIM(ElementBase):
         else:
             self.xml.append(html)
 
-    def getBody(self):
+    def get_body(self):
         """Return the contents of the HTML body."""
         html = self.xml.find('{http://www.w3.org/1999/xhtml}body')
         if html is None:
             return ''
         return html
 
-    def delBody(self):
+    def del_body(self):
         """Remove the HTML body contents."""
         if self.parent is not None:
             self.parent().xml.remove(self.xml)
 
 
-registerStanzaPlugin(Message, HTMLIM)
+register_stanza_plugin(Message, HTMLIM)

@@ -13,8 +13,7 @@ import sleekxmpp
 from sleekxmpp import ClientXMPP, ComponentXMPP
 from sleekxmpp.stanza import Message, Iq, Presence
 from sleekxmpp.test import TestSocket, TestLiveSocket
-from sleekxmpp.xmlstream.stanzabase import registerStanzaPlugin, ET
-from sleekxmpp.xmlstream.stanzabase import StanzaBase
+from sleekxmpp.xmlstream import StanzaBase, ET, register_stanza_plugin
 from sleekxmpp.xmlstream.tostring import tostring
 
 

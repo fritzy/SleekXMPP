@@ -6,7 +6,7 @@ from sleekxmpp.stanza.htmlim import HTMLIM
 class TestMessageStanzas(SleekTest):
 
     def setUp(self):
-        registerStanzaPlugin(Message, HTMLIM)
+        register_stanza_plugin(Message, HTMLIM)
 
     def testGroupchatReplyRegression(self):
         "Regression groupchat reply should be to barejid"

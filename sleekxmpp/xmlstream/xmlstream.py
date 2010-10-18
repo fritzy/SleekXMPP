@@ -383,7 +383,7 @@ class XMLStream(object):
         one that appears as a direct child of the stream's root element.
 
         Stanzas that appear as substanzas of a root stanza do not need to
-        be registered here. That is done using registerStanzaPlugin() from
+        be registered here. That is done using register_stanza_plugin() from
         sleekxmpp.xmlstream.stanzabase.
 
         Stanzas that are not registered will not be converted into

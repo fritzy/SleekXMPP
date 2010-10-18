@@ -20,7 +20,7 @@ from sleekxmpp.xmlstream.tostring import tostring
 XML_TYPE = type(ET.Element('xml'))
 
 
-def registerStanzaPlugin(stanza, plugin):
+def register_stanza_plugin(stanza, plugin):
     """
     Associate a stanza object as a plugin for another stanza.
 
@@ -31,6 +31,10 @@ def registerStanzaPlugin(stanza, plugin):
     tag = "{%s}%s" % (plugin.namespace, plugin.name)
     stanza.plugin_attrib_map[plugin.plugin_attrib] = plugin
     stanza.plugin_tag_map[tag] = plugin
+
+
+# To maintain backwards compatibility for now, preserve the camel case name.
+registerStanzaPlugin = register_stanza_plugin
 
 
 class ElementBase(object):
@@ -78,9 +82,9 @@ class ElementBase(object):
     ...     plugin_attrib = "custom"
 
     The plugin stanza class must be associated with its intended
-    container stanza by using registerStanzaPlugin as so:
+    container stanza by using register_stanza_plugin as so:
 
-    >>> registerStanzaPlugin(Message, MessagePlugin)
+    >>> register_stanza_plugin(Message, MessagePlugin)
 
     The plugin may then be accessed as if it were built-in to the parent
     stanza.
@@ -115,38 +119,43 @@ class ElementBase(object):
         parent            -- The parent stanza of this stanza.
         plugins           -- A map of enabled plugin names with the
                              initialized plugin stanza objects.
+        values            -- A dictionary of the stanza's interfaces
+                             and interface values, including plugins.
 
     Methods:
-        setup           -- Initialize the stanza's XML contents.
-        enable          -- Instantiate a stanza plugin. Alias for initPlugin.
-        initPlugin      -- Instantiate a stanza plugin.
-        getStanzaValues -- Return a dictionary of stanza interfaces and
-                           their values.
-        setStanzaValues -- Set stanza interface values given a dictionary of
-                           interfaces and values.
-        __getitem__     -- Return the value of a stanza interface.
-        __setitem__     -- Set the value of a stanza interface.
-        __delitem__     -- Remove the value of a stanza interface.
-        _setAttr        -- Set an attribute value of the main stanza element.
-        _delAttr        -- Remove an attribute from the main stanza element.
-        _getAttr        -- Return an attribute's value from the main
-                           stanza element.
-        _getSubText     -- Return the text contents of a subelement.
-        _setSubText     -- Set the text contents of a subelement.
-        _delSub         -- Remove a subelement.
-        match           -- Compare the stanza against an XPath expression.
-        find            -- Return subelement matching an XPath expression.
-        findall         -- Return subelements matching an XPath expression.
-        get             -- Return the value of a stanza interface, with an
-                           optional default value.
-        keys            -- Return the set of interface names accepted by
-                           the stanza.
-        append          -- Add XML content or a substanza to the stanza.
-        appendxml       -- Add XML content to the stanza.
-        pop             -- Remove a substanza.
-        next            -- Return the next iterable substanza.
-        _fix_ns         -- Apply the stanza's namespace to non-namespaced
-                           elements in an XPath expression.
+        setup              -- Initialize the stanza's XML contents.
+        enable             -- Instantiate a stanza plugin.
+                              Alias for init_plugin.
+        init_plugin        -- Instantiate a stanza plugin.
+        _get_stanza_values -- Return a dictionary of stanza interfaces and
+                              their values.
+        _set_stanza_values -- Set stanza interface values given a dictionary
+                              of interfaces and values.
+        __getitem__        -- Return the value of a stanza interface.
+        __setitem__        -- Set the value of a stanza interface.
+        __delitem__        -- Remove the value of a stanza interface.
+        _set_attr          -- Set an attribute value of the main
+                              stanza element.
+        _del_attr          -- Remove an attribute from the main
+                              stanza element.
+        _get_attr          -- Return an attribute's value from the main
+                              stanza element.
+        _get_sub_text      -- Return the text contents of a subelement.
+        _set_sub_ext       -- Set the text contents of a subelement.
+        _del_sub           -- Remove a subelement.
+        match              -- Compare the stanza against an XPath expression.
+        find               -- Return subelement matching an XPath expression.
+        findall            -- Return subelements matching an XPath expression.
+        get                -- Return the value of a stanza interface, with an
+                              optional default value.
+        keys               -- Return the set of interface names accepted by
+                              the stanza.
+        append             -- Add XML content or a substanza to the stanza.
+        appendxml          -- Add XML content to the stanza.
+        pop                -- Remove a substanza.
+        next               -- Return the next iterable substanza.
+        _fix_ns            -- Apply the stanza's namespace to non-namespaced
+                              elements in an XPath expression.
     """
 
     name = 'stanza'
@@ -167,6 +176,18 @@ class ElementBase(object):
             xml    -- Initialize the stanza with optional existing XML.
             parent -- Optional stanza object that contains this stanza.
         """
+        # To comply with PEP8, method names now use underscores.
+        # Deprecated method names are re-mapped for backwards compatibility.
+        self.initPlugin = self.init_plugin
+        self._getAttr = self._get_attr
+        self._setAttr = self._set_attr
+        self._delAttr = self._del_attr
+        self._getSubText = self._get_sub_text
+        self._setSubText = self._set_sub_text
+        self._delSub = self._del_sub
+        self.getStanzaValues = self._get_stanza_values
+        self.setStanzaValues = self._set_stanza_values
+
         self.xml = xml
         self.plugins = {}
         self.iterables = []
@@ -175,6 +196,9 @@ class ElementBase(object):
             self.parent = None
         else:
             self.parent = weakref.ref(parent)
+
+        ElementBase.values = property(ElementBase._get_stanza_values,
+                                      ElementBase._set_stanza_values)
 
         if self.setup(xml):
             # If we generated our own XML, then everything is ready.
@@ -227,14 +251,14 @@ class ElementBase(object):
         """
         Enable and initialize a stanza plugin.
 
-        Alias for initPlugin.
+        Alias for init_plugin.
 
         Arguments:
             attrib -- The stanza interface for the plugin.
         """
-        return self.initPlugin(attrib)
+        return self.init_plugin(attrib)
 
-    def initPlugin(self, attrib):
+    def init_plugin(self, attrib):
         """
         Enable and initialize a stanza plugin.
 
@@ -246,7 +270,7 @@ class ElementBase(object):
             self.plugins[attrib] = plugin_class(parent=self)
         return self
 
-    def getStanzaValues(self):
+    def _get_stanza_values(self):
         """
         Return a dictionary of the stanza's interface values.
 
@@ -256,18 +280,18 @@ class ElementBase(object):
         for interface in self.interfaces:
             values[interface] = self[interface]
         for plugin, stanza in self.plugins.items():
-            values[plugin] = stanza.getStanzaValues()
+            values[plugin] = stanza._get_stanza_values()
         if self.iterables:
             iterables = []
             for stanza in self.iterables:
-                iterables.append(stanza.getStanzaValues())
+                iterables.append(stanza._get_stanza_values())
                 iterables[-1].update({
                     '__childtag__': "{%s}%s" % (stanza.namespace,
                                                 stanza.name)})
             values['substanzas'] = iterables
         return values
 
-    def setStanzaValues(self, values):
+    def _set_stanza_values(self, values):
         """
         Set multiple stanza interface values using a dictionary.
 
@@ -287,15 +311,15 @@ class ElementBase(object):
                                                     subclass.name)
                             if subdict['__childtag__'] == child_tag:
                                 sub = subclass(parent=self)
-                                sub.setStanzaValues(subdict)
+                                sub._set_stanza_values(subdict)
                                 self.iterables.append(sub)
                                 break
             elif interface in self.interfaces:
                 self[interface] = value
             elif interface in self.plugin_attrib_map:
                 if interface not in self.plugins:
-                    self.initPlugin(interface)
-                self.plugins[interface].setStanzaValues(value)
+                    self.init_plugin(interface)
+                self.plugins[interface]._set_stanza_values(value)
         return self
 
     def __getitem__(self, attrib):
@@ -307,17 +331,18 @@ class ElementBase(object):
             'Message contents'
 
         Stanza interfaces are typically mapped directly to the underlying XML
-        object, but can be overridden by the presence of a getAttrib method
-        (or getFoo where the interface is named foo, etc).
+        object, but can be overridden by the presence of a get_attrib method
+        (or get_foo where the interface is named foo, etc).
 
         The search order for interface value retrieval for an interface
         named 'foo' is:
             1. The list of substanzas.
-            2. The result of calling getFoo.
-            3. The contents of the foo subelement, if foo is a sub interface.
-            4. The value of the foo attribute of the XML object.
-            5. The plugin named 'foo'
-            6. An empty string.
+            2. The result of calling get_foo.
+            3. The result of calling getFoo.
+            4. The contents of the foo subelement, if foo is a sub interface.
+            5. The value of the foo attribute of the XML object.
+            6. The plugin named 'foo'
+            7. An empty string.
 
         Arguments:
             attrib -- The name of the requested stanza interface.
@@ -325,17 +350,20 @@ class ElementBase(object):
         if attrib == 'substanzas':
             return self.iterables
         elif attrib in self.interfaces:
-            get_method = "get%s" % attrib.title()
+            get_method = "get_%s" % attrib.lower()
+            get_method2 = "get%s" % attrib.title()
             if hasattr(self, get_method):
                 return getattr(self, get_method)()
+            elif hasattr(self, get_method2):
+                return getattr(self, get_method2)()
             else:
                 if attrib in self.sub_interfaces:
-                    return self._getSubText(attrib)
+                    return self._get_sub_text(attrib)
                 else:
-                    return self._getAttr(attrib)
+                    return self._get_attr(attrib)
         elif attrib in self.plugin_attrib_map:
             if attrib not in self.plugins:
-                self.initPlugin(attrib)
+                self.init_plugin(attrib)
             return self.plugins[attrib]
         else:
             return ''
@@ -350,18 +378,19 @@ class ElementBase(object):
             'Hi!'
 
         Stanza interfaces are typically mapped directly to the underlying XML
-        object, but can be overridden by the presence of a setAttrib method
-        (or setFoo where the interface is named foo, etc).
+        object, but can be overridden by the presence of a set_attrib method
+        (or set_foo where the interface is named foo, etc).
 
         The effect of interface value assignment for an interface
         named 'foo' will be one of:
             1. Delete the interface's contents if the value is None.
-            2. Call setFoo, if it exists.
-            3. Set the text of a foo element, if foo is in sub_interfaces.
-            4. Set the value of a top level XML attribute name foo.
-            5. Attempt to pass value to a plugin named foo using the plugin's
+            2. Call set_foo, if it exists.
+            3. Call setFoo, if it exists.
+            4. Set the text of a foo element, if foo is in sub_interfaces.
+            5. Set the value of a top level XML attribute name foo.
+            6. Attempt to pass value to a plugin named foo using the plugin's
                foo interface.
-            6. Do nothing.
+            7. Do nothing.
 
         Arguments:
             attrib -- The name of the stanza interface to modify.
@@ -369,19 +398,22 @@ class ElementBase(object):
         """
         if attrib in self.interfaces:
             if value is not None:
-                set_method = "set%s" % attrib.title()
+                set_method = "set_%s" % attrib.lower()
+                set_method2 = "set%s" % attrib.title()
                 if hasattr(self, set_method):
                     getattr(self, set_method)(value,)
+                elif hasattr(self, set_method2):
+                    getattr(self, set_method2)(value,)
                 else:
                     if attrib in self.sub_interfaces:
-                        return self._setSubText(attrib, text=value)
+                        return self._set_sub_text(attrib, text=value)
                     else:
-                        self._setAttr(attrib, value)
+                        self._set_attr(attrib, value)
             else:
                 self.__delitem__(attrib)
         elif attrib in self.plugin_attrib_map:
             if attrib not in self.plugins:
-                self.initPlugin(attrib)
+                self.init_plugin(attrib)
             self.plugins[attrib][attrib] = value
         return self
 
@@ -398,29 +430,33 @@ class ElementBase(object):
             ''
 
         Stanza interfaces are typically mapped directly to the underlyig XML
-        object, but can be overridden by the presence of a delAttrib method
-        (or delFoo where the interface is named foo, etc).
+        object, but can be overridden by the presence of a del_attrib method
+        (or del_foo where the interface is named foo, etc).
 
         The effect of deleting a stanza interface value named foo will be
         one of:
-            1. Call delFoo, if it exists.
-            2. Delete foo element, if foo is in sub_interfaces.
-            3. Delete top level XML attribute named foo.
-            4. Remove the foo plugin, if it was loaded.
-            5. Do nothing.
+            1. Call del_foo, if it exists.
+            2. Call delFoo, if it exists.
+            3. Delete foo element, if foo is in sub_interfaces.
+            4. Delete top level XML attribute named foo.
+            5. Remove the foo plugin, if it was loaded.
+            6. Do nothing.
 
         Arguments:
             attrib -- The name of the affected stanza interface.
         """
         if attrib in self.interfaces:
-            del_method = "del%s" % attrib.title()
+            del_method = "del_%s" % attrib.lower()
+            del_method2 = "del%s" % attrib.title()
             if hasattr(self, del_method):
                 getattr(self, del_method)()
+            elif hasattr(self, del_method2):
+                getattr(self, del_method2)()
             else:
                 if attrib in self.sub_interfaces:
-                    return self._delSub(attrib)
+                    return self._del_sub(attrib)
                 else:
-                    self._delAttr(attrib)
+                    self._del_attr(attrib)
         elif attrib in self.plugin_attrib_map:
             if attrib in self.plugins:
                 xml = self.plugins[attrib].xml
@@ -428,7 +464,7 @@ class ElementBase(object):
                 self.xml.remove(xml)
         return self
 
-    def _setAttr(self, name, value):
+    def _set_attr(self, name, value):
         """
         Set the value of a top level attribute of the underlying XML object.
 
@@ -445,7 +481,7 @@ class ElementBase(object):
         else:
             self.xml.attrib[name] = value
 
-    def _delAttr(self, name):
+    def _del_attr(self, name):
         """
         Remove a top level attribute of the underlying XML object.
 
@@ -455,7 +491,7 @@ class ElementBase(object):
         if name in self.xml.attrib:
             del self.xml.attrib[name]
 
-    def _getAttr(self, name, default=''):
+    def _get_attr(self, name, default=''):
         """
         Return the value of a top level attribute of the underlying
         XML object.
@@ -471,7 +507,7 @@ class ElementBase(object):
         """
         return self.xml.attrib.get(name, default)
 
-    def _getSubText(self, name, default=''):
+    def _get_sub_text(self, name, default=''):
         """
         Return the text contents of a sub element.
 
@@ -491,7 +527,7 @@ class ElementBase(object):
         else:
             return stanza.text
 
-    def _setSubText(self, name, text=None, keep=False):
+    def _set_sub_text(self, name, text=None, keep=False):
         """
         Set the text contents of a sub element.
 
@@ -513,7 +549,7 @@ class ElementBase(object):
         element = self.xml.find(name)
 
         if not text and not keep:
-            return self._delSub(name)
+            return self._del_sub(name)
 
         if element is None:
             # We need to add the element. If the provided name was
@@ -534,7 +570,7 @@ class ElementBase(object):
         element.text = text
         return element
 
-    def _delSub(self, name, all=False):
+    def _del_sub(self, name, all=False):
         """
         Remove sub elements that match the given name or XPath.
 
@@ -819,13 +855,13 @@ class ElementBase(object):
             return False
 
         # Check that this stanza is a superset of the other stanza.
-        values = self.getStanzaValues()
+        values = self._get_stanza_values()
         for key in other.keys():
             if key not in values or values[key] != other[key]:
                 return False
 
         # Check that the other stanza is a superset of this stanza.
-        values = other.getStanzaValues()
+        values = other._get_stanza_values()
         for key in self.keys():
             if key not in values or values[key] != self[key]:
                 return False
@@ -932,23 +968,23 @@ class StanzaBase(ElementBase):
         tag    -- The namespaced version of the stanza's name.
 
     Methods:
-        setType    -- Set the type of the stanza.
-        getTo      -- Return the stanza recipients JID.
-        setTo      -- Set the stanza recipient's JID.
-        getFrom    -- Return the stanza sender's JID.
-        setFrom    -- Set the stanza sender's JID.
-        getPayload -- Return the stanza's XML contents.
-        setPayload -- Append to the stanza's XML contents.
-        delPayload -- Remove the stanza's XML contents.
-        clear      -- Reset the stanza's XML contents.
-        reply      -- Reset the stanza and modify the 'to' and 'from'
-                      attributes to prepare for sending a reply.
-        error      -- Set the stanza's type to 'error'.
-        unhandled  -- Callback for when the stanza is not handled by a
-                      stream handler.
-        exception  -- Callback for if an exception is raised while
-                      handling the stanza.
-        send       -- Send the stanza using the stanza's stream.
+        set_type    -- Set the type of the stanza.
+        get_to      -- Return the stanza recipients JID.
+        set_to      -- Set the stanza recipient's JID.
+        get_from    -- Return the stanza sender's JID.
+        set_from    -- Set the stanza sender's JID.
+        get_payload -- Return the stanza's XML contents.
+        set_payload -- Append to the stanza's XML contents.
+        del_payload -- Remove the stanza's XML contents.
+        clear       -- Reset the stanza's XML contents.
+        reply       -- Reset the stanza and modify the 'to' and 'from'
+                       attributes to prepare for sending a reply.
+        error       -- Set the stanza's type to 'error'.
+        unhandled   -- Callback for when the stanza is not handled by a
+                       stream handler.
+        exception   -- Callback for if an exception is raised while
+                       handling the stanza.
+        send        -- Send the stanza using the stanza's stream.
     """
 
     name = 'stanza'
@@ -970,6 +1006,17 @@ class StanzaBase(ElementBase):
             sfrom  -- Optional string or JID object of the sender's JID.
             sid    -- Optional ID value for the stanza.
         """
+        # To comply with PEP8, method names now use underscores.
+        # Deprecated method names are re-mapped for backwards compatibility.
+        self.setType = self.set_type
+        self.getTo = self.get_to
+        self.setTo = self.set_to
+        self.getFrom = self.get_from
+        self.setFrom = self.set_from
+        self.getPayload = self.get_payload
+        self.setPayload = self.set_payload
+        self.delPayload = self.del_payload
+
         self.stream = stream
         if stream is not None:
             self.namespace = stream.default_ns
@@ -982,7 +1029,7 @@ class StanzaBase(ElementBase):
             self['from'] = sfrom
         self.tag = "{%s}%s" % (self.namespace, self.name)
 
-    def setType(self, value):
+    def set_type(self, value):
         """
         Set the stanza's 'type' attribute.
 
@@ -995,37 +1042,37 @@ class StanzaBase(ElementBase):
             self.xml.attrib['type'] = value
         return self
 
-    def getTo(self):
+    def get_to(self):
         """Return the value of the stanza's 'to' attribute."""
-        return JID(self._getAttr('to'))
+        return JID(self._get_attr('to'))
 
-    def setTo(self, value):
+    def set_to(self, value):
         """
         Set the 'to' attribute of the stanza.
 
         Arguments:
             value -- A string or JID object representing the recipient's JID.
         """
-        return self._setAttr('to', str(value))
+        return self._set_attr('to', str(value))
 
-    def getFrom(self):
+    def get_from(self):
         """Return the value of the stanza's 'from' attribute."""
-        return JID(self._getAttr('from'))
+        return JID(self._get_attr('from'))
 
-    def setFrom(self, value):
+    def set_from(self, value):
         """
         Set the 'from' attribute of the stanza.
 
         Arguments:
             from -- A string or JID object representing the sender's JID.
         """
-        return self._setAttr('from', str(value))
+        return self._set_attr('from', str(value))
 
-    def getPayload(self):
+    def get_payload(self):
         """Return a list of XML objects contained in the stanza."""
         return self.xml.getchildren()
 
-    def setPayload(self, value):
+    def set_payload(self, value):
         """
         Add XML content to the stanza.
 
@@ -1039,7 +1086,7 @@ class StanzaBase(ElementBase):
             self.append(val)
         return self
 
-    def delPayload(self):
+    def del_payload(self):
         """Remove the XML contents of the stanza."""
         self.clear()
         return self

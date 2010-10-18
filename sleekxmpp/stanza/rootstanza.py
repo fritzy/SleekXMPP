@@ -12,7 +12,7 @@ import sys
 
 from sleekxmpp.exceptions import XMPPError
 from sleekxmpp.stanza import Error
-from sleekxmpp.xmlstream.stanzabase import ET, StanzaBase, registerStanzaPlugin
+from sleekxmpp.xmlstream import ET, StanzaBase, register_stanza_plugin
 
 
 class RootStanza(StanzaBase):
@@ -63,4 +63,4 @@ class RootStanza(StanzaBase):
         self.send()
 
 
-registerStanzaPlugin(RootStanza, Error)
+register_stanza_plugin(RootStanza, Error)

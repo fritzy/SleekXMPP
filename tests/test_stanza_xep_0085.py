@@ -4,11 +4,11 @@ import sleekxmpp.plugins.xep_0085 as xep_0085
 class TestChatStates(SleekTest):
 
     def setUp(self):
-        registerStanzaPlugin(Message, xep_0085.Active)
-        registerStanzaPlugin(Message, xep_0085.Composing)
-        registerStanzaPlugin(Message, xep_0085.Gone)
-        registerStanzaPlugin(Message, xep_0085.Inactive)
-        registerStanzaPlugin(Message, xep_0085.Paused)
+        register_stanza_plugin(Message, xep_0085.Active)
+        register_stanza_plugin(Message, xep_0085.Composing)
+        register_stanza_plugin(Message, xep_0085.Gone)
+        register_stanza_plugin(Message, xep_0085.Inactive)
+        register_stanza_plugin(Message, xep_0085.Paused)
 
     def testCreateChatState(self):
         """Testing creating chat states."""

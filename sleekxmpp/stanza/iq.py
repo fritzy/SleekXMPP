@@ -8,8 +8,7 @@
 
 from sleekxmpp.stanza import Error
 from sleekxmpp.stanza.rootstanza import RootStanza
-from sleekxmpp.xmlstream import RESPONSE_TIMEOUT
-from sleekxmpp.xmlstream.stanzabase import StanzaBase, ET
+from sleekxmpp.xmlstream import RESPONSE_TIMEOUT, StanzaBase, ET
 from sleekxmpp.xmlstream.handler import Waiter
 from sleekxmpp.xmlstream.matcher import MatcherId
 
@@ -53,14 +52,14 @@ class Iq(RootStanza):
         types -- May be one of: get, set, result, or error.
 
     Methods:
-        __init__   -- Overrides StanzaBase.__init__.
-        unhandled  -- Send error if there are no handlers.
-        setPayload -- Overrides StanzaBase.setPayload.
-        setQuery   -- Add or modify a <query> element.
-        getQuery   -- Return the namespace of the <query> element.
-        delQuery   -- Remove the <query> element.
-        reply      -- Overrides StanzaBase.reply
-        send       -- Overrides StanzaBase.send
+        __init__    -- Overrides StanzaBase.__init__.
+        unhandled   -- Send error if there are no handlers.
+        set_payload -- Overrides StanzaBase.set_payload.
+        set_query   -- Add or modify a <query> element.
+        get_query   -- Return the namespace of the <query> element.
+        del_query   -- Remove the <query> element.
+        reply       -- Overrides StanzaBase.reply
+        send        -- Overrides StanzaBase.send
     """
 
     namespace = 'jabber:client'
@@ -76,6 +75,13 @@ class Iq(RootStanza):
         Overrides StanzaBase.__init__.
         """
         StanzaBase.__init__(self, *args, **kwargs)
+        # To comply with PEP8, method names now use underscores.
+        # Deprecated method names are re-mapped for backwards compatibility.
+        self.setPayload = self.set_payload
+        self.getQuery = self.get_query
+        self.setQuery = self.set_query
+        self.delQuery = self.del_query
+
         if self['id'] == '':
             if self.stream is not None:
                 self['id'] = self.stream.getNewId()
@@ -94,7 +100,7 @@ class Iq(RootStanza):
             self['error']['text'] = 'No handlers registered for this request.'
             self.send()
 
-    def setPayload(self, value):
+    def set_payload(self, value):
         """
         Set the XML contents of the <iq> stanza.
 
@@ -102,10 +108,10 @@ class Iq(RootStanza):
             value -- An XML object to use as the <iq> stanza's contents
         """
         self.clear()
-        StanzaBase.setPayload(self, value)
+        StanzaBase.set_payload(self, value)
         return self
 
-    def setQuery(self, value):
+    def set_query(self, value):
         """
         Add or modify a <query> element.
 
@@ -121,7 +127,7 @@ class Iq(RootStanza):
             self.xml.append(query)
         return self
 
-    def getQuery(self):
+    def get_query(self):
         """Return the namespace of the <query> element."""
         for child in self.xml.getchildren():
             if child.tag.endswith('query'):
@@ -131,7 +137,7 @@ class Iq(RootStanza):
                 return ns
         return ''
 
-    def delQuery(self):
+    def del_query(self):
         """Remove the <query> element."""
         for child in self.xml.getchildren():
             if child.tag.endswith('query'):

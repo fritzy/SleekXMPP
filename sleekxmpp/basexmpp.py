@@ -21,7 +21,7 @@ from sleekxmpp.stanza.nick import Nick
 from sleekxmpp.stanza.htmlim import HTMLIM
 
 from sleekxmpp.xmlstream import XMLStream, JID, tostring
-from sleekxmpp.xmlstream.stanzabase import ET, registerStanzaPlugin
+from sleekxmpp.xmlstream import ET, register_stanza_plugin
 from sleekxmpp.xmlstream.matcher import *
 from sleekxmpp.xmlstream.handler import *
 
@@ -142,9 +142,9 @@ class BaseXMPP(XMLStream):
         self.registerStanza(Presence)
 
         # Initialize a few default stanza plugins.
-        registerStanzaPlugin(Iq, Roster)
-        registerStanzaPlugin(Message, Nick)
-        registerStanzaPlugin(Message, HTMLIM)
+        register_stanza_plugin(Iq, Roster)
+        register_stanza_plugin(Message, Nick)
+        register_stanza_plugin(Message, HTMLIM)
 
     def process(self, *args, **kwargs):
         """
@@ -256,8 +256,8 @@ class BaseXMPP(XMLStream):
                      Defaults to 0.
             ifrom -- The from JID to use for this stanza.
         """
-        return self.Iq().setStanzaValues({'id': str(id),
-                                          'from': ifrom})
+        return self.Iq()._set_stanza_values({'id': str(id),
+                                             'from': ifrom})
 
     def make_iq_get(self, queryxmlns=None):
         """
@@ -268,8 +268,8 @@ class BaseXMPP(XMLStream):
         Arguments:
             queryxmlns -- The namespace of the query to use.
         """
-        return self.Iq().setStanzaValues({'type': 'get',
-                                          'query': queryxmlns})
+        return self.Iq()._set_stanza_values({'type': 'get',
+                                             'query': queryxmlns})
 
     def make_iq_result(self, id):
         """
@@ -278,8 +278,8 @@ class BaseXMPP(XMLStream):
         Arguments:
             id -- An ideally unique ID value. May use self.new_id().
         """
-        return self.Iq().setStanzaValues({'id': id,
-                                          'type': 'result'})
+        return self.Iq()._set_stanza_values({'id': id,
+                                             'type': 'result'})
 
     def make_iq_set(self, sub=None):
         """
@@ -291,7 +291,7 @@ class BaseXMPP(XMLStream):
         Arguments:
             sub -- A stanza or XML object to use as the Iq's payload.
         """
-        iq = self.Iq().setStanzaValues({'type': 'set'})
+        iq = self.Iq()._set_stanza_values({'type': 'set'})
         if sub != None:
             iq.append(sub)
         return iq
@@ -309,10 +309,10 @@ class BaseXMPP(XMLStream):
                          Defaults to 'feature-not-implemented'.
             text      -- A message describing the cause of the error.
         """
-        iq = self.Iq().setStanzaValues({'id': id})
-        iq['error'].setStanzaValues({'type': type,
-                                     'condition': condition,
-                                     'text': text})
+        iq = self.Iq()._set_stanza_values({'id': id})
+        iq['error']._set_stanza_values({'type': type,
+                                        'condition': condition,
+                                        'text': text})
         return iq
 
     def make_iq_query(self, iq=None, xmlns=''):

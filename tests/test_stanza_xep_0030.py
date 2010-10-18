@@ -5,8 +5,8 @@ import sleekxmpp.plugins.xep_0030 as xep_0030
 class TestDisco(SleekTest):
 
     def setUp(self):
-        registerStanzaPlugin(Iq, xep_0030.DiscoInfo)
-        registerStanzaPlugin(Iq, xep_0030.DiscoItems)
+        register_stanza_plugin(Iq, xep_0030.DiscoInfo)
+        register_stanza_plugin(Iq, xep_0030.DiscoItems)
 
     def testCreateInfoQueryNoNode(self):
         """Testing disco#info query with no node."""

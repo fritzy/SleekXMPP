@@ -25,11 +25,11 @@ class Waiter(BaseHandler):
     waiter has timed out.
 
     Methods:
-        checkDelete -- Overrides BaseHandler.checkDelete
-        prerun      -- Overrides BaseHandler.prerun
-        run         -- Overrides BaseHandler.run
-        wait        -- Wait for a stanza to arrive and return it to
-                       an event handler.
+        check_delete -- Overrides BaseHandler.check_delete
+        prerun       -- Overrides BaseHandler.prerun
+        run          -- Overrides BaseHandler.run
+        wait         -- Wait for a stanza to arrive and return it to
+                        an event handler.
     """
 
     def __init__(self, name, matcher, stream=None):
@@ -89,10 +89,10 @@ class Waiter(BaseHandler):
         self.stream.removeHandler(self.name)
         return stanza
 
-    def checkDelete(self):
+    def check_delete(self):
         """
         Always remove waiters after use.
 
-        Overrides BaseHandler.checkDelete
+        Overrides BaseHandler.check_delete
         """
         return True

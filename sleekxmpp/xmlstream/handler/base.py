@@ -25,10 +25,10 @@ class BaseHandler(object):
         stream -- The stream this handler is assigned to.
 
     Methods:
-        match       -- Compare a stanza with the handler's matcher.
-        prerun      -- Handler execution during stream processing.
-        run         -- Handler execution during the main event loop.
-        checkDelete -- Indicate if the handler may be removed from use.
+        match        -- Compare a stanza with the handler's matcher.
+        prerun       -- Handler execution during stream processing.
+        run          -- Handler execution during the main event loop.
+        check_delete -- Indicate if the handler may be removed from use.
     """
 
     def __init__(self, name, matcher, stream=None):
@@ -42,6 +42,8 @@ class BaseHandler(object):
                        this handler.
             stream  -- The XMLStream instance the handler should monitor.
         """
+        self.checkDelete = self.check_delete
+
         self.name = name
         self.stream = stream
         self._destroy = False
@@ -79,7 +81,7 @@ class BaseHandler(object):
         """
         self._payload = payload
 
-    def checkDelete(self):
+    def check_delete(self):
         """
         Check if the handler should be removed from the list of stream
         handlers.

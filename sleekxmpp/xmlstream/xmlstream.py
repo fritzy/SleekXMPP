@@ -175,6 +175,8 @@ class XMLStream(object):
         self.stream_footer = "</stream>"
 
         self.stop = threading.Event()
+        self.stream_end_event = threading.Event()
+        self.stream_end_event.set()
         self.event_queue = queue.Queue()
         self.send_queue = queue.Queue()
         self.scheduler = Scheduler(self.event_queue, self.stop)
@@ -295,8 +297,9 @@ class XMLStream(object):
         # closed in the other direction.
         if not reconnect:
             self.auto_reconnect = False
+        self.stream_end_event.wait(4)
+        if not self.auto_reconnect:
             self.stop.set()
-        time.sleep(1)
         try:
             self.socket.close()
             self.filesocket.close()
@@ -699,6 +702,7 @@ class XMLStream(object):
                     root = xml
                     # Perform any stream initialization actions, such
                     # as handshakes.
+                    self.stream_end_event.clear()
                     self.start_stream_handler(root)
                 depth += 1
             if event == b'end':
@@ -707,6 +711,7 @@ class XMLStream(object):
                     # The stream's root element has closed,
                     # terminating the stream.
                     logging.debug("Ending read XML loop")
+                    self.stream_end_event.set()
                     return False
                 elif depth == 1:
                     # We only raise events for stanzas that are direct
@@ -831,7 +836,10 @@ class XMLStream(object):
         """
         try:
             while not self.stop.isSet():
-                data = self.send_queue.get(True)
+                try:
+                    data = self.send_queue.get(True, 1)
+                except queue.Empty:
+                    continue
                 logging.debug("SEND: %s" % data)
                 try:
                     self.socket.send(data.encode('utf-8'))

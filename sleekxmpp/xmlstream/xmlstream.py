@@ -331,6 +331,7 @@ class XMLStream(object):
         logging.debug("reconnecting...")
         self.state.transition('connected', 'disconnected', wait=2.0,
                               func=self._disconnect, args=(True,))
+        logging.debug("connecting...")
         return self.state.transition('disconnected', 'connected',
                                      wait=2.0, func=self._connect)
 
@@ -693,7 +694,8 @@ class XMLStream(object):
             except Socket.error:
                 logging.exception('Socket Error')
             except:
-                logging.exception('Connection error. Reconnecting.')
+                if not self.stop.isSet():
+                    logging.exception('Connection error.')
             if not self.stop.isSet() and self.auto_reconnect:
                 self.reconnect()
             else:

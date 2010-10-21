@@ -357,8 +357,8 @@ class ClientXMPP(BaseXMPP):
             xml -- The SASL authentication failure element.
         """
         logging.info("Authentication failed.")
+        self.event("failed_auth", direct=True)
         self.disconnect()
-        self.event("failed_auth")
 
     def _handle_bind_resource(self, xml):
         """

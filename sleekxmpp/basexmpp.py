@@ -553,6 +553,7 @@ class BaseXMPP(XMLStream):
         priority = presence['priority']
 
         was_offline = False
+        got_online = False
         old_roster = self.roster.get(jid, {}).get(resource, {})
 
         # Create a new roster entry if needed.
@@ -569,7 +570,7 @@ class BaseXMPP(XMLStream):
         # Determine if the user has just come online.
         if not resource in connections:
             if show == 'available' or show in presence.showtypes:
-                self.event("got_online", presence)
+                got_online = True
             was_offline = True
             connections[resource] = {}
 
@@ -592,15 +593,16 @@ class BaseXMPP(XMLStream):
 
             if not connections and not self.roster[jid]['in_roster']:
                 del self.roster[jid]
-            if not was_offline:
-                self.event("got_offline", presence)
-            else:
+            self.event("got_offline", presence)
+            if was_offline:
                 return False
 
         name = '(%s) ' % name if name else ''
 
         # Presence state has changed.
         self.event("changed_status", presence)
+        if got_online:
+            self.event("got_online", presence)
         logging.debug("STATUS: %s%s/%s[%s]: %s" % (name, jid, resource,
                                                    show, status))
 

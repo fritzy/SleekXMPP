@@ -16,6 +16,7 @@ import sys
 import threading
 import time
 import types
+import signal
 try:
     import queue
 except ImportError:
@@ -194,6 +195,17 @@ class XMLStream(object):
 
         self.auto_reconnect = True
         self.is_client = False
+
+        signal.signal(signal.SIGHUP, self._handle_kill)
+        signal.signal(signal.SIGTERM, self._handle_kill) # used in Windows
+
+    def _handle_kill(self, signum, frame):
+        """
+        Capture kill event and disconnect cleanly after first
+        spawning the "killed" event.
+        """
+        self.event("killed", direct=True)
+        self.disconnect()
 
     def new_id(self):
         """
@@ -710,7 +722,7 @@ class XMLStream(object):
                 if depth == 0:
                     # The stream's root element has closed,
                     # terminating the stream.
-                    logging.debug("Ending read XML loop")
+                    logging.debug("End of stream recieved")
                     self.stream_end_event.set()
                     return False
                 elif depth == 1:

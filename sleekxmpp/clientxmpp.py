@@ -13,6 +13,7 @@ import base64
 import sys
 import hashlib
 import random
+import threading
 
 from sleekxmpp import plugins
 from sleekxmpp import stanza
@@ -78,6 +79,9 @@ class ClientXMPP(BaseXMPP):
         self.plugin_whitelist = plugin_whitelist
         self.srv_support = SRV_SUPPORT
 
+        self.session_started_event = threading.Event()
+        self.session_started_event.clear()
+
         self.stream_header = "<stream:stream to='%s' %s %s version='1.0'>" % (
                 self.boundjid.host,
                 "xmlns:stream='%s'" % self.stream_ns,
@@ -124,6 +128,12 @@ class ClientXMPP(BaseXMPP):
         self.sessionstarted = False
         self.bound = False
         self.bindfail = False
+        self.schedule("session timeout checker", 15, self._session_timeout_check)
+
+    def _session_timeout_check(self):
+        if not self.session_started_event.isSet():
+            logging.debug("Session start has taken more than 15 seconds")
+            self.disconnect(reconnect=self.auto_reconnect)
 
     def connect(self, address=tuple()):
         """
@@ -136,6 +146,7 @@ class ClientXMPP(BaseXMPP):
         Arguments:
             address -- A tuple containing the server's host and port.
         """
+        self.session_started_event.clear()
         if not address or len(address) < 2:
             if not self.srv_support:
                 logging.debug("Did not supply (address, port) to connect" + \
@@ -374,6 +385,7 @@ class ClientXMPP(BaseXMPP):
         if "{%s}session" % session_ns not in self.features or self.bindfail:
             logging.debug("Established Session")
             self.sessionstarted = True
+            self.session_started_event.set()
             self.event("session_start")
 
     def _handle_start_session(self, xml):
@@ -388,6 +400,7 @@ class ClientXMPP(BaseXMPP):
             response = iq.send()
             logging.debug("Established Session")
             self.sessionstarted = True
+            self.session_started_event.set()
             self.event("session_start")
         else:
             # Bind probably hasn't happened yet.

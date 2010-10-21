@@ -275,6 +275,7 @@ class XMLStream(object):
                 self.socket = ssl_socket
 
         try:
+            logging.debug("Connecting to %s:%s" % self.address)
             self.socket.connect(self.address)
             self.set_socket(self.socket, ignore=True)
             #this event is where you should set your application state
@@ -328,10 +329,10 @@ class XMLStream(object):
         Reset the stream's state and reconnect to the server.
         """
         logging.debug("reconnecting...")
-        self.state.transition('connected', 'disconnected', wait=0.0,
+        self.state.transition('connected', 'disconnected', wait=2.0,
                               func=self._disconnect, args=(True,))
         return self.state.transition('disconnected', 'connected',
-                                     wait=0.0, func=self._connect)
+                                     wait=2.0, func=self._connect)
 
     def set_socket(self, socket, ignore=False):
         """
@@ -669,7 +670,7 @@ class XMLStream(object):
         # The body of this loop will only execute once per connection.
         # Additional passes will be made only if an error occurs and
         # reconnecting is permitted.
-        while not self.stop.isSet() and firstrun or self.auto_reconnect:
+        while firstrun or (self.auto_reconnect and not self.stop.isSet()):
             firstrun = False
             try:
                 if self.is_client:

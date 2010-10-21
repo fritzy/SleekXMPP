@@ -137,7 +137,7 @@ class Scheduler(object):
         """Process scheduled tasks."""
         self.run = True
         try:
-            while self.run:
+            while self.run and (self.parentstop is None or not self.parentstop.isSet()):
                     wait = 1
                     updated = False
                     if self.schedule:
@@ -168,6 +168,7 @@ class Scheduler(object):
         except KeyboardInterrupt:
             self.run = False
             if self.parentstop is not None:
+                logging.debug("stopping parent")
                 self.parentstop.set()
         except SystemExit:
             self.run = False

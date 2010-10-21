@@ -82,18 +82,22 @@ class StateMachine(object):
         if not to_state in self.__states: 
             raise ValueError( "StateMachine does not contain to_state %s." % to_state )
 
-
         start = time.time()
         while not self.lock.acquire(False):
             time.sleep(.001)
             if (start + wait - time.time()) <= 0.0:
+                logging.debug("Could not acquire lock")
                 return False
 
         while not self.__current_state in from_states:
             # detect timeout:
             remainder = start + wait - time.time()
-            if remainder > 0: self.notifier.wait(remainder)
-            else: return False
+            if remainder > 0: 
+                self.notifier.wait(remainder)
+            else: 
+                logging.debug("State was not ready")
+                self.lock.release()
+                return False
 
         try: # lock is acquired; all other threads will return false or wait until notify/timeout
             if self.__current_state in from_states: # should always be True due to lock

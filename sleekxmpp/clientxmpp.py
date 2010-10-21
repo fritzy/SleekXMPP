@@ -128,7 +128,8 @@ class ClientXMPP(BaseXMPP):
         self.sessionstarted = False
         self.bound = False
         self.bindfail = False
-        self.schedule("session timeout checker", 15, self._session_timeout_check)
+        self.schedule("session timeout checker", 15,
+                      self._session_timeout_check)
 
     def _session_timeout_check(self):
         if not self.session_started_event.isSet():

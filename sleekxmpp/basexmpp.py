@@ -135,6 +135,8 @@ class BaseXMPP(XMLStream):
 
         self.add_event_handler('presence_subscribe',
                                self._handle_subscribe)
+        self.add_event_handler('disconnected',
+                               self._handle_disconnected)
 
         # Set up the XML stream with XMPP's root stanzas.
         self.registerStanza(Message)
@@ -517,6 +519,10 @@ class BaseXMPP(XMLStream):
 
     def getjidbare(self, fulljid):
         return fulljid.split('/', 1)[0]
+
+    def _handle_disconnected(self, event):
+        """When disconnected, reset the roster"""
+        self.roster = {}
 
     def _handle_message(self, msg):
         """Process incoming message stanzas."""

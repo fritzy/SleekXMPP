@@ -68,9 +68,6 @@ def tostring(xml=None, xmlns='', stanza_ns='', stream=None, outbuffer=''):
             for child in xml.getchildren():
                 output.append(tostring(child, tag_xmlns, stanza_ns, stream))
         output.append(u"</%s>" % tag_name)
-        if xml.tail:
-            # If there is additional text after the element.
-            output.append(xml_escape(xml.tail))
     elif xml.text:
         # If we only have text content.
         output.append(u">%s</%s>" % (xml_escape(xml.text), tag_name))

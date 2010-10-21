@@ -73,6 +73,16 @@ class TestToString(SleekTest):
             message="The xmlns parameter was not used properly.",
             xmlns='foo')
 
+    def testTailContent(self):
+        """
+        Test that elements of the form <a>foo <b>bar</b> baz</a> only
+        include " baz" once.
+        """
+        self.tryTostring(
+            original='<a>foo <b>bar</b> baz</a>',
+            message='Element tail content is incorrect.')
+
+
     def testStanzaNs(self):
         """
         Test using the stanza_ns tostring parameter, which will prevent

@@ -57,7 +57,7 @@ class JID(object):
                     full, or bare.
         """
         if name == 'resource':
-            if self._resource is None:
+            if self._resource is None and '/' in self._jid:
                 self._resource = self._jid.split('/', 1)[-1]
             return self._resource or ""
         elif name == 'user':

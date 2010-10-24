@@ -103,6 +103,41 @@ class SleekTest(unittest.TestCase):
         """
         return Presence(None, *args, **kwargs)
 
+
+
+    def check_JID(self, jid, user=None, domain=None, resource=None,
+                 bare=None, full=None, string=None):
+        """
+        Verify the components of a JID.
+
+        Arguments:
+            jid      -- The JID object to test.
+            user     -- Optional. The user name portion of the JID.
+            domain   -- Optional. The domain name portion of the JID.
+            resource -- Optional. The resource portion of the JID.
+            bare     -- Optional. The bare JID.
+            full     -- Optional. The full JID.
+            string   -- Optional. The string version of the JID.
+        """
+        if user is not None:
+            self.assertEqual(jid.user, user,
+                    "User does not match: %s" % jid.user)
+        if domain is not None:
+            self.assertEqual(jid.domain, domain,
+                    "Domain does not match: %s" % jid.domain)
+        if resource is not None:
+            self.assertEqual(jid.resource, resource,
+                    "Resource does not match: %s" % jid.resource)
+        if bare is not None:
+            self.assertEqual(jid.bare, bare,
+                    "Bare JID does not match: %s" % jid.bare)
+        if full is not None:
+            self.assertEqual(jid.full, full,
+                    "Full JID does not match: %s" % jid.full)
+        if string is not None:
+            self.assertEqual(str(jid), string,
+                    "String does not match: %s" % str(jid))
+
     # ------------------------------------------------------------------
     # Methods for comparing stanza objects to XML strings
 

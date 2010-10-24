@@ -56,4 +56,21 @@ class TestErrorStanzas(SleekTest):
           </message>
         """, use_values=False)
 
+    def testDelText(self):
+        """Test deleting the text of an error."""
+        msg = self.Message()
+        msg['error']['test'] = 'Error!'
+        msg['error']['condition'] = 'internal-server-error'
+
+        del msg['error']['text']
+
+        self.check_message(msg, """
+          <message type="error">
+            <error type="cancel">
+              <internal-server-error xmlns="urn:ietf:params:xml:ns:xmpp-stanzas" />
+            </error>
+          </message>
+        """)
+
+
 suite = unittest.TestLoader().loadTestsFromTestCase(TestErrorStanzas)

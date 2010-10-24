@@ -92,6 +92,12 @@ class Presence(RootStanza):
 
         return StanzaBase.setup(self, xml)
 
+    def exception(self, e):
+        """
+        Override exception passback for presence.
+        """
+        pass
+
     def set_show(self, show):
         """
         Set the value of the <show> element.

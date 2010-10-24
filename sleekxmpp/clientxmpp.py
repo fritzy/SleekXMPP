@@ -219,8 +219,8 @@ class ClientXMPP(BaseXMPP):
         iq['roster']['items'] = {jid: {'name': name,
                                        'subscription': subscription,
                                        'groups': groups}}
-        resp = iq.send()
-        return resp['type'] == 'result'
+        response = iq.send()
+        return response['type'] == 'result'
 
     def del_roster_item(self, jid):
         """
@@ -235,8 +235,8 @@ class ClientXMPP(BaseXMPP):
     def get_roster(self):
         """Request the roster from the server."""
         iq = self.Iq()._set_stanza_values({'type': 'get'}).enable('roster')
-        iq.send()
-        self._handle_roster(iq, request=True)
+        response = iq.send()
+        self._handle_roster(response, request=True)
 
     def _handle_stream_features(self, features):
         """

@@ -67,6 +67,8 @@ class ComponentXMPP(BaseXMPP):
         self.server_port = port
         self.set_jid(jid)
         self.secret = secret
+        self.plugin_config = plugin_config
+        self.plugin_whitelist = plugin_whitelist
         self.is_component = True
 
         self.register_handler(

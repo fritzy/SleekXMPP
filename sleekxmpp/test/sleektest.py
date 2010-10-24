@@ -294,6 +294,7 @@ class SleekTest(unittest.TestCase):
         else:
             raise ValueError("Unknown socket type.")
 
+        self.xmpp.register_plugins()
         self.xmpp.process(threaded=True)
         if skip:
             # Clear startup stanzas

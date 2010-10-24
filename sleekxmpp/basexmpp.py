@@ -593,8 +593,9 @@ class BaseXMPP(XMLStream):
 
             if not connections and not self.roster[jid]['in_roster']:
                 del self.roster[jid]
-            self.event("got_offline", presence)
-            if was_offline:
+            if not was_offline:
+                self.event("got_offline", presence)
+            else:
                 return False
 
         name = '(%s) ' % name if name else ''

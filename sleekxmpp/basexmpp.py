@@ -621,8 +621,8 @@ class BaseXMPP(XMLStream):
         None       *          Disable automatic handling and use
                               a custom handler.
         """
-        presence = self.Presence()
-        presence['to'] = presence['from'].bare
+        presence.reply()
+        presence['to'] = presence['to'].bare
 
         # We are using trinary logic, so conditions have to be
         # more explicit than usual.

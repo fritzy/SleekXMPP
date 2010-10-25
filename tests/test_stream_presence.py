@@ -82,5 +82,47 @@ class TestStreamPresence(SleekTest):
         self.assertEqual(events, ['got_offline'],
                 "Got offline incorrectly triggered: %s" % events)
 
+    def testAutoAuthorizeAndSubscribe(self):
+        """
+        Test auto authorizing and auto subscribing
+        to subscription requests.
+        """
+
+        events = set()
+
+        def presence_subscribe(p):
+            events.add('presence_subscribe')
+
+        def changed_subscription(p):
+            events.add('changed_subscription')
+
+        self.stream_start(jid='tester@localhost')
+
+        self.xmpp.add_event_handler('changed_subscription', 
+                                    changed_subscription)
+        self.xmpp.add_event_handler('presence_subscribe',
+                                    presence_subscribe)
+
+        # With these settings we should accept a subscription
+        # and request a subscription in return.
+        self.xmpp.auto_authorize = True
+        self.xmpp.auto_subscribe = True
+
+        self.stream_recv("""
+          <presence from="user@localhost" type="subscribe" />
+        """)
+
+        self.stream_send_presence("""
+          <presence to="user@localhost" type="subscribed" />
+        """)
+
+        self.stream_send_presence("""
+          <presence to="user@localhost" type="subscribe" />
+        """)
+
+        expected = set(('presence_subscribe', 'changed_subscription'))
+        self.assertEqual(events, expected, 
+                "Incorrect events triggered: %s" % events)
+
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestStreamPresence)

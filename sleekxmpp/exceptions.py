@@ -38,6 +38,9 @@ class XMPPError(Exception):
                               element. Same as the additional arguments to
                               the ET.Element constructor.
         """
+        if extension_args is None:
+            extension_args = {}
+
         self.condition = condition
         self.text = text
         self.etype = etype

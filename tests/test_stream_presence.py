@@ -42,6 +42,7 @@ class TestStreamPresence(SleekTest):
     def testGotOffline(self):
         """Test that got_offline is triggered properly."""
         events = []
+
         def got_offline(presence):
             events.append('got_offline')
 
@@ -124,7 +125,7 @@ class TestStreamPresence(SleekTest):
 
         self.stream_start(jid='tester@localhost')
 
-        self.xmpp.add_event_handler('changed_subscription', 
+        self.xmpp.add_event_handler('changed_subscription',
                                     changed_subscription)
         self.xmpp.add_event_handler('presence_subscribe',
                                     presence_subscribe)
@@ -147,7 +148,7 @@ class TestStreamPresence(SleekTest):
         """)
 
         expected = set(('presence_subscribe', 'changed_subscription'))
-        self.assertEqual(events, expected, 
+        self.assertEqual(events, expected,
                 "Incorrect events triggered: %s" % events)
 
     def testNoAutoAuthorize(self):
@@ -160,10 +161,10 @@ class TestStreamPresence(SleekTest):
 
         def changed_subscription(p):
             events.add('changed_subscription')
- 
+
         self.stream_start(jid='tester@localhost')
 
-        self.xmpp.add_event_handler('changed_subscription', 
+        self.xmpp.add_event_handler('changed_subscription',
                                     changed_subscription)
         self.xmpp.add_event_handler('presence_subscribe',
                                     presence_subscribe)
@@ -180,7 +181,7 @@ class TestStreamPresence(SleekTest):
         """)
 
         expected = set(('presence_subscribe', 'changed_subscription'))
-        self.assertEqual(events, expected, 
+        self.assertEqual(events, expected,
                 "Incorrect events triggered: %s" % events)
 
 

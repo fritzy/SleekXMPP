@@ -786,6 +786,23 @@ class XMLStream(object):
         if unhandled:
             stanza.unhandled()
 
+    def _threaded_event_wrapper(self, func, args):
+        """
+        Capture exceptions for event handlers that run 
+        in individual threads.
+
+        Arguments:
+            func -- The event handler to execute.
+            args -- Arguments to the event handler.
+        """
+        try:
+            func(*args)
+        except Exception as e:
+            error_msg = 'Error processing event handler: %s'
+            logging.exception(error_msg % str(func))
+            if hasattr(args[0], 'exception'):
+                args[0].exception(e)
+
     def _event_runner(self):
         """
         Process the event queue and execute handlers.
@@ -825,14 +842,18 @@ class XMLStream(object):
                     func, threaded, disposable = handler
                     try:
                         if threaded:
-                            x = threading.Thread(name="Event_%s" % str(func),
-                                                 target=func,
-                                                 args=args)
+                            x = threading.Thread(
+                                    name="Event_%s" % str(func),
+                                    target=self._threaded_event_wrapper,
+                                    args=(func, args))
                             x.start()
                         else:
                             func(*args)
-                    except:
-                        logging.exception('Error processing event handler: %s')
+                    except Exception as e:
+                        error_msg = 'Error processing event handler: %s'
+                        logging.exception(error_msg % str(func))
+                        if hasattr(args[0], 'exception'):
+                            args[0].exception(e)
                 elif etype == 'quit':
                     logging.debug("Quitting event runner thread")
                     return False

@@ -1,27 +1,81 @@
+"""
+    SleekXMPP: The Sleek XMPP Library
+    Copyright (C) 2010  Nathanael C. Fritz
+    This file is part of SleekXMPP.
+
+    See the file LICENSE for copying permission.
+"""
+
 import logging
 
 
 class Roster(object):
 
+    """
+    SleekXMPP's roster manager.
+
+    The roster is divided into "nodes", where each node is responsible
+    for a single JID. While the distinction is not strictly necessary
+    for client connections, it is a necessity for components that use
+    multiple JIDs.
+
+    Rosters may be stored and persisted in an external datastore. An
+    interface object to the datastore that loads and saves roster items may
+    be provided. See the documentation for the RosterItem class for the
+    methods that the datastore interface object must provide.
+
+    Attributes:
+        xmpp -- The main SleekXMPP instance.
+        db   -- Optional interface object to an external datastore.
+
+    Methods:
+        add -- Create a new roster node for a JID.
+    """
+
     def __init__(self, xmpp, db=None):
+        """
+        Create a new roster.
+
+        Arguments:
+            xmpp -- The main SleekXMPP instance.
+            db   -- An interface object to a datastore.
+        """
         self.xmpp = xmpp
         self.db = db
         self._rosters = {}
 
     def __getitem__(self, key):
+        """
+        Return the roster node for a JID.
+
+        A new roster node will be created if one
+        does not already exist.
+
+        Arguments:
+            key -- Return the roster for this JID.
+        """
         if key not in self._rosters:
-            self.add(key)
+            self.add(key, self.db)
         return self._rosters[key]
 
     def keys(self):
+        """Return the JIDs managed by the roster."""
         return self._rosters.keys()
 
     def __iter__(self):
+        """Iterate over the roster nodes."""
         return self._rosters.__iter__()
 
     def add(self, node):
+        """
+        Add a new roster node for the given JID.
+
+        Arguments:
+            node -- The JID for the new roster node.
+        """
         if node not in self._rosters:
             self._rosters[node] = RosterNode(self.xmpp, node, self.db)
+
 
 class RosterNode(object):
 
@@ -169,7 +223,10 @@ class RosterItem(object):
             return 'none'
 
     def remove(self):
-        "Remove the jids subscription, inform it if it is subscribed, and unwhitelist it"
+        """
+        Remove the jids subscription, inform it if it is
+        subscribed, and unwhitelist it.
+        """
         if self['to']:
             p = self.xmpp.Presence()
             p['to'] = self.jid

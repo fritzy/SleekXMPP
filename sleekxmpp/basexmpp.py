@@ -15,7 +15,7 @@ import logging
 import sleekxmpp
 from sleekxmpp import plugins
 
-from sleekxmpp.roster import MultiRoster
+import sleekxmpp.roster as roster
 from sleekxmpp.stanza import Message, Presence, Iq, Error
 from sleekxmpp.stanza.roster import Roster
 from sleekxmpp.stanza.nick import Nick
@@ -111,9 +111,8 @@ class BaseXMPP(XMLStream):
         self.boundjid = JID(jid)
 
         self.plugin = {}
-        self.rosters = MultiRoster(self)
-        self.rosters.add(self.boundjid.bare)
-        self.roster = {}
+        self.roster = roster.Roster(self)
+        self.roster.add(self.boundjid.bare)
 
         self.is_component = False
         self.auto_authorize = True
@@ -537,14 +536,14 @@ class BaseXMPP(XMLStream):
         self.event('message', msg)
 
     def _handle_available(self, presence):
-        self.rosters[presence['to'].bare][presence['from'].bare].handle_available(presence)
+        self.roster[presence['to'].bare][presence['from'].bare].handle_available(presence)
 
     def _handle_unavailable(self, presence):
-        self.rosters[presence['to'].bare][presence['from'].bare].handle_unavailable(presence)
+        self.roster[presence['to'].bare][presence['from'].bare].handle_unavailable(presence)
 
     def _handle_new_subscription(self, stanza):
-        roster = self.rosters[stanza['to'].bare]
-        item = self.rosters[stanza['to'].bare][stanza['from'].bare]
+        roster = self.roster[stanza['to'].bare]
+        item = self.roster[stanza['to'].bare][stanza['from'].bare]
         if item['whitelisted']:
             item.authorize()
         elif roster.auto_authorize:
@@ -555,22 +554,22 @@ class BaseXMPP(XMLStream):
             item.unauthorize()
 
     def _handle_removed_subscription(self, presence):
-        self.rosters[presence['to'].bare][presence['from'].bare].unauthorize()
+        self.roster[presence['to'].bare][presence['from'].bare].unauthorize()
 
     def _handle_subscribe(self, stanza):
-        self.rosters[stanza['to'].bare][stanza['from'].bare].handle_subscribe(stanza)
+        self.roster[stanza['to'].bare][stanza['from'].bare].handle_subscribe(stanza)
 
     def _handle_subscribed(self, stanza):
-        self.rosters[stanza['to'].bare][stanza['from'].bare].handle_subscribed(stanza)
+        self.roster[stanza['to'].bare][stanza['from'].bare].handle_subscribed(stanza)
 
     def _handle_unsubscribe(self, stanza):
-        self.rosters[stanza['to'].bare][stanza['from'].bare].handle_unsubscribe(stanza)
+        self.roster[stanza['to'].bare][stanza['from'].bare].handle_unsubscribe(stanza)
 
     def _handle_unsubscribed(self, stanza):
-        self.rosters[stanza['to'].bare][stanza['from'].bare].handle_unsubscribed(stanza)
+        self.roster[stanza['to'].bare][stanza['from'].bare].handle_unsubscribed(stanza)
 
     def _handle_probe(self, stanza):
-        self.rosteritems[stanza['to'].bare][stanza['from'].bare].handle_probe(stanza)
+        self.roster[stanza['to'].bare][stanza['from'].bare].handle_probe(stanza)
 
     def _handle_presence(self, presence):
         """

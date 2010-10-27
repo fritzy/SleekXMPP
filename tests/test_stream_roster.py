@@ -41,7 +41,7 @@ class TestStreamRoster(SleekTest):
         # Wait for get_roster to return.
         t.join()
 
-        print self.xmpp.rosters['tester@localhost']['user@localhost']._state
+        print self.xmpp.roster['tester@localhost']['user@localhost']._state
         self.check_roster('tester@localhost', 'user@localhost',
                           name='User',
                           subscription='from',

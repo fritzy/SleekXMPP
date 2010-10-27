@@ -548,7 +548,6 @@ class BaseXMPP(XMLStream):
         self.roster[presence['to'].bare][presence['from'].bare].handle_unavailable(presence)
 
     def _handle_new_subscription(self, stanza):
-        logging.debug(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
         roster = self.roster[stanza['to'].bare]
         item = self.roster[stanza['to'].bare][stanza['from'].bare]
         if item['whitelisted']:

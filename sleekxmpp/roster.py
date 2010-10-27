@@ -38,7 +38,7 @@ class Roster(object):
 
         Arguments:
             xmpp -- The main SleekXMPP instance.
-            db   -- An interface object to a datastore.
+            db   -- Optional interface object to a datastore.
         """
         self.xmpp = xmpp
         self.db = db
@@ -79,7 +79,41 @@ class Roster(object):
 
 class RosterNode(object):
 
+    """
+
+    Attributes:
+        xmpp           -- The main SleekXMPP instance.
+        jid            -- The JID that owns the roster node.
+        db             -- Optional interface to an external datastore.
+        auto_authorize -- Determines how authorizations are handled:
+                            True  -- Accept all subscriptions.
+                            False -- Reject all subscriptions.
+                            None  -- Subscriptions must be
+                                     manually authorized.
+                          Defaults to True.
+        auto_subscribe -- Determines if bi-directional subscriptions
+                          are created after automatically authrorizing
+                          a subscription request.
+                          Defaults to True
+
+    Methods:
+        add         -- Add a JID to the roster.
+        update      -- Update a JID's subscription information.
+        subscribe   -- Subscribe to a JID.
+        unsubscribe -- Unsubscribe from a JID.
+        remove      -- Remove a JID from the roster.
+        presence    -- Return presence information for a JID's resources.
+    """
+
     def __init__(self, xmpp, jid, db=None):
+        """
+        Create a roster node for a JID.
+
+        Arguments:
+            xmpp -- The main SleekXMPP instance.
+            jid  -- The JID that owns the roster.
+            db   -- Optional interface to an external datastore.
+        """
         self.xmpp = xmpp
         self.jid = jid
         self.db = db
@@ -88,19 +122,52 @@ class RosterNode(object):
         self._jids = {}
 
     def __getitem__(self, key):
+        """
+        Return the roster item for a subscribed JID.
+
+        A new item entry will be created if one does not already exist.
+        """
         if key not in self._jids:
             self.add(key, save=True)
         return self._jids[key]
 
     def keys(self):
+        """Return a list of all subscribed JIDs."""
         return self._jids.keys()
 
     def __iter__(self):
+        """Iterate over the roster items."""
         return self._jids.__iter__()
 
     def add(self, jid, name='', groups=None, afrom=False, ato=False,
             pending_in=False, pending_out=False, whitelisted=False,
             save=False):
+        """
+        Add a new roster item entry.
+
+        Arguments:
+            jid         -- The JID for the roster item.
+            name        -- An alias for the JID.
+            groups      -- A list of group names.
+            afrom       -- Indicates if the JID has a subscription state
+                           of 'from'. Defaults to False.
+            ato         -- Indicates if the JID has a subscription state
+                           of 'to'. Defaults to False.
+            pending_in  -- Indicates if the JID has sent a subscription
+                           request to this connection's JID.
+                           Defaults to False.
+            pending_out -- Indicates if a subscription request has been sent
+                           to this JID.
+                           Defaults to False.
+            whitelisted -- Indicates if a subscription request from this JID
+                           should be automatically authorized.
+                           Defaults to False.
+            save        -- Indicates if the item should be persisted
+                           immediately to an external datastore,
+                           if one is used.
+                           Defaults to False.
+        """
+
         state = {'name': name,
                  'groups': groups or [],
                  'from': afrom,
@@ -115,17 +182,45 @@ class RosterNode(object):
             self._jids[jid].save()
 
     def subscribe(self, jid):
+        """
+        Subscribe to the given JID.
+
+        Arguments:
+            jid -- The JID to subscribe to.
+        """
         self._jids[jid].subscribe()
 
     def unsubscribe(self, jid):
+        """
+        Unsubscribe from the given JID.
+
+        Arguments:
+            jid -- The JID to unsubscribe from.
+        """
         self._jids[jid].unsubscribe()
 
     def remove(self, jid):
+        """
+        Remove a JID from the roster.
+
+        Arguments:
+            jid -- The JID to remove.
+        """
         self._jids[jid].remove()
         if not self.xmpp.is_component:
             self.update(jid, subscription='remove')
 
     def update(self, jid, name=None, subscription=None, groups=[]):
+        """
+        Update a JID's subscription information.
+
+        Arguments:
+            jid          -- The JID to update.
+            name         -- Optional alias for the JID.
+            subscription -- The subscription state. May be one of: 'to',
+                            'from', 'both', 'none', or 'remove'.
+            groups       -- A list of group names.
+        """
         self._jids[jid]['name'] = name
         self._jids[jid]['groups'] = group
         self._jids[jid].save()
@@ -140,6 +235,17 @@ class RosterNode(object):
             return response and response['type'] == 'result'
 
     def presence(self, jid, resource=None):
+        """
+        Retrieve the presence information of a JID.
+
+        May return either all online resources' status, or
+        a single resource's status.
+
+        Arguments:
+            jid      -- The JID to lookup.
+            resource -- Optional resource for returning
+                        only the status of a single connection.
+        """
         if resource is None:
             return self._jids[jid].resources
 

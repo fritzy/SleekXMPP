@@ -418,7 +418,7 @@ class ClientXMPP(BaseXMPP):
         if iq['type'] == 'set' or (iq['type'] == 'result' and request):
             for jid in iq['roster']['items']:
                 item = iq['roster']['items'][jid]
-                roster = self.rosters[iq['to'].bare]
+                roster = self.roster[iq['to'].bare]
                 roster[jid]['name'] = item['name']
                 roster[jid]['groups'] = item['groups']
                 roster[jid]['from'] = item['subscription'] in ['from', 'both']

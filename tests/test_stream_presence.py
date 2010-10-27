@@ -183,7 +183,7 @@ class TestStreamPresence(SleekTest):
                                     presence_subscribe)
 
         # With this setting we should reject all subscriptions.
-        self.xmpp.rosters['tester@localhost'].auto_authorize = False
+        self.xmpp.roster['tester@localhost'].auto_authorize = False
 
         self.stream_recv("""
           <presence from="user@localhost"

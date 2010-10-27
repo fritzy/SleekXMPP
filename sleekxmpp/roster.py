@@ -1,11 +1,11 @@
 import logging
 
 
-class MultiRoster(object):
+class Roster(object):
 
-    def __init__(self, xmpp, datastore=None):
+    def __init__(self, xmpp, db=None):
         self.xmpp = xmpp
-        self.datastore = datastore
+        self.db = db
         self._rosters = {}
 
     def __getitem__(self, key):
@@ -21,14 +21,14 @@ class MultiRoster(object):
 
     def add(self, node):
         if node not in self._rosters:
-            self._rosters[node] = Roster(self.xmpp, node, self.datastore)
+            self._rosters[node] = RosterNode(self.xmpp, node, self.db)
 
-class Roster(object):
+class RosterNode(object):
 
-    def __init__(self, xmpp, jid, datastore=None):
+    def __init__(self, xmpp, jid, db=None):
         self.xmpp = xmpp
         self.jid = jid
-        self.datastore = datastore
+        self.db = db
         self.auto_authorize = True
         self.auto_subscribe = True
         self._jids = {}
@@ -56,7 +56,7 @@ class Roster(object):
                  'whitelisted': whitelisted,
                  'subscription': 'none'}
         self._jids[jid] = RosterItem(self.xmpp, jid, self.jid,
-                                     state=state, datastore=self.datastore)
+                                     state=state, db=self.db)
         if save:
             self._jids[jid].save()
 
@@ -99,14 +99,13 @@ class Roster(object):
 class RosterItem(object):
 
     def __init__(self, xmpp, jid, owner=None,
-                 state=None, datastore=None):
+                 state=None, db=None):
         self.xmpp = xmpp
         self.jid = jid
         self.owner = owner or self.xmpp.jid
         self.last_status = None
         self.resources = {}
-        self.datastore = datastore
-
+        self.db = db
         self._state = state or {
                 'from': False,
                 'to': False,
@@ -116,13 +115,13 @@ class RosterItem(object):
                 'subscription': 'none',
                 'name': '',
                 'groups': []}
-        self._datastore_state = {}
+        self._db_state = {}
         self.load()
 
     def load(self):
-        if self.datastore:
-            item = self.datastore.load(self.owner, self.jid,
-                                       self._datastore_state)
+        if self.db:
+            item = self.db.load(self.owner, self.jid,
+                                       self._db_state)
             if item:
                 self['name'] = item['name']
                 self['groups'] = item['groups']
@@ -136,9 +135,9 @@ class RosterItem(object):
         return None
 
     def save(self):
-        if self.datastore:
-            self.datastore.save(self.owner, self.jid,
-                                self._state, self._datastore_state)
+        if self.db:
+            self.db.save(self.owner, self.jid,
+                         self._state, self._db_state)
 
     def __getitem__(self, key):
         if key in self._state:

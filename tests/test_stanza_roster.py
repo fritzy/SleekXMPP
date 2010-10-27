@@ -48,10 +48,14 @@ class TestRosterStanzas(SleekTest):
             'user@example.com': {
                 'name': 'User',
                 'subscription': 'both',
+                'ask': '',
+                'approved': '',
                 'groups': ['Friends', 'Coworkers']},
             'otheruser@example.com': {
                 'name': 'Other User',
                 'subscription': 'both',
+                'ask': '',
+                'approved': '',
                 'groups': []}}
         debug = "Roster items don't match after retrieval."
         debug += "\nReturned: %s" % str(iq['roster']['items'])

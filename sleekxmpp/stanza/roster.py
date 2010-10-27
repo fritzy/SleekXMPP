@@ -106,6 +106,8 @@ class Roster(ElementBase):
                 item = {}
                 item['name'] = itemxml.get('name', '')
                 item['subscription'] = itemxml.get('subscription', '')
+                item['ask'] = itemxml.get('ask', '')
+                item['approved'] = itemxml.get('approved', '')
                 item['groups'] = []
                 groupsxml = itemxml.findall('{jabber:iq:roster}group')
                 if groupsxml is not None:

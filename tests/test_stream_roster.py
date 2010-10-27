@@ -13,8 +13,7 @@ class TestStreamRoster(SleekTest):
 
     def testGetRoster(self):
         """Test handling roster requests."""
-        self.stream_start(mode='client')
-        self.failUnless(self.xmpp.roster == {}, "Initial roster not empty.")
+        self.stream_start(mode='client', jid='tester@localhost')
 
         # Since get_roster blocks, we need to run it in a thread.
         t = threading.Thread(name='get_roster', target=self.xmpp.get_roster)
@@ -26,11 +25,12 @@ class TestStreamRoster(SleekTest):
           </iq>
         """)
         self.recv("""
-          <iq type="result" id="1">
+          <iq to='tester@localhost' type="result" id="1">
             <query xmlns="jabber:iq:roster">
               <item jid="user@localhost"
                     name="User"
-                    subscription="both">
+                    subscription="from"
+                    ask="subscribe">
                 <group>Friends</group>
                 <group>Examples</group>
               </item>
@@ -41,21 +41,20 @@ class TestStreamRoster(SleekTest):
         # Wait for get_roster to return.
         t.join()
 
-        roster = {'user@localhost': {'name': 'User',
-                                     'subscription': 'both',
-                                     'groups': ['Friends', 'Examples'],
-                                     'presence': {},
-                                     'in_roster': True}}
-        self.failUnless(self.xmpp.roster == roster,
-                "Unexpected roster values: %s" % self.xmpp.roster)
+        print self.xmpp.rosters['tester@localhost']['user@localhost']._state
+        self.check_roster('tester@localhost', 'user@localhost',
+                          name='User',
+                          subscription='from',
+                          afrom=True,
+                          pending_out=True,
+                          groups=['Friends', 'Examples'])
 
     def testRosterSet(self):
         """Test handling pushed roster updates."""
-        self.stream_start(mode='client')
-        self.failUnless(self.xmpp.roster == {}, "Initial roster not empty.")
+        self.stream_start(mode='client', jid='tester@localhost')
 
         self.recv("""
-          <iq type="set" id="1">
+          <iq to='tester@localhost' type="set" id="1">
             <query xmlns="jabber:iq:roster">
               <item jid="user@localhost"
                     name="User"
@@ -72,15 +71,10 @@ class TestStreamRoster(SleekTest):
           </iq>
         """)
 
-        roster = {'user@localhost': {'name': 'User',
-                                     'subscription': 'both',
-                                     'groups': ['Friends', 'Examples'],
-                                     'presence': {},
-                                     'in_roster': True}}
-        self.failUnless(self.xmpp.roster == roster,
-                "Unexpected roster values: %s" % self.xmpp.roster)
-
-
+        self.check_roster('tester@localhost', 'user@localhost',
+                          name='User',
+                          subscription='both',
+                          groups=['Friends', 'Examples'])
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestStreamRoster)

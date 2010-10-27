@@ -58,7 +58,7 @@ class ComponentXMPP(BaseXMPP):
             default_ns = 'jabber:client'
         else:
             default_ns = 'jabber:component:accept'
-        BaseXMPP.__init__(self, default_ns)
+        BaseXMPP.__init__(self, jid, default_ns)
 
         self.auto_authorize = None
         self.stream_header = "<stream:stream %s %s to='%s'>" % (
@@ -68,8 +68,8 @@ class ComponentXMPP(BaseXMPP):
         self.stream_footer = "</stream:stream>"
         self.server_host = host
         self.server_port = port
-        self.set_jid(jid)
         self.secret = secret
+
         self.plugin_config = plugin_config
         self.plugin_whitelist = plugin_whitelist
         self.is_component = True

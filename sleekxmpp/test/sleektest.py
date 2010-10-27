@@ -137,6 +137,33 @@ class SleekTest(unittest.TestCase):
             self.assertEqual(str(jid), string,
                     "String does not match: %s" % str(jid))
 
+    def check_roster(self, owner, jid, name=None, subscription=None,
+                     afrom=None, ato=None, pending_out=None, pending_in=None,
+                     groups=None):
+        roster = self.xmpp.rosters[owner][jid]
+        print roster._state
+        if name is not None:
+            self.assertEqual(roster['name'], name,
+                    "Incorrect name value: %s" % roster['name'])
+        if subscription is not None:
+            self.assertEqual(roster['subscription'], subscription,
+                    "Incorrect subscription: %s" % roster['subscription'])
+        if afrom is not None:
+            self.assertEqual(roster['from'], afrom,
+                    "Incorrect from state: %s" % roster['from'])
+        if ato is not None:
+            self.assertEqual(roster['to'], ato,
+                    "Incorrect to state: %s" % roster['to'])
+        if pending_out is not None:
+            self.assertEqual(roster['pending_out'], pending_out,
+                    "Incorrect pending_out state: %s" % roster['pending_out'])
+        if pending_in is not None:
+            self.assertEqual(roster['pending_in'], pending_out,
+                    "Incorrect pending_in state: %s" % roster['pending_in'])
+        if groups is not None:
+            self.assertEqual(roster['groups'], groups,
+                    "Incorrect groups: %s" % roster['groups'])
+
     # ------------------------------------------------------------------
     # Methods for comparing stanza objects to XML strings
 

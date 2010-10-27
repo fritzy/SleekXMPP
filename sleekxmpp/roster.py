@@ -25,8 +25,12 @@ class Roster(object):
     methods that the datastore interface object must provide.
 
     Attributes:
-        xmpp -- The main SleekXMPP instance.
-        db   -- Optional interface object to an external datastore.
+        xmpp           -- The main SleekXMPP instance.
+        db             -- Optional interface object to an external datastore.
+        auto_authorize -- Default auto_authorize value for new roster nodes.
+                          Defaults to True.
+        auto_subscribe -- Default auto_subscribe value for new roster nodes.
+                          Defaults to True.
 
     Methods:
         add -- Create a new roster node for a JID.
@@ -42,6 +46,8 @@ class Roster(object):
         """
         self.xmpp = xmpp
         self.db = db
+        self.auto_authorize = True
+        self.auto_subscribe = True
         self._rosters = {}
 
     def __getitem__(self, key):
@@ -56,6 +62,8 @@ class Roster(object):
         """
         if key not in self._rosters:
             self.add(key, self.db)
+            self._rosters[key].auto_authorize = self.auto_authorize
+            self._rosters[key].auto_subscribe = self.auto_subscribe
         return self._rosters[key]
 
     def keys(self):
@@ -80,6 +88,7 @@ class Roster(object):
 class RosterNode(object):
 
     """
+    A roster node is a roster for a single JID.
 
     Attributes:
         xmpp           -- The main SleekXMPP instance.
@@ -257,6 +266,101 @@ class RosterNode(object):
 
 
 class RosterItem(object):
+
+    """
+    A RosterItem is a single entry in a roster node, and tracks
+    the subscription state and user annotations of a single JID.
+
+    Roster items may use an external datastore to persist roster data
+    across sessions. Client applications will not need to use this
+    functionality, but is intended for components that do not have their
+    roster persisted automatically by the XMPP server.
+
+    Roster items provide many methods for handling incoming presence
+    stanzas that ensure that response stanzas are sent according to
+    RFC 3921.
+
+    The external datastore is accessed through a provided interface
+    object which is stored in self.db. The interface object MUST
+    provide two methods: load and save, both of which are responsible
+    for working with a single roster item. A private dictionary,
+    self._db_state, is used to store any metadata needed by the
+    interface, such as the row ID of a roster item, etc.
+
+    Interface for self.db.load:
+        load(owner_jid, jid, db_state):
+          owner_jid  -- The JID that owns the roster.
+          jid        -- The JID of the roster item.
+          db_state   -- A dictionary containing any data saved
+                        by the interface object after a save()
+                        call. Will typically have the equivalent
+                        of a 'row_id' value.
+
+    Interface for self.db.save:
+        save(owner_jid, jid, item_state, db_state):
+          owner_jid  -- The JID that owns the roster.
+          jid        -- The JID of the roster item.
+          item_state -- A dictionary containing the fields:
+                        'from', 'to', 'pending_in', 'pending_out',
+                        'whitelisted', 'subscription', 'name',
+                        and 'groups'.
+          db_state   -- A dictionary provided for persisting
+                        datastore specific information. Typically,
+                        a value equivalent to 'row_id' will be
+                        stored here.
+
+    State Fields:
+        from         -- Indicates if a subscription of type 'from'
+                        has been authorized.
+        to           -- Indicates if a subscription of type 'to' has
+                        been authorized.
+        pending_in   -- Indicates if a subscription request has been
+                        received from this JID and it has not been
+                        authorized yet.
+        pending_out  -- Indicates if a subscription request has been sent
+                        to this JID and it has not been accepted yet.
+        subscription -- Returns one of: 'to', 'from', 'both', or 'none'
+                        based on the states of from, to, pending_in,
+                        and pending_out. Assignment to this value does
+                        not affect the states of the other values.
+        whitelisted  -- Indicates if a subscription request from this
+                        JID should be automatically accepted.
+        name         -- A user supplied alias for the JID.
+        groups       -- A list of group names for the JID.
+
+    Attributes:
+        xmpp        -- The main SleekXMPP instance.
+        owner       -- The JID that owns the roster.
+        jid         -- The JID for the roster item.
+        db          -- Optional datastore interface object.
+        last_status -- The last presence sent to this JID.
+        resources   -- A dictionary of online resources for this JID.
+                       Will contain the fields 'show', 'status',
+                       and 'priority'.
+
+    Methods:
+        load                -- Retrieve the roster item from an
+                               external datastore, if one was provided.
+        save                -- Save the roster item to an external
+                               datastore, if one was provided.
+        remove              -- Remove a subscription to the JID and revoke
+                               its whitelisted status.
+        subscribe           -- Subscribe to the JID.
+        authorize           -- Accept a subscription from the JID.
+        unauthorize         -- Deny a subscription from the JID.
+        unsubscribe         -- Unsubscribe from the JID.
+        send_presence       -- Send a directed presence to the JID.
+        send_last_presence  -- Resend the last sent presence.
+        handle_available    -- Update the JID's resource information.
+        handle_unavailable  -- Update the JID's resource information.
+        handle_subscribe    -- Handle a subscription request.
+        handle_subscribed   -- Handle a notice that a subscription request
+                               was authorized by the JID.
+        handle_unsubscribe  -- Handle an unsubscribe request.
+        handle_unsubscribed -- Handle a notice that a subscription was
+                               removed by the JID.
+        handle_probe        -- Handle a presence probe query.
+    """
 
     def __init__(self, xmpp, jid, owner=None,
                  state=None, db=None):

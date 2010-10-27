@@ -141,7 +141,6 @@ class SleekTest(unittest.TestCase):
                      afrom=None, ato=None, pending_out=None, pending_in=None,
                      groups=None):
         roster = self.xmpp.roster[owner][jid]
-        print roster._state
         if name is not None:
             self.assertEqual(roster['name'], name,
                     "Incorrect name value: %s" % roster['name'])

@@ -364,9 +364,20 @@ class RosterItem(object):
 
     def __init__(self, xmpp, jid, owner=None,
                  state=None, db=None):
+        """
+        Create a new roster item.
+
+        Arguments:
+            xmpp  -- The main SleekXMPP instance.
+            jid   -- The item's JID.
+            owner -- The roster owner's JID. Defaults
+                     so self.xmpp.boundjid.bare.
+            state -- A dictionary of initial state values.
+            db    -- An optional interface to an external datastore.
+        """
         self.xmpp = xmpp
         self.jid = jid
-        self.owner = owner or self.xmpp.jid
+        self.owner = owner or self.xmpp.boundjid.bare
         self.last_status = None
         self.resources = {}
         self.db = db
@@ -383,6 +394,10 @@ class RosterItem(object):
         self.load()
 
     def load(self):
+        """
+        Load the item's state information from an external datastore,
+        if one has been provided.
+        """
         if self.db:
             item = self.db.load(self.owner, self.jid,
                                        self._db_state)
@@ -399,11 +414,16 @@ class RosterItem(object):
         return None
 
     def save(self):
+        """
+        Save the item's state information to an external datastore,
+        if one has been provided.
+        """
         if self.db:
             self.db.save(self.owner, self.jid,
                          self._state, self._db_state)
 
     def __getitem__(self, key):
+        """Return a state field's value."""
         if key in self._state:
             if key == 'subscription':
                 return self._subscription()
@@ -412,7 +432,16 @@ class RosterItem(object):
             raise KeyError
 
     def __setitem__(self, key, value):
-        print "%s: %s" % (key, value)
+        """
+        Set the value of a state field.
+
+        For boolean states, the values True, 'true', '1', 'on',
+        and 'yes' are accepted as True; all others are False.
+
+        Arguments:
+            key   -- The state field to modify.
+            value -- The new value of the state field.
+        """
         if key in self._state:
             if key in ['name', 'subscription', 'groups']:
                 self._state[key] = value
@@ -423,6 +452,7 @@ class RosterItem(object):
             raise KeyError
 
     def _subscription(self):
+        """Return the proper subscription type based on current state."""
         if self['to'] and self['from']:
             return 'both'
         elif self['from']:
@@ -434,8 +464,8 @@ class RosterItem(object):
 
     def remove(self):
         """
-        Remove the jids subscription, inform it if it is
-        subscribed, and unwhitelist it.
+        Remove a JID's whitelisted status and unsubscribe if a
+        subscription exists.
         """
         if self['to']:
             p = self.xmpp.Presence()
@@ -449,6 +479,7 @@ class RosterItem(object):
         self.save()
 
     def subscribe(self):
+        """Send a subscription request to the JID."""
         p = self.xmpp.Presence()
         p['to'] = self.jid
         p['type'] = 'subscribe'
@@ -459,6 +490,7 @@ class RosterItem(object):
         p.send()
 
     def authorize(self):
+        """Authorize a received subscription request from the JID."""
         self['from'] = True
         self['pending_in'] = False
         self.save()
@@ -466,6 +498,7 @@ class RosterItem(object):
         self.send_last_presence()
 
     def unauthorize(self):
+        """Deny a received subscription request from the JID."""
         self['from'] = False
         self['pending_in'] = False
         self.save()
@@ -478,6 +511,7 @@ class RosterItem(object):
         p.send()
 
     def _subscribed(self):
+        """Handle acknowledging a subscription."""
         p = self.xmpp.Presence()
         p['to'] = self.jid
         p['type'] = 'subscribed'
@@ -486,6 +520,7 @@ class RosterItem(object):
         p.send()
 
     def unsubscribe(self):
+        """Unsubscribe from the JID."""
         p = self.xmpp.Presence()
         p['to'] = self.jid
         p['type'] = 'unsubscribe'
@@ -495,6 +530,7 @@ class RosterItem(object):
         p.send()
 
     def _unsubscribed(self):
+        """Handle acknowledging an unsubscribe request."""
         p = self.xmpp.Presence()
         p['to'] = self.jid
         p['type'] = 'unsubscribed'

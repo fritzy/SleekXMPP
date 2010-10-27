@@ -87,6 +87,8 @@ class XMLStream(object):
         send_queue    -- A queue of stanzas to be sent on the stream.
         socket        -- The connection to the server.
         ssl_support   -- Indicates if a SSL library is available for use.
+        ssl_version   -- The version of the SSL protocol to use.
+                         Defaults to ssl.PROTOCOL_TLSv1.
         state         -- A state machine for managing the stream's
                          connection state.
         stream_footer -- The start tag and any attributes for the stream's
@@ -155,6 +157,7 @@ class XMLStream(object):
         self.sendXML = self.send_xml
 
         self.ssl_support = SSL_SUPPORT
+        self.ssl_version = ssl.PROTOCOL_TLSv1
 
         self.state = StateMachine(('disconnected', 'connected'))
         self.state._set_state('disconnected')
@@ -196,8 +199,11 @@ class XMLStream(object):
         self.auto_reconnect = True
         self.is_client = False
 
-        signal.signal(signal.SIGHUP, self._handle_kill)
-        signal.signal(signal.SIGTERM, self._handle_kill) # used in Windows
+        if hasattr(signal, 'SIGHUP'):
+            signal.signal(signal.SIGHUP, self._handle_kill)
+        if hasattr(signal, 'SIGTERM'):
+            # Used in Windows
+            signal.signal(signal.SIGTERM, self._handle_kill)
 
     def _handle_kill(self, signum, frame):
         """
@@ -370,7 +376,7 @@ class XMLStream(object):
         if self.ssl_support:
             logging.info("Negotiating TLS")
             ssl_socket = ssl.wrap_socket(self.socket,
-                                         ssl_version=ssl.PROTOCOL_TLSv1,
+                                         ssl_version=self.ssl_version,
                                          do_handshake_on_connect=False)
             if hasattr(self.socket, 'socket'):
                 # We are using a testing socket, so preserve the top
@@ -788,7 +794,7 @@ class XMLStream(object):
 
     def _threaded_event_wrapper(self, func, args):
         """
-        Capture exceptions for event handlers that run 
+        Capture exceptions for event handlers that run
         in individual threads.
 
         Arguments:

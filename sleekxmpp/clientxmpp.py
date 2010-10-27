@@ -63,7 +63,7 @@ class ClientXMPP(BaseXMPP):
                                 when calling register_plugins.
             escape_quotes    -- Deprecated.
         """
-        BaseXMPP.__init__(self, 'jabber:client')
+        BaseXMPP.__init__(self, jid, 'jabber:client')
 
         # To comply with PEP8, method names now use underscores.
         # Deprecated method names are re-mapped for backwards compatibility.
@@ -72,7 +72,6 @@ class ClientXMPP(BaseXMPP):
         self.getRoster = self.get_roster
         self.registerFeature = self.register_feature
 
-        self.set_jid(jid)
         self.password = password
         self.escape_quotes = escape_quotes
         self.plugin_config = plugin_config
@@ -418,13 +417,13 @@ class ClientXMPP(BaseXMPP):
         """
         if iq['type'] == 'set' or (iq['type'] == 'result' and request):
             for jid in iq['roster']['items']:
-                if not jid in self.roster:
-                    self.roster[jid] = {'groups': [],
-                                        'name': '',
-                                        'subscription': 'none',
-                                        'presence': {},
-                                        'in_roster': True}
-                self.roster[jid].update(iq['roster']['items'][jid])
+                item = iq['roster']['items'][jid]
+                roster = self.rosters[iq['to'].bare]
+                roster[jid]['name'] = item['name']
+                roster[jid]['groups'] = item['groups']
+                roster[jid]['from'] = item['subscription'] in ['from', 'both']
+                roster[jid]['to'] = item['subscription'] in ['to', 'both']
+                roster[jid]['pending_out'] = (item['ask'] == 'subscribe')
 
         self.event("roster_update", iq)
         if iq['type'] == 'set':

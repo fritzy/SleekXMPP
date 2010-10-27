@@ -30,7 +30,9 @@ class TestStreamPresence(SleekTest):
         self.xmpp.add_event_handler('presence_unavailable', unavailable)
 
         self.stream_recv("""
-          <presence type="unavailable" from="otheruser@localhost" />
+          <presence from="otheruser@localhost"
+                    to="tester@localhost"
+                    type="unavailable" />
         """)
 
         # Give event queue time to process.
@@ -68,12 +70,14 @@ class TestStreamPresence(SleekTest):
 
         # Contact comes online.
         self.stream_recv("""
-          <presence from="otheruser@localhost/foobar" />
+          <presence from="otheruser@localhost/foobar"
+                    to="tester@localhost" />
         """)
 
         # Contact goes offline, should trigger got_offline.
         self.stream_recv("""
           <presence from="otheruser@localhost/foobar"
+                    to="tester@localhost"
                     type="unavailable" />
         """)
 
@@ -99,7 +103,8 @@ class TestStreamPresence(SleekTest):
         self.xmpp.add_event_handler('got_online', got_online)
 
         self.stream_recv("""
-          <presence from="user@localhost" />
+          <presence from="user@localhost"
+                    to="tester@localhost" />
         """)
 
         # Give event queue time to process.
@@ -136,15 +141,23 @@ class TestStreamPresence(SleekTest):
         self.xmpp.auto_subscribe = True
 
         self.stream_recv("""
-          <presence from="user@localhost" type="subscribe" />
+          <presence from="user@localhost"
+                    to="tester@localhost"
+                    type="subscribe" />
         """)
 
         self.stream_send_presence("""
-          <presence to="user@localhost" type="subscribed" />
+          <presence to="user@localhost"
+                    type="subscribed" />
         """)
 
         self.stream_send_presence("""
-          <presence to="user@localhost" type="subscribe" />
+          <presence to="user@localhost" />
+        """)
+
+        self.stream_send_presence("""
+          <presence to="user@localhost"
+                    type="subscribe" />
         """)
 
         expected = set(('presence_subscribe', 'changed_subscription'))
@@ -170,14 +183,17 @@ class TestStreamPresence(SleekTest):
                                     presence_subscribe)
 
         # With this setting we should reject all subscriptions.
-        self.xmpp.auto_authorize = False
+        self.xmpp.rosters['tester@localhost'].auto_authorize = False
 
         self.stream_recv("""
-          <presence from="user@localhost" type="subscribe" />
+          <presence from="user@localhost"
+                    to="tester@localhost"
+                    type="subscribe" />
         """)
 
         self.stream_send_presence("""
-          <presence to="user@localhost" type="unsubscribed" />
+          <presence to="user@localhost"
+                    type="unsubscribed" />
         """)
 
         expected = set(('presence_subscribe', 'changed_subscription'))

@@ -199,11 +199,15 @@ class XMLStream(object):
         self.auto_reconnect = True
         self.is_client = False
 
-        if hasattr(signal, 'SIGHUP'):
-            signal.signal(signal.SIGHUP, self._handle_kill)
-        if hasattr(signal, 'SIGTERM'):
-            # Used in Windows
-            signal.signal(signal.SIGTERM, self._handle_kill)
+        try:
+            if hasattr(signal, 'SIGHUP'):
+                signal.signal(signal.SIGHUP, self._handle_kill)
+            if hasattr(signal, 'SIGTERM'):
+                # Used in Windows
+                signal.signal(signal.SIGTERM, self._handle_kill)
+        except:
+            logging.debug("Can not set interrupt signal handlers. " + \
+                          "SleekXMPP is not running from a main thread.")
 
     def _handle_kill(self, signum, frame):
         """

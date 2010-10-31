@@ -379,6 +379,7 @@ class XMLStream(object):
         """
         if self.ssl_support:
             logging.info("Negotiating TLS")
+            logging.info("Using SSL version: %s" % str(self.ssl_version))
             ssl_socket = ssl.wrap_socket(self.socket,
                                          ssl_version=self.ssl_version,
                                          do_handshake_on_connect=False)
@@ -526,6 +527,17 @@ class XMLStream(object):
 
         self.__event_handlers[name] = filter(filter_pointers,
                                              self.__event_handlers[name])
+
+    def event_handled(self, name):
+        """
+        Indicates if an event has any associated handlers.
+
+        Returns the number of registered handlers.
+
+        Arguments:
+            name -- The name of the event to check.
+        """
+        return len(self.__event_handlers.get(name, []))
 
     def event(self, name, data={}, direct=False):
         """

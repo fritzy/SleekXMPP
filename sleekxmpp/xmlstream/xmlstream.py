@@ -535,13 +535,22 @@ class XMLStream(object):
             name     -- The name of the event to trigger.
             data     -- Data that will be passed to each event handler.
                         Defaults to an empty dictionary.
-            direct   -- Runs the event directly if True.
+            direct   -- Runs the event directly if True, skipping the 
+                        event queue. All event handlers will run in the
+                        same thread.
         """
         for handler in self.__event_handlers.get(name, []):
             if direct:
-                handler[0](copy.copy(data))
+                try:
+                    handler[0](copy.copy(data))
+                except Exception as e:
+                    error_msg = 'Error processing event handler: %s'
+                    logging.exception(error_msg % str(handler[0]))
+                    if hasattr(data, 'exception'):
+                        data.exception(e)
             else:
                 self.event_queue.put(('event', handler, copy.copy(data)))
+
             if handler[2]:
                 # If the handler is disposable, we will go ahead and
                 # remove it now instead of waiting for it to be
@@ -807,11 +816,6 @@ class XMLStream(object):
         """
         try:
             func(*args)
-        except Exception as e:
-            error_msg = 'Error processing event handler: %s'
-            logging.exception(error_msg % str(func))
-            if hasattr(args[0], 'exception'):
-                args[0].exception(e)
 
     def _event_runner(self):
         """

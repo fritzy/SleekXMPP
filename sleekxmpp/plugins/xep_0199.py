@@ -16,14 +16,14 @@ class xep_0199(base.base_plugin):
 	def plugin_init(self):
 		self.description = "XMPP Ping"
 		self.xep = "0199"
-		self.xmpp.add_handler("<iq type='get' xmlns='%s'><ping xmlns='http://www.xmpp.org/extensions/xep-0199.html#ns'/></iq>" % self.xmpp.default_ns, self.handler_ping, name='XMPP Ping')
+        self.xmpp.add_handler("<iq type='get' xmlns='%s'><ping xmlns='urn:xmpp:ping'/></iq>" % self.xmpp.default_ns, self.handler_ping, name='XMPP Ping')
 		self.running = False
 		#if self.config.get('keepalive', True):
 			#self.xmpp.add_event_handler('session_start', self.handler_pingserver, threaded=True)
 	
 	def post_init(self):
 		base.base_plugin.post_init(self)
-		self.xmpp.plugin['xep_0030'].add_feature('http://www.xmpp.org/extensions/xep-0199.html#ns')
+        self.xmpp.plugin['xep_0030'].add_feature('urn:xmpp:ping')
 	
 	def handler_pingserver(self, xml):
 		if not self.running:
@@ -47,7 +47,7 @@ class xep_0199(base.base_plugin):
 		iq = self.xmpp.makeIq(id)
 		iq.attrib['type'] = 'get'
 		iq.attrib['to'] = jid
-		ping = ET.Element('{http://www.xmpp.org/extensions/xep-0199.html#ns}ping')
+        ping = ET.Element('{urn:xmpp:ping}ping')
 		iq.append(ping)
 		startTime = time.clock()
 		#pingresult = self.xmpp.send(iq, self.xmpp.makeIq(id), timeout)

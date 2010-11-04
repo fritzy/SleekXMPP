@@ -828,6 +828,8 @@ class XMLStream(object):
         """
         try:
             func(*args)
+        except:
+            pass
 
     def _event_runner(self):
         """

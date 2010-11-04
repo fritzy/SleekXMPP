@@ -828,8 +828,11 @@ class XMLStream(object):
         """
         try:
             func(*args)
-        except:
-            pass
+        except Exception as e:
+            error_msg = 'Error processing event handler: %s'
+            logging.exception(error_msg % str(func))
+            if hasattr(args[0], 'exception'):
+                args[0].exception(e)
 
     def _event_runner(self):
         """

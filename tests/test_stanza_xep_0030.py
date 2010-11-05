@@ -14,7 +14,7 @@ class TestDisco(SleekTest):
         iq['id'] = "0"
         iq['disco_info']['node'] = ''
 
-        self.check_iq(iq, """
+        self.check(iq, """
           <iq id="0">
             <query xmlns="http://jabber.org/protocol/disco#info" />
           </iq>
@@ -26,7 +26,7 @@ class TestDisco(SleekTest):
         iq['id'] = "0"
         iq['disco_info']['node'] = 'foo'
 
-        self.check_iq(iq, """
+        self.check(iq, """
           <iq id="0">
             <query xmlns="http://jabber.org/protocol/disco#info" node="foo" />
           </iq>
@@ -38,7 +38,7 @@ class TestDisco(SleekTest):
         iq['id'] = "0"
         iq['disco_items']['node'] = ''
 
-        self.check_iq(iq, """
+        self.check(iq, """
           <iq id="0">
             <query xmlns="http://jabber.org/protocol/disco#items" />
           </iq>
@@ -50,7 +50,7 @@ class TestDisco(SleekTest):
         iq['id'] = "0"
         iq['disco_items']['node'] = 'foo'
 
-        self.check_iq(iq, """
+        self.check(iq, """
           <iq id="0">
             <query xmlns="http://jabber.org/protocol/disco#items" node="foo" />
           </iq>
@@ -63,7 +63,7 @@ class TestDisco(SleekTest):
         iq['disco_info']['node'] = 'foo'
         iq['disco_info'].addIdentity('conference', 'text', 'Chatroom')
 
-        self.check_iq(iq, """
+        self.check(iq, """
           <iq id="0">
             <query xmlns="http://jabber.org/protocol/disco#info" node="foo">
               <identity category="conference" type="text" name="Chatroom" />
@@ -79,7 +79,7 @@ class TestDisco(SleekTest):
         iq['disco_info'].addFeature('foo')
         iq['disco_info'].addFeature('bar')
 
-        self.check_iq(iq, """
+        self.check(iq, """
           <iq id="0">
             <query xmlns="http://jabber.org/protocol/disco#info" node="foo">
               <feature var="foo" />
@@ -97,7 +97,7 @@ class TestDisco(SleekTest):
         iq['disco_items'].addItem('user@localhost', 'foo')
         iq['disco_items'].addItem('user@localhost', 'bar', 'Testing')
 
-        self.check_iq(iq, """
+        self.check(iq, """
           <iq id="0">
             <query xmlns="http://jabber.org/protocol/disco#items" node="foo">
               <item jid="user@localhost" />

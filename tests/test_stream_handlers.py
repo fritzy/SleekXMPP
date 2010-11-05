@@ -30,11 +30,11 @@ class TestHandlers(SleekTest):
 
         self.xmpp.registerHandler(callback)
 
-        self.stream_recv("""<tester xmlns="test" />""")
+        self.recv("""<tester xmlns="test" />""")
 
         msg = self.Message()
         msg['body'] = 'Success!'
-        self.stream_send_message(msg)
+        self.send(msg)
 
     def testWaiter(self):
         """Test using stream waiter handler."""
@@ -55,7 +55,7 @@ class TestHandlers(SleekTest):
         self.xmpp.add_event_handler('message', waiter_handler, threaded=True)
 
         # Send message to trigger waiter_handler
-        self.stream_recv("""
+        self.recv("""
           <message>
             <body>Testing</body>
           </message>
@@ -66,10 +66,10 @@ class TestHandlers(SleekTest):
         iq['id'] = 'test'
         iq['type'] = 'set'
         iq['query'] = 'test'
-        self.stream_send_iq(iq)
+        self.send(iq)
 
         # Send the reply Iq
-        self.stream_recv("""
+        self.recv("""
           <iq id="test" type="result">
             <query xmlns="test" />
           </iq>
@@ -78,7 +78,7 @@ class TestHandlers(SleekTest):
         # Check that waiter_handler received the reply
         msg = self.Message()
         msg['body'] = 'Successful: test'
-        self.stream_send_message(msg)
+        self.send(msg)
 
     def testWaiterTimeout(self):
         """Test that waiter handler is removed after timeout."""
@@ -93,14 +93,14 @@ class TestHandlers(SleekTest):
         self.xmpp.add_event_handler('message', waiter_handler, threaded=True)
 
         # Start test by triggerig waiter_handler
-        self.stream_recv("""<message><body>Start Test</body></message>""")
+        self.recv("""<message><body>Start Test</body></message>""")
 
         # Check that Iq was sent to trigger start of timeout period
         iq = self.Iq()
         iq['id'] = 'test2'
         iq['type'] = 'set'
         iq['query'] = 'test2'
-        self.stream_send_iq(iq)
+        self.send(iq)
 
         # Check that the waiter is no longer registered
         waiter_exists = self.xmpp.removeHandler('IqWait_test2')

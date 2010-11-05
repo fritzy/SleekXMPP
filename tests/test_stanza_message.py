@@ -33,7 +33,7 @@ class TestMessageStanzas(SleekTest):
         p = ET.Element('{http://www.w3.org/1999/xhtml}p')
         p.text = "This is the htmlim message"
         msg['html']['body'] = p
-        self.check_message(msg, """
+        self.check(msg, """
           <message to="fritzy@netflint.net/sleekxmpp" type="chat">
             <body>this is the plaintext message</body>
             <html xmlns="http://jabber.org/protocol/xhtml-im">
@@ -47,7 +47,7 @@ class TestMessageStanzas(SleekTest):
         "Test message/nick/nick stanza."
         msg = self.Message()
         msg['nick']['nick'] = 'A nickname!'
-        self.check_message(msg, """
+        self.check(msg, """
           <message>
             <nick xmlns="http://jabber.org/nick/nick">A nickname!</nick>
           </message>

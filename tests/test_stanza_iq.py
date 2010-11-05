@@ -11,7 +11,7 @@ class TestIqStanzas(SleekTest):
     def testSetup(self):
         """Test initializing default Iq values."""
         iq = self.Iq()
-        self.check_iq(iq, """
+        self.check(iq, """
           <iq id="0" />
         """)
 
@@ -19,7 +19,7 @@ class TestIqStanzas(SleekTest):
         """Test setting Iq stanza payload."""
         iq = self.Iq()
         iq.setPayload(ET.Element('{test}tester'))
-        self.check_iq(iq, """
+        self.check(iq, """
           <iq id="0">
             <tester xmlns="test" />
           </iq>
@@ -29,7 +29,7 @@ class TestIqStanzas(SleekTest):
     def testUnhandled(self):
         """Test behavior for Iq.unhandled."""
         self.stream_start()
-        self.stream_recv("""
+        self.recv("""
           <iq id="test" type="get">
             <query xmlns="test" />
            </iq>
@@ -40,7 +40,7 @@ class TestIqStanzas(SleekTest):
         iq['error']['condition'] = 'feature-not-implemented'
         iq['error']['text'] = 'No handlers registered for this request.'
 
-        self.stream_send_iq(iq, """
+        self.send(iq, """
           <iq id="test" type="error">
             <error type="cancel">
               <feature-not-implemented xmlns="urn:ietf:params:xml:ns:xmpp-stanzas" />
@@ -56,14 +56,14 @@ class TestIqStanzas(SleekTest):
         iq = self.Iq()
 
         iq['query'] = 'query_ns'
-        self.check_iq(iq, """
+        self.check(iq, """
           <iq id="0">
             <query xmlns="query_ns" />
           </iq>
         """)
 
         iq['query'] = 'query_ns2'
-        self.check_iq(iq, """
+        self.check(iq, """
           <iq id="0">
             <query xmlns="query_ns2" />
           </iq>
@@ -72,7 +72,7 @@ class TestIqStanzas(SleekTest):
         self.failUnless(iq['query'] == 'query_ns2', "Query namespace doesn't match")
 
         del iq['query']
-        self.check_iq(iq, """
+        self.check(iq, """
           <iq id="0" />
         """)
 
@@ -83,7 +83,7 @@ class TestIqStanzas(SleekTest):
         iq['type'] = 'get'
         iq.reply()
 
-        self.check_iq(iq, """
+        self.check(iq, """
           <iq id="0" type="result" />
         """)
 

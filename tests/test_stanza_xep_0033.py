@@ -11,7 +11,7 @@ class TestAddresses(SleekTest):
         """Testing adding extended stanza address."""
         msg = self.Message()
         msg['addresses'].addAddress(atype='to', jid='to@header1.org')
-        self.check_message(msg, """
+        self.check(msg, """
         <message>
           <addresses xmlns="http://jabber.org/protocol/address">
             <address jid="to@header1.org" type="to" />
@@ -23,7 +23,7 @@ class TestAddresses(SleekTest):
         msg['addresses'].addAddress(atype='replyto',
                                     jid='replyto@header1.org',
                                     desc='Reply address')
-        self.check_message(msg, """
+        self.check(msg, """
           <message>
             <addresses xmlns="http://jabber.org/protocol/address">
               <address jid="replyto@header1.org" type="replyto" desc="Reply address" />
@@ -53,14 +53,14 @@ class TestAddresses(SleekTest):
              'jid':'cc@header2.org'},
             {'type':'bcc',
              'jid':'bcc@header2.org'}])
-        self.check_message(msg, xmlstring)
+        self.check(msg, xmlstring)
 
         msg = self.Message()
         msg['addresses']['replyto'] = [{'jid':'replyto@header1.org',
                                                 'desc':'Reply address'}]
         msg['addresses']['cc'] = [{'jid':'cc@header2.org'}]
         msg['addresses']['bcc'] = [{'jid':'bcc@header2.org'}]
-        self.check_message(msg, xmlstring)
+        self.check(msg, xmlstring)
 
     def testAddURI(self):
         """Testing adding URI attribute to extended stanza address."""
@@ -69,7 +69,7 @@ class TestAddresses(SleekTest):
         addr = msg['addresses'].addAddress(atype='to',
                                            jid='to@header1.org',
                                            node='foo')
-        self.check_message(msg, """
+        self.check(msg, """
           <message>
             <addresses xmlns="http://jabber.org/protocol/address">
               <address node="foo" jid="to@header1.org" type="to" />
@@ -78,7 +78,7 @@ class TestAddresses(SleekTest):
         """)
 
         addr['uri'] = 'mailto:to@header2.org'
-        self.check_message(msg, """
+        self.check(msg, """
           <message>
             <addresses xmlns="http://jabber.org/protocol/address">
               <address type="to" uri="mailto:to@header2.org" />
@@ -99,13 +99,13 @@ class TestAddresses(SleekTest):
 
         msg = self.Message()
         addr = msg['addresses'].addAddress(jid='to@header1.org', atype='to')
-        self.check_message(msg, xmlstring % '')
+        self.check(msg, xmlstring % '')
 
         addr['delivered'] = True
-        self.check_message(msg, xmlstring % 'delivered="true"')
+        self.check(msg, xmlstring % 'delivered="true"')
 
         addr['delivered'] = False
-        self.check_message(msg, xmlstring % '')
+        self.check(msg, xmlstring % '')
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestAddresses)

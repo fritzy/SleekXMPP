@@ -19,13 +19,13 @@ class TestStreamTester(SleekTest):
 
         self.xmpp.add_event_handler('message', echo)
 
-        self.stream_recv("""
+        self.recv("""
           <message to="tester@localhost" from="user@localhost">
             <body>Hi!</body>
           </message>
         """)
 
-        self.stream_send_message("""
+        self.send("""
           <message to="user@localhost">
             <body>Thanks for sending: Hi!</body>
           </message>
@@ -40,13 +40,13 @@ class TestStreamTester(SleekTest):
 
         self.xmpp.add_event_handler('message', echo)
 
-        self.stream_recv("""
+        self.recv("""
           <message to="tester.localhost" from="user@localhost">
             <body>Hi!</body>
           </message>
         """)
 
-        self.stream_send_message("""
+        self.send("""
           <message to="user@localhost" from="tester.localhost">
             <body>Thanks for sending: Hi!</body>
           </message>
@@ -55,6 +55,6 @@ class TestStreamTester(SleekTest):
     def testSendStreamHeader(self):
         """Test that we can check a sent stream header."""
         self.stream_start(mode='client', skip=False)
-        self.stream_send_header(sto='localhost')
+        self.send_header(sto='localhost')
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestStreamTester)

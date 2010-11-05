@@ -772,6 +772,28 @@ class XMLStream(object):
                         root.clear()
         logging.debug("Ending read XML loop")
 
+    def _build_stanza(self, xml, default_ns=None):
+        """
+        Create a stanza object from a given XML object.
+
+        If a specialized stanza type is not found for the XML, then
+        a generic StanzaBase stanza will be returned.
+
+        Arguments:
+            xml        -- The XML object to convert into a stanza object.
+            default_ns -- Optional default namespace to use instead of the 
+                          stream's current default namespace.
+        """
+        if default_ns is None:
+            default_ns = self.default_ns
+        stanza_type = StanzaBase
+        for stanza_class in self.__root_stanza:
+            if xml.tag == "{%s}%s" % (default_ns, stanza_class.name):
+                stanza_type = stanza_class
+                break
+        stanza = stanza_type(self, xml)
+        return stanza
+
     def __spawn_event(self, xml):
         """
         Analyze incoming XML stanzas and convert them into stanza

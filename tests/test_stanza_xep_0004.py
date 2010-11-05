@@ -14,7 +14,7 @@ class TestDataForms(SleekTest):
         msg = self.Message()
         msg['form']['instructions'] = "Instructions\nSecond batch"
 
-        self.check_message(msg, """
+        self.check(msg, """
           <message>
             <x xmlns="jabber:x:data" type="form">
               <instructions>Instructions</instructions>
@@ -35,7 +35,7 @@ class TestDataForms(SleekTest):
                       required=True,
                       value='Some text!')
 
-        self.check_message(msg, """
+        self.check(msg, """
           <message>
             <x xmlns="jabber:x:data" type="form">
               <field var="f1" type="text-single" label="Text">
@@ -62,7 +62,7 @@ class TestDataForms(SleekTest):
                                                'value': 'cool'},
                                               {'label': 'Urgh!',
                                                'value': 'urgh'}]})]
-        self.check_message(msg, """
+        self.check(msg, """
           <message>
             <x xmlns="jabber:x:data" type="form">
               <field var="f1" type="text-single" label="Username">
@@ -99,7 +99,7 @@ class TestDataForms(SleekTest):
         form.setValues({'foo': 'Foo!',
                         'bar': ['a', 'b']})
 
-        self.check_message(msg, """
+        self.check(msg, """
           <message>
             <x xmlns="jabber:x:data" type="form">
               <field var="foo" type="text-single">

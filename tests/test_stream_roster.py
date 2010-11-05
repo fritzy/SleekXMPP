@@ -20,12 +20,12 @@ class TestStreamRoster(SleekTest):
         t = threading.Thread(name='get_roster', target=self.xmpp.get_roster)
         t.start()
 
-        self.stream_send_iq("""
+        self.send("""
           <iq type="get" id="1">
             <query xmlns="jabber:iq:roster" />
           </iq>
         """)
-        self.stream_recv("""
+        self.recv("""
           <iq type="result" id="1">
             <query xmlns="jabber:iq:roster">
               <item jid="user@localhost"
@@ -54,7 +54,7 @@ class TestStreamRoster(SleekTest):
         self.stream_start(mode='client')
         self.failUnless(self.xmpp.roster == {}, "Initial roster not empty.")
 
-        self.stream_recv("""
+        self.recv("""
           <iq type="set" id="1">
             <query xmlns="jabber:iq:roster">
               <item jid="user@localhost"
@@ -66,7 +66,7 @@ class TestStreamRoster(SleekTest):
             </query>
           </iq>
         """)
-        self.stream_send_iq("""
+        self.send("""
           <iq type="result" id="1">
             <query xmlns="jabber:iq:roster" />
           </iq>

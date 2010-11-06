@@ -16,6 +16,9 @@ from sleekxmpp.xmlstream import JID
 from sleekxmpp.xmlstream.tostring import tostring
 
 
+log = logging.getLogger(__name__)
+
+
 # Used to check if an argument is an XML object.
 XML_TYPE = type(ET.Element('xml'))
 
@@ -1140,7 +1143,7 @@ class StanzaBase(ElementBase):
 
         Meant to be overridden.
         """
-        logging.exception('Error handling {%s}%s stanza' % (self.namespace,
+        log.exception('Error handling {%s}%s stanza' % (self.namespace,
                                                             self.name))
 
     def send(self):

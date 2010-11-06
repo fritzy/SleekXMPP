@@ -32,6 +32,9 @@ except:
     SRV_SUPPORT = False
 
 
+log = logging.getLogger(__name__)
+
+
 class ClientXMPP(BaseXMPP):
 
     """
@@ -133,7 +136,7 @@ class ClientXMPP(BaseXMPP):
 
     def _session_timeout_check(self):
         if not self.session_started_event.isSet():
-            logging.debug("Session start has taken more than 15 seconds")
+            log.debug("Session start has taken more than 15 seconds")
             self.disconnect(reconnect=self.auto_reconnect)
 
     def connect(self, address=tuple()):
@@ -150,19 +153,19 @@ class ClientXMPP(BaseXMPP):
         self.session_started_event.clear()
         if not address or len(address) < 2:
             if not self.srv_support:
-                logging.debug("Did not supply (address, port) to connect" + \
+                log.debug("Did not supply (address, port) to connect" + \
                               " to and no SRV support is installed" + \
                               " (http://www.dnspython.org)." + \
                               " Continuing to attempt connection, using" + \
                               " server hostname from JID.")
             else:
-                logging.debug("Since no address is supplied," + \
+                log.debug("Since no address is supplied," + \
                               "attempting SRV lookup.")
                 try:
                     xmpp_srv = "_xmpp-client._tcp.%s" % self.server
                     answers = dns.resolver.query(xmpp_srv, dns.rdatatype.SRV)
                 except dns.resolver.NXDOMAIN:
-                    logging.debug("No appropriate SRV record found." + \
+                    log.debug("No appropriate SRV record found." + \
                                   " Using JID server name.")
                 else:
                     # Pick a random server, weighted by priority.
@@ -276,7 +279,7 @@ class ClientXMPP(BaseXMPP):
             self.send_xml(xml)
             return True
         else:
-            logging.warning("The module tlslite is required to log in" +\
+            log.warning("The module tlslite is required to log in" +\
                             " to some servers, and has not been found.")
             return False
 
@@ -286,7 +289,7 @@ class ClientXMPP(BaseXMPP):
 
         Restarts the stream.
         """
-        logging.debug("Starting TLS")
+        log.debug("Starting TLS")
         if self.start_tls():
             raise RestartStream()
 
@@ -300,7 +303,7 @@ class ClientXMPP(BaseXMPP):
         if '{urn:ietf:params:xml:ns:xmpp-tls}starttls' in self.features:
             return False
 
-        logging.debug("Starting SASL Auth")
+        log.debug("Starting SASL Auth")
         sasl_ns = 'urn:ietf:params:xml:ns:xmpp-sasl'
         self.add_handler("<success xmlns='%s' />" % sasl_ns,
                          self._handle_auth_success,
@@ -334,7 +337,7 @@ class ClientXMPP(BaseXMPP):
                     sasl_ns,
                     'ANONYMOUS'))
             else:
-                logging.error("No appropriate login method.")
+                log.error("No appropriate login method.")
                 self.disconnect()
         return True
 
@@ -356,7 +359,7 @@ class ClientXMPP(BaseXMPP):
         Arguments:
             xml -- The SASL authentication failure element.
         """
-        logging.info("Authentication failed.")
+        log.info("Authentication failed.")
         self.event("failed_auth", direct=True)
         self.disconnect()
 
@@ -367,7 +370,7 @@ class ClientXMPP(BaseXMPP):
         Arguments:
             xml -- The bind feature element.
         """
-        logging.debug("Requesting resource: %s" % self.boundjid.resource)
+        log.debug("Requesting resource: %s" % self.boundjid.resource)
         xml.clear()
         iq = self.Iq(stype='set')
         if self.boundjid.resource:
@@ -381,10 +384,10 @@ class ClientXMPP(BaseXMPP):
         self.set_jid(response.xml.find('{%s}bind/{%s}jid' % (bind_ns,
                                                              bind_ns)).text)
         self.bound = True
-        logging.info("Node set to: %s" % self.boundjid.fulljid)
+        log.info("Node set to: %s" % self.boundjid.fulljid)
         session_ns = 'urn:ietf:params:xml:ns:xmpp-session'
         if "{%s}session" % session_ns not in self.features or self.bindfail:
-            logging.debug("Established Session")
+            log.debug("Established Session")
             self.sessionstarted = True
             self.session_started_event.set()
             self.event("session_start")
@@ -399,7 +402,7 @@ class ClientXMPP(BaseXMPP):
         if self.authenticated and self.bound:
             iq = self.makeIqSet(xml)
             response = iq.send()
-            logging.debug("Established Session")
+            log.debug("Established Session")
             self.sessionstarted = True
             self.session_started_event.set()
             self.event("session_start")

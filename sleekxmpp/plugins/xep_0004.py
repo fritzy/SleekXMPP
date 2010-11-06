@@ -16,6 +16,9 @@ from .. stanza.message import Message
 import types
 
 
+log = logging.getLogger(__name__)
+
+
 class Form(ElementBase):
 	namespace = 'jabber:x:data'
 	name = 'x'
@@ -33,7 +36,7 @@ class Form(ElementBase):
 		if title is not None:
 			self['title'] = title
 		self.field = FieldAccessor(self)
-	
+
 	def setup(self, xml=None):
 		if ElementBase.setup(self, xml): #if we had to generate xml
 			self['type'] = 'form'
@@ -55,11 +58,11 @@ class Form(ElementBase):
 		return field
 
 	def getXML(self, type='submit'):
-		logging.warning("Form.getXML() is deprecated API compatibility with plugins/old_0004.py")
+		log.warning("Form.getXML() is deprecated API compatibility with plugins/old_0004.py")
 		return self.xml
-	
+
 	def fromXML(self, xml):
-		logging.warning("Form.fromXML() is deprecated API compatibility with plugins/old_0004.py")
+		log.warning("Form.fromXML() is deprecated API compatibility with plugins/old_0004.py")
 		n = Form(xml=xml)
 		return n
 
@@ -113,10 +116,10 @@ class Form(ElementBase):
 		reportedXML = self.xml.find('{%s}reported' % self.namespace)
 		if reportedXML is not None:
 			self.xml.remove(reportedXML)
-	
+
 	def getFields(self, use_dict=False):
 		fields = {} if use_dict else []
-		fieldsXML = self.xml.findall('{%s}field' % FormField.namespace)    
+		fieldsXML = self.xml.findall('{%s}field' % FormField.namespace)
 		for fieldXML in fieldsXML:
 			field = FormField(xml=fieldXML)
 			if use_dict:
@@ -144,7 +147,7 @@ class Form(ElementBase):
 
 	def getReported(self):
 		fields = {}
-		fieldsXML = self.xml.findall('{%s}reported/{%s}field' % (self.namespace, 
+		fieldsXML = self.xml.findall('{%s}reported/{%s}field' % (self.namespace,
 									 FormField.namespace))
 		for fieldXML in fieldsXML:
 			field = FormField(xml=fieldXML)
@@ -197,7 +200,7 @@ class Form(ElementBase):
 		fields = self.getFields(use_dict=True)
 		for field in values:
 			fields[field]['value'] = values[field]
-	
+
 	def merge(self, other):
 		new = copy.copy(self)
 		if type(other) == types.DictType:
@@ -212,7 +215,7 @@ class Form(ElementBase):
 class FieldAccessor(object):
 	def __init__(self, form):
 		self.form = form
-	
+
 	def __getitem__(self, key):
 		return self.form.getFields(use_dict=True)[key]
 
@@ -366,21 +369,21 @@ class xep_0004(base.base_plugin):
 
 		self.xmpp.registerHandler(
 			Callback('Data Form',
-				 MatchXPath('{%s}message/{%s}x' % (self.xmpp.default_ns, 
+				 MatchXPath('{%s}message/{%s}x' % (self.xmpp.default_ns,
 								   Form.namespace)),
 				 self.handle_form))
 
 		registerStanzaPlugin(FormField, FieldOption)
 		registerStanzaPlugin(Form, FormField)
 		registerStanzaPlugin(Message, Form)
-	
+
 	def makeForm(self, ftype='form', title='', instructions=''):
 		f = Form()
 		f['type'] = ftype
 		f['title'] = title
 		f['instructions'] = instructions
 		return f
-	
+
 	def post_init(self):
 		base.base_plugin.post_init(self)
 		self.xmpp.plugin['xep_0030'].add_feature('jabber:x:data')

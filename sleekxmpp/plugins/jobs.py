@@ -3,15 +3,19 @@ import logging
 from xml.etree import cElementTree as ET
 import types
 
+
+log = logging.getLogger(__name__)
+
+
 class jobs(base.base_plugin):
 	def plugin_init(self):
 		self.xep = 'pubsubjob'
 		self.description = "Job distribution over Pubsub"
-	
+
 	def post_init(self):
 		pass
 		#TODO add event
-	
+
 	def createJobNode(self, host, jid, node, config=None):
 		pass
 
@@ -40,7 +44,7 @@ class jobs(base.base_plugin):
 		iq['psstate']['payload'] = state
 		result = iq.send()
 		if result is None or type(result) == types.BooleanType or result['type'] != 'result':
-			logging.error("Unable to change %s:%s to %s" % (node, jobid, state))
+			log.error("Unable to change %s:%s to %s" % (node, jobid, state))
 			return False
 		return True
 

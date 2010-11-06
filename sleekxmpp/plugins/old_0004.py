@@ -2,42 +2,46 @@
     SleekXMPP: The Sleek XMPP Library
     Copyright (C) 2010 Nathanael C. Fritz
     This file is part of SleekXMPP.
-    
+
     See the file LICENSE for copying permission.
 """
 from . import base
-import logging
+import log
 from xml.etree import cElementTree as ET
 import copy
 import logging
 #TODO support item groups and results
 
+
+log = logging.getLogger(__name__)
+
+
 class old_0004(base.base_plugin):
-	
+
 	def plugin_init(self):
 		self.xep = '0004'
 		self.description = '*Deprecated Data Forms'
 		self.xmpp.add_handler("<message><x xmlns='jabber:x:data' /></message>", self.handler_message_xform, name='Old Message Form')
-	
+
 	def post_init(self):
 		base.base_plugin.post_init(self)
 		self.xmpp.plugin['xep_0030'].add_feature('jabber:x:data')
-		logging.warning("This implementation of XEP-0004 is deprecated.")
-	
+		log.warning("This implementation of XEP-0004 is deprecated.")
+
 	def handler_message_xform(self, xml):
 		object = self.handle_form(xml)
 		self.xmpp.event("message_form", object)
-	
+
 	def handler_presence_xform(self, xml):
 		object = self.handle_form(xml)
 		self.xmpp.event("presence_form", object)
-	
+
 	def handle_form(self, xml):
 		xmlform = xml.find('{jabber:x:data}x')
 		object = self.buildForm(xmlform)
 		self.xmpp.event("message_xform", object)
 		return object
-	
+
 	def buildForm(self, xml):
 		form = Form(ftype=xml.attrib['type'])
 		form.fromXML(xml)
@@ -51,12 +55,12 @@ class FieldContainer(object):
 		self.fields = []
 		self.field = {}
 		self.stanza = stanza
-	
+
 	def addField(self, var, ftype='text-single', label='', desc='', required=False, value=None):
 		self.field[var] = FormField(var, ftype, label, desc, required, value)
 		self.fields.append(self.field[var])
 		return self.field[var]
-	
+
 	def buildField(self, xml):
 		self.field[xml.get('var', '__unnamed__')] = FormField(xml.get('var', '__unnamed__'), xml.get('type', 'text-single'))
 		self.fields.append(self.field[xml.get('var', '__unnamed__')])
@@ -66,13 +70,13 @@ class FieldContainer(object):
 		self.stanza = xml.tag
 		for field in xml.findall('{jabber:x:data}field'):
 			self.buildField(field)
-	
+
 	def getXML(self, ftype):
 		container = ET.Element(self.stanza)
 		for field in self.fields:
 			container.append(field.getXML(ftype))
 		return container
-	
+
 class Form(FieldContainer):
 	types = ('form', 'submit', 'cancel', 'result')
 	def __init__(self, xmpp=None, ftype='form', title='', instructions=''):
@@ -85,7 +89,7 @@ class Form(FieldContainer):
 		self.instructions = instructions
 		self.reported = []
 		self.items = []
-	
+
 	def merge(self, form2):
 		form1 = Form(ftype=self.type)
 		form1.fromXML(self.getXML(self.type))
@@ -98,18 +102,18 @@ class Form(FieldContainer):
 				if (option, label) not in form1.field[field.var].options:
 					form1.fields[field.var].addOption(option, label)
 		return form1
-	
+
 	def copy(self):
 		newform = Form(ftype=self.type)
 		newform.fromXML(self.getXML(self.type))
 		return newform
-	
+
 	def update(self, form):
 		values = form.getValues()
 		for var in values:
 			if var in self.fields:
 				self.fields[var].setValue(self.fields[var])
-	
+
 	def getValues(self):
 		result = {}
 		for field in self.fields:
@@ -118,7 +122,7 @@ class Form(FieldContainer):
 				value = value[0]
 			result[field.var] = value
 		return result
-	
+
 	def setValues(self, values={}):
 		for field in values:
 			if field in self.field:
@@ -127,10 +131,10 @@ class Form(FieldContainer):
 						self.field[field].setValue(value)
 				else:
 					self.field[field].setValue(values[field])
-	
+
 	def fromXML(self, xml):
 		self.buildForm(xml)
-	
+
 	def addItem(self):
 		newitem = FieldContainer('item')
 		self.items.append(newitem)
@@ -148,21 +152,21 @@ class Form(FieldContainer):
 	def buildReported(self, xml):
 		reported = self.addReported()
 		reported.buildContainer(xml)
-	
+
 	def setTitle(self, title):
 		self.title = title
-	
+
 	def setInstructions(self, instructions):
 		self.instructions = instructions
-	
+
 	def setType(self, ftype):
 		self.type = ftype
-	
+
 	def getXMLMessage(self, to):
 		msg = self.xmpp.makeMessage(to)
 		msg.append(self.getXML())
 		return msg
-	
+
 	def buildForm(self, xml):
 		self.type = xml.get('type', 'form')
 		if xml.find('{jabber:x:data}title') is not None:
@@ -175,7 +179,7 @@ class Form(FieldContainer):
 			self.buildReported(reported)
 		for item in xml.findall('{jabber:x:data}item'):
 			self.buildItem(item)
-	
+
 	#def getXML(self, tostring = False):
 	def getXML(self, ftype=None):
 		if ftype:
@@ -199,7 +203,7 @@ class Form(FieldContainer):
 		#if tostring:
 		#	form = self.xmpp.tostring(form)
 		return form
-	
+
 	def getXHTML(self):
 		form = ET.Element('{http://www.w3.org/1999/xhtml}form')
 		if self.title:
@@ -217,8 +221,8 @@ class Form(FieldContainer):
 		for field in self.items:
 			form.append(field.getXHTML())
 		return form
-		
-	
+
+
 	def makeSubmit(self):
 		self.setType('submit')
 
@@ -246,13 +250,13 @@ class FormField(object):
 			self.islinebreak = False
 		if value:
 			self.setValue(value)
-	
+
 	def addOption(self, value, label):
 		if self.islist:
 			self.options.append((value, label))
 		else:
 			raise ValueError("Cannot add options to non-list type field.")
-	
+
 	def setTrue(self):
 		if self.type == 'boolean':
 			self.value = [True]
@@ -263,10 +267,10 @@ class FormField(object):
 
 	def require(self):
 		self.required = True
-	
+
 	def setDescription(self, desc):
 		self.desc = desc
-	
+
 	def setValue(self, value):
 		if self.type == 'boolean':
 			if value in ('1', 1, True, 'true', 'True', 'yes'):
@@ -291,10 +295,10 @@ class FormField(object):
 				pass
 		else:
 			self.value = ''
-	
+
 	def setAnswer(self, value):
 		self.setValue(value)
-	
+
 	def buildField(self, xml):
 		self.type = xml.get('type', 'text-single')
 		self.label = xml.get('label', '')
@@ -306,7 +310,7 @@ class FormField(object):
 			self.require()
 		if xml.find('{jabber:x:data}desc') is not None:
 			self.setDescription(xml.find('{jabber:x:data}desc').text)
-	
+
 	def getXML(self, ftype):
 		field = ET.Element('{jabber:x:data}field')
 		if ftype != 'result':
@@ -342,7 +346,7 @@ class FormField(object):
 				valuexml.text = value
 			field.append(valuexml)
 		return field
-	
+
 	def getXHTML(self):
 		field = ET.Element('div', {'class': 'xmpp-xforms-%s' % self.type})
 		if self.label:
@@ -414,4 +418,4 @@ class FormField(object):
 				pass
 		label.append(formf)
 		return field
-		
+

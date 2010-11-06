@@ -2,13 +2,17 @@
     SleekXMPP: The Sleek XMPP Library
     Copyright (C) 2010 Nathanael C. Fritz
     This file is part of SleekXMPP.
-    
+
     See the file LICENSE for copying permission.
 """
 from xml.etree import cElementTree as ET
 from . import base
 import time
 import logging
+
+
+log = logging.getLogger(__name__)
+
 
 class xep_0199(base.base_plugin):
     """XEP-0199 XMPP Ping"""
@@ -20,19 +24,19 @@ class xep_0199(base.base_plugin):
         self.running = False
         if self.config.get('keepalive', True):
             self.xmpp.add_event_handler('session_start', self.handler_pingserver, threaded=True)
-    
+
     def post_init(self):
         base.base_plugin.post_init(self)
         self.xmpp.plugin['xep_0030'].add_feature('urn:xmpp:ping')
-    
+
     def handler_pingserver(self, xml):
         if not self.running:
             time.sleep(self.config.get('frequency', 300))
             while self.sendPing(self.xmpp.server, self.config.get('timeout', 30)) is not False:
                 time.sleep(self.config.get('frequency', 300))
-            logging.debug("Did not recieve ping back in time.  Requesting Reconnect.")
+            log.debug("Did not recieve ping back in time.  Requesting Reconnect.")
             self.xmpp.disconnect(reconnect=True)
-    
+
     def handler_ping(self, xml):
         iq = self.xmpp.makeIqResult(xml.get('id', 'unknown'))
         iq.attrib['to'] = xml.get('from', self.xmpp.boundjid.domain)

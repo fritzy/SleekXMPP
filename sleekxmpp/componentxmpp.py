@@ -22,6 +22,9 @@ from sleekxmpp.xmlstream.matcher import *
 from sleekxmpp.xmlstream.handler import *
 
 
+log = logging.getLogger(__name__)
+
+
 class ComponentXMPP(BaseXMPP):
 
     """
@@ -82,7 +85,7 @@ class ComponentXMPP(BaseXMPP):
 
         Overrides XMLStream.connect.
         """
-        logging.debug("Connecting to %s:%s" % (self.server_host,
+        log.debug("Connecting to %s:%s" % (self.server_host,
                                                self.server_port))
         return XMLStream.connect(self, self.server_host,
                                        self.server_port)

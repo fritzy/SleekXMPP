@@ -21,7 +21,7 @@ class StateMachine(object):
         self.addStates(states)
         self.__default_state = self.__states[0]
         self.__current_state = self.__default_state
-    
+
     def addStates(self, states):
         self.lock.acquire()
         try:
@@ -30,19 +30,19 @@ class StateMachine(object):
                     raise IndexError("The state '%s' is already in the StateMachine." % state)
                 self.__states.append(state)
         finally: self.lock.release()
-    
-    
+
+
     def transition(self, from_state, to_state, wait=0.0, func=None, args=[], kwargs={}):
         '''
-        Transition from the given `from_state` to the given `to_state`.  
+        Transition from the given `from_state` to the given `to_state`.
         This method will return `True` if the state machine is now in `to_state`.  It
-        will return `False` if a timeout occurred the transition did not occur.  
-        If `wait` is 0 (the default,) this method returns immediately if the state machine 
+        will return `False` if a timeout occurred the transition did not occur.
+        If `wait` is 0 (the default,) this method returns immediately if the state machine
         is not in `from_state`.
 
         If you want the thread to block and transition once the state machine to enters
-        `from_state`, set `wait` to a non-negative value.  Note there is no 'block 
-        indefinitely' flag since this leads to deadlock.  If you want to wait indefinitely, 
+        `from_state`, set `wait` to a non-negative value.  Note there is no 'block
+        indefinitely' flag since this leads to deadlock.  If you want to wait indefinitely,
         choose a reasonable value for `wait` (e.g. 20 seconds) and do so in a while loop like so:
 
         ::
@@ -60,42 +60,42 @@ class StateMachine(object):
         True value or if an exception is thrown, the transition will not occur.  Any thrown
         exception is not caught by the state machine and is the caller's responsibility to handle.
         If `func` completes normally, this method will return the value returned by `func.`  If
-        values for `args` and `kwargs` are provided, they are expanded and passed like so:  
+        values for `args` and `kwargs` are provided, they are expanded and passed like so:
         `func( *args, **kwargs )`.
         '''
 
-        return self.transition_any((from_state,), to_state, wait=wait, 
+        return self.transition_any((from_state,), to_state, wait=wait,
                                     func=func, args=args, kwargs=kwargs)
-    
-    
+
+
     def transition_any(self, from_states, to_state, wait=0.0, func=None, args=[], kwargs={}):
         '''
         Transition from any of the given `from_states` to the given `to_state`.
         '''
 
-        if not (isinstance(from_states,tuple) or isinstance(from_states,list)): 
+        if not (isinstance(from_states,tuple) or isinstance(from_states,list)):
                 raise ValueError("from_states should be a list or tuple")
 
         for state in from_states:
-            if not state in self.__states: 
+            if not state in self.__states:
                 raise ValueError("StateMachine does not contain from_state %s." % state)
-        if not to_state in self.__states: 
+        if not to_state in self.__states:
             raise ValueError("StateMachine does not contain to_state %s." % to_state)
 
         start = time.time()
         while not self.lock.acquire(False):
             time.sleep(.001)
             if (start + wait - time.time()) <= 0.0:
-                logging.debug("Could not acquire lock")
+                log.debug("Could not acquire lock")
                 return False
 
         while not self.__current_state in from_states:
             # detect timeout:
             remainder = start + wait - time.time()
-            if remainder > 0: 
+            if remainder > 0:
                 self.notifier.wait(remainder)
-            else: 
-                logging.debug("State was not ready")
+            else:
+                log.debug("State was not ready")
                 self.lock.release()
                 return False
 
@@ -105,9 +105,9 @@ class StateMachine(object):
                 # Note that func might throw an exception, but that's OK, it aborts the transition
                 return_val = func(*args,**kwargs) if func is not None else True
 
-                # some 'false' value returned from func, 
+                # some 'false' value returned from func,
                 # indicating that transition should not occur:
-                if not return_val: return return_val 
+                if not return_val: return return_val
 
                 log.debug(' ==== TRANSITION %s -> %s', self.__current_state, to_state)
                 self._set_state(to_state)
@@ -115,7 +115,7 @@ class StateMachine(object):
             else:
                 log.error("StateMachine bug!!  The lock should ensure this doesn't happen!")
                 return False
-        finally: 
+        finally:
             self.notifier.set() # notify any waiting threads that the state has changed.
             self.notifier.clear()
             self.lock.release()
@@ -125,13 +125,13 @@ class StateMachine(object):
         '''
         Use the state machine as a context manager.  The transition occurs on /exit/ from
         the `with` context, so long as no exception is thrown.  For example:
-        
+
         ::
 
             with state_machine.transition_ctx('one','two', wait=5) as locked:
                 if locked:
-                    # the state machine is currently locked in state 'one', and will 
-                    # transition to 'two' when the 'with' statement ends, so long as 
+                    # the state machine is currently locked in state 'one', and will
+                    # transition to 'two' when the 'with' statement ends, so long as
                     # no exception is thrown.
                     print 'Currently locked in state one: %s' % state_machine['one']
 
@@ -142,20 +142,20 @@ class StateMachine(object):
             print 'Since no exception was thrown, we are now in state "two": %s' % state_machine['two']
 
 
-        The other main difference between this method and `transition()` is that the 
-        state machine is locked for the duration of the `with` statement.  Normally, 
-        after a `transition()` occurs, the state machine is immediately unlocked and 
+        The other main difference between this method and `transition()` is that the
+        state machine is locked for the duration of the `with` statement.  Normally,
+        after a `transition()` occurs, the state machine is immediately unlocked and
         available to another thread to call `transition()` again.
         '''
 
-        if not from_state in self.__states: 
+        if not from_state in self.__states:
             raise ValueError("StateMachine does not contain from_state %s." % from_state)
-        if not to_state in self.__states: 
+        if not to_state in self.__states:
             raise ValueError("StateMachine does not contain to_state %s." % to_state)
 
         return _StateCtx(self, from_state, to_state, wait)
 
-    
+
     def ensure(self, state, wait=0.0, block_on_transition=False):
         '''
         Ensure the state machine is currently in `state`, or wait until it enters `state`.
@@ -168,24 +168,24 @@ class StateMachine(object):
         Ensure we are currently in one of the given `states` or wait until
         we enter one of those states.
 
-        Note that due to the nature of the function, you cannot guarantee that 
+        Note that due to the nature of the function, you cannot guarantee that
         the entirety of some operation completes while you remain in a given
-        state.  That would require acquiring and holding a lock, which 
+        state.  That would require acquiring and holding a lock, which
         would mean no other threads could do the same.  (You'd essentially
         be serializing all of the threads that are 'ensuring' their tasks
-        occurred in some state.  
+        occurred in some state.
         '''
-        if not (isinstance(states,tuple) or isinstance(states,list)): 
+        if not (isinstance(states,tuple) or isinstance(states,list)):
             raise ValueError('states arg should be a tuple or list')
 
         for state in states:
-            if not state in self.__states: 
+            if not state in self.__states:
                 raise ValueError("StateMachine does not contain state '%s'" % state)
 
-        # if we're in the middle of a transition, determine whether we should 
-        # 'fall back' to the 'current' state, or wait for the new state, in order to 
+        # if we're in the middle of a transition, determine whether we should
+        # 'fall back' to the 'current' state, or wait for the new state, in order to
         # avoid an operation occurring in the wrong state.
-        # TODO another option would be an ensure_ctx that uses a semaphore to allow 
+        # TODO another option would be an ensure_ctx that uses a semaphore to allow
         # threads to indicate they want to remain in a particular state.
 
         # will return immediately if no transition is in process.
@@ -196,16 +196,16 @@ class StateMachine(object):
             else: self.notifier.wait()
 
         start = time.time()
-        while not self.__current_state in states: 
+        while not self.__current_state in states:
             # detect timeout:
             remainder = start + wait - time.time()
             if remainder > 0: self.notifier.wait(remainder)
             else: return False
         return True
 
-    
+
     def reset(self):
-        # TODO need to lock before calling this? 
+        # TODO need to lock before calling this?
         self.transition(self.__current_state, self.__default_state)
 
 
@@ -231,7 +231,7 @@ class StateMachine(object):
     def __str__(self):
         return "".join(("StateMachine(", ','.join(self.__states), "): ", self.__current_state))
 
-    
+
 
 class _StateCtx:
 
@@ -244,28 +244,28 @@ class _StateCtx:
 
     def __enter__(self):
         start = time.time()
-        while not self.state_machine[self.from_state] or not self.state_machine.lock.acquire(False): 
+        while not self.state_machine[self.from_state] or not self.state_machine.lock.acquire(False):
             # detect timeout:
             remainder = start + self.wait - time.time()
             if remainder > 0: self.state_machine.notifier.wait(remainder)
-            else: 
+            else:
                 log.debug('StateMachine timeout while waiting for state: %s', self.from_state)
                 return False
 
         self._locked = True # lock has been acquired at this point
         self.state_machine.notifier.clear()
-        log.debug('StateMachine entered context in state: %s', 
+        log.debug('StateMachine entered context in state: %s',
                 self.state_machine.current_state())
         return True
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if exc_val is not None:
-            log.exception("StateMachine exception in context, remaining in state: %s\n%s:%s", 
+            log.exception("StateMachine exception in context, remaining in state: %s\n%s:%s",
                 self.state_machine.current_state(), exc_type.__name__, exc_val)
 
         if self._locked:
             if exc_val is None:
-                log.debug(' ==== TRANSITION %s -> %s', 
+                log.debug(' ==== TRANSITION %s -> %s',
                         self.state_machine.current_state(), self.to_state)
                 self.state_machine._set_state(self.to_state)
 

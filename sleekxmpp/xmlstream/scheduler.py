@@ -15,6 +15,9 @@ except ImportError:
     import Queue as queue
 
 
+log = logging.getLogger(__name__)
+
+
 class Task(object):
 
     """
@@ -168,13 +171,13 @@ class Scheduler(object):
         except KeyboardInterrupt:
             self.run = False
             if self.parentstop is not None:
-                logging.debug("stopping parent")
+                log.debug("stopping parent")
                 self.parentstop.set()
         except SystemExit:
             self.run = False
             if self.parentstop is not None:
                 self.parentstop.set()
-        logging.debug("Quitting Scheduler thread")
+        log.debug("Quitting Scheduler thread")
         if self.parentqueue is not None:
             self.parentqueue.put(('quit', None, None))
 

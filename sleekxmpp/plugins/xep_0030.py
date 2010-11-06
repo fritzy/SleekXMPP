@@ -13,6 +13,10 @@ from .. xmlstream.matcher.xpath import MatchXPath
 from .. xmlstream.stanzabase import registerStanzaPlugin, ElementBase, ET, JID
 from .. stanza.iq import Iq
 
+
+log = logging.getLogger(__name__)
+
+
 class DiscoInfo(ElementBase):
     namespace = 'http://jabber.org/protocol/disco#info'
     name = 'query'
@@ -222,18 +226,18 @@ class xep_0030(base.base_plugin):
 
     def handle_item_query(self, iq):
         if iq['type'] == 'get':
-            logging.debug("Items requested by %s" % iq['from'])
+            log.debug("Items requested by %s" % iq['from'])
             self.xmpp.event('disco_items_request', iq)
         elif iq['type'] == 'result':
-            logging.debug("Items result from %s" % iq['from'])
+            log.debug("Items result from %s" % iq['from'])
             self.xmpp.event('disco_items', iq)
 
     def handle_info_query(self, iq):
         if iq['type'] == 'get':
-            logging.debug("Info requested by %s" % iq['from'])
+            log.debug("Info requested by %s" % iq['from'])
             self.xmpp.event('disco_info_request', iq)
         elif iq['type'] == 'result':
-            logging.debug("Info result from %s" % iq['from'])
+            log.debug("Info result from %s" % iq['from'])
             self.xmpp.event('disco_info', iq)
 
     def handle_disco_info(self, iq, forwarded=False):
@@ -248,13 +252,13 @@ class xep_0030(base.base_plugin):
         if not node_name:
             node_name = 'main'
 
-        logging.debug("Using default handler for disco#info on node '%s'." % node_name)
+        log.debug("Using default handler for disco#info on node '%s'." % node_name)
 
         if node_name in self.nodes:
             node = self.nodes[node_name]
             iq.reply().setPayload(node.info.xml).send()
         else:
-            logging.debug("Node %s requested, but does not exist." % node_name)
+            log.debug("Node %s requested, but does not exist." % node_name)
             iq.reply().error().setPayload(iq['disco_info'].xml)
             iq['error']['code'] = '404'
             iq['error']['type'] = 'cancel'
@@ -276,13 +280,13 @@ class xep_0030(base.base_plugin):
         if not node_name:
             node_name = 'main'
 
-        logging.debug("Using default handler for disco#items on node '%s'." % node_name)
+        log.debug("Using default handler for disco#items on node '%s'." % node_name)
 
         if node_name in self.nodes:
             node = self.nodes[node_name]
             iq.reply().setPayload(node.items.xml).send()
         else:
-            logging.debug("Node %s requested, but does not exist." % node_name)
+            log.debug("Node %s requested, but does not exist." % node_name)
             iq.reply().error().setPayload(iq['disco_items'].xml)
             iq['error']['code'] = '404'
             iq['error']['type'] = 'cancel'

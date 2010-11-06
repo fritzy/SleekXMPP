@@ -17,6 +17,9 @@ from .. xmlstream.matcher.xpath import MatchXPath
 from .. xmlstream import ElementBase, ET, JID, register_stanza_plugin
 
 
+log = logging.getLogger(__name__)
+
+
 class EntityTime(ElementBase):
     name = 'time'
     namespace = 'urn:xmpp:time'
@@ -84,10 +87,10 @@ class xep_0202(base.base_plugin):
 
     def handle_entity_time_query(self, iq):
         if iq['type'] == 'get':
-            logging.debug("Entity time requested by %s" % iq['from'])
+            log.debug("Entity time requested by %s" % iq['from'])
             self.xmpp.event('entity_time_request', iq)
         elif iq['type'] == 'result':
-            logging.debug("Entity time result from %s" % iq['from'])
+            log.debug("Entity time result from %s" % iq['from'])
             self.xmpp.event('entity_time', iq)
 
     def handle_entity_time(self, iq):

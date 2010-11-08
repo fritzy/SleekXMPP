@@ -164,7 +164,7 @@ class ClientXMPP(BaseXMPP):
                 try:
                     xmpp_srv = "_xmpp-client._tcp.%s" % self.server
                     answers = dns.resolver.query(xmpp_srv, dns.rdatatype.SRV)
-                except dns.resolver.NXDOMAIN:
+                except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
                     log.debug("No appropriate SRV record found." + \
                                   " Using JID server name.")
                 else:

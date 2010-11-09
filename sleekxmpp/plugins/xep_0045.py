@@ -120,6 +120,7 @@ class xep_0045(base.base_plugin):
 		registerStanzaPlugin(Presence, MUCPresence)
 		self.xmpp.registerHandler(Callback('MUCPresence', MatchXMLMask("<presence xmlns='%s' />" % self.xmpp.default_ns), self.handle_groupchat_presence))
 		self.xmpp.registerHandler(Callback('MUCMessage', MatchXMLMask("<message xmlns='%s' type='groupchat'><body/></message>" % self.xmpp.default_ns), self.handle_groupchat_message))
+		self.xmpp.registerHandler(Callback('MUCSubject', MatchXMLMask("<message xmlns='%s' type='groupchat'><subject/></message>" % self.xmpp.default_ns), self.handle_groupchat_subject))
 
 	def handle_groupchat_presence(self, pr):
 		""" Handle a presence in a muc.
@@ -152,6 +153,12 @@ class xep_0045(base.base_plugin):
 		"""
 		self.xmpp.event('groupchat_message', msg)
 		self.xmpp.event("muc::%s::message" % msg['from'].bare, msg)
+
+	def handle_groupchat_subject(self, msg):
+		""" Handle a message coming from a muc indicating
+		a change of subject (or announcing it when joining the room)
+		"""
+		self.xmpp.event('groupchat_subject', msg)
 
 	def jidInRoom(self, room, jid):
 		for nick in self.rooms[room]:

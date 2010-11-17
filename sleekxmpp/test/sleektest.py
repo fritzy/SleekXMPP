@@ -14,6 +14,8 @@ from sleekxmpp.stanza import Message, Iq, Presence
 from sleekxmpp.test import TestSocket, TestLiveSocket
 from sleekxmpp.xmlstream import StanzaBase, ET, register_stanza_plugin
 from sleekxmpp.xmlstream.tostring import tostring
+from sleekxmpp.xmlstream.matcher import StanzaPath, MatcherId
+from sleekxmpp.xmlstream.matcher import MatchXMLMask, MatchXPath
 
 
 class SleekTest(unittest.TestCase):
@@ -140,7 +142,7 @@ class SleekTest(unittest.TestCase):
     # ------------------------------------------------------------------
     # Methods for comparing stanza objects to XML strings
 
-    def check(self, stanza, xml_string,
+    def check(self, stanza, criteria, method='exact',
               defaults=None, use_values=True):
         """
         Create and compare several stanza objects to a correct XML string.
@@ -161,7 +163,10 @@ class SleekTest(unittest.TestCase):
 
         Arguments:
             stanza       -- The stanza object to test.
-            xml_string   -- A string version of the correct XML expected.
+            criteria     -- An expression the stanza must match against.
+            method       -- The type of matching to use; one of: 
+                            'exact', 'mask', 'id', 'xpath', and 'stanzapath'.
+                            Defaults to the value of self.match_method.
             defaults     -- A list of stanza interfaces that have default
                             values. These interfaces will be set to their
                             defaults for the given and generated stanzas to
@@ -170,57 +175,74 @@ class SleekTest(unittest.TestCase):
                             setStanzaValues() should be used. Defaults to
                             True.
         """
-        stanza_class = stanza.__class__
-        xml = self.parse_xml(xml_string)
+        if method is None and hasattr(self, 'match_method'):
+            method = getattr(self, 'match_method')
 
-        # Ensure that top level namespaces are used, even if they
-        # were not provided.
-        self.fix_namespaces(stanza.xml, 'jabber:client')
-        self.fix_namespaces(xml, 'jabber:client')
-
-        stanza2 = stanza_class(xml=xml)
-
-        if use_values:
-            # Using getStanzaValues() and setStanzaValues() will add
-            # XML for any interface that has a default value. We need
-            # to set those defaults on the existing stanzas and XML
-            # so that they will compare correctly.
-            default_stanza = stanza_class()
-            if defaults is None:
-                known_defaults = {
-                    Message: ['type'],
-                    Presence: ['priority']
-                }
-                defaults = known_defaults.get(stanza_class, [])
-            for interface in defaults:
-                stanza[interface] = stanza[interface]
-                stanza2[interface] = stanza2[interface]
-                # Can really only automatically add defaults for top
-                # level attribute values. Anything else must be accounted
-                # for in the provided XML string.
-                if interface not in xml.attrib:
-                    if interface in default_stanza.xml.attrib:
-                        value = default_stanza.xml.attrib[interface]
-                        xml.attrib[interface] = value
-
-            values = stanza2.getStanzaValues()
-            stanza3 = stanza_class()
-            stanza3.setStanzaValues(values)
-
-            debug = "Three methods for creating stanzas do not match.\n"
-            debug += "Given XML:\n%s\n" % tostring(xml)
-            debug += "Given stanza:\n%s\n" % tostring(stanza.xml)
-            debug += "Generated stanza:\n%s\n" % tostring(stanza2.xml)
-            debug += "Second generated stanza:\n%s\n" % tostring(stanza3.xml)
-            result = self.compare(xml, stanza.xml, stanza2.xml, stanza3.xml)
+        if method != 'exact':
+            matchers = {'stanzapath': StanzaPath,
+                        'xpath': MatchXPath,
+                        'mask': MatchXMLMask,
+                        'id': MatcherId}
+            Matcher = matchers.get(method, None)
+            if Matcher is None:
+                raise ValueError("Unknown matching method.")
+            test = Matcher(criteria)
+            self.failUnless(test.match(stanza),
+                    "Stanza did not match using %s method:\n" % method + \
+                    "Criteria:\n%s\n" % str(criteria) + \
+                    "Stanza:\n%s" % str(stanza))
         else:
-            debug = "Two methods for creating stanzas do not match.\n"
-            debug += "Given XML:\n%s\n" % tostring(xml)
-            debug += "Given stanza:\n%s\n" % tostring(stanza.xml)
-            debug += "Generated stanza:\n%s\n" % tostring(stanza2.xml)
-            result = self.compare(xml, stanza.xml, stanza2.xml)
+            stanza_class = stanza.__class__
+            xml = self.parse_xml(criteria)
 
-        self.failUnless(result, debug)
+            # Ensure that top level namespaces are used, even if they
+            # were not provided.
+            self.fix_namespaces(stanza.xml, 'jabber:client')
+            self.fix_namespaces(xml, 'jabber:client')
+
+            stanza2 = stanza_class(xml=xml)
+
+            if use_values:
+                # Using getStanzaValues() and setStanzaValues() will add
+                # XML for any interface that has a default value. We need
+                # to set those defaults on the existing stanzas and XML
+                # so that they will compare correctly.
+                default_stanza = stanza_class()
+                if defaults is None:
+                    known_defaults = {
+                        Message: ['type'],
+                        Presence: ['priority']
+                    }
+                    defaults = known_defaults.get(stanza_class, [])
+                for interface in defaults:
+                    stanza[interface] = stanza[interface]
+                    stanza2[interface] = stanza2[interface]
+                    # Can really only automatically add defaults for top
+                    # level attribute values. Anything else must be accounted
+                    # for in the provided XML string.
+                    if interface not in xml.attrib:
+                        if interface in default_stanza.xml.attrib:
+                            value = default_stanza.xml.attrib[interface]
+                            xml.attrib[interface] = value
+
+                values = stanza2.getStanzaValues()
+                stanza3 = stanza_class()
+                stanza3.setStanzaValues(values)
+
+                debug = "Three methods for creating stanzas do not match.\n"
+                debug += "Given XML:\n%s\n" % tostring(xml)
+                debug += "Given stanza:\n%s\n" % tostring(stanza.xml)
+                debug += "Generated stanza:\n%s\n" % tostring(stanza2.xml)
+                debug += "Second generated stanza:\n%s\n" % tostring(stanza3.xml)
+                result = self.compare(xml, stanza.xml, stanza2.xml, stanza3.xml)
+            else:
+                debug = "Two methods for creating stanzas do not match.\n"
+                debug += "Given XML:\n%s\n" % tostring(xml)
+                debug += "Given stanza:\n%s\n" % tostring(stanza.xml)
+                debug += "Generated stanza:\n%s\n" % tostring(stanza2.xml)
+                result = self.compare(xml, stanza.xml, stanza2.xml)
+
+            self.failUnless(result, debug)
 
     # ------------------------------------------------------------------
     # Methods for simulating stanza streams.
@@ -320,20 +342,23 @@ class SleekTest(unittest.TestCase):
         parts.append('xmlns="%s"' % default_ns)
         return header % ' '.join(parts)
 
-    def recv(self, data, stanza_class=StanzaBase, defaults=[],
-             use_values=True, timeout=1):
+    def recv(self, data, defaults=[], method='exact',
+             use_values=True, timeout=1): 
         """
         Pass data to the dummy XMPP client as if it came from an XMPP server.
 
         If using a live connection, verify what the server has sent.
 
         Arguments:
-            data         -- String stanza XML to be received and processed by
-                            the XMPP client or component.
-            stanza_class -- The stanza object class for verifying data received
-                            by a live connection. Defaults to StanzaBase.
+            data         -- If a dummy socket is being used, the XML that is to
+                            be received next. Otherwise it is the criteria used
+                            to match against live data that is received.
             defaults     -- A list of stanza interfaces with default values that
                             may interfere with comparisons.
+            method       -- Select the type of comparison to use for
+                            verifying the received stanza. Options are 'exact',
+                            'id', 'stanzapath', 'xpath', and 'mask'.
+                            Defaults to the value of self.match_method.
             use_values   -- Indicates if stanza comparisons should test using
                             getStanzaValues() and setStanzaValues().
                             Defaults to True.
@@ -347,10 +372,13 @@ class SleekTest(unittest.TestCase):
             recv_data = self.xmpp.socket.next_recv(timeout)
             if recv_data is None:
                 return False
-            stanza = stanza_class(xml=self.parse_xml(recv_data))
-            return self.check(stanza_class, stanza, data,
-                                     defaults=defaults,
-                                     use_values=use_values)
+            xml = self.parse_xml(recv_data)
+            self.fix_namespaces(xml, 'jabber:client')
+            stanza = self.xmpp._build_stanza(xml, 'jabber:client')
+            self.check(stanza, data,
+                       method=method,
+                       defaults=defaults,
+                       use_values=use_values)
         else:
             # place the data in the dummy socket receiving queue.
             data = str(data)
@@ -424,21 +452,33 @@ class SleekTest(unittest.TestCase):
                 '%s %s' % (xml.tag, xml.attrib),
                 '%s %s' % (recv_xml.tag, recv_xml.attrib)))
 
-    def recv_feature(self, data, use_values=True, timeout=1):
+    def recv_feature(self, data, method='mask', use_values=True, timeout=1):
         """
         """
+        if method is None and hasattr(self, 'match_method'):
+            method = getattr(self, 'match_method')
+
         if self.xmpp.socket.is_live:
             # we are working with a live connection, so we should
             # verify what has been received instead of simulating
             # receiving data.
             recv_data = self.xmpp.socket.next_recv(timeout)
-            if recv_data is None:
-                return False
             xml = self.parse_xml(data)
             recv_xml = self.parse_xml(recv_data)
-            self.failUnless(self.compare(xml, recv_xml),
-                "Features do not match.\nDesired:\n%s\nReceived:\n%s" % (
-                    tostring(xml), tostring(recv_xml)))
+            if recv_data is None:
+                return False
+            if method == 'exact':
+                self.failUnless(self.compare(xml, recv_xml),
+                    "Features do not match.\nDesired:\n%s\nReceived:\n%s" % (
+                        tostring(xml), tostring(recv_xml)))
+            elif method == 'mask':
+                matcher = MatchXMLMask(xml)
+                self.failUnless(matcher.match(recv_xml), 
+                    "Stanza did not match using %s method:\n" % method + \
+                    "Criteria:\n%s\n" % tostring(xml) + \
+                    "Stanza:\n%s" % tostring(recv_xml))
+            else:
+                raise ValueError("Uknown matching method: %s" % method)
         else:
             # place the data in the dummy socket receiving queue.
             data = str(data)
@@ -489,20 +529,29 @@ class SleekTest(unittest.TestCase):
             "Stream headers do not match:\nDesired:\n%s\nSent:\n%s" % (
                 header, sent_header))
 
-    def send_feature(self, data, use_values=True, timeout=1):
+    def send_feature(self, data, method='mask', use_values=True, timeout=1):
         """
         """
         sent_data = self.xmpp.socket.next_sent(timeout)
-        if sent_data is None:
-            return False
         xml = self.parse_xml(data)
         sent_xml = self.parse_xml(sent_data)
-        self.failUnless(self.compare(xml, sent_xml),
-            "Features do not match.\nDesired:\n%s\nSent:\n%s" % (
-                tostring(xml), tostring(sent_xml)))
+        if sent_data is None:
+            return False
+        if method == 'exact':
+            self.failUnless(self.compare(xml, sent_xml),
+                "Features do not match.\nDesired:\n%s\nReceived:\n%s" % (
+                    tostring(xml), tostring(sent_xml)))
+        elif method == 'mask':
+            matcher = MatchXMLMask(xml)
+            self.failUnless(matcher.match(sent_xml), 
+                "Stanza did not match using %s method:\n" % method + \
+                "Criteria:\n%s\n" % tostring(xml) + \
+                "Stanza:\n%s" % tostring(sent_xml))
+        else:
+            raise ValueError("Uknown matching method: %s" % method)
 
-    def send(self, data, defaults=None,
-             use_values=True, timeout=.1):
+    def send(self, data, defaults=None, use_values=True,
+             timeout=.1, method='exact'):
         """
         Check that the XMPP client sent the given stanza XML.
 
@@ -518,15 +567,20 @@ class SleekTest(unittest.TestCase):
                             values which may interfere with comparisons.
             timeout      -- Time in seconds to wait for a stanza before
                             failing the check.
+            method       -- Select the type of comparison to use for
+                            verifying the sent stanza. Options are 'exact',
+                            'id', 'stanzapath', 'xpath', and 'mask'.
+                            Defaults to the value of self.match_method.
         """
+        sent = self.xmpp.socket.next_sent(timeout)
         if isinstance(data, str):
             xml = self.parse_xml(data)
             self.fix_namespaces(xml, 'jabber:client')
             data = self.xmpp._build_stanza(xml, 'jabber:client')
-        sent = self.xmpp.socket.next_sent(timeout)
         self.check(data, sent,
-                          defaults=defaults,
-                          use_values=use_values)
+                   method=method,
+                   defaults=defaults,
+                   use_values=use_values)
 
     def stream_close(self):
         """

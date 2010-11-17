@@ -16,6 +16,9 @@ from sleekxmpp.xmlstream import StanzaBase, RESPONSE_TIMEOUT
 from sleekxmpp.xmlstream.handler.base import BaseHandler
 
 
+log = logging.getLogger(__name__)
+
+
 class Waiter(BaseHandler):
 
     """
@@ -85,7 +88,7 @@ class Waiter(BaseHandler):
             stanza = self._payload.get(True, timeout)
         except queue.Empty:
             stanza = False
-            logging.warning("Timed out waiting for %s" % self.name)
+            log.warning("Timed out waiting for %s" % self.name)
         self.stream.removeHandler(self.name)
         return stanza
 

@@ -26,13 +26,13 @@ class TestStreamExceptions(SleekTest):
         self.stream_start()
         self.xmpp.add_event_handler('message', message)
 
-        self.stream_recv("""
+        self.recv("""
           <message>
             <body>This is going to cause an error.</body>
           </message>
         """)
 
-        self.stream_send_message("""
+        self.send("""
           <message type="error">
             <error type="cancel">
               <feature-not-implemented
@@ -57,13 +57,13 @@ class TestStreamExceptions(SleekTest):
         self.xmpp.add_event_handler('message', message,
                                     threaded=True)
 
-        self.stream_recv("""
+        self.recv("""
           <message>
             <body>This is going to cause an error.</body>
           </message>
         """)
 
-        self.stream_send_message("""
+        self.send("""
           <message type="error">
             <error type="cancel">
               <feature-not-implemented
@@ -84,14 +84,14 @@ class TestStreamExceptions(SleekTest):
         self.stream_start()
         self.xmpp.add_event_handler('message', message)
 
-        self.stream_recv("""
+        self.recv("""
           <message>
             <body>This is going to cause an error.</body>
           </message>
         """)
 
         if sys.version_info < (3, 0):
-            self.stream_send_message("""
+            self.send("""
               <message type="error">
                 <error type="cancel">
                   <undefined-condition

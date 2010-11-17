@@ -16,7 +16,7 @@ class TestPubsubStanzas(SleekTest):
         aff2['affiliation'] = 'publisher'
         iq['pubsub']['affiliations'].append(aff1)
         iq['pubsub']['affiliations'].append(aff2)
-        self.check_iq(iq, """
+        self.check(iq, """
           <iq id="0">
             <pubsub xmlns="http://jabber.org/protocol/pubsub">
               <affiliations>
@@ -38,7 +38,7 @@ class TestPubsubStanzas(SleekTest):
         sub2['subscription'] = 'subscribed'
         iq['pubsub']['subscriptions'].append(sub1)
         iq['pubsub']['subscriptions'].append(sub2)
-        self.check_iq(iq, """
+        self.check(iq, """
           <iq id="0">
             <pubsub xmlns="http://jabber.org/protocol/pubsub">
               <subscriptions>
@@ -55,7 +55,7 @@ class TestPubsubStanzas(SleekTest):
         iq['pubsub']['subscription']['node'] = 'testnode alsdkjfas'
         iq['pubsub']['subscription']['jid'] = "fritzy@netflint.net/sleekxmpp"
         iq['pubsub']['subscription']['subscription'] = 'unconfigured'
-        self.check_iq(iq, """
+        self.check(iq, """
           <iq id="0">
             <pubsub xmlns="http://jabber.org/protocol/pubsub">
               <subscription node="testnode alsdkjfas" jid="fritzy@netflint.net/sleekxmpp" subscription="unconfigured">
@@ -88,7 +88,7 @@ class TestPubsubStanzas(SleekTest):
         item2['payload'] = payload2
         iq['pubsub']['items'].append(item)
         iq['pubsub']['items'].append(item2)
-        self.check_iq(iq, """
+        self.check(iq, """
           <iq id="0">
             <pubsub xmlns="http://jabber.org/protocol/pubsub">
               <items node="crap">
@@ -115,7 +115,7 @@ class TestPubsubStanzas(SleekTest):
         iq['pubsub']['configure']['form'].addField('pubsub#title',
                                                    ftype='text-single',
                                                    value='This thing is awesome')
-        self.check_iq(iq, """
+        self.check(iq, """
           <iq id="0">
             <pubsub xmlns="http://jabber.org/protocol/pubsub">
               <create node="mynode" />
@@ -136,7 +136,7 @@ class TestPubsubStanzas(SleekTest):
         iq['psstate']['item']= 'myitem'
         pl = ET.Element('{http://andyet.net/protocol/pubsubqueue}claimed')
         iq['psstate']['payload'] = pl
-        self.check_iq(iq, """
+        self.check(iq, """
           <iq id="0">
             <state xmlns="http://jabber.org/protocol/psstate" node="mynode" item="myitem">
               <claimed xmlns="http://andyet.net/protocol/pubsubqueue" />
@@ -152,7 +152,7 @@ class TestPubsubStanzas(SleekTest):
         iq['pubsub_owner']['default']['form'].addField('pubsub#title',
                                                        ftype='text-single',
                                                        value='This thing is awesome')
-        self.check_iq(iq, """
+        self.check(iq, """
 	      <iq id="0">
             <pubsub xmlns="http://jabber.org/protocol/pubsub#owner">
               <default node="mynode" type="leaf">
@@ -176,7 +176,7 @@ class TestPubsubStanzas(SleekTest):
         form = xep_0004.Form()
         form.addField('pubsub#title', ftype='text-single', value='this thing is awesome')
         iq['pubsub']['subscribe']['options']['options'] = form
-        self.check_iq(iq, """
+        self.check(iq, """
         <iq id="0">
           <pubsub xmlns="http://jabber.org/protocol/pubsub">
             <subscribe node="cheese" jid="fritzy@netflint.net/sleekxmpp">
@@ -214,7 +214,7 @@ class TestPubsubStanzas(SleekTest):
         iq['pubsub']['publish'].append(item)
         iq['pubsub']['publish'].append(item2)
 
-        self.check_iq(iq, """
+        self.check(iq, """
           <iq id="0">
             <pubsub xmlns="http://jabber.org/protocol/pubsub">
               <publish node="thingers">
@@ -238,7 +238,7 @@ class TestPubsubStanzas(SleekTest):
         "Testing iq/pubsub_owner/delete stanzas"
         iq = self.Iq()
         iq['pubsub_owner']['delete']['node'] = 'thingers'
-        self.check_iq(iq, """
+        self.check(iq, """
           <iq id="0">
             <pubsub xmlns="http://jabber.org/protocol/pubsub#owner">
               <delete node="thingers" />
@@ -300,7 +300,7 @@ class TestPubsubStanzas(SleekTest):
                                                     'label': 'Deliver notification only to available users'}),
                 ])
 
-        self.check_iq(iq, """
+        self.check(iq, """
           <iq to="pubsub.asdf" type="set" id="E" from="fritzy@asdf/87292ede-524d-4117-9076-d934ed3db8e7">
             <pubsub xmlns="http://jabber.org/protocol/pubsub">
               <create node="testnode2" />
@@ -357,7 +357,7 @@ class TestPubsubStanzas(SleekTest):
         msg['pubsub_event']['items'].append(item)
         msg['pubsub_event']['items']['node'] = 'cheese'
         msg['type'] = 'normal'
-        self.check_message(msg, """
+        self.check(msg, """
           <message type="normal">
             <event xmlns="http://jabber.org/protocol/pubsub#event">
               <items node="cheese">
@@ -383,7 +383,7 @@ class TestPubsubStanzas(SleekTest):
         msg['pubsub_event']['items'].append(item2)
         msg['pubsub_event']['items']['node'] = 'cheese'
         msg['type'] = 'normal'
-        self.check_message(msg, """
+        self.check(msg, """
           <message type="normal">
             <event xmlns="http://jabber.org/protocol/pubsub#event">
               <items node="cheese">
@@ -415,7 +415,7 @@ class TestPubsubStanzas(SleekTest):
         msg['pubsub_event']['items'].append(item2)
         msg['pubsub_event']['items']['node'] = 'cheese'
         msg['type'] = 'normal'
-        self.check_message(msg, """
+        self.check(msg, """
           <message type="normal">
             <event xmlns="http://jabber.org/protocol/pubsub#event">
               <items node="cheese">
@@ -435,7 +435,7 @@ class TestPubsubStanzas(SleekTest):
         msg['pubsub_event']['collection']['associate']['node'] = 'cheese'
         msg['pubsub_event']['collection']['node'] = 'cheeseburger'
         msg['type'] = 'headline'
-        self.check_message(msg, """
+        self.check(msg, """
           <message type="headline">
             <event xmlns="http://jabber.org/protocol/pubsub#event">
               <collection node="cheeseburger">
@@ -450,7 +450,7 @@ class TestPubsubStanzas(SleekTest):
         msg['pubsub_event']['collection']['disassociate']['node'] = 'cheese'
         msg['pubsub_event']['collection']['node'] = 'cheeseburger'
         msg['type'] = 'headline'
-        self.check_message(msg, """
+        self.check(msg, """
           <message type="headline">
             <event xmlns="http://jabber.org/protocol/pubsub#event">
               <collection node="cheeseburger">
@@ -467,7 +467,7 @@ class TestPubsubStanzas(SleekTest):
                                                               ftype='text-single',
                                                               value='This thing is awesome')
         msg['type'] = 'headline'
-        self.check_message(msg, """
+        self.check(msg, """
         <message type="headline">
             <event xmlns="http://jabber.org/protocol/pubsub#event">
               <configuration node="cheese">
@@ -485,7 +485,7 @@ class TestPubsubStanzas(SleekTest):
         msg = self.Message()
         msg['pubsub_event']['purge']['node'] = 'pickles'
         msg['type'] = 'headline'
-        self.check_message(msg, """
+        self.check(msg, """
           <message type="headline">
             <event xmlns="http://jabber.org/protocol/pubsub#event">
               <purge node="pickles" />
@@ -501,7 +501,7 @@ class TestPubsubStanzas(SleekTest):
         msg['pubsub_event']['subscription']['subscription'] = 'subscribed'
         msg['pubsub_event']['subscription']['expiry'] = 'presence'
         msg['type'] = 'headline'
-        self.check_message(msg, """
+        self.check(msg, """
           <message type="headline">
             <event xmlns="http://jabber.org/protocol/pubsub#event">
               <subscription node="pickles" subid="aabb1122" jid="fritzy@netflint.net/test" subscription="subscribed" expiry="presence" />

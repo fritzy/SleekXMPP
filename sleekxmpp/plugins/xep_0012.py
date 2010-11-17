@@ -16,6 +16,9 @@ from .. xmlstream.matcher.xpath import MatchXPath
 from .. xmlstream import ElementBase, ET, JID, register_stanza_plugin
 
 
+log = logging.getLogger(__name__)
+
+
 class LastActivity(ElementBase):
     name = 'query'
     namespace = 'jabber:iq:last'
@@ -68,10 +71,10 @@ class xep_0012(base.base_plugin):
 
     def handle_last_activity_query(self, iq):
         if iq['type'] == 'get':
-            logging.debug("Last activity requested by %s" % iq['from'])
+            log.debug("Last activity requested by %s" % iq['from'])
             self.xmpp.event('last_activity_request', iq)
         elif iq['type'] == 'result':
-            logging.debug("Last activity result from %s" % iq['from'])
+            log.debug("Last activity result from %s" % iq['from'])
             self.xmpp.event('last_activity', iq)
 
     def handle_last_activity(self, iq):

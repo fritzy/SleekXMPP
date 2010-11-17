@@ -14,6 +14,9 @@ from .. xmlstream.stanzabase import registerStanzaPlugin, ElementBase, ET, JID
 from .. stanza.iq import Iq
 
 
+log = logging.getLogger(__name__)
+
+
 class GmailQuery(ElementBase):
     namespace = 'google:mail:notify'
     name = 'query'
@@ -34,12 +37,12 @@ class MailBox(ElementBase):
     namespace = 'google:mail:notify'
     name = 'mailbox'
     plugin_attrib = 'mailbox'
-    interfaces = set(('result-time', 'total-matched', 'total-estimate', 
+    interfaces = set(('result-time', 'total-matched', 'total-estimate',
                       'url', 'threads', 'matched', 'estimate'))
 
     def getThreads(self):
         threads = []
-        for threadXML in self.xml.findall('{%s}%s' % (MailThread.namespace, 
+        for threadXML in self.xml.findall('{%s}%s' % (MailThread.namespace,
                                                       MailThread.name)):
             threads.append(MailThread(xml=threadXML, parent=None))
         return threads
@@ -55,10 +58,10 @@ class MailThread(ElementBase):
     namespace = 'google:mail:notify'
     name = 'mail-thread-info'
     plugin_attrib = 'thread'
-    interfaces = set(('tid', 'participation', 'messages', 'date', 
+    interfaces = set(('tid', 'participation', 'messages', 'date',
                       'senders', 'url', 'labels', 'subject', 'snippet'))
     sub_interfaces = set(('labels', 'subject', 'snippet'))
-        
+
     def getSenders(self):
         senders = []
         sendersXML = self.xml.find('{%s}senders' % self.namespace)
@@ -91,13 +94,13 @@ class gmail_notify(base.base_plugin):
     """
     Google Talk: Gmail Notifications
     """
-    
+
     def plugin_init(self):
         self.description = 'Google Talk: Gmail Notifications'
 
         self.xmpp.registerHandler(
             Callback('Gmail Result',
-                     MatchXPath('{%s}iq/{%s}%s' % (self.xmpp.default_ns, 
+                     MatchXPath('{%s}iq/{%s}%s' % (self.xmpp.default_ns,
                                                    MailBox.namespace,
                                                    MailBox.name)),
                      self.handle_gmail))
@@ -108,7 +111,7 @@ class gmail_notify(base.base_plugin):
                                                    NewMail.namespace,
                                                    NewMail.name)),
                      self.handle_new_mail))
-        
+
         registerStanzaPlugin(Iq, GmailQuery)
         registerStanzaPlugin(Iq, MailBox)
         registerStanzaPlugin(Iq, NewMail)
@@ -118,12 +121,12 @@ class gmail_notify(base.base_plugin):
     def handle_gmail(self, iq):
         mailbox = iq['mailbox']
         approx = ' approximately' if mailbox['estimated'] else ''
-        logging.info('Gmail: Received%s %s emails' % (approx, mailbox['total-matched']))
+        log.info('Gmail: Received%s %s emails' % (approx, mailbox['total-matched']))
         self.last_result_time = mailbox['result-time']
         self.xmpp.event('gmail_messages', iq)
 
     def handle_new_mail(self, iq):
-        logging.info("Gmail: New emails received!")
+        log.info("Gmail: New emails received!")
         self.xmpp.event('gmail_notify')
         self.checkEmail()
 
@@ -135,9 +138,9 @@ class gmail_notify(base.base_plugin):
 
     def search(self, query=None, newer=None):
         if query is None:
-            logging.info("Gmail: Checking for new emails")
+            log.info("Gmail: Checking for new emails")
         else:
-            logging.info('Gmail: Searching for emails matching: "%s"' % query)
+            log.info('Gmail: Searching for emails matching: "%s"' % query)
         iq = self.xmpp.Iq()
         iq['type'] = 'get'
         iq['to'] = self.xmpp.jid

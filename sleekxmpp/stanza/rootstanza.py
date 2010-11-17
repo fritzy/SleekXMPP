@@ -15,6 +15,9 @@ from sleekxmpp.stanza import Error
 from sleekxmpp.xmlstream import ET, StanzaBase, register_stanza_plugin
 
 
+log = logging.getLogger(__name__)
+
+
 class RootStanza(StanzaBase):
 
     """
@@ -58,7 +61,7 @@ class RootStanza(StanzaBase):
                 self['error']['text'] = "SleekXMPP got into trouble."
             else:
                 self['error']['text'] = traceback.format_tb(e.__traceback__)
-                logging.exception('Error handling {%s}%s stanza' %
+                log.exception('Error handling {%s}%s stanza' %
                                   (self.namespace, self.name))
         self.send()
 

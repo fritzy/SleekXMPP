@@ -442,7 +442,6 @@ class RosterItem(object):
             key   -- The state field to modify.
             value -- The new value of the state field.
         """
-        print "%s: %s" % (key, value)
         if key in self._state:
             if key in ['name', 'subscription', 'groups']:
                 self._state[key] = value
@@ -465,7 +464,7 @@ class RosterItem(object):
 
     def remove(self):
         """
-        Remove a JID's whitelisted status and unsubscribe if a 
+        Remove a JID's whitelisted status and unsubscribe if a
         subscription exists.
         """
         if self['to']:

@@ -19,12 +19,12 @@ class TestStreamRoster(SleekTest):
         t = threading.Thread(name='get_roster', target=self.xmpp.get_roster)
         t.start()
 
-        self.stream_send_iq("""
+        self.send("""
           <iq type="get" id="1">
             <query xmlns="jabber:iq:roster" />
           </iq>
         """)
-        self.stream_recv("""
+        self.recv("""
           <iq to='tester@localhost' type="result" id="1">
             <query xmlns="jabber:iq:roster">
               <item jid="user@localhost"
@@ -41,7 +41,6 @@ class TestStreamRoster(SleekTest):
         # Wait for get_roster to return.
         t.join()
 
-        print self.xmpp.roster['tester@localhost']['user@localhost']._state
         self.check_roster('tester@localhost', 'user@localhost',
                           name='User',
                           subscription='from',
@@ -53,7 +52,7 @@ class TestStreamRoster(SleekTest):
         """Test handling pushed roster updates."""
         self.stream_start(mode='client', jid='tester@localhost')
 
-        self.stream_recv("""
+        self.recv("""
           <iq to='tester@localhost' type="set" id="1">
             <query xmlns="jabber:iq:roster">
               <item jid="user@localhost"
@@ -65,7 +64,7 @@ class TestStreamRoster(SleekTest):
             </query>
           </iq>
         """)
-        self.stream_send_iq("""
+        self.send("""
           <iq type="result" id="1">
             <query xmlns="jabber:iq:roster" />
           </iq>

@@ -20,9 +20,9 @@ class TestLiveStream(SleekTest):
 
         # Use sid=None to ignore any id sent by the server since
         # we can't know it in advance.
-        self.stream_recv_header(sfrom='localhost', sid=None)
-        self.stream_send_header(sto='localhost')
-        self.stream_recv_feature("""
+        self.recv_header(sfrom='localhost', sid=None)
+        self.send_header(sto='localhost')
+        self.recv_feature("""
           <stream:features>
             <starttls xmlns="urn:ietf:params:xml:ns:xmpp-tls" />
             <mechanisms xmlns="urn:ietf:params:xml:ns:xmpp-sasl">
@@ -35,15 +35,15 @@ class TestLiveStream(SleekTest):
             <register xmlns="http://jabber.org/features/iq-register" />
           </stream:features>
         """)
-        self.stream_send_feature("""
+        self.send_feature("""
           <starttls xmlns="urn:ietf:params:xml:ns:xmpp-tls" />
         """)
-        self.stream_recv_feature("""
+        self.recv_feature("""
           <proceed xmlns="urn:ietf:params:xml:ns:xmpp-tls" />
         """)
-        self.stream_send_header(sto='localhost')
-        self.stream_recv_header(sfrom='localhost', sid=None)
-        self.stream_recv_feature("""
+        self.send_header(sto='localhost')
+        self.recv_header(sfrom='localhost', sid=None)
+        self.recv_feature("""
           <stream:features>
             <mechanisms xmlns="urn:ietf:params:xml:ns:xmpp-sasl">
               <mechanism>DIGEST-MD5</mechanism>
@@ -56,16 +56,16 @@ class TestLiveStream(SleekTest):
             <register xmlns="http://jabber.org/features/iq-register" />
           </stream:features>
         """)
-        self.stream_send_feature("""
+        self.send_feature("""
           <auth xmlns="urn:ietf:params:xml:ns:xmpp-sasl"
                 mechanism="PLAIN">AHVzZXIAdXNlcg==</auth>
         """)
-        self.stream_recv_feature("""
+        self.recv_feature("""
           <success xmlns="urn:ietf:params:xml:ns:xmpp-sasl" />
         """)
-        self.stream_send_header(sto='localhost')
-        self.stream_recv_header(sfrom='localhost', sid=None)
-        self.stream_recv_feature("""
+        self.send_header(sto='localhost')
+        self.recv_header(sfrom='localhost', sid=None)
+        self.recv_feature("""
           <stream:features>
             <bind xmlns="urn:ietf:params:xml:ns:xmpp-bind" />
             <session xmlns="urn:ietf:params:xml:ns:xmpp-session" />
@@ -77,16 +77,16 @@ class TestLiveStream(SleekTest):
           </stream:features>
         """)
 
-        # Should really use stream_send_iq, but our Iq stanza objects
+        # Should really use send, but our Iq stanza objects
         # can't handle bind element payloads yet.
-        self.stream_send_feature("""
+        self.send_feature("""
           <iq type="set" id="1">
             <bind xmlns="urn:ietf:params:xml:ns:xmpp-bind">
               <resource>test</resource>
             </bind>
           </iq>
         """)
-        self.stream_recv_feature("""
+        self.recv_feature("""
           <iq type="result" id="1">
             <bind xmlns="urn:ietf:params:xml:ns:xmpp-bind">
               <jid>user@localhost/test</jid>

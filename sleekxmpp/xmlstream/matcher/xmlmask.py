@@ -6,6 +6,8 @@
     See the file LICENSE for copying permission.
 """
 
+import logging
+
 from xml.parsers.expat import ExpatError
 
 from sleekxmpp.xmlstream.stanzabase import ET
@@ -16,6 +18,9 @@ from sleekxmpp.xmlstream.matcher.base import MatcherBase
 # uses namespaces, or a custom matcher that ignores namespaces.
 # Changing this will affect ALL XMLMask matchers.
 IGNORE_NS = False
+
+
+log = logging.getLogger(__name__)
 
 
 class MatchXMLMask(MatcherBase):
@@ -97,8 +102,7 @@ class MatchXMLMask(MatcherBase):
             try:
                 mask = ET.fromstring(mask)
             except ExpatError:
-                logging.log(logging.WARNING,
-                            "Expat error: %s\nIn parsing: %s" % ('', mask))
+                log.warning("Expat error: %s\nIn parsing: %s" % ('', mask))
 
         if not use_ns:
             # Compare the element without using namespaces.

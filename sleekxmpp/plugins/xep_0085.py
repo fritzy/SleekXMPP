@@ -14,15 +14,18 @@ from .. xmlstream.stanzabase import registerStanzaPlugin, ElementBase, ET, JID
 from .. stanza.message import Message
 
 
+log = logging.getLogger(__name__)
+
+
 class ChatState(ElementBase):
     namespace = 'http://jabber.org/protocol/chatstates'
     plugin_attrib = 'chat_state'
     interface = set(('state',))
     states = set(('active', 'composing', 'gone', 'inactive', 'paused'))
-    
+
     def active(self):
         self.setState('active')
-        
+
     def composing(self):
         self.setState('composing')
 
@@ -67,11 +70,11 @@ class xep_0085(base.base_plugin):
     """
     XEP-0085 Chat State Notifications
     """
-    
+
     def plugin_init(self):
         self.xep = '0085'
         self.description = 'Chat State Notifications'
-        
+
         handlers = [('Active Chat State', 'active'),
                     ('Composing Chat State', 'composing'),
                     ('Gone Chat State', 'gone'),
@@ -79,10 +82,10 @@ class xep_0085(base.base_plugin):
                     ('Paused Chat State', 'paused')]
         for handler in handlers:
             self.xmpp.registerHandler(
-                Callback(handler[0], 
-                         MatchXPath("{%s}message/{%s}%s" % (self.xmpp.default_ns, 
+                Callback(handler[0],
+                         MatchXPath("{%s}message/{%s}%s" % (self.xmpp.default_ns,
                                                             ChatState.namespace,
-                                                            handler[1])), 
+                                                            handler[1])),
                          self._handleChatState))
 
         registerStanzaPlugin(Message, Active)
@@ -90,12 +93,12 @@ class xep_0085(base.base_plugin):
         registerStanzaPlugin(Message, Gone)
         registerStanzaPlugin(Message, Inactive)
         registerStanzaPlugin(Message, Paused)
-        
+
     def post_init(self):
         base.base_plugin.post_init(self)
         self.xmpp.plugin['xep_0030'].add_feature('http://jabber.org/protocol/chatstates')
-        
+
     def _handleChatState(self, msg):
         state = msg['chat_state'].name
-        logging.debug("Chat State: %s, %s" % (state, msg['from'].jid))
+        log.debug("Chat State: %s, %s" % (state, msg['from'].jid))
         self.xmpp.event('chatstate_%s' % state, msg)

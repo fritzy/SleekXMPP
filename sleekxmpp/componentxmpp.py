@@ -15,11 +15,14 @@ import hashlib
 
 from sleekxmpp import plugins
 from sleekxmpp import stanza
-from sleekxmpp.basexmpp import BaseXMPP, SRV_SUPPORT
+from sleekxmpp.basexmpp import BaseXMPP
 from sleekxmpp.xmlstream import XMLStream, RestartStream
 from sleekxmpp.xmlstream import StanzaBase, ET
 from sleekxmpp.xmlstream.matcher import *
 from sleekxmpp.xmlstream.handler import *
+
+
+log = logging.getLogger(__name__)
 
 
 class ComponentXMPP(BaseXMPP):
@@ -82,7 +85,7 @@ class ComponentXMPP(BaseXMPP):
 
         Overrides XMLStream.connect.
         """
-        logging.debug("Connecting to %s:%s" % (self.server_host,
+        log.debug("Connecting to %s:%s" % (self.server_host,
                                                self.server_port))
         return XMLStream.connect(self, self.server_host,
                                        self.server_port)

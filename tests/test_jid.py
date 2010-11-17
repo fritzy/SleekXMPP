@@ -8,7 +8,7 @@ class TestJIDClass(SleekTest):
 
     def testJIDFromFull(self):
         """Test using JID of the form 'user@server/resource/with/slashes'."""
-        self.check_JID(JID('user@someserver/some/resource'),
+        self.check_jid(JID('user@someserver/some/resource'),
                        'user',
                        'someserver',
                        'some/resource',
@@ -22,7 +22,7 @@ class TestJIDClass(SleekTest):
         j.user = 'user'
         j.domain = 'someserver'
         j.resource = 'some/resource'
-        self.check_JID(j,
+        self.check_jid(j,
                        'user',
                        'someserver',
                        'some/resource',
@@ -34,15 +34,15 @@ class TestJIDClass(SleekTest):
         """Test changing JID using aliases for domain."""
         j = JID('user@someserver/resource')
         j.server = 'anotherserver'
-        self.check_JID(j, domain='anotherserver')
+        self.check_jid(j, domain='anotherserver')
         j.host = 'yetanother'
-        self.check_JID(j, domain='yetanother')
+        self.check_jid(j, domain='yetanother')
 
     def testJIDSetFullWithUser(self):
         """Test setting the full JID with a user portion."""
         j = JID('user@domain/resource')
         j.full = 'otheruser@otherdomain/otherresource'
-        self.check_JID(j,
+        self.check_jid(j,
                        'otheruser',
                        'otherdomain',
                        'otherresource',
@@ -57,7 +57,7 @@ class TestJIDClass(SleekTest):
         """
         j = JID('user@domain/resource')
         j.full = 'otherdomain/otherresource'
-        self.check_JID(j,
+        self.check_jid(j,
                        '',
                        'otherdomain',
                        'otherresource',
@@ -72,7 +72,7 @@ class TestJIDClass(SleekTest):
         """
         j = JID('user@domain/resource')
         j.full = 'otherdomain'
-        self.check_JID(j,
+        self.check_jid(j,
                        '',
                        'otherdomain',
                        '',
@@ -84,7 +84,7 @@ class TestJIDClass(SleekTest):
         """Test setting the bare JID with a user."""
         j = JID('user@domain/resource')
         j.bare = 'otheruser@otherdomain'
-        self.check_JID(j,
+        self.check_jid(j,
                        'otheruser',
                        'otherdomain',
                        'resource',
@@ -96,7 +96,7 @@ class TestJIDClass(SleekTest):
         """Test setting the bare JID without a user."""
         j = JID('user@domain/resource')
         j.bare = 'otherdomain'
-        self.check_JID(j,
+        self.check_jid(j,
                        '',
                        'otherdomain',
                        'resource',
@@ -106,7 +106,7 @@ class TestJIDClass(SleekTest):
 
     def testJIDNoResource(self):
         """Test using JID of the form 'user@domain'."""
-        self.check_JID(JID('user@someserver'),
+        self.check_jid(JID('user@someserver'),
                        'user',
                        'someserver',
                        '',
@@ -116,7 +116,7 @@ class TestJIDClass(SleekTest):
 
     def testJIDNoUser(self):
         """Test JID of the form 'component.domain.tld'."""
-        self.check_JID(JID('component.someserver'),
+        self.check_jid(JID('component.someserver'),
                        '',
                        'component.someserver',
                        '',

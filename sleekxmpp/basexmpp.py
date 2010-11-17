@@ -27,13 +27,7 @@ from sleekxmpp.xmlstream.matcher import *
 from sleekxmpp.xmlstream.handler import *
 
 
-# Flag indicating if DNS SRV records are available for use.
-SRV_SUPPORT = True
-try:
-    import dns.resolver
-except:
-    SRV_SUPPORT = False
-
+log = logging.getLogger(__name__)
 
 # In order to make sure that Unicode is handled properly
 # in Python 2.x, reset the default encoding.
@@ -205,9 +199,9 @@ class BaseXMPP(XMLStream):
                 xep = "(XEP-%s) " % self.plugin[plugin].xep
 
             desc = (xep, self.plugin[plugin].description)
-            logging.debug("Loaded Plugin %s%s" % desc)
+            log.debug("Loaded Plugin %s%s" % desc)
         except:
-            logging.exception("Unable to load plugin: %s", plugin)
+            log.exception("Unable to load plugin: %s", plugin)
 
     def register_plugins(self):
         """
@@ -241,7 +235,7 @@ class BaseXMPP(XMLStream):
         if key in self.plugin:
             return self.plugin[key]
         else:
-            logging.warning("""Plugin "%s" is not loaded.""" % key)
+            log.warning("""Plugin "%s" is not loaded.""" % key)
             return False
 
     def get(self, key, default):
@@ -459,12 +453,12 @@ class BaseXMPP(XMLStream):
         """
         Attribute accessor for bare jid
         """
-        logging.warning("jid property deprecated. Use boundjid.bare")
+        log.warning("jid property deprecated. Use boundjid.bare")
         return self.boundjid.bare
 
     @jid.setter
     def jid(self, value):
-        logging.warning("jid property deprecated. Use boundjid.bare")
+        log.warning("jid property deprecated. Use boundjid.bare")
         self.boundjid.bare = value
 
     @property
@@ -472,12 +466,12 @@ class BaseXMPP(XMLStream):
         """
         Attribute accessor for full jid
         """
-        logging.warning("fulljid property deprecated. Use boundjid.full")
+        log.warning("fulljid property deprecated. Use boundjid.full")
         return self.boundjid.full
 
     @fulljid.setter
     def fulljid(self, value):
-        logging.warning("fulljid property deprecated. Use boundjid.full")
+        log.warning("fulljid property deprecated. Use boundjid.full")
         self.boundjid.full = value
 
     @property
@@ -485,12 +479,12 @@ class BaseXMPP(XMLStream):
         """
         Attribute accessor for jid resource
         """
-        logging.warning("resource property deprecated. Use boundjid.resource")
+        log.warning("resource property deprecated. Use boundjid.resource")
         return self.boundjid.resource
 
     @resource.setter
     def resource(self, value):
-        logging.warning("fulljid property deprecated. Use boundjid.full")
+        log.warning("fulljid property deprecated. Use boundjid.full")
         self.boundjid.resource = value
 
     @property
@@ -498,12 +492,12 @@ class BaseXMPP(XMLStream):
         """
         Attribute accessor for jid usernode
         """
-        logging.warning("username property deprecated. Use boundjid.user")
+        log.warning("username property deprecated. Use boundjid.user")
         return self.boundjid.user
 
     @username.setter
     def username(self, value):
-        logging.warning("username property deprecated. Use boundjid.user")
+        log.warning("username property deprecated. Use boundjid.user")
         self.boundjid.user = value
 
     @property
@@ -511,17 +505,17 @@ class BaseXMPP(XMLStream):
         """
         Attribute accessor for jid host
         """
-        logging.warning("server property deprecated. Use boundjid.host")
+        log.warning("server property deprecated. Use boundjid.host")
         return self.boundjid.server
 
     @server.setter
     def server(self, value):
-        logging.warning("server property deprecated. Use boundjid.host")
+        log.warning("server property deprecated. Use boundjid.host")
         self.boundjid.server = value
 
     def set_jid(self, jid):
         """Rip a JID apart and claim it as our own."""
-        logging.debug("setting jid to %s" % jid)
+        log.debug("setting jid to %s" % jid)
         self.boundjid.full = jid
 
     def getjidresource(self, fulljid):
@@ -595,7 +589,6 @@ class BaseXMPP(XMLStream):
              not presence['type'] in presence.showtypes:
             return
         self.event("changed_status", presence)
-
 
 # Restore the old, lowercased name for backwards compatibility.
 basexmpp = BaseXMPP

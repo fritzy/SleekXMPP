@@ -197,7 +197,10 @@ class SleekTest(unittest.TestCase):
                     "Stanza:\n%s" % str(stanza))
         else:
             stanza_class = stanza.__class__
-            xml = self.parse_xml(criteria)
+            if isinstance(criteria, str):
+                xml = self.parse_xml(criteria)
+            else:
+                xml = criteria.xml
 
             # Ensure that top level namespaces are used, even if they
             # were not provided.
@@ -590,7 +593,6 @@ class SleekTest(unittest.TestCase):
         sent = self.xmpp.socket.next_sent(timeout)
         if sent is None:
             return False
-        print sent
         xml = self.parse_xml(sent)
         self.fix_namespaces(xml, 'jabber:client')
         sent = self.xmpp._build_stanza(xml, 'jabber:client')

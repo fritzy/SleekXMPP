@@ -132,23 +132,35 @@ class BaseXMPP(XMLStream):
 
         self.add_event_handler('disconnected',
                                self._handle_disconnected)
-        self.add_event_handler('presence_available', self._handle_available)
-        self.add_event_handler('presence_dnd', self._handle_available)
-        self.add_event_handler('presence_xa', self._handle_available)
-        self.add_event_handler('presence_chat', self._handle_available)
-        self.add_event_handler('presence_away', self._handle_available)
-        self.add_event_handler('presence_unavailable', self._handle_unavailable)
-        self.add_event_handler('presence_subscribe', self._handle_subscribe)
-        self.add_event_handler('presence_subscribed', self._handle_subscribed)
-        self.add_event_handler('presence_unsubscribe', self._handle_unsubscribe)
-        self.add_event_handler('presence_unsubscribed', self._handle_unsubscribed)
-        self.add_event_handler('presence_probe', self._handle_probe)
-        self.add_event_handler('roster_subscription_request', self._handle_new_subscription)
+        self.add_event_handler('presence_available',
+                               self._handle_available)
+        self.add_event_handler('presence_dnd',
+                               self._handle_available)
+        self.add_event_handler('presence_xa',
+                               self._handle_available)
+        self.add_event_handler('presence_chat',
+                               self._handle_available)
+        self.add_event_handler('presence_away',
+                               self._handle_available)
+        self.add_event_handler('presence_unavailable',
+                               self._handle_unavailable)
+        self.add_event_handler('presence_subscribe',
+                               self._handle_subscribe)
+        self.add_event_handler('presence_subscribed',
+                               self._handle_subscribed)
+        self.add_event_handler('presence_unsubscribe',
+                               self._handle_unsubscribe)
+        self.add_event_handler('presence_unsubscribed',
+                               self._handle_unsubscribed)
+        self.add_event_handler('presence_probe',
+                               self._handle_probe)
+        self.add_event_handler('roster_subscription_request',
+                               self._handle_new_subscription)
 
         # Set up the XML stream with XMPP's root stanzas.
-        self.registerStanza(Message)
-        self.registerStanza(Iq)
-        self.registerStanza(Presence)
+        self.register_stanza(Message)
+        self.register_stanza(Iq)
+        self.register_stanza(Presence)
 
         # Initialize a few default stanza plugins.
         register_stanza_plugin(Iq, Roster)
@@ -536,12 +548,28 @@ class BaseXMPP(XMLStream):
         self.event('message', msg)
 
     def _handle_available(self, presence):
-        self.roster[presence['to'].bare][presence['from'].bare].handle_available(presence)
+        pto = presence['to'].bare
+        pfrom = presence['from'].bare
+        self.roster[pto][pfrom].handle_available(presence)
 
     def _handle_unavailable(self, presence):
-        self.roster[presence['to'].bare][presence['from'].bare].handle_unavailable(presence)
+        pto = presence['to'].bare
+        pfrom = presence['from'].bare
+        self.roster[pto][pfrom].handle_unavailable(presence)
 
     def _handle_new_subscription(self, stanza):
+        """
+        Attempt to automatically handle subscription requests.
+
+        Subscriptions will be approved if the request is from
+        a whitelisted JID, of self.auto_authorize is True. They
+        will be rejected if self.auto_authorize is False. Setting
+        self.auto_authorize to None will disable automatic
+        subscription handling (except for whitelisted JIDs).
+
+        If a subscription is accepted, a request for a mutual
+        subscription will be sent if self.auto_subscribe is True.
+        """
         roster = self.roster[stanza['to'].bare]
         item = self.roster[stanza['to'].bare][stanza['from'].bare]
         if item['whitelisted']:
@@ -554,22 +582,34 @@ class BaseXMPP(XMLStream):
             item.unauthorize()
 
     def _handle_removed_subscription(self, presence):
-        self.roster[presence['to'].bare][presence['from'].bare].unauthorize()
+        pto = presence['to'].bare
+        pfrom = presence['from'].bare
+        self.roster[pto][pfrom].unauthorize()
 
-    def _handle_subscribe(self, stanza):
-        self.roster[stanza['to'].bare][stanza['from'].bare].handle_subscribe(stanza)
+    def _handle_subscribe(self, presence):
+        pto = presence['to'].bare
+        pfrom = presence['from'].bare
+        self.roster[pto][pfrom].handle_subscribe(presence)
 
-    def _handle_subscribed(self, stanza):
-        self.roster[stanza['to'].bare][stanza['from'].bare].handle_subscribed(stanza)
+    def _handle_subscribed(self, presence):
+        pto = presence['to'].bare
+        pfrom = presence['from'].bare
+        self.roster[pto][pfrom].handle_subscribed(presence)
 
-    def _handle_unsubscribe(self, stanza):
-        self.roster[stanza['to'].bare][stanza['from'].bare].handle_unsubscribe(stanza)
+    def _handle_unsubscribe(self, presence):
+        pto = presence['to'].bare
+        pfrom = presence['from'].bare
+        self.roster[pto][pfrom].handle_unsubscribe(presence)
 
-    def _handle_unsubscribed(self, stanza):
-        self.roster[stanza['to'].bare][stanza['from'].bare].handle_unsubscribed(stanza)
+    def _handle_unsubscribed(self, presence):
+        pto = presence['to'].bare
+        pfrom = presence['from'].bare
+        self.roster[pto][pfrom].handle_unsubscribed(presence)
 
-    def _handle_probe(self, stanza):
-        self.roster[stanza['to'].bare][stanza['from'].bare].handle_probe(stanza)
+    def _handle_probe(self, presence):
+        pto = presence['to'].bare
+        pfrom = presence['from'].bare
+        self.roster[pto][pfrom].handle_probe(presence)
 
     def _handle_presence(self, presence):
         """

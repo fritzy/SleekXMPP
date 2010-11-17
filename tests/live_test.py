@@ -1,3 +1,5 @@
+import logging
+
 from sleekxmpp.test import *
 import sleekxmpp.plugins.xep_0033 as xep_0033
 
@@ -29,10 +31,6 @@ class TestLiveStream(SleekTest):
               <mechanism>DIGEST-MD5</mechanism>
               <mechanism>PLAIN</mechanism>
             </mechanisms>
-            <c xmlns="http://jabber.org/protocol/caps"
-               node="http://www.process-one.net/en/ejabberd/"
-               ver="TQ2JFyRoSa70h2G1bpgjzuXb2sU=" hash="sha-1" />
-            <register xmlns="http://jabber.org/features/iq-register" />
           </stream:features>
         """)
         self.send_feature("""
@@ -49,11 +47,6 @@ class TestLiveStream(SleekTest):
               <mechanism>DIGEST-MD5</mechanism>
               <mechanism>PLAIN</mechanism>
             </mechanisms>
-            <c xmlns="http://jabber.org/protocol/caps"
-               node="http://www.process-one.net/en/ejabberd/"
-               ver="TQ2JFyRoSa70h2G1bpgjzuXb2sU="
-               hash="sha-1" />
-            <register xmlns="http://jabber.org/features/iq-register" />
           </stream:features>
         """)
         self.send_feature("""
@@ -69,11 +62,6 @@ class TestLiveStream(SleekTest):
           <stream:features>
             <bind xmlns="urn:ietf:params:xml:ns:xmpp-bind" />
             <session xmlns="urn:ietf:params:xml:ns:xmpp-session" />
-            <c xmlns="http://jabber.org/protocol/caps"
-               node="http://www.process-one.net/en/ejabberd/"
-               ver="TQ2JFyRoSa70h2G1bpgjzuXb2sU="
-               hash="sha-1" />
-            <register xmlns="http://jabber.org/features/iq-register" />
           </stream:features>
         """)
 
@@ -99,6 +87,9 @@ class TestLiveStream(SleekTest):
 suite = unittest.TestLoader().loadTestsFromTestCase(TestLiveStream)
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.DEBUG,
+                        format='%(levelname)-8s %(message)s')
+
     tests = unittest.TestSuite([suite])
     result = unittest.TextTestRunner(verbosity=2).run(tests)
     test_ns = 'http://andyet.net/protocol/tests'

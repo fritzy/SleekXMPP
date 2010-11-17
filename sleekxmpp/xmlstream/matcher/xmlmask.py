@@ -117,7 +117,7 @@ class MatchXMLMask(MatcherBase):
                 return False
 
         # If the mask includes text, compare it.
-        if mask.text and source.text != mask.text:
+        if mask.text and source.text and source.text.strip() != mask.text.strip():
             return False
 
         # Compare attributes. The stanza must include the attributes
@@ -127,10 +127,17 @@ class MatchXMLMask(MatcherBase):
                 return False
 
         # Recursively check subelements.
+        matched_elements = {}
         for subelement in mask:
             if use_ns:
-                if not self._mask_cmp(source.find(subelement.tag),
-                                      subelement, use_ns):
+                matched = False
+                for other in source.findall(subelement.tag):
+                    matched_elements[other] = False
+                    if self._mask_cmp(other, subelement, use_ns):
+                        if not matched_elements.get(other, False):
+                            matched_elements[other] = True
+                            matched = True
+                if not matched:
                     return False
             else:
                 if not self._mask_cmp(self._get_child(source, subelement.tag),

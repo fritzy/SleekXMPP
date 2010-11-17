@@ -7,6 +7,10 @@
 """
 
 import unittest
+try:
+    import Queue as queue
+except:
+    import queue
 
 import sleekxmpp
 from sleekxmpp import ClientXMPP, ComponentXMPP
@@ -279,6 +283,10 @@ class SleekTest(unittest.TestCase):
         else:
             raise ValueError("Unknown XMPP connection mode.")
 
+        # We will use this to wait for the session_start event
+        # for live connections.
+        skip_queue = queue.Queue()
+
         if socket == 'mock':
             self.xmpp.set_socket(TestSocket())
 
@@ -293,6 +301,10 @@ class SleekTest(unittest.TestCase):
             self.xmpp.socket.recv_data(header)
         elif socket == 'live':
             self.xmpp.socket_class = TestLiveSocket
+            def wait_for_session(x):
+                self.xmpp.socket.clear()
+                skip_queue.put('started')
+            self.xmpp.add_event_handler('session_start', wait_for_session)
             self.xmpp.connect()
         else:
             raise ValueError("Unknown socket type.")
@@ -300,10 +312,13 @@ class SleekTest(unittest.TestCase):
         self.xmpp.register_plugins()
         self.xmpp.process(threaded=True)
         if skip:
-            # Clear startup stanzas
-            self.xmpp.socket.next_sent(timeout=1)
-            if mode == 'component':
+            if socket != 'live':
+                # Clear startup stanzas
                 self.xmpp.socket.next_sent(timeout=1)
+                if mode == 'component':
+                    self.xmpp.socket.next_sent(timeout=1)
+            else:
+                skip_queue.get(block=True, timeout=10)
 
     def make_header(self, sto='',
                           sfrom='',
@@ -573,11 +588,13 @@ class SleekTest(unittest.TestCase):
                             Defaults to the value of self.match_method.
         """
         sent = self.xmpp.socket.next_sent(timeout)
-        if isinstance(data, str):
-            xml = self.parse_xml(data)
-            self.fix_namespaces(xml, 'jabber:client')
-            data = self.xmpp._build_stanza(xml, 'jabber:client')
-        self.check(data, sent,
+        if sent is None:
+            return False
+        print sent
+        xml = self.parse_xml(sent)
+        self.fix_namespaces(xml, 'jabber:client')
+        sent = self.xmpp._build_stanza(xml, 'jabber:client')
+        self.check(sent, data,
                    method=method,
                    defaults=defaults,
                    use_values=use_values)

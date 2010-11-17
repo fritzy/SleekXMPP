@@ -149,6 +149,8 @@ class Scheduler(object):
                         if wait <= 0.0:
                             newtask = self.addq.get(False)
                         else:
+                            if wait >= 3.0:
+                                wait = 3.0
                             newtask = self.addq.get(True, wait)
                     except queue.Empty:
                         cleanup = []

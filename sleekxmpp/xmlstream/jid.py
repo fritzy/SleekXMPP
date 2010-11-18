@@ -121,3 +121,6 @@ class JID(object):
     def __str__(self):
         """Use the full JID as the string value."""
         return self.full
+
+    def __repr__(self):
+        return str(self)

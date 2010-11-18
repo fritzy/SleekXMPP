@@ -105,6 +105,10 @@ if __name__ == '__main__':
     logging.basicConfig(level=opts.loglevel,
                         format='%(levelname)-8s %(message)s')
 
+    if None in [opts.jid, opts.password]:
+        optp.print_help()
+        sys.exit(1)
+
     # Setup the EchoBot and register plugins. Note that while plugins may
     # have interdependencies, the order in which you register them does
     # not matter.

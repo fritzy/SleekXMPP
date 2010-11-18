@@ -383,7 +383,7 @@ class ClientXMPP(BaseXMPP):
         self.set_jid(response.xml.find('{%s}bind/{%s}jid' % (bind_ns,
                                                              bind_ns)).text)
         self.bound = True
-        log.info("Node set to: %s" % self.boundjid.fulljid)
+        log.info("Node set to: %s" % self.boundjid.full)
         session_ns = 'urn:ietf:params:xml:ns:xmpp-session'
         if "{%s}session" % session_ns not in self.features or self.bindfail:
             log.debug("Established Session")

@@ -7,6 +7,7 @@
 """
 
 import socket
+import threading
 try:
     import queue
 except ImportError:
@@ -40,6 +41,8 @@ class TestLiveSocket(object):
         self.recv_buffer = []
         self.recv_queue = queue.Queue()
         self.send_queue = queue.Queue()
+        self.send_queue_lock = threading.Lock()
+        self.recv_queue_lock = threading.Lock()
         self.is_live = True
 
     def __getattr__(self, name):
@@ -108,7 +111,8 @@ class TestLiveSocket(object):
             Placeholders. Same as for socket.recv.
         """
         data = self.socket.recv(*args, **kwargs)
-        self.recv_queue.put(data)
+        with self.recv_queue_lock:
+            self.recv_queue.put(data)
         return data
 
     def send(self, data):
@@ -120,7 +124,8 @@ class TestLiveSocket(object):
         Arguments:
             data -- String value to write.
         """
-        self.send_queue.put(data)
+        with self.send_queue_lock:
+            self.send_queue.put(data)
         self.socket.send(data)
 
     # ------------------------------------------------------------------
@@ -143,3 +148,15 @@ class TestLiveSocket(object):
             Placeholders, same as socket.recv()
         """
         return self.recv(*args, **kwargs)
+
+    def clear(self):
+        """
+        Empty the send queue, typically done once the session has started to
+        remove the feature negotiation and log in stanzas.
+        """
+        with self.send_queue_lock:
+            for i in range(0, self.send_queue.qsize()):
+                self.send_queue.get(block=False)
+        with self.recv_queue_lock:
+            for i in range(0, self.recv_queue.qsize()):
+                self.recv_queue.get(block=False)

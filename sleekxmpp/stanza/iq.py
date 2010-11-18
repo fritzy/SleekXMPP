@@ -8,7 +8,7 @@
 
 from sleekxmpp.stanza import Error
 from sleekxmpp.stanza.rootstanza import RootStanza
-from sleekxmpp.xmlstream import RESPONSE_TIMEOUT, StanzaBase, ET
+from sleekxmpp.xmlstream import StanzaBase, ET
 from sleekxmpp.xmlstream.handler import Waiter
 from sleekxmpp.xmlstream.matcher import MatcherId
 
@@ -157,7 +157,7 @@ class Iq(RootStanza):
         StanzaBase.reply(self)
         return self
 
-    def send(self, block=True, timeout=RESPONSE_TIMEOUT):
+    def send(self, block=True, timeout=None):
         """
         Send an <iq> stanza over the XML stream.
 
@@ -174,6 +174,8 @@ class Iq(RootStanza):
                        before exiting the send call if blocking is used.
                        Defaults to sleekxmpp.xmlstream.RESPONSE_TIMEOUT
         """
+        if timeout is None:
+            timeout = self.stream.response_timeout
         if block and self['type'] in ('get', 'set'):
             waitfor = Waiter('IqWait_%s' % self['id'], MatcherId(self['id']))
             self.stream.registerHandler(waitfor)

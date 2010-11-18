@@ -25,6 +25,8 @@ except ImportError:
 from sleekxmpp.thirdparty.statemachine import StateMachine
 from sleekxmpp.xmlstream import Scheduler, tostring
 from sleekxmpp.xmlstream.stanzabase import StanzaBase, ET
+from sleekxmpp.xmlstream.handler import Waiter, XMLCallback
+from sleekxmpp.xmlstream.matcher import MatchXMLMask
 
 # In Python 2.x, file socket objects are broken. A patched socket
 # wrapper is provided for this case in filesocket.py.
@@ -161,6 +163,8 @@ class XMLStream(object):
 
         self.ssl_support = SSL_SUPPORT
         self.ssl_version = ssl.PROTOCOL_TLSv1
+
+        self.response_timeout = RESPONSE_TIMEOUT
 
         self.state = StateMachine(('disconnected', 'connected'))
         self.state._set_state('disconnected')
@@ -458,8 +462,6 @@ class XMLStream(object):
         """
         # To prevent circular dependencies, we must load the matcher
         # and handler classes here.
-        from sleekxmpp.xmlstream.matcher import MatchXMLMask
-        from sleekxmpp.xmlstream.handler import XMLCallback
 
         if name is None:
             name = 'add_handler_%s' % self.getNewId()
@@ -606,7 +608,7 @@ class XMLStream(object):
         """
         return xml
 
-    def send(self, data, mask=None, timeout=RESPONSE_TIMEOUT):
+    def send(self, data, mask=None, timeout=None):
         """
         A wrapper for send_raw for sending stanza objects.
 
@@ -621,6 +623,9 @@ class XMLStream(object):
             timeout -- Time in seconds to wait for a response before
                        continuing. Defaults to RESPONSE_TIMEOUT.
         """
+        if timeout is None:
+            timeout = self.response_timeout
+
         if hasattr(mask, 'xml'):
             mask = mask.xml
         data = str(data)
@@ -643,7 +648,7 @@ class XMLStream(object):
         self.send_queue.put(data)
         return True
 
-    def send_xml(self, data, mask=None, timeout=RESPONSE_TIMEOUT):
+    def send_xml(self, data, mask=None, timeout=None):
         """
         Send an XML object on the stream, and optionally wait
         for a response.
@@ -657,6 +662,8 @@ class XMLStream(object):
             timeout -- Time in seconds to wait for a response before
                        continuing. Defaults to RESPONSE_TIMEOUT.
         """
+        if timeout is None:
+            timeout = self.response_timeout
         return self.send(tostring(data), mask, timeout)
 
     def process(self, threaded=True):

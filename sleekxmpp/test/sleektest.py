@@ -257,7 +257,7 @@ class SleekTest(unittest.TestCase):
     def stream_start(self, mode='client', skip=True, header=None,
                            socket='mock', jid='tester@localhost',
                            password='test', server='localhost',
-                           port=5222):
+                           port=5222, plugins=None):
         """
         Initialize an XMPP client or component using a dummy XML stream.
 
@@ -277,6 +277,8 @@ class SleekTest(unittest.TestCase):
             server   -- The name of the XMPP server. Defaults to 'localhost'.
             port     -- The port to use when connecting to the server.
                         Defaults to 5222.
+            plugins  -- List of plugins to register. By default, all plugins 
+                        are loaded.
         """
         if mode == 'client':
             self.xmpp = ClientXMPP(jid, password)
@@ -312,7 +314,11 @@ class SleekTest(unittest.TestCase):
         else:
             raise ValueError("Unknown socket type.")
 
-        self.xmpp.register_plugins()
+        if plugins is None:
+            self.xmpp.register_plugins()
+        else:
+            for plugin in plugins:
+                self.xmpp.register_plugin(plugin)
         self.xmpp.process(threaded=True)
         if skip:
             if socket != 'live':

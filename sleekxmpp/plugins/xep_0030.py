@@ -71,11 +71,12 @@ class DiscoInfo(ElementBase):
         for idXML in idsXML:
             self.xml.remove(idXML)
 
-    def addIdentity(self, category, id_type, name=''):
-        idXML = ET.Element('{%s}identity' % self.namespace,
-                   {'category': category,
-                    'type': id_type,
-                    'name': name})
+    def addIdentity(self, category, itype, name=''):
+        idXML = ET.Element('{%s}identity' % self.namespace)
+        idXML.attrib['category'] = category
+        idXML.attrib['type'] = itype
+        if name:
+            idXML.attrib['name'] = name
         self.xml.append(idXML)
 
     def delIdentity(self, category, id_type, name=''):
@@ -213,8 +214,11 @@ class xep_0030(base.base_plugin):
 
         self.xmpp.add_event_handler('disco_items_request', self.handle_disco_items)
         self.xmpp.add_event_handler('disco_info_request', self.handle_disco_info)
+        
+        self.nodes = {}
 
-        self.nodes = {'main': DiscoNode('main')}
+        self.add_node('')
+        self.add_feature('http://jabber.org/protocol/disco#info', node='')
 
     def add_node(self, node):
         if node not in self.nodes:
@@ -258,14 +262,30 @@ class xep_0030(base.base_plugin):
             return
 
         node_name = iq['disco_info']['node']
-        if not node_name:
-            node_name = 'main'
-
         log.debug("Using default handler for disco#info on node '%s'." % node_name)
 
         if node_name in self.nodes:
             node = self.nodes[node_name]
-            iq.reply().setPayload(node.info.xml).send()
+            iq.reply()
+            iq['disco_info']['node'] = node_name
+
+            identities = node.info['identities']
+            if identities:
+                iq['disco_info']['identities'] = identities
+            else:
+                if self.xmpp.is_component:
+                    iq['disco_info'].addIdentity(
+                            category='component',
+                            itype='generic')
+                else:
+                    iq['disco_info'].addIdentity(
+                            category='client',
+                            itype='bot')
+                log.info("No identity found for node '%'," + \
+                         "using default, generic identity")
+
+            iq['disco_info']['features'] = node.info['features']
+            iq.send()
         else:
             log.debug("Node %s requested, but does not exist." % node_name)
             iq.reply().error().setPayload(iq['disco_info'].xml)
@@ -287,10 +307,7 @@ class xep_0030(base.base_plugin):
             return
 
         node_name = iq['disco_items']['node']
-        if not node_name:
-            node_name = 'main'
-
-        log.debug("Using default handler for disco#items on node '%s'." % node_name)
+        log.debug("Using default handler for disco#items on node: '%s'." % node_name)
 
         if node_name in self.nodes:
             node = self.nodes[node_name]
@@ -321,17 +338,17 @@ class xep_0030(base.base_plugin):
         iq['disco_items']['node'] = node
         return iq.send()
 
-    def add_feature(self, feature, node='main'):
+    def add_feature(self, feature, node=''):
         self.add_node(node)
         self.nodes[node].addFeature(feature)
 
-    def add_identity(self, category='', itype='', name='', node='main'):
+    def add_identity(self, category='', itype='', name='', node=''):
         self.add_node(node)
         self.nodes[node].addIdentity(category=category,
                          id_type=itype,
                          name=name)
 
-    def add_item(self, jid=None, name='', node='main', subnode=''):
+    def add_item(self, jid=None, name='', node='', subnode=''):
         self.add_node(node)
         self.add_node(subnode)
         if jid is None:

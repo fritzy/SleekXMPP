@@ -110,6 +110,8 @@ class BaseXMPP(XMLStream):
         self.boundjid = JID("")
 
         self.plugin = {}
+        self.plugin_config = {}
+        self.plugin_whitelist = []
         self.roster = {}
         self.is_component = False
         self.auto_authorize = True

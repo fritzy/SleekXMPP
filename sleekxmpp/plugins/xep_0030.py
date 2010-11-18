@@ -253,7 +253,8 @@ class xep_0030(base.base_plugin):
         A default handler for disco#info requests. If another
         handler is registered, this one will defer and not run.
         """
-        if not forwarded and self.xmpp.event_handled('disco_info_request'):
+        if not forwarded and \
+           self.xmpp.event_handled('disco_info_request') > 1:
             return
 
         node_name = iq['disco_info']['node']
@@ -281,7 +282,8 @@ class xep_0030(base.base_plugin):
         If this handler is called by your own custom handler with
         forwarded set to True, then it will run as normal.
         """
-        if not forwarded and self.xmpp.event_handled('disco_items_request'):
+        if not forwarded and \
+           self.xmpp.event_handled('disco_items_request') > 1:
             return
 
         node_name = iq['disco_items']['node']

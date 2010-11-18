@@ -224,6 +224,14 @@ class xep_0030(base.base_plugin):
         if node in self.nodes:
             del self.nodes[node]
 
+    def rename_node(self, node, new_name):
+        if new_name not in self.nodes and node in self.nodes:
+            self.nodes[new_name] = self.nodes[node]
+            self.nodes[new_name].name = new_name
+            self.nodes[new_name].info['node'] = new_name
+            self.nodes[new_name].items['node'] = new_name
+            self.del_node(node)
+
     def handle_item_query(self, iq):
         if iq['type'] == 'get':
             log.debug("Items requested by %s" % iq['from'])

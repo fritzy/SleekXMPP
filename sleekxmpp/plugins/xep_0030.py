@@ -345,7 +345,7 @@ class xep_0030(base.base_plugin):
     def add_identity(self, category='', itype='', name='', node=''):
         self.add_node(node)
         self.nodes[node].addIdentity(category=category,
-                         id_type=itype,
+                         itype=itype,
                          name=name)
 
     def add_item(self, jid=None, name='', node='', subnode=''):

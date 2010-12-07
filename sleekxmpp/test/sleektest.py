@@ -52,6 +52,10 @@ class SleekTest(unittest.TestCase):
         compare              -- Compare XML objects against each other.
     """
 
+    def __init__(self, *args, **kwargs):
+        unittest.TestCase.__init__(self, *args, **kwargs)
+        self.xmpp = None
+
     def runTest(self):
         pass
 
@@ -86,7 +90,7 @@ class SleekTest(unittest.TestCase):
         Arguments:
             xml -- An XML object to use for the Message's values.
         """
-        return Message(None, *args, **kwargs)
+        return Message(self.xmpp, *args, **kwargs)
 
     def Iq(self, *args, **kwargs):
         """
@@ -97,7 +101,7 @@ class SleekTest(unittest.TestCase):
         Arguments:
             xml -- An XML object to use for the Iq's values.
         """
-        return Iq(None, *args, **kwargs)
+        return Iq(self.xmpp, *args, **kwargs)
 
     def Presence(self, *args, **kwargs):
         """
@@ -108,7 +112,7 @@ class SleekTest(unittest.TestCase):
         Arguments:
             xml -- An XML object to use for the Iq's values.
         """
-        return Presence(None, *args, **kwargs)
+        return Presence(self.xmpp, *args, **kwargs)
 
     def check_jid(self, jid, user=None, domain=None, resource=None,
                   bare=None, full=None, string=None):

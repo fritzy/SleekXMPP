@@ -9,7 +9,7 @@
 from sleekxmpp.stanza import Error
 from sleekxmpp.stanza.rootstanza import RootStanza
 from sleekxmpp.xmlstream import StanzaBase, ET
-from sleekxmpp.xmlstream.handler import Waiter
+from sleekxmpp.xmlstream.handler import Waiter, Callback
 from sleekxmpp.xmlstream.matcher import MatcherId
 
 
@@ -157,28 +157,43 @@ class Iq(RootStanza):
         StanzaBase.reply(self)
         return self
 
-    def send(self, block=True, timeout=None):
+    def send(self, block=True, timeout=None, callback=None):
         """
         Send an <iq> stanza over the XML stream.
 
         The send call can optionally block until a response is received or
         a timeout occurs. Be aware that using blocking in non-threaded event
-        handlers can drastically impact performance.
+        handlers can drastically impact performance. Otherwise, a callback
+        handler can be provided that will be executed when the Iq stanza's
+        result reply is received. Be aware though that that the callback
+        handler will not be executed in its own thread.
+
+        Using both block and callback is not recommended, and only the
+        callback argument will be used in that case.
 
         Overrides StanzaBase.send
 
         Arguments:
-            block   -- Specify if the send call will block until a response
-                       is received, or a timeout occurs. Defaults to True.
-            timeout -- The length of time (in seconds) to wait for a response
-                       before exiting the send call if blocking is used.
-                       Defaults to sleekxmpp.xmlstream.RESPONSE_TIMEOUT
+            block    -- Specify if the send call will block until a response
+                        is received, or a timeout occurs. Defaults to True.
+            timeout  -- The length of time (in seconds) to wait for a response
+                        before exiting the send call if blocking is used.
+                        Defaults to sleekxmpp.xmlstream.RESPONSE_TIMEOUT
+            callback -- Optional reference to a stream handler function. Will
+                        be executed when a reply stanza is received.
         """
         if timeout is None:
             timeout = self.stream.response_timeout
-        if block and self['type'] in ('get', 'set'):
+        if callback is not None and self['type'] in ('get', 'set'):
+            handler = Callback('IqCallback_%s' % self['id'],
+                               MatcherId(self['id']),
+                               callback,
+                               once=True)
+            self.stream.register_handler(handler)
+            return None
+        elif block and self['type'] in ('get', 'set'):
             waitfor = Waiter('IqWait_%s' % self['id'], MatcherId(self['id']))
-            self.stream.registerHandler(waitfor)
+            self.stream.register_handler(waitfor)
             StanzaBase.send(self)
             return waitfor.wait(timeout)
         else:

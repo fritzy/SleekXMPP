@@ -77,6 +77,8 @@ class SleekTest(unittest.TestCase):
                 xml = self.parse_xml(xml_string)
                 xml = xml.getchildren()[0]
                 return xml
+            else:
+                self.fail("XML data was mal-formed:\n%s" % xml_string)
 
     # ------------------------------------------------------------------
     # Shortcut methods for creating stanza objects
@@ -172,7 +174,7 @@ class SleekTest(unittest.TestCase):
         Arguments:
             stanza       -- The stanza object to test.
             criteria     -- An expression the stanza must match against.
-            method       -- The type of matching to use; one of: 
+            method       -- The type of matching to use; one of:
                             'exact', 'mask', 'id', 'xpath', and 'stanzapath'.
                             Defaults to the value of self.match_method.
             defaults     -- A list of stanza interfaces that have default
@@ -281,7 +283,7 @@ class SleekTest(unittest.TestCase):
             server   -- The name of the XMPP server. Defaults to 'localhost'.
             port     -- The port to use when connecting to the server.
                         Defaults to 5222.
-            plugins  -- List of plugins to register. By default, all plugins 
+            plugins  -- List of plugins to register. By default, all plugins
                         are loaded.
         """
         if mode == 'client':
@@ -371,7 +373,7 @@ class SleekTest(unittest.TestCase):
         return header % ' '.join(parts)
 
     def recv(self, data, defaults=[], method='exact',
-             use_values=True, timeout=1): 
+             use_values=True, timeout=1):
         """
         Pass data to the dummy XMPP client as if it came from an XMPP server.
 
@@ -399,7 +401,7 @@ class SleekTest(unittest.TestCase):
             # receiving data.
             recv_data = self.xmpp.socket.next_recv(timeout)
             if recv_data is None:
-                return False
+                self.fail("No stanza was received.")
             xml = self.parse_xml(recv_data)
             self.fix_namespaces(xml, 'jabber:client')
             stanza = self.xmpp._build_stanza(xml, 'jabber:client')
@@ -494,14 +496,14 @@ class SleekTest(unittest.TestCase):
             xml = self.parse_xml(data)
             recv_xml = self.parse_xml(recv_data)
             if recv_data is None:
-                return False
+                self.fail("No stanza was received.")
             if method == 'exact':
                 self.failUnless(self.compare(xml, recv_xml),
                     "Features do not match.\nDesired:\n%s\nReceived:\n%s" % (
                         tostring(xml), tostring(recv_xml)))
             elif method == 'mask':
                 matcher = MatchXMLMask(xml)
-                self.failUnless(matcher.match(recv_xml), 
+                self.failUnless(matcher.match(recv_xml),
                     "Stanza did not match using %s method:\n" % method + \
                     "Criteria:\n%s\n" % tostring(xml) + \
                     "Stanza:\n%s" % tostring(recv_xml))
@@ -564,14 +566,14 @@ class SleekTest(unittest.TestCase):
         xml = self.parse_xml(data)
         sent_xml = self.parse_xml(sent_data)
         if sent_data is None:
-            return False
+            self.fail("No stanza was sent.")
         if method == 'exact':
             self.failUnless(self.compare(xml, sent_xml),
                 "Features do not match.\nDesired:\n%s\nReceived:\n%s" % (
                     tostring(xml), tostring(sent_xml)))
         elif method == 'mask':
             matcher = MatchXMLMask(xml)
-            self.failUnless(matcher.match(sent_xml), 
+            self.failUnless(matcher.match(sent_xml),
                 "Stanza did not match using %s method:\n" % method + \
                 "Criteria:\n%s\n" % tostring(xml) + \
                 "Stanza:\n%s" % tostring(sent_xml))
@@ -602,7 +604,7 @@ class SleekTest(unittest.TestCase):
         """
         sent = self.xmpp.socket.next_sent(timeout)
         if sent is None:
-            return False
+            self.fail("No stanza was sent.")
         xml = self.parse_xml(sent)
         self.fix_namespaces(xml, 'jabber:client')
         sent = self.xmpp._build_stanza(xml, 'jabber:client')

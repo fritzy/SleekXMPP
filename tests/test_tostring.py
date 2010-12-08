@@ -10,6 +10,9 @@ class TestToString(SleekTest):
     Test the implementation of sleekxmpp.xmlstream.tostring
     """
 
+    def tearDown(self):
+        self.stream_close()
+
     def tryTostring(self, original='', expected=None, message='', **kwargs):
         """
         Compare the result of calling tostring against an
@@ -112,6 +115,8 @@ class TestToString(SleekTest):
 
     def testXMLLang(self):
         """Test that serializing xml:lang works."""
+
+        self.stream_start()
 
         msg = self.Message()
         msg._set_attr('{%s}lang' % msg.xml_ns, "no")

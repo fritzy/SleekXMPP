@@ -190,6 +190,7 @@ class Iq(RootStanza):
                                callback,
                                once=True)
             self.stream.register_handler(handler)
+            StanzaBase.send(self)
             return None
         elif block and self['type'] in ('get', 'set'):
             waitfor = Waiter('IqWait_%s' % self['id'], MatcherId(self['id']))

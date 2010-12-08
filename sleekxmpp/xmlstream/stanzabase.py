@@ -116,6 +116,9 @@ class ElementBase(object):
                              associated plugin stanza classes.
         plugin_tag_map    -- A mapping of plugin stanza tag names with
                              the associated plugin stanza classes.
+        xml_ns            -- The XML namespace,
+                             http://www.w3.org/XML/1998/namespace,
+                             for use with xml:lang values.
 
     Instance Attributes:
         xml               -- The stanza's XML contents.
@@ -144,7 +147,7 @@ class ElementBase(object):
         _get_attr          -- Return an attribute's value from the main
                               stanza element.
         _get_sub_text      -- Return the text contents of a subelement.
-        _set_sub_ext       -- Set the text contents of a subelement.
+        _set_sub_text      -- Set the text contents of a subelement.
         _del_sub           -- Remove a subelement.
         match              -- Compare the stanza against an XPath expression.
         find               -- Return subelement matching an XPath expression.
@@ -170,6 +173,7 @@ class ElementBase(object):
     plugin_attrib_map = {}
     plugin_tag_map = {}
     subitem = None
+    xml_ns = 'http://www.w3.org/XML/1998/namespace'
 
     def __init__(self, xml=None, parent=None):
         """

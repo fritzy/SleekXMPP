@@ -26,15 +26,23 @@ class xep_0030(base_plugin):
     """
     XEP-0030: Service Discovery
 
+    Service discovery in XMPP allows entities to discover information about
+    other agents in the network, such as the feature sets supported by a
+    client, or signposts to other, related entities.
+
+    Also see <http://www.xmpp.org/extensions/xep-0030.html>.
+
     Stream Handlers:
-        Disco Info  --
-        Disco Items --
+        Disco Info  -- Any Iq stanze that includes a query with the
+                       namespace http://jabber.org/protocol/disco#info.
+        Disco Items -- Any Iq stanze that includes a query with the
+                       namespace http://jabber.org/protocol/disco#items.
 
     Events:
-        disco_info         --
-        disco_items        --
-        disco_info_query   --
-        disco_items_query  --
+        disco_info         -- Received a disco#info Iq query result.
+        disco_items        -- Received a disco#items Iq query result.
+        disco_info_query   -- Received a disco#info Iq query request.
+        disco_items_query  -- Received a disco#items Iq query request.
 
     Methods:
         set_node_handler --
@@ -79,14 +87,45 @@ class xep_0030(base_plugin):
                                  'jid': {},
                                  'node': {}}
 
-
     def set_node_handler(self, htype, jid=None, node=None, handler=None):
         """
+        Add a node handler for the given hierarchy level and
+        handler type.
+
+        Node handlers are ordered in a hierarchy where the
+        most specific handler is executed. Thus, a fallback,
+        global handler can be used for the majority of cases
+        with a few node specific handler that override the
+        global behavior.
+
+        Node handler hierarchy:
+            JID   | Node  | Level
+            ---------------------
+            None  | None  | Global
+            Given | None  | All nodes for the JID
+            None  | Given | Node on self.xmpp.boundjid
+            Given | Given | A single node
+
+        Handler types:
+            get_info
+            get_items
+            set_identities
+            set_features
+            set_items
+            del_info
+            del_items
+            del_identity
+            del_feature
+            del_item
+            add_identity
+            add_feature
+            add_item
+ 
         Arguments:
-            htype
-            jid
-            node
-            handler
+            htype   -- The operation provided by the handler.
+            jid     --
+            node    --
+            handler --
         """
         if htype not in self._disco_ops:
             return
@@ -102,10 +141,24 @@ class xep_0030(base_plugin):
 
     def del_node_handler(self, htype, jid, node):
         """
+        Remove a handler type for a JID and node combination.
+
+        The next handler in the hierarchy will be used if one
+        exists. If removing the global handler, make sure that
+        other handlers exist to process existing nodes.
+
+        Node handler hierarchy:
+            JID   | Node  | Level
+            ---------------------
+            None  | None  | Global
+            Given | None  | All nodes for the JID
+            None  | Given | Node on self.xmpp.boundjid
+            Given | Given | A single node
+
         Arguments:
-            htype
-            jid
-            node
+            htype -- The type of handler to remove.
+            jid   -- The JID from which to remove the handler.
+            node  -- The node from which to remove the handler.
         """
         self.set_node_handler(htype, jid, node, None)
 
@@ -218,7 +271,7 @@ class xep_0030(base_plugin):
             htype -- The handler type to execute.
             jid   -- The JID requested.
             node  -- The node requested.
-            dat   -- Optional, custom data to pass to the handler.
+            data  -- Optional, custom data to pass to the handler.
         """
         if jid is None:
             jid = self.xmpp.boundjid.full
@@ -311,4 +364,3 @@ class xep_0030(base_plugin):
                           "Using default disco#info feature.")
                 info.add_feature(info.namespace)
         return info
-

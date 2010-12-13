@@ -35,6 +35,11 @@ class StaticDisco(object):
 
     def __init__(self, xmpp):
         """
+        Create a static disco interface. Sets of disco#info and
+        disco#items are maintained for every given JID and node
+        combination. These stanzas are used to store disco
+        information in memory without any additional processing.
+
         Arguments:
             xmpp -- The main SleekXMPP object.
         """
@@ -101,7 +106,6 @@ class StaticDisco(object):
                 data.get('name', None),
                 data.get('lang', None))
 
-
     def add_feature(self, jid, node, data=None):
         self.add_node(jid, node)
         self.nodes[(jid, node)]['info'].add_feature(data.get('feature', ''))
@@ -124,4 +128,3 @@ class StaticDisco(object):
     def del_item(self, jid, node, data=None):
         if (jid, node) in self.nodes:
             self.nodes[(jid, node)]['items'].del_item(**data)
-

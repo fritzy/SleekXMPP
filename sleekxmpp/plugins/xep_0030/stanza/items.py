@@ -12,8 +12,6 @@ from sleekxmpp.xmlstream import ElementBase, ET
 class DiscoItems(ElementBase):
 
     """
-             
-
     Example disco#items stanzas:
         <iq type="get">
           <query xmlns="http://jabber.org/protocol/disco#items" />
@@ -74,7 +72,7 @@ class DiscoItems(ElementBase):
 
         Arguments:
             jid  -- The JID for the item.
-            node -- Optional additional information to reference 
+            node -- Optional additional information to reference
                     non-addressable items.
             name -- Optional human readable name for the item.
         """

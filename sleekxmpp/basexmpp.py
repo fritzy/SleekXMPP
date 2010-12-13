@@ -111,6 +111,9 @@ class BaseXMPP(XMLStream):
         self.boundjid = JID(jid)
 
         self.plugin = {}
+        self.plugin_config = {}
+        self.plugin_whitelist = []
+
         self.roster = roster.Roster(self)
         self.roster.add(self.boundjid.bare)
 

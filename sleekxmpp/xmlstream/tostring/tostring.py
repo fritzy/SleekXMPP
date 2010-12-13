@@ -52,9 +52,18 @@ def tostring(xml=None, xmlns='', stanza_ns='', stream=None, outbuffer=''):
 
     # Output escaped attribute values.
     for attrib, value in xml.attrib.items():
-        if '{' not in attrib:
-            value = xml_escape(value)
+        value = xml_escape(value)
+        if '}' not in attrib:
             output.append(' %s="%s"' % (attrib, value))
+        else:
+            attrib_ns = attrib.split('}')[0][1:]
+            attrib = attrib.split('}')[1]
+            if stream and attrib_ns in stream.namespace_map:
+                mapped_ns = stream.namespace_map[attrib_ns]
+                if mapped_ns:
+                    output.append(' %s:%s="%s"' % (mapped_ns,
+                                                   attrib,
+                                                   value))
 
     if len(xml) or xml.text:
         # If there are additional child elements to serialize.

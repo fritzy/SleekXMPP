@@ -1,6 +1,6 @@
 from sleekxmpp.test import *
 from sleekxmpp.stanza import Message
-from sleekxmpp.xmlstream.stanzabase import ET
+from sleekxmpp.xmlstream.stanzabase import ET, ElementBase
 from sleekxmpp.xmlstream.tostring import tostring, xml_escape
 
 
@@ -9,6 +9,9 @@ class TestToString(SleekTest):
     """
     Test the implementation of sleekxmpp.xmlstream.tostring
     """
+
+    def tearDown(self):
+        self.stream_close()
 
     def tryTostring(self, original='', expected=None, message='', **kwargs):
         """
@@ -109,6 +112,19 @@ class TestToString(SleekTest):
         result = msg.__str__()
         self.failUnless(result == expected,
              "Stanza Unicode handling is incorrect: %s" % result)
+
+    def testXMLLang(self):
+        """Test that serializing xml:lang works."""
+
+        self.stream_start()
+
+        msg = self.Message()
+        msg._set_attr('{%s}lang' % msg.xml_ns, "no")
+
+        expected = '<message xml:lang="no" />'
+        result = msg.__str__()
+        self.failUnless(expected == result,
+            "Serialization with xml:lang failed: %s" % result)
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestToString)

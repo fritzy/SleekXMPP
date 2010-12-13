@@ -1,3 +1,5 @@
+import time
+
 from sleekxmpp.test import *
 from sleekxmpp.xmlstream.handler import *
 from sleekxmpp.xmlstream.matcher import *
@@ -107,6 +109,42 @@ class TestHandlers(SleekTest):
 
         self.failUnless(waiter_exists == False,
             "Waiter handler was not removed.")
+
+    def testIqCallback(self):
+        """Test that iq.send(callback=handle_foo) works."""
+        events = []
+
+        def handle_foo(iq):
+            events.append('foo')
+
+        iq = self.Iq()
+        iq['type'] = 'get'
+        iq['id'] = 'test-foo'
+        iq['to'] = 'user@localhost'
+        iq['query'] = 'foo'
+        iq.send(callback=handle_foo)
+
+        self.send("""
+          <iq type="get" id="test-foo" to="user@localhost">
+            <query xmlns="foo" />
+          </iq>
+        """)
+
+        self.recv("""
+          <iq type="result" id="test-foo"
+              to="test@localhost"
+              from="user@localhost">
+            <query xmlns="foo">
+              <data />
+            </query>
+          </iq>
+        """)
+
+        # Give event queue time to process
+        time.sleep(0.1)
+
+        self.failUnless(events == ['foo'],
+                "Iq callback was not executed: %s" % events)
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestHandlers)

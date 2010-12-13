@@ -192,7 +192,7 @@ class XMLStream(object):
         self.send_queue = queue.Queue()
         self.scheduler = Scheduler(self.event_queue, self.stop)
 
-        self.namespace_map = {}
+        self.namespace_map = {StanzaBase.xml_ns: 'xml'}
 
         self.__thread = {}
         self.__root_stanza = []

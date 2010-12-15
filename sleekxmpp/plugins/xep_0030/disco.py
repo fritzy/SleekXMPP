@@ -120,12 +120,15 @@ class xep_0030(base_plugin):
             add_identity
             add_feature
             add_item
- 
+
         Arguments:
             htype   -- The operation provided by the handler.
-            jid     --
-            node    --
-            handler --
+            jid     -- The JID the handler applies to. May be narrowed
+                       further if a node is given.
+            node    -- The particular node the handler is for. If no JID
+                       is given, then the self.xmpp.boundjid.full is
+                       assumed.
+            handler -- The handler function to use.
         """
         if htype not in self._disco_ops:
             return
@@ -185,14 +188,28 @@ class xep_0030(base_plugin):
 
     def get_info(self, jid=None, node=None, local=False, **kwargs):
         """
+        Retrieve the disco#info results from a given JID/node combination.
+
+        Info may be retrieved from both local resources and remote agents;
+        the local parameter indicates if the information should be gathered
+        by executing the local node handlers, or if a disco#info stanza
+        must be generated and sent.
+
         Arguments:
-            jid      --
-            node     --
-            local    --
-            dfrom    --
-            block    --
-            timeout  --
-            callback --
+            jid      -- Request info from this JID.
+            node     -- The particular node to query.
+            local    -- If true, then the query is for a JID/node
+                        combination handled by this Sleek instance and
+                        no stanzas need to be sent.
+                        Otherwise, a disco stanza must be sent to the
+                        remove JID to retrieve the info.
+            dfrom    -- Specifiy the sender's JID.
+            block    -- If true, block and wait for the stanzas' reply.
+            timeout  -- The time in seconds to block while waiting for
+                        a reply. If None, then wait indefinitely.
+            callback -- Optional callback to execute when a reply is
+                        received instead of blocking and waiting for
+                        the reply.
         """
         if local or jid is None:
             log.debug("Looking up local disco#info data " + \
@@ -211,14 +228,28 @@ class xep_0030(base_plugin):
 
     def get_items(self, jid=None, node=None, local=False, **kwargs):
         """
+        Retrieve the disco#items results from a given JID/node combination.
+
+        Items may be retrieved from both local resources and remote agents;
+        the local parameter indicates if the items should be gathered by
+        executing the local node handlers, or if a disco#items stanza must
+        be generated and sent.
+
         Arguments:
-            jid      --
-            node     --
-            local    --
-            dfrom    --
-            block    --
-            timeout  --
-            callback --
+            jid      -- Request info from this JID.
+            node     -- The particular node to query.
+            local    -- If true, then the query is for a JID/node
+                        combination handled by this Sleek instance and
+                        no stanzas need to be sent.
+                        Otherwise, a disco stanza must be sent to the
+                        remove JID to retrieve the items.
+            dfrom    -- Specifiy the sender's JID.
+            block    -- If true, block and wait for the stanzas' reply.
+            timeout  -- The time in seconds to block while waiting for
+                        a reply. If None, then wait indefinitely.
+            callback -- Optional callback to execute when a reply is
+                        received instead of blocking and waiting for
+                        the reply.
         """
         if local or jid is None:
             return self._run_node_handler('get_items', jid, node, kwargs)

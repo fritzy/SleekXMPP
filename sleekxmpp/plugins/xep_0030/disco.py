@@ -452,7 +452,7 @@ class xep_0030(base_plugin):
         """
         self._run_node_handler('del_features', jid, node, kwargs)
 
-    def _run_node_handler(self, htype, jid, node, data=None):
+    def _run_node_handler(self, htype, jid, node, data={}):
         """
         Execute the most specific node handler for the given
         JID/node combination.

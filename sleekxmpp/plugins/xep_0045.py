@@ -271,7 +271,7 @@ class xep_0045(base.base_plugin):
 	def invite(self, room, jid, reason=''):
 		""" Invite a jid to a room."""
 		msg = self.xmpp.makeMessage(room)
-		msg['from'] = self.xmpp.jid
+		msg['from'] = self.xmpp.boundjid.bare
 		x = ET.Element('{http://jabber.org/protocol/muc#user}x')
 		invite = ET.Element('{http://jabber.org/protocol/muc#user}invite', {'to': jid})
 		if reason:
@@ -294,7 +294,7 @@ class xep_0045(base.base_plugin):
 	def getRoomConfig(self, room):
 		iq = self.xmpp.makeIqGet('http://jabber.org/protocol/muc#owner')
 		iq['to'] = room
-		iq['from'] = self.xmpp.jid
+		iq['from'] = self.xmpp.boundjid.bare
 		result = iq.send()
 		if result is None or result['type'] != 'result':
 			raise ValueError
@@ -316,7 +316,7 @@ class xep_0045(base.base_plugin):
 		query.append(x)
 		iq = self.xmpp.makeIqSet(query)
 		iq['to'] = room
-		iq['from'] = self.xmpp.jid
+		iq['from'] = self.xmpp.boundjid.bare
 		iq.send()
 
 	def getJoinedRooms(self):

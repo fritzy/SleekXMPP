@@ -51,7 +51,7 @@ class xep_0060(base.base_plugin):
 		pubsub.append(configure)
 		iq = self.xmpp.makeIqSet(pubsub)
 		iq.attrib['to'] = jid
-		iq.attrib['from'] = self.xmpp.fulljid
+		iq.attrib['from'] = self.xmpp.boundjid.full
 		id = iq['id']
 		result = iq.send()
 		if result is False or result is None or result['type'] == 'error': return False
@@ -63,15 +63,15 @@ class xep_0060(base.base_plugin):
 		subscribe.attrib['node'] = node
 		if subscribee is None:
 			if bare:
-				subscribe.attrib['jid'] = self.xmpp.jid
+				subscribe.attrib['jid'] = self.xmpp.boundjid.bare
 			else:
-				subscribe.attrib['jid'] = self.xmpp.fulljid
+				subscribe.attrib['jid'] = self.xmpp.boundjid.full
 		else:
 			subscribe.attrib['jid'] = subscribee
 		pubsub.append(subscribe)
 		iq = self.xmpp.makeIqSet(pubsub)
 		iq.attrib['to'] = jid
-		iq.attrib['from'] = self.xmpp.fulljid
+		iq.attrib['from'] = self.xmpp.boundjid.full
 		id = iq['id']
 		result = iq.send()
 		if result is False or result is None or result['type'] == 'error': return False
@@ -83,15 +83,15 @@ class xep_0060(base.base_plugin):
 		unsubscribe.attrib['node'] = node
 		if subscribee is None:
 			if bare:
-				unsubscribe.attrib['jid'] = self.xmpp.jid
+				unsubscribe.attrib['jid'] = self.xmpp.boundjid.bare
 			else:
-				unsubscribe.attrib['jid'] = self.xmpp.fulljid
+				unsubscribe.attrib['jid'] = self.xmpp.boundjid.full
 		else:
 			unsubscribe.attrib['jid'] = subscribee
 		pubsub.append(unsubscribe)
 		iq = self.xmpp.makeIqSet(pubsub)
 		iq.attrib['to'] = jid
-		iq.attrib['from'] = self.xmpp.fulljid
+		iq.attrib['from'] = self.xmpp.boundjid.full
 		id = iq['id']
 		result = iq.send()
 		if result is False or result is None or result['type'] == 'error': return False
@@ -109,7 +109,7 @@ class xep_0060(base.base_plugin):
 		iq = self.xmpp.makeIqGet()
 		iq.append(pubsub)
 		iq.attrib['to'] = jid
-		iq.attrib['from'] = self.xmpp.fulljid
+		iq.attrib['from'] = self.xmpp.boundjid.full
 		id = iq['id']
 		#self.xmpp.add_handler("<iq id='%s'/>" % id, self.handlerCreateNodeResponse)
 		result = iq.send()
@@ -133,7 +133,7 @@ class xep_0060(base.base_plugin):
 		iq = self.xmpp.makeIqGet()
 		iq.append(pubsub)
 		iq.attrib['to'] = jid
-		iq.attrib['from'] = self.xmpp.fulljid
+		iq.attrib['from'] = self.xmpp.boundjid.full
 		id = iq['id']
 		result = iq.send()
 		if result is None or result == False or result['type'] == 'error':
@@ -156,7 +156,7 @@ class xep_0060(base.base_plugin):
 		iq = self.xmpp.makeIqGet()
 		iq.append(pubsub)
 		iq.attrib['to'] = jid
-		iq.attrib['from'] = self.xmpp.fulljid
+		iq.attrib['from'] = self.xmpp.boundjid.full
 		id = iq['id']
 		result = iq.send()
 		if result is None or result == False or result['type'] == 'error':
@@ -179,7 +179,7 @@ class xep_0060(base.base_plugin):
 		pubsub.append(delete)
 		iq.append(pubsub)
 		iq.attrib['to'] = jid
-		iq.attrib['from'] = self.xmpp.fulljid
+		iq.attrib['from'] = self.xmpp.boundjid.full
 		result = iq.send()
 		if result is not None and result is not False and result['type'] != 'error':
 			return True
@@ -196,7 +196,7 @@ class xep_0060(base.base_plugin):
 		pubsub.append(configure)
 		iq = self.xmpp.makeIqSet(pubsub)
 		iq.attrib['to'] = jid
-		iq.attrib['from'] = self.xmpp.fulljid
+		iq.attrib['from'] = self.xmpp.boundjid.full
 		id = iq['id']
 		result = iq.send()
 		if result is None or result['type'] == 'error':
@@ -217,7 +217,7 @@ class xep_0060(base.base_plugin):
 		pubsub.append(publish)
 		iq = self.xmpp.makeIqSet(pubsub)
 		iq.attrib['to'] = jid
-		iq.attrib['from'] = self.xmpp.fulljid
+		iq.attrib['from'] = self.xmpp.boundjid.full
 		id = iq['id']
 		result = iq.send()
 		if result is None or result is False or result['type'] == 'error': return False
@@ -236,7 +236,7 @@ class xep_0060(base.base_plugin):
 		pubsub.append(retract)
 		iq = self.xmpp.makeIqSet(pubsub)
 		iq.attrib['to'] = jid
-		iq.attrib['from'] = self.xmpp.fulljid
+		iq.attrib['from'] = self.xmpp.boundjid.full
 		id = iq['id']
 		result = iq.send()
 		if result is None or result is False or result['type'] == 'error': return False
@@ -287,7 +287,7 @@ class xep_0060(base.base_plugin):
 		pubsub.append(affs)
 		iq = self.xmpp.makeIqSet(pubsub)
 		iq.attrib['to'] = ps_jid
-		iq.attrib['from'] = self.xmpp.fulljid
+		iq.attrib['from'] = self.xmpp.boundjid.full
 		id = iq['id']
 		result = iq.send()
 		if result is None or result is False or result['type'] == 'error':

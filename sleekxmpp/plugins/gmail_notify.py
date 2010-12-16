@@ -143,7 +143,7 @@ class gmail_notify(base.base_plugin):
             log.info('Gmail: Searching for emails matching: "%s"' % query)
         iq = self.xmpp.Iq()
         iq['type'] = 'get'
-        iq['to'] = self.xmpp.jid
+        iq['to'] = self.xmpp.boundjid.bare
         iq['gmail']['q'] = query
         iq['gmail']['newer-than-time'] = newer
         return iq.send()

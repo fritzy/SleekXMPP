@@ -276,10 +276,10 @@ class xep_0045(base.base_plugin):
             raise ValueError
         return True
 
-    def invite(self, room, jid, reason=''):
+    def invite(self, room, jid, reason='', mfrom=''):
         """ Invite a jid to a room."""
         msg = self.xmpp.makeMessage(room)
-        msg['from'] = self.xmpp.boundjid.bare
+        msg['from'] = mfrom
         x = ET.Element('{http://jabber.org/protocol/muc#user}x')
         invite = ET.Element('{http://jabber.org/protocol/muc#user}invite', {'to': jid})
         if reason:
@@ -299,10 +299,10 @@ class xep_0045(base.base_plugin):
             self.xmpp.sendPresence(pshow='unavailable', pto="%s/%s" % (room, nick))
         del self.rooms[room]
 
-    def getRoomConfig(self, room):
+    def getRoomConfig(self, room, ifrom=''):
         iq = self.xmpp.makeIqGet('http://jabber.org/protocol/muc#owner')
         iq['to'] = room
-        iq['from'] = self.xmpp.boundjid.bare
+        iq['from'] = ifrom
         result = iq.send()
         if result is None or result['type'] != 'result':
             raise ValueError
@@ -318,13 +318,13 @@ class xep_0045(base.base_plugin):
         iq = self.xmpp.makeIqSet(query)
         iq.send()
 
-    def setRoomConfig(self, room, config):
+    def setRoomConfig(self, room, config, ifrom=''):
         query = ET.Element('{http://jabber.org/protocol/muc#owner}query')
         x = config.getXML('submit')
         query.append(x)
         iq = self.xmpp.makeIqSet(query)
         iq['to'] = room
-        iq['from'] = self.xmpp.boundjid.bare
+        iq['from'] = ifrom
         iq.send()
 
     def getJoinedRooms(self):

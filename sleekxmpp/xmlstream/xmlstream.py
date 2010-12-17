@@ -16,7 +16,6 @@ import sys
 import threading
 import time
 import types
-import signal
 try:
     import queue
 except ImportError:
@@ -208,24 +207,6 @@ class XMLStream(object):
 
         self.auto_reconnect = True
         self.is_client = False
-
-        try:
-            if hasattr(signal, 'SIGHUP'):
-                signal.signal(signal.SIGHUP, self._handle_kill)
-            if hasattr(signal, 'SIGTERM'):
-                # Used in Windows
-                signal.signal(signal.SIGTERM, self._handle_kill)
-        except:
-            log.debug("Can not set interrupt signal handlers. " + \
-                          "SleekXMPP is not running from a main thread.")
-
-    def _handle_kill(self, signum, frame):
-        """
-        Capture kill event and disconnect cleanly after first
-        spawning the "killed" event.
-        """
-        self.event("killed", direct=True)
-        self.disconnect()
 
     def new_id(self):
         """
@@ -705,6 +686,7 @@ class XMLStream(object):
 
         def start_thread(name, target):
             self.__thread[name] = threading.Thread(name=name, target=target)
+            self.__thread[name].daemon = True
             self.__thread[name].start()
 
         for t in range(0, HANDLER_THREADS):

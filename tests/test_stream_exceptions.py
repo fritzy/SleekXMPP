@@ -10,6 +10,7 @@ class TestStreamExceptions(SleekTest):
     """
 
     def tearDown(self):
+        sys.excepthook = sys.__excepthook__
         self.stream_close()
 
     def testXMPPErrorException(self):
@@ -78,8 +79,15 @@ class TestStreamExceptions(SleekTest):
     def testUnknownException(self):
         """Test raising an generic exception in a threaded handler."""
 
+        raised_errors = []
+
         def message(msg):
             raise ValueError("Did something wrong")
+
+        def catch_error(*args, **kwargs):
+            raised_errors.append(True)
+
+        sys.excepthook = catch_error
 
         self.stream_start()
         self.xmpp.add_event_handler('message', message)
@@ -90,21 +98,20 @@ class TestStreamExceptions(SleekTest):
           </message>
         """)
 
-        if sys.version_info < (3, 0):
-            self.send("""
-              <message type="error">
-                <error type="cancel">
-                  <undefined-condition
-                      xmlns="urn:ietf:params:xml:ns:xmpp-stanzas" />
-                  <text xmlns="urn:ietf:params:xml:ns:xmpp-stanzas">
-                    SleekXMPP got into trouble.
-                  </text>
-                </error>
-              </message>
-            """)
-        else:
-            # Unfortunately, tracebacks do not make for very portable tests.
-            pass
+        self.send("""
+          <message type="error">
+            <error type="cancel">
+              <undefined-condition
+                  xmlns="urn:ietf:params:xml:ns:xmpp-stanzas" />
+              <text xmlns="urn:ietf:params:xml:ns:xmpp-stanzas">
+                SleekXMPP got into trouble.
+              </text>
+            </error>
+          </message>
+        """)
+
+        self.assertEqual(raised_errors, [True], "Exception was not raised: %s" % raised_errors)
+
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestStreamExceptions)

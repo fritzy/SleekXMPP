@@ -64,7 +64,7 @@ class RootStanza(StanzaBase):
             log.exception('Error handling {%s}%s stanza' %
                           (self.namespace, self.name))
             # Finally raise the exception, so it can be handled (or not)
-            # at a higher level
+            # at a higher level by using sys.excepthook.
             raise e
 
 register_stanza_plugin(RootStanza, Error)

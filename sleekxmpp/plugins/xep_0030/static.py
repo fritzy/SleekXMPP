@@ -35,6 +35,11 @@ class StaticDisco(object):
 
     def __init__(self, xmpp):
         """
+        Create a static disco interface. Sets of disco#info and
+        disco#items are maintained for every given JID and node
+        combination. These stanzas are used to store disco
+        information in memory without any additional processing.
+
         Arguments:
             xmpp -- The main SleekXMPP object.
         """
@@ -52,7 +57,7 @@ class StaticDisco(object):
             self.nodes[(jid, node)]['info']['node'] = node
             self.nodes[(jid, node)]['items']['node'] = node
 
-    def get_info(self, jid, node, data=None):
+    def get_info(self, jid, node, data):
         if (jid, node) not in self.nodes:
             if not node:
                 return DiscoInfo()
@@ -61,11 +66,11 @@ class StaticDisco(object):
         else:
             return self.nodes[(jid, node)]['info']
 
-    def del_info(self, jid, node, data=None):
+    def del_info(self, jid, node, data):
         if (jid, node) in self.nodes:
             self.nodes[(jid, node)]['info'] = DiscoInfo()
 
-    def get_items(self, jid, node, data=None):
+    def get_items(self, jid, node, data):
         if (jid, node) not in self.nodes:
             if not node:
                 return DiscoInfo()
@@ -74,14 +79,16 @@ class StaticDisco(object):
         else:
             return self.nodes[(jid, node)]['items']
 
-    def set_items(self, jid, node, data=None):
-        pass
+    def set_items(self, jid, node, data):
+        items = data.get('items', set())
+        self.add_node(jid, node)
+        self.nodes[(jid, node)]['items']['items'] = items
 
-    def del_items(self, jid, node, data=None):
+    def del_items(self, jid, node, data):
         if (jid, node) in self.nodes:
             self.nodes[(jid, node)]['items'] = DiscoItems()
 
-    def add_identity(self, jid, node, data={}):
+    def add_identity(self, jid, node, data):
         self.add_node(jid, node)
         self.nodes[(jid, node)]['info'].add_identity(
                 data.get('category', ''),
@@ -89,10 +96,12 @@ class StaticDisco(object):
                 data.get('name', None),
                 data.get('lang', None))
 
-    def set_identities(self, jid, node, data=None):
-        pass
+    def set_identities(self, jid, node, data):
+        identities = data.get('identities', set())
+        self.add_node(jid, node)
+        self.nodes[(jid, node)]['info']['identities'] = identities
 
-    def del_identity(self, jid, node, data=None):
+    def del_identity(self, jid, node, data):
         if (jid, node) not in self.nodes:
             return
         self.nodes[(jid, node)]['info'].del_identity(
@@ -101,27 +110,29 @@ class StaticDisco(object):
                 data.get('name', None),
                 data.get('lang', None))
 
-
-    def add_feature(self, jid, node, data=None):
+    def add_feature(self, jid, node, data):
         self.add_node(jid, node)
         self.nodes[(jid, node)]['info'].add_feature(data.get('feature', ''))
 
-    def set_features(self, jid, node, data=None):
-        pass
+    def set_features(self, jid, node, data):
+        features = data.get('features', set())
+        self.add_node(jid, node)
+        self.nodes[(jid, node)]['info']['features'] = features
 
-    def del_feature(self, jid, node, data=None):
+    def del_feature(self, jid, node, data):
         if (jid, node) not in self.nodes:
             return
         self.nodes[(jid, node)]['info'].del_feature(data.get('feature', ''))
 
-    def add_item(self, jid, node, data=None):
+    def add_item(self, jid, node, data):
         self.add_node(jid, node)
         self.nodes[(jid, node)]['items'].add_item(
                 data.get('ijid', ''),
                 node=data.get('inode', None),
                 name=data.get('name', None))
 
-    def del_item(self, jid, node, data=None):
+    def del_item(self, jid, node, data):
         if (jid, node) in self.nodes:
-            self.nodes[(jid, node)]['items'].del_item(**data)
-
+            self.nodes[(jid, node)]['items'].del_item(
+                    data.get('ijid', ''),
+                    node=data.get('inode', None))

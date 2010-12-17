@@ -271,7 +271,7 @@ class BaseXMPP(XMLStream):
         """Create a Presence stanza associated with this stream."""
         return Presence(self, *args, **kwargs)
 
-    def make_iq(self, id=0, ifrom=None):
+    def make_iq(self, id=0, ifrom=None, ito=None, type=None, query=None):
         """
         Create a new Iq stanza with a given Id and from JID.
 
@@ -279,11 +279,19 @@ class BaseXMPP(XMLStream):
             id    -- An ideally unique ID value for this stanza thread.
                      Defaults to 0.
             ifrom -- The from JID to use for this stanza.
+            ito   -- The destination JID for this stanza.
+            type  -- The Iq's type, one of: get, set, result, or error.
+            query -- Optional namespace for adding a query element.
         """
-        return self.Iq()._set_stanza_values({'id': str(id),
-                                             'from': ifrom})
+        iq = self.Iq()
+        iq['id'] = str(id)
+        iq['to'] = ito
+        iq['from'] = ifrom
+        iq['type'] = itype
+        iq['query'] = query
+        return iq
 
-    def make_iq_get(self, queryxmlns=None):
+    def make_iq_get(self, queryxmlns=None, ito=None, ifrom=None, iq=None):
         """
         Create an Iq stanza of type 'get'.
 
@@ -291,21 +299,45 @@ class BaseXMPP(XMLStream):
 
         Arguments:
             queryxmlns -- The namespace of the query to use.
+            ito        -- The destination JID for this stanza.
+            ifrom      -- The from JID to use for this stanza.
+            iq         -- Optionally use an existing stanza instead
+                          of generating a new one.
         """
-        return self.Iq()._set_stanza_values({'type': 'get',
-                                             'query': queryxmlns})
+        if not iq:
+            iq = self.Iq()
+        iq['type'] = 'get'
+        iq['query'] = queryxmlns
+        if ito:
+            iq['to'] = ito
+        if ifrom:
+            iq['from'] = ifrom
+        return iq
 
-    def make_iq_result(self, id):
+    def make_iq_result(self, id=None, ito=None, ifrom=None, iq=None):
         """
         Create an Iq stanza of type 'result' with the given ID value.
 
         Arguments:
-            id -- An ideally unique ID value. May use self.new_id().
+            id    -- An ideally unique ID value. May use self.new_id().
+            ito   -- The destination JID for this stanza.
+            ifrom -- The from JID to use for this stanza.
+            iq    -- Optionally use an existing stanza instead
+                     of generating a new one.
         """
-        return self.Iq()._set_stanza_values({'id': id,
-                                             'type': 'result'})
+        if not iq:
+            iq = self.Iq()
+            if id is None:
+                id = self.new_id()
+            iq['id'] = id
+        iq['type'] = 'result'
+        if ito:
+            iq['to'] = ito
+        if ifrom:
+            iq['from'] = ifrom
+        return iq
 
-    def make_iq_set(self, sub=None):
+    def make_iq_set(self, sub=None, ito=None, ifrom=None, iq=None):
         """
         Create an Iq stanza of type 'set'.
 
@@ -313,15 +345,26 @@ class BaseXMPP(XMLStream):
         stanza's payload.
 
         Arguments:
-            sub -- A stanza or XML object to use as the Iq's payload.
+            sub   -- A stanza or XML object to use as the Iq's payload.
+            ito   -- The destination JID for this stanza.
+            ifrom -- The from JID to use for this stanza.
+            iq    -- Optionally use an existing stanza instead
+                     of generating a new one.
         """
-        iq = self.Iq()._set_stanza_values({'type': 'set'})
+        if not iq:
+            iq = self.Iq()
+        iq['type'] = 'set'
         if sub != None:
             iq.append(sub)
+        if ito:
+            iq['to'] = ito
+        if ifrom:
+            iq['from'] = ifrom
         return iq
 
     def make_iq_error(self, id, type='cancel',
-                      condition='feature-not-implemented', text=None):
+                      condition='feature-not-implemented',
+                      text=None, ito=None, ifrom=None, iq=None):
         """
         Create an Iq stanza of type 'error'.
 
@@ -332,14 +375,24 @@ class BaseXMPP(XMLStream):
             condition -- The error condition.
                          Defaults to 'feature-not-implemented'.
             text      -- A message describing the cause of the error.
+            ito       -- The destination JID for this stanza.
+            ifrom     -- The from JID to use for this stanza.
+            iq        -- Optionally use an existing stanza instead
+                         of generating a new one.
         """
-        iq = self.Iq()._set_stanza_values({'id': id})
-        iq['error']._set_stanza_values({'type': type,
-                                        'condition': condition,
-                                        'text': text})
+        if not iq:
+            iq = self.Iq()
+        iq['id'] = id
+        iq['error']['type'] = type
+        iq['error']['condition'] = condition
+        iq['error']['text'] = text
+        if ito:
+            iq['to'] = ito
+        if ifrom:
+            iq['from'] = ifrom
         return iq
 
-    def make_iq_query(self, iq=None, xmlns=''):
+    def make_iq_query(self, iq=None, xmlns='', ito=None, ifrom=None):
         """
         Create or modify an Iq stanza to use the given
         query namespace.
@@ -348,10 +401,16 @@ class BaseXMPP(XMLStream):
             iq    -- Optional Iq stanza to modify. A new
                      stanza is created otherwise.
             xmlns -- The query's namespace.
+            ito   -- The destination JID for this stanza.
+            ifrom -- The from JID to use for this stanza.
         """
         if not iq:
             iq = self.Iq()
         iq['query'] = xmlns
+        if ito:
+            iq['to'] = ito
+        if ifrom:
+            iq['from'] = ifrom
         return iq
 
     def make_query_roster(self, iq=None):

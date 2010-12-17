@@ -94,6 +94,8 @@ class XMLStream(object):
         ssl_support   -- Indicates if a SSL library is available for use.
         ssl_version   -- The version of the SSL protocol to use.
                          Defaults to ssl.PROTOCOL_TLSv1.
+        ca_certs      -- File path to a CA certificate to verify the
+                         server's identity.
         state         -- A state machine for managing the stream's
                          connection state.
         stream_footer -- The start tag and any attributes for the stream's
@@ -163,6 +165,7 @@ class XMLStream(object):
 
         self.ssl_support = SSL_SUPPORT
         self.ssl_version = ssl.PROTOCOL_TLSv1
+        self.ca_certs = None
 
         self.response_timeout = RESPONSE_TIMEOUT
 
@@ -283,7 +286,15 @@ class XMLStream(object):
         self.socket.settimeout(None)
         if self.use_ssl and self.ssl_support:
             log.debug("Socket Wrapped for SSL")
-            ssl_socket = ssl.wrap_socket(self.socket)
+            if self.ca_certs is None:
+                cert_policy = ssl.CERT_NONE
+            else:
+                cert_policy = ssl.CERT_REQUIRED
+
+            ssl_socket = ssl.wrap_socket(self.socket,
+                                         ca_certs=self.ca_certs,
+                                         certs_reqs=cert_policy)
+
             if hasattr(self.socket, 'socket'):
                 # We are using a testing socket, so preserve the top
                 # layer of wrapping.
@@ -387,9 +398,17 @@ class XMLStream(object):
         if self.ssl_support:
             log.info("Negotiating TLS")
             log.info("Using SSL version: %s" % str(self.ssl_version))
+            if self.ca_certs is None:
+                cert_policy = ssl.CERT_NONE
+            else:
+                cert_policy = ssl.CERT_REQUIRED
+
             ssl_socket = ssl.wrap_socket(self.socket,
                                          ssl_version=self.ssl_version,
-                                         do_handshake_on_connect=False)
+                                         do_handshake_on_connect=False,
+                                         ca_certs=self.ca_certs,
+                                         cert_reqs=cert_policy)
+
             if hasattr(self.socket, 'socket'):
                 # We are using a testing socket, so preserve the top
                 # layer of wrapping.

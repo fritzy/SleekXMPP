@@ -42,7 +42,7 @@ class xep_0092(base.base_plugin):
 		query = ET.Element('{jabber:iq:version}query')
 		iq.append(query)
 		iq.attrib['to'] = jid
-		iq.attrib['from'] = self.xmpp.fulljid
+		iq.attrib['from'] = self.xmpp.boundjid.full
 		id = iq.get('id')
 		result = iq.send()
 		if result and result is not None and result.get('type', 'error') != 'error':

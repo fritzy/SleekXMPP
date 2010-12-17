@@ -31,6 +31,11 @@ class StaticDisco(object):
 
     StaticDisco provides a set of node handlers that will store
     static sets of disco info and items in memory.
+
+    Attributes:
+        nodes -- A dictionary mapping (JID, node) tuples to a dict
+                 containing a disco#info and a disco#items stanza.
+        xmpp  -- The main SleekXMPP object.
     """
 
     def __init__(self, xmpp):
@@ -47,6 +52,14 @@ class StaticDisco(object):
         self.xmpp = xmpp
 
     def add_node(self, jid=None, node=None):
+        """
+        Create a new set of stanzas for the provided
+        JID and node combination.
+
+        Arguments:
+            jid  -- The JID that will own the new stanzas.
+            node -- The node that will own the new stanzas.
+        """
         if jid is None:
             jid = self.xmpp.boundjid.full
         if node is None:
@@ -57,7 +70,21 @@ class StaticDisco(object):
             self.nodes[(jid, node)]['info']['node'] = node
             self.nodes[(jid, node)]['items']['node'] = node
 
+    # =================================================================
+    # Node Handlers
+    #
+    # Each handler accepts three arguments: jid, node, and data.
+    # The jid and node parameters together determine the set of
+    # info and items stanzas that will be retrieved or added.
+    # The data parameter is a dictionary with additional paramters
+    # that will be passed to other calls.
+
     def get_info(self, jid, node, data):
+        """
+        Return the stored info data for the requested JID/node combination.
+
+        The data parameter is not used.
+        """
         if (jid, node) not in self.nodes:
             if not node:
                 return DiscoInfo()
@@ -67,10 +94,20 @@ class StaticDisco(object):
             return self.nodes[(jid, node)]['info']
 
     def del_info(self, jid, node, data):
+        """
+        Reset the info stanza for a given JID/node combination.
+
+        The data parameter is not used.
+        """
         if (jid, node) in self.nodes:
             self.nodes[(jid, node)]['info'] = DiscoInfo()
 
     def get_items(self, jid, node, data):
+        """
+        Return the stored items data for the requested JID/node combination.
+
+        The data parameter is not used.
+        """
         if (jid, node) not in self.nodes:
             if not node:
                 return DiscoInfo()
@@ -80,11 +117,21 @@ class StaticDisco(object):
             return self.nodes[(jid, node)]['items']
 
     def set_items(self, jid, node, data):
+        """
+        Replace the stored items data for a JID/node combination.
+
+        The data parameter is not used.
+        """
         items = data.get('items', set())
         self.add_node(jid, node)
         self.nodes[(jid, node)]['items']['items'] = items
 
     def del_items(self, jid, node, data):
+        """
+        Reset the items stanza for a given JID/node combination.
+
+        The data parameter is not used.
+        """
         if (jid, node) in self.nodes:
             self.nodes[(jid, node)]['items'] = DiscoItems()
 

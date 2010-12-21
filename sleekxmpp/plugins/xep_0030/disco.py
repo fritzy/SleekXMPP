@@ -108,7 +108,8 @@ class xep_0030(base_plugin):
         self._disco_ops = ['get_info', 'set_identities', 'set_features',
                            'get_items', 'set_items', 'del_items',
                            'add_identity', 'del_identity', 'add_feature',
-                           'del_feature', 'add_item', 'del_item']
+                           'del_feature', 'add_item', 'del_item',
+                           'del_identities', 'del_features']
         self._handlers = {}
         for op in self._disco_ops:
             self._handlers[op] = {'global': getattr(self.static, op),
@@ -141,8 +142,10 @@ class xep_0030(base_plugin):
             set_features
             set_items
             del_items
+            del_identities
             del_identity
             del_feature
+            del_features
             del_item
             add_identity
             add_feature
@@ -230,7 +233,7 @@ class xep_0030(base_plugin):
                         no stanzas need to be sent.
                         Otherwise, a disco stanza must be sent to the
                         remove JID to retrieve the info.
-            dfrom    -- Specifiy the sender's JID.
+            ifrom    -- Specifiy the sender's JID.
             block    -- If true, block and wait for the stanzas' reply.
             timeout  -- The time in seconds to block while waiting for
                         a reply. If None, then wait indefinitely.
@@ -245,7 +248,7 @@ class xep_0030(base_plugin):
             return self._fix_default_info(info)
 
         iq = self.xmpp.Iq()
-        iq['from'] = kwargs.get('dfrom', '')
+        iq['from'] = kwargs.get('ifrom', '')
         iq['to'] = jid
         iq['type'] = 'get'
         iq['disco_info']['node'] = node if node else ''
@@ -270,7 +273,7 @@ class xep_0030(base_plugin):
                         no stanzas need to be sent.
                         Otherwise, a disco stanza must be sent to the
                         remove JID to retrieve the items.
-            dfrom    -- Specifiy the sender's JID.
+            ifrom    -- Specifiy the sender's JID.
             block    -- If true, block and wait for the stanzas' reply.
             timeout  -- The time in seconds to block while waiting for
                         a reply. If None, then wait indefinitely.
@@ -282,7 +285,7 @@ class xep_0030(base_plugin):
             return self._run_node_handler('get_items', jid, node, kwargs)
 
         iq = self.xmpp.Iq()
-        iq['from'] = kwargs.get('dfrom', '')
+        iq['from'] = kwargs.get('ifrom', '')
         iq['to'] = jid
         iq['type'] = 'get'
         iq['disco_items']['node'] = node if node else ''

@@ -16,7 +16,6 @@ import sys
 import threading
 import time
 import types
-import signal
 try:
     import queue
 except ImportError:
@@ -208,24 +207,6 @@ class XMLStream(object):
 
         self.auto_reconnect = True
         self.is_client = False
-
-        try:
-            if hasattr(signal, 'SIGHUP'):
-                signal.signal(signal.SIGHUP, self._handle_kill)
-            if hasattr(signal, 'SIGTERM'):
-                # Used in Windows
-                signal.signal(signal.SIGTERM, self._handle_kill)
-        except:
-            log.debug("Can not set interrupt signal handlers. " + \
-                          "SleekXMPP is not running from a main thread.")
-
-    def _handle_kill(self, signum, frame):
-        """
-        Capture kill event and disconnect cleanly after first
-        spawning the "killed" event.
-        """
-        self.event("killed", direct=True)
-        self.disconnect()
 
     def new_id(self):
         """
@@ -701,10 +682,12 @@ class XMLStream(object):
                         Event handlers and the send queue will be threaded
                         regardless of this parameter's value.
         """
+        self._thread_excepthook()
         self.scheduler.process(threaded=True)
 
         def start_thread(name, target):
             self.__thread[name] = threading.Thread(name=name, target=target)
+            self.__thread[name].daemon = True
             self.__thread[name].start()
 
         for t in range(0, HANDLER_THREADS):
@@ -972,3 +955,26 @@ class XMLStream(object):
             self.disconnect()
             self.event_queue.put(('quit', None, None))
             return
+
+    def _thread_excepthook(self):
+        """
+        If a threaded event handler raises an exception, there is no way to
+        catch it except with an excepthook. Currently, each thread has its own
+        excepthook, but ideally we could use the main sys.excepthook.
+
+        Modifies threading.Thread to use sys.excepthook when an exception
+        is not caught.
+        """
+        init_old = threading.Thread.__init__
+        def init(self, *args, **kwargs):
+            init_old(self, *args, **kwargs)
+            run_old = self.run
+            def run_with_except_hook(*args, **kw):
+                try:
+                    run_old(*args, **kw)
+                except (KeyboardInterrupt, SystemExit):
+                    raise
+                except:
+                    sys.excepthook(*sys.exc_info())
+            self.run = run_with_except_hook
+        threading.Thread.__init__ = init

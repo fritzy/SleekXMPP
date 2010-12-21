@@ -108,7 +108,8 @@ class xep_0030(base_plugin):
         self._disco_ops = ['get_info', 'set_identities', 'set_features',
                            'get_items', 'set_items', 'del_items',
                            'add_identity', 'del_identity', 'add_feature',
-                           'del_feature', 'add_item', 'del_item']
+                           'del_feature', 'add_item', 'del_item',
+                           'del_identities', 'del_features']
         self._handlers = {}
         for op in self._disco_ops:
             self._handlers[op] = {'global': getattr(self.static, op),
@@ -141,8 +142,10 @@ class xep_0030(base_plugin):
             set_features
             set_items
             del_items
+            del_identities
             del_identity
             del_feature
+            del_features
             del_item
             add_identity
             add_feature

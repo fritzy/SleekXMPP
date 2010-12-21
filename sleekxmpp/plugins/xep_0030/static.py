@@ -136,6 +136,15 @@ class StaticDisco(object):
             self.nodes[(jid, node)]['items'] = DiscoItems()
 
     def add_identity(self, jid, node, data):
+        """
+        Add a new identity to te JID/node combination.
+
+        The data parameter may provide:
+            category -- The general category to which the agent belongs.
+            itype    -- A more specific designation with the category.
+            name     -- Optional human readable name for this identity.
+            lang     -- Optional standard xml:lang value.
+        """
         self.add_node(jid, node)
         self.nodes[(jid, node)]['info'].add_identity(
                 data.get('category', ''),
@@ -144,11 +153,27 @@ class StaticDisco(object):
                 data.get('lang', None))
 
     def set_identities(self, jid, node, data):
+        """
+        Add or replace all identities for a JID/node combination.
+
+        The data parameter should include:
+            identities -- A list of identities in tuple form:
+                            (category, type, name, lang)
+        """
         identities = data.get('identities', set())
         self.add_node(jid, node)
         self.nodes[(jid, node)]['info']['identities'] = identities
 
     def del_identity(self, jid, node, data):
+        """
+        Remove an identity from a JID/node combination.
+
+        The data parameter may provide:
+            category -- The general category to which the agent belonged.
+            itype    -- A more specific designation with the category.
+            name     -- Optional human readable name for this identity.
+            lang     -- Optional, standard xml:lang value.
+        """
         if (jid, node) not in self.nodes:
             return
         self.nodes[(jid, node)]['info'].del_identity(
@@ -157,21 +182,68 @@ class StaticDisco(object):
                 data.get('name', None),
                 data.get('lang', None))
 
+    def del_identities(self, jid, node, data):
+        """
+        Remove all identities from a JID/node combination.
+
+        The data parameter is not used.
+        """
+        if (jid, node) not in self.nodes:
+            return
+        del self.nodes[(jid, node)]['info']['identities']
+
     def add_feature(self, jid, node, data):
+        """
+        Add a feature to a JID/node combination.
+
+        The data parameter should include:
+            feature -- The namespace of the supported feature.
+        """
         self.add_node(jid, node)
         self.nodes[(jid, node)]['info'].add_feature(data.get('feature', ''))
 
     def set_features(self, jid, node, data):
+        """
+        Add or replace all features for a JID/node combination.
+
+        The data parameter should include:
+            features -- The new set of supported features.
+        """
         features = data.get('features', set())
         self.add_node(jid, node)
         self.nodes[(jid, node)]['info']['features'] = features
 
     def del_feature(self, jid, node, data):
+        """
+        Remove a feature from a JID/node combination.
+
+        The data parameter should include:
+            feature -- The namespace of the removed feature.
+        """
         if (jid, node) not in self.nodes:
             return
         self.nodes[(jid, node)]['info'].del_feature(data.get('feature', ''))
 
+    def del_features(self, jid, node, data):
+        """
+        Remove all features from a JID/node combination.
+
+        The data parameter is not used.
+        """
+        if (jid, node) not in self.nodes:
+            return
+        del self.nodes[(jid, node)]['info']['features']
+
     def add_item(self, jid, node, data):
+        """
+        Add an item to a JID/node combination.
+
+        The data parameter may include:
+            ijid  -- The JID for the item.
+            inode -- Optional additional information to reference
+                     non-addressable items.
+            name  -- Optional human readable name for the item.
+        """
         self.add_node(jid, node)
         self.nodes[(jid, node)]['items'].add_item(
                 data.get('ijid', ''),
@@ -179,6 +251,13 @@ class StaticDisco(object):
                 name=data.get('name', None))
 
     def del_item(self, jid, node, data):
+        """
+        Remove an item from a JID/node combination.
+
+        The data parameter may include:
+            ijid  -- JID of the item to remove.
+            inode -- Optional extra identifying information.
+        """
         if (jid, node) in self.nodes:
             self.nodes[(jid, node)]['items'].del_item(
                     data.get('ijid', ''),

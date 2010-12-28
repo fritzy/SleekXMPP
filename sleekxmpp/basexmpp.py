@@ -254,8 +254,8 @@ class BaseXMPP(XMLStream):
                      Defaults to 0.
             ifrom -- The from JID to use for this stanza.
             ito   -- The destination JID for this stanza.
-            type  -- The Iq's type, one of: get, set, result, or error.
-            query -- Optional namespace for adding a query element.
+            itype  -- The Iq's type, one of: get, set, result, or error.
+            iquery -- Optional namespace for adding a query element.
         """
         iq = self.Iq()
         iq['id'] = str(id)

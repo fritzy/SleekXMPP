@@ -245,7 +245,7 @@ class BaseXMPP(XMLStream):
         """Create a Presence stanza associated with this stream."""
         return Presence(self, *args, **kwargs)
 
-    def make_iq(self, id=0, ifrom=None, ito=None, type=None, query=None):
+    def make_iq(self, id=0, ifrom=None, ito=None, itype=None, iquery=None):
         """
         Create a new Iq stanza with a given Id and from JID.
 
@@ -262,7 +262,7 @@ class BaseXMPP(XMLStream):
         iq['to'] = ito
         iq['from'] = ifrom
         iq['type'] = itype
-        iq['query'] = query
+        iq['query'] = iquery
         return iq
 
     def make_iq_get(self, queryxmlns=None, ito=None, ifrom=None, iq=None):

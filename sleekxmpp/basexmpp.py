@@ -250,10 +250,10 @@ class BaseXMPP(XMLStream):
         Create a new Iq stanza with a given Id and from JID.
 
         Arguments:
-            id    -- An ideally unique ID value for this stanza thread.
-                     Defaults to 0.
-            ifrom -- The from JID to use for this stanza.
-            ito   -- The destination JID for this stanza.
+            id     -- An ideally unique ID value for this stanza thread.
+                      Defaults to 0.
+            ifrom  -- The from JID to use for this stanza.
+            ito    -- The destination JID for this stanza.
             itype  -- The Iq's type, one of: get, set, result, or error.
             iquery -- Optional namespace for adding a query element.
         """

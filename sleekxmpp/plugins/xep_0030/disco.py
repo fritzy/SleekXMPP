@@ -240,7 +240,8 @@ class xep_0030(base_plugin):
             ifrom    -- Specifiy the sender's JID.
             block    -- If true, block and wait for the stanzas' reply.
             timeout  -- The time in seconds to block while waiting for
-                        a reply. If None, then wait indefinitely.
+                        a reply. If None, then wait indefinitely. The
+                        timeout value is only used when block=True.
             callback -- Optional callback to execute when a reply is
                         received instead of blocking and waiting for
                         the reply.

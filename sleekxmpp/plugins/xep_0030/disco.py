@@ -229,6 +229,9 @@ class xep_0030(base_plugin):
         by executing the local node handlers, or if a disco#info stanza
         must be generated and sent.
 
+        If requesting items from a local JID/node, then only a DiscoInfo
+        stanza will be returned. Otherwise, an Iq stanza will be returned.
+
         Arguments:
             jid      -- Request info from this JID.
             node     -- The particular node to query.
@@ -270,6 +273,9 @@ class xep_0030(base_plugin):
         the local parameter indicates if the items should be gathered by
         executing the local node handlers, or if a disco#items stanza must
         be generated and sent.
+
+        If requesting items from a local JID/node, then only a DiscoItems
+        stanza will be returned. Otherwise, an Iq stanza will be returned.
 
         Arguments:
             jid      -- Request info from this JID.

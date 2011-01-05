@@ -406,10 +406,10 @@ class TestStreamDisco(SleekTest):
         self.xmpp['xep_0030'].make_static(jid='tester@localhost',
                                           node='testing')
 
-        self.xmpp['xep_0030'].add_item(jid='tester@localhost',
+        self.xmpp['xep_0030'].add_item(ijid='tester@localhost',
                                        node='testing',
-                                       ijid='tester@localhost',
-                                       inode='foo',
+                                       jid='tester@localhost',
+                                       subnode='foo',
                                        name='Test')
 
         self.recv("""
@@ -446,10 +446,10 @@ class TestStreamDisco(SleekTest):
         self.xmpp['xep_0030'].make_static(jid='user@tester.localhost',
                                           node='testing')
 
-        self.xmpp['xep_0030'].add_item(jid='user@tester.localhost',
+        self.xmpp['xep_0030'].add_item(ijid='user@tester.localhost',
                                        node='testing',
-                                       ijid='user@tester.localhost',
-                                       inode='foo',
+                                       jid='user@tester.localhost',
+                                       subnode='foo',
                                        name='Test')
 
         self.recv("""

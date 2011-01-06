@@ -124,3 +124,9 @@ class JID(object):
 
     def __repr__(self):
         return str(self)
+
+    def __eq__(self, other):
+        """
+        Two JIDs are considered equal if they have the same full JID value.
+        """
+        return str(other) == str(self)

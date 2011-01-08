@@ -120,6 +120,11 @@ class xep_0030(base_plugin):
                                   'jid': {},
                                   'node': {}}
 
+    def post_init(self):
+        """Handle cross-plugin dependencies."""
+        if self.xmpp['xep_0059']:
+            register_stanza_plugin(DiscoItems, self.xmpp['xep_0059'].stanza.Set)
+
     def set_node_handler(self, htype, jid=None, node=None, handler=None):
         """
         Add a node handler for the given hierarchy level and
@@ -292,6 +297,9 @@ class xep_0030(base_plugin):
             callback -- Optional callback to execute when a reply is
                         received instead of blocking and waiting for
                         the reply.
+            iterator -- If True, return a result set iterator using
+                        the XEP-0059 plugin, if the plugin is loaded.
+                        Otherwise the parameter is ignored.
         """
         if local or jid is None:
             return self._run_node_handler('get_items', jid, node, kwargs)
@@ -302,9 +310,12 @@ class xep_0030(base_plugin):
         iq['to'] = jid
         iq['type'] = 'get'
         iq['disco_items']['node'] = node if node else ''
-        return iq.send(timeout=kwargs.get('timeout', None),
-                       block=kwargs.get('block', None),
-                       callback=kwargs.get('callback', None))
+        if kwargs.get('iterator', False) and self.xmpp['xep_0059']:
+            return self.xmpp['xep_0059'].iterate(iq, 'disco_items')
+        else:
+            return iq.send(timeout=kwargs.get('timeout', None),
+                           block=kwargs.get('block', None),
+                           callback=kwargs.get('callback', None))
 
     def set_items(self, jid=None, node=None, **kwargs):
         """

@@ -18,6 +18,7 @@ class xep_0092(base.base_plugin):
 		self.xep = "0092"
 		self.name = self.config.get('name', 'SleekXMPP')
 		self.version = self.config.get('version', '0.1-dev')
+		self.os = self.config.get('os', '')
 		self.xmpp.add_handler("<iq type='get' xmlns='%s'><query xmlns='jabber:iq:version' /></iq>" % self.xmpp.default_ns, self.report_version, name='Sofware Version')
 	
 	def post_init(self):
@@ -32,6 +33,10 @@ class xep_0092(base.base_plugin):
 		name.text = self.name
 		version = ET.Element('version')
 		version.text = self.version
+		if self.os:
+			os = ET.Element('os')
+			os.text = self.os
+			query.append(os)
 		query.append(name)
 		query.append(version)
 		iq.append(query)

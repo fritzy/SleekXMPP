@@ -1,3 +1,4 @@
+import sys
 import time
 import threading
 
@@ -11,6 +12,7 @@ class TestStreamDisco(SleekTest):
     """
 
     def tearDown(self):
+        sys.excepthook = sys.__excepthook__
         self.stream_close()
 
     def testInfoEmptyDefaultNode(self):
@@ -523,6 +525,52 @@ class TestStreamDisco(SleekTest):
                 "Disco items event was not triggered: %s" % events)
         self.assertEqual(results, items,
                 "Unexpected items: %s" % results)
+
+    def testGetItemsIterator(self):
+        """Test interaction between XEP-0030 and XEP-0059 plugins."""
+
+        raised_exceptions = []
+
+        def catch_exception(*args, **kwargs):
+            raised_exceptions.append(True)
+
+        sys.excepthook = catch_exception
+
+        self.stream_start(mode='client',
+                          plugins=['xep_0030', 'xep_0059'])
+
+        results = self.xmpp['xep_0030'].get_items(jid='foo@localhost',
+                                                  node='bar',
+                                                  iterator=True)
+        results.amount = 10
+
+        t = threading.Thread(name="get_items_iterator",
+                             target=results.next)
+        t.start()
+
+        self.send("""
+          <iq id="2" type="get" to="foo@localhost">
+            <query xmlns="http://jabber.org/protocol/disco#items"
+                   node="bar">
+              <set xmlns="http://jabber.org/protocol/rsm">
+                <max>10</max>
+              </set>
+            </query>
+          </iq>
+        """)
+        self.recv("""
+          <iq id="2" type="result" to="tester@localhost">
+            <query xmlns="http://jabber.org/protocol/disco#items">
+              <set xmlns="http://jabber.org/protocol/rsm">
+              </set>
+            </query>
+          </iq>
+        """)
+
+        t.join()
+
+        self.assertEqual(raised_exceptions, [True],
+             "StopIteration was not raised: %s" % raised_exceptions)
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestStreamDisco)

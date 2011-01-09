@@ -138,7 +138,7 @@ class ClientXMPP(BaseXMPP):
             log.debug("Session start has taken more than 15 seconds")
             self.disconnect(reconnect=self.auto_reconnect)
 
-    def connect(self, address=tuple()):
+    def connect(self, address=tuple(), reattempt=True):
         """
         Connect to the XMPP server.
 
@@ -147,7 +147,9 @@ class ClientXMPP(BaseXMPP):
         will be used.
 
         Arguments:
-            address -- A tuple containing the server's host and port.
+            address   -- A tuple containing the server's host and port.
+            reattempt -- If True, reattempt the connection if an
+                         error occurs.
         """
         self.session_started_event.clear()
         if not address or len(address) < 2:
@@ -189,7 +191,8 @@ class ClientXMPP(BaseXMPP):
             # If all else fails, use the server from the JID.
             address = (self.boundjid.host, 5222)
 
-        return XMLStream.connect(self, address[0], address[1], use_tls=True)
+        return XMLStream.connect(self, address[0], address[1],
+                                 use_tls=True, reattempt=reattempt)
 
     def register_feature(self, mask, pointer, breaker=False):
         """

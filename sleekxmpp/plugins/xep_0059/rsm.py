@@ -100,6 +100,7 @@ class xep_0059(base_plugin):
 
     def post_init(self):
         """Handle inter-plugin dependencies."""
+        base_plugin.post_init(self)
         self.xmpp['xep_0030'].add_feature(Set.namespace)
 
     def iterate(self, stanza, interface):

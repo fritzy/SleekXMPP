@@ -61,7 +61,7 @@ class Roster(object):
             key -- Return the roster for this JID.
         """
         if key not in self._rosters:
-            self.add(key, self.db)
+            self.add(key)
             self._rosters[key].auto_authorize = self.auto_authorize
             self._rosters[key].auto_subscribe = self.auto_subscribe
         return self._rosters[key]

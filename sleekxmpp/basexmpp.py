@@ -116,6 +116,7 @@ class BaseXMPP(XMLStream):
 
         self.roster = roster.Roster(self)
         self.roster.add(self.boundjid.bare)
+        self.client_roster = self.roster[self.boundjid.bare]
 
         self.is_component = False
         self.auto_authorize = True

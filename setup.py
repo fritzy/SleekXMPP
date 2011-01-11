@@ -47,6 +47,8 @@ packages     = [ 'sleekxmpp',
                  'sleekxmpp/plugins',
                  'sleekxmpp/plugins/xep_0030',
                  'sleekxmpp/plugins/xep_0030/stanza'
+                 'sleekxmpp/plugins/xep_0059',
+                 'sleekxmpp/plugins/xep_0092',
                  ]
 
 if sys.version_info < (3, 0):

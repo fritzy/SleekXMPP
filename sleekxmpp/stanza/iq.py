@@ -199,3 +199,29 @@ class Iq(RootStanza):
             return waitfor.wait(timeout)
         else:
             return StanzaBase.send(self)
+
+    def _set_stanza_values(self, values):
+        """
+        Set multiple stanza interface values using a dictionary.
+
+        Stanza plugin values may be set usind nested dictionaries.
+
+        If the interface 'query' is given, then it will be set
+        last to avoid duplication of the <query /> element.
+
+        Overrides ElementBase._set_stanza_values.
+
+        Arguments:
+            values -- A dictionary mapping stanza interface with values.
+                      Plugin interfaces may accept a nested dictionary that
+                      will be used recursively.
+        """
+        query = values.get('query', '')
+        if query:
+            del values['query']
+            StanzaBase._set_stanza_values(self, values)
+            self['query'] = query
+        else:
+            StanzaBase._set_stanza_values(self, values)
+        return self
+

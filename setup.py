@@ -46,7 +46,7 @@ packages     = [ 'sleekxmpp',
                  'sleekxmpp/thirdparty',
                  'sleekxmpp/plugins',
                  'sleekxmpp/plugins/xep_0030',
-                 'sleekxmpp/plugins/xep_0030/stanza'
+                 'sleekxmpp/plugins/xep_0030/stanza',
                  'sleekxmpp/plugins/xep_0059',
                  'sleekxmpp/plugins/xep_0092',
                  ]

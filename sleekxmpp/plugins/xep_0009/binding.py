@@ -100,6 +100,8 @@ def xml2py(params):
 
 def _xml2py(value):
     namespace = 'jabber:iq:rpc'
+    if value.find('{%s}nil' % namespace) is not None:
+        return None    
     if value.find('{%s}i4' % namespace) is not None:
         return int(value.find('{%s}i4' % namespace).text)
     if value.find('{%s}int' % namespace) is not None:

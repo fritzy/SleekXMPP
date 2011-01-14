@@ -899,7 +899,7 @@ class XMLStream(object):
                         args[0].exception(e)
                 elif etype == 'schedule':
                     try:
-                        log.debug(args)
+                        log.debug('Scheduled event: %s' % args)
                         handler(*args[0])
                     except:
                         log.exception('Error processing scheduled task')

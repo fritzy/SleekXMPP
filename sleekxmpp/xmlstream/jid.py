@@ -71,7 +71,7 @@ class JID(object):
             if self._domain is None:
                 self._domain = self._jid.split('@', 1)[-1].split('/', 1)[0]
             return self._domain or ""
-        elif name == 'full':
+        elif name in ('full', 'jid'):
             return self._jid or ""
         elif name == 'bare':
             if self._bare is None:

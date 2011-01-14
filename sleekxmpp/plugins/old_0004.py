@@ -6,7 +6,7 @@
     See the file LICENSE for copying permission.
 """
 from . import base
-import log
+import logging
 from xml.etree import cElementTree as ET
 import copy
 import logging

@@ -224,4 +224,3 @@ class Iq(RootStanza):
         else:
             StanzaBase._set_stanza_values(self, values)
         return self
-

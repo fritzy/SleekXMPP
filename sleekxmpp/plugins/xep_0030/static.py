@@ -247,8 +247,8 @@ class StaticDisco(object):
         self.add_node(jid, node)
         self.nodes[(jid, node)]['items'].add_item(
                 data.get('ijid', ''),
-                node=data.get('inode', None),
-                name=data.get('name', None))
+                node=data.get('inode', ''),
+                name=data.get('name', ''))
 
     def del_item(self, jid, node, data):
         """
@@ -262,3 +262,4 @@ class StaticDisco(object):
             self.nodes[(jid, node)]['items'].del_item(
                     data.get('ijid', ''),
                     node=data.get('inode', None))
+

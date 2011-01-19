@@ -359,8 +359,8 @@ class xep_0030(base_plugin):
             subnode -- Optional node for the item.
             ijid   -- The JID to modify.
         """
-        if jid is None:
-            jid = ''
+        if not jid:
+            jid = self.xmpp.boundjid.full
         kwargs = {'ijid': jid,
                   'name': name,
                   'inode': subnode}

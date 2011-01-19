@@ -169,6 +169,8 @@ class ClientXMPP(BaseXMPP):
                 except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
                     log.debug("No appropriate SRV record found." + \
                                   " Using JID server name.")
+                except (dns.exception.Timeout,):
+                    log.debug("DNS resolution timed out.")
                 else:
                     # Pick a random server, weighted by priority.
 

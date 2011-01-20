@@ -49,7 +49,7 @@ class TestMessageStanzas(SleekTest):
         msg['nick']['nick'] = 'A nickname!'
         self.check(msg, """
           <message>
-            <nick xmlns="http://jabber.org/nick/nick">A nickname!</nick>
+            <nick xmlns="http://jabber.org/protocol/nick">A nickname!</nick>
           </message>
         """)
 

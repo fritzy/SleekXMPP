@@ -95,10 +95,22 @@ class ElementBase(object):
     >>> message['custom']['useful_thing'] = 'foo'
 
     If a plugin provides an interface that is the same as the plugin's
-    plugin_attrib value, then the plugin's interface may be accessed
-    directly from the parent stanza, as so:
+    plugin_attrib value, then the plugin's interface may be assigned
+    directly from the parent stanza, as shown below, but retrieving
+    information will require all interfaces to be used, as so:
 
     >>> message['custom'] = 'bar' # Same as using message['custom']['custom']
+    >>> message['custom']['custom'] # Must use all interfaces
+    'bar'
+
+    If the plugin sets the value is_extension = True, then both setting
+    and getting an interface value that is the same as the plugin's
+    plugin_attrib value will work, as so:
+
+    >>> message['custom'] = 'bar'  # Using is_extension=True
+    >>> message['custom']
+    'bar'
+
 
     Class Attributes:
         name              -- The name of the stanza's main element.
@@ -116,6 +128,10 @@ class ElementBase(object):
                              associated plugin stanza classes.
         plugin_tag_map    -- A mapping of plugin stanza tag names with
                              the associated plugin stanza classes.
+        is_extension      -- When True, allows the stanza to provide one
+                             additional interface to the parent stanza,
+                             extending the interfaces supported by the
+                             parent. Defaults to False.
         xml_ns            -- The XML namespace,
                              http://www.w3.org/XML/1998/namespace,
                              for use with xml:lang values.
@@ -173,6 +189,7 @@ class ElementBase(object):
     plugin_attrib_map = {}
     plugin_tag_map = {}
     subitem = None
+    is_extension = False
     xml_ns = 'http://www.w3.org/XML/1998/namespace'
 
     def __init__(self, xml=None, parent=None):
@@ -371,6 +388,8 @@ class ElementBase(object):
         elif attrib in self.plugin_attrib_map:
             if attrib not in self.plugins:
                 self.init_plugin(attrib)
+            if self.plugins[attrib].is_extension:
+                return self.plugins[attrib][attrib]
             return self.plugins[attrib]
         else:
             return ''
@@ -467,8 +486,13 @@ class ElementBase(object):
         elif attrib in self.plugin_attrib_map:
             if attrib in self.plugins:
                 xml = self.plugins[attrib].xml
+                if self.plugins[attrib].is_extension:
+                    del self.plugins[attrib][attrib]
                 del self.plugins[attrib]
-                self.xml.remove(xml)
+                try:
+                    self.xml.remove(xml)
+                except:
+                    pass
         return self
 
     def _set_attr(self, name, value):

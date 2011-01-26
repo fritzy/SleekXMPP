@@ -157,8 +157,7 @@ class SleekTest(unittest.TestCase):
         """
         Create and compare several stanza objects to a correct XML string.
 
-        If use_values is False, test using getStanzaValues() and
-        setStanzaValues() will not be used.
+        If use_values is False, tests using stanza.values will not be used.
 
         Some stanzas provide default values for some interfaces, but
         these defaults can be problematic for testing since they can easily
@@ -181,9 +180,8 @@ class SleekTest(unittest.TestCase):
                             values. These interfaces will be set to their
                             defaults for the given and generated stanzas to
                             prevent unexpected test failures.
-            use_values   -- Indicates if testing using getStanzaValues() and
-                            setStanzaValues() should be used. Defaults to
-                            True.
+            use_values   -- Indicates if testing using stanza.values should
+                            be used. Defaults to True.
         """
         if method is None and hasattr(self, 'match_method'):
             method = getattr(self, 'match_method')
@@ -216,10 +214,10 @@ class SleekTest(unittest.TestCase):
             stanza2 = stanza_class(xml=xml)
 
             if use_values:
-                # Using getStanzaValues() and setStanzaValues() will add
-                # XML for any interface that has a default value. We need
-                # to set those defaults on the existing stanzas and XML
-                # so that they will compare correctly.
+                # Using stanza.values will add XML for any interface that
+                # has a default value. We need to set those defaults on
+                # the existing stanzas and XML so that they will compare
+                # correctly.
                 default_stanza = stanza_class()
                 if defaults is None:
                     known_defaults = {
@@ -238,9 +236,9 @@ class SleekTest(unittest.TestCase):
                             value = default_stanza.xml.attrib[interface]
                             xml.attrib[interface] = value
 
-                values = stanza2.getStanzaValues()
+                values = stanza2.values
                 stanza3 = stanza_class()
-                stanza3.setStanzaValues(values)
+                stanza3.values = values
 
                 debug = "Three methods for creating stanzas do not match.\n"
                 debug += "Given XML:\n%s\n" % tostring(xml)
@@ -390,8 +388,7 @@ class SleekTest(unittest.TestCase):
                             'id', 'stanzapath', 'xpath', and 'mask'.
                             Defaults to the value of self.match_method.
             use_values   -- Indicates if stanza comparisons should test using
-                            getStanzaValues() and setStanzaValues().
-                            Defaults to True.
+                            stanza.values. Defaults to True.
             timeout      -- Time to wait in seconds for data to be received by
                             a live connection.
         """

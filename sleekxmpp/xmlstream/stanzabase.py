@@ -129,6 +129,8 @@ class ElementBase(object):
                              be added as substanzas. Deprecated version
                              of plugin_iterables.
         types             -- A set of generic type attribute values.
+        tag               -- The namespaced name of the stanza's root
+                             element. Example: "{foo_ns}bar"
         plugin_attrib     -- The interface name that the stanza uses to be
                              accessed as a plugin from another stanza.
         plugin_attrib_map -- A mapping of plugin attribute names with the
@@ -152,6 +154,10 @@ class ElementBase(object):
                              initialized plugin stanza objects.
         values            -- A dictionary of the stanza's interfaces
                              and interface values, including plugins.
+
+    Class Methods
+        tag_name -- Return the namespaced version of the stanza's
+                    root element's name.
 
     Methods:
         setup              -- Initialize the stanza's XML contents.
@@ -185,6 +191,7 @@ class ElementBase(object):
         appendxml          -- Add XML content to the stanza.
         pop                -- Remove a substanza.
         next               -- Return the next iterable substanza.
+        clear              -- Reset the stanza's XML contents.
         _fix_ns            -- Apply the stanza's namespace to non-namespaced
                               elements in an XPath expression.
     """
@@ -226,6 +233,7 @@ class ElementBase(object):
         self.plugins = {}
         self.iterables = []
         self._index = 0
+        self.tag = self.tag_name()
         if parent is None:
             self.parent = None
         else:
@@ -316,14 +324,12 @@ class ElementBase(object):
         for interface in self.interfaces:
             values[interface] = self[interface]
         for plugin, stanza in self.plugins.items():
-            values[plugin] = stanza._get_stanza_values()
+            values[plugin] = stanza.values
         if self.iterables:
             iterables = []
             for stanza in self.iterables:
-                iterables.append(stanza._get_stanza_values())
-                iterables[-1].update({
-                    '__childtag__': "{%s}%s" % (stanza.namespace,
-                                                stanza.name)})
+                iterables.append(stanza.values)
+                iterables[-1]['__childtag__'] = stanza.tag
             values['substanzas'] = iterables
         return values
 
@@ -347,7 +353,7 @@ class ElementBase(object):
                                                     subclass.name)
                             if subdict['__childtag__'] == child_tag:
                                 sub = subclass(parent=self)
-                                sub._set_stanza_values(subdict)
+                                sub.values = subdict
                                 self.iterables.append(sub)
                                 break
             elif interface in self.interfaces:
@@ -355,7 +361,7 @@ class ElementBase(object):
             elif interface in self.plugin_attrib_map:
                 if interface not in self.plugins:
                     self.init_plugin(interface)
-                self.plugins[interface]._set_stanza_values(value)
+                self.plugins[interface].values = value
         return self
 
     def __getitem__(self, attrib):
@@ -826,6 +832,28 @@ class ElementBase(object):
         """
         return self.__next__()
 
+    def clear(self):
+        """
+        Remove all XML element contents and plugins.
+
+        Any attribute values will be preserved.
+        """
+        for child in self.xml.getchildren():
+            self.xml.remove(child)
+        for plugin in list(self.plugins.keys()):
+            del self.plugins[plugin]
+        return self
+
+    @classmethod
+    def tag_name(cls):
+        """
+        Return the namespaced name of the stanza's root element.
+
+        For example, for the stanza <foo xmlns="bar" />,
+        stanza.tag would return "{bar}foo".
+        """
+        return "{%s}%s" % (cls.namespace, cls.name)
+
     @property
     def attrib(self):
         """
@@ -898,13 +926,13 @@ class ElementBase(object):
             return False
 
         # Check that this stanza is a superset of the other stanza.
-        values = self._get_stanza_values()
+        values = self.values
         for key in other.keys():
             if key not in values or values[key] != other[key]:
                 return False
 
         # Check that the other stanza is a superset of this stanza.
-        values = other._get_stanza_values()
+        values = other.values
         for key in self.keys():
             if key not in values or values[key] != self[key]:
                 return False
@@ -1008,7 +1036,6 @@ class StanzaBase(ElementBase):
 
     Attributes:
         stream -- The XMLStream instance that will handle sending this stanza.
-        tag    -- The namespaced version of the stanza's name.
 
     Methods:
         set_type    -- Set the type of the stanza.
@@ -1019,7 +1046,6 @@ class StanzaBase(ElementBase):
         get_payload -- Return the stanza's XML contents.
         set_payload -- Append to the stanza's XML contents.
         del_payload -- Remove the stanza's XML contents.
-        clear       -- Reset the stanza's XML contents.
         reply       -- Reset the stanza and modify the 'to' and 'from'
                        attributes to prepare for sending a reply.
         error       -- Set the stanza's type to 'error'.
@@ -1132,18 +1158,6 @@ class StanzaBase(ElementBase):
     def del_payload(self):
         """Remove the XML contents of the stanza."""
         self.clear()
-        return self
-
-    def clear(self):
-        """
-        Remove all XML element contents and plugins.
-
-        Any attribute values will be preserved.
-        """
-        for child in self.xml.getchildren():
-            self.xml.remove(child)
-        for plugin in list(self.plugins.keys()):
-            del self.plugins[plugin]
         return self
 
     def reply(self):

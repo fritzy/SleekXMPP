@@ -23,17 +23,23 @@ log = logging.getLogger(__name__)
 XML_TYPE = type(ET.Element('xml'))
 
 
-def register_stanza_plugin(stanza, plugin):
+def register_stanza_plugin(stanza, plugin, iterable=False):
     """
     Associate a stanza object as a plugin for another stanza.
 
     Arguments:
-        stanza -- The class of the parent stanza.
-        plugin -- The class of the plugin stanza.
+        stanza   -- The class of the parent stanza.
+        plugin   -- The class of the plugin stanza.
+        iterable -- Indicates if the plugin stanza
+                    should be included in the parent
+                    stanza's iterable 'substanzas'
+                    interface results.
     """
     tag = "{%s}%s" % (plugin.namespace, plugin.name)
     stanza.plugin_attrib_map[plugin.plugin_attrib] = plugin
     stanza.plugin_tag_map[tag] = plugin
+    if iterable:
+        stanza.plugin_iterables.add(plugin)
 
 
 # To maintain backwards compatibility for now, preserve the camel case name.
@@ -120,12 +126,15 @@ class ElementBase(object):
         sub_interfaces    -- A subset of the set of interfaces which map
                              to subelements instead of attributes.
         subitem           -- A set of stanza classes which are allowed to
-                             be added as substanzas.
+                             be added as substanzas. Deprecated version
+                             of plugin_iterables.
         types             -- A set of generic type attribute values.
         plugin_attrib     -- The interface name that the stanza uses to be
                              accessed as a plugin from another stanza.
         plugin_attrib_map -- A mapping of plugin attribute names with the
                              associated plugin stanza classes.
+        plugin_iterables  -- A set of stanza classes which are allowed to
+                             be added as substanzas.
         plugin_tag_map    -- A mapping of plugin stanza tag names with
                              the associated plugin stanza classes.
         is_extension      -- When True, allows the stanza to provide one
@@ -187,6 +196,7 @@ class ElementBase(object):
     types = set(('get', 'set', 'error', None, 'unavailable', 'normal', 'chat'))
     sub_interfaces = tuple()
     plugin_attrib_map = {}
+    plugin_iterables = set()
     plugin_tag_map = {}
     subitem = None
     is_extension = False
@@ -235,9 +245,11 @@ class ElementBase(object):
                 self.plugins[plugin.plugin_attrib] = plugin(child, self)
             if self.subitem is not None:
                 for sub in self.subitem:
-                    if child.tag == "{%s}%s" % (sub.namespace, sub.name):
-                        self.iterables.append(sub(child, self))
-                        break
+                    self.plugin_iterables.add(sub)
+            for sub in self.plugin_iterables:
+                if child.tag == "{%s}%s" % (sub.namespace, sub.name):
+                    self.iterables.append(sub(child, self))
+                    break
 
     def setup(self, xml=None):
         """

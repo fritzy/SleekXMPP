@@ -1007,7 +1007,9 @@ class ElementBase(object):
         """
         Return a string serialization of the underlying XML object.
         """
-        return tostring(self.xml, xmlns='', stanza_ns=self.namespace)
+        return tostring(self.xml, xmlns='',
+                        stanza_ns=self.namespace,
+                        top_level=True)
 
     def __repr__(self):
         """
@@ -1217,4 +1219,5 @@ class StanzaBase(ElementBase):
         """Serialize the stanza's XML to a string."""
         return tostring(self.xml, xmlns='',
                         stanza_ns=self.namespace,
-                        stream=self.stream)
+                        stream=self.stream,
+                        top_level = True)

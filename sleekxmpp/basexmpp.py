@@ -106,6 +106,7 @@ class BaseXMPP(XMLStream):
 
         self.default_ns = default_ns
         self.stream_ns = 'http://etherx.jabber.org/streams'
+        self.namespace_map[self.stream_ns] = 'stream'
 
         self.boundjid = JID("")
 
@@ -118,6 +119,8 @@ class BaseXMPP(XMLStream):
         self.auto_subscribe = True
 
         self.sentpresence = False
+
+        self.stanza = sleekxmpp.stanza
 
         self.register_handler(
             Callback('IM',

@@ -7,10 +7,11 @@
 """
 
 from sleekxmpp.stanza.error import Error
-from sleekxmpp.xmlstream import ElementBase, ET, register_stanza_plugin
+from sleekxmpp.xmlstream import StanzaBase, ElementBase, ET
+from sleekxmpp.xmlstream import register_stanza_plugin
 
 
-class StreamError(Error):
+class StreamError(Error, StanzaBase):
 
     """
     XMPP stanzas of type 'error' should include an <error> stanza that
@@ -23,28 +24,25 @@ class StreamError(Error):
     error that occur with the underlying XML stream itself, and not
     a particular stanza.
 
-    Note: The StreamError stanza is the same as the normal Error stanza,
-          but with a different namespace.
+    Note: The StreamError stanza is mostly the same as the normal
+          Error stanza, but with different namespaces and
+          condition names.
 
     Example error stanza:
-        <error type="cancel" code="404">
-          <item-not-found xmlns="urn:ietf:params:xml:ns:xmpp-stanzas" />
-          <text xmlns="urn:ietf:params:xml:ns:xmpp-stanzas">
-            The item was not found.
+        <stream:error>
+          <not-well-formed xmlns="urn:ietf:params:xml:ns:xmpp-streams" />
+          <text xmlns="urn:ietf:params:xml:ns:xmpp-streams">
+            XML was not well-formed.
           </text>
-        </error>
+        </stream:error>
 
     Stanza Interface:
-        code      -- The error code used in older XMPP versions.
         condition -- The name of the condition element.
         text      -- Human readable description of the error.
-        type      -- Error type indicating how the error should be handled.
 
     Attributes:
         conditions   -- The set of allowable error condition elements.
         condition_ns -- The namespace for the condition element.
-        types        -- A set of values indicating how the error
-                        should be treated.
 
     Methods:
         setup         -- Overrides ElementBase.setup.
@@ -57,3 +55,15 @@ class StreamError(Error):
     """
 
     namespace = 'http://etherx.jabber.org/streams'
+    interfaces = set(('condition', 'text'))
+    conditions = set((
+        'bad-format', 'bad-namespace-prefix', 'conflict',
+        'connection-timeout', 'host-gone', 'host-unknown',
+        'improper-addressing', 'internal-server-error', 'invalid-from',
+        'invalid-namespace', 'invalid-xml', 'not-authorized',
+        'not-well-formed', 'policy-violation', 'remote-connection-failed',
+        'reset', 'resource-constraint', 'restricted-xml', 'see-other-host',
+        'system-shutdown', 'undefined-condition', 'unsupported-encoding',
+        'unsupported-feature', 'unsupported-stanza-type',
+        'unsupported-version'))
+    condition_ns = 'urn:ietf:params:xml:ns:xmpp-streams'

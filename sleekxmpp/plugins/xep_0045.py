@@ -316,6 +316,7 @@ class xep_0045(base.base_plugin):
         x = ET.Element('{jabber:x:data}x', type='cancel')
         query.append(x)
         iq = self.xmpp.makeIqSet(query)
+        iq['to'] = room
         iq.send()
 
     def setRoomConfig(self, room, config, ifrom=''):

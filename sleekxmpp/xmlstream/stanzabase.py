@@ -14,6 +14,7 @@ from xml.etree import cElementTree as ET
 
 from sleekxmpp.xmlstream import JID
 from sleekxmpp.xmlstream.tostring import tostring
+from sleekxmpp.thirdparty import OrderedDict
 
 
 log = logging.getLogger(__name__)
@@ -230,7 +231,7 @@ class ElementBase(object):
         self.setStanzaValues = self._set_stanza_values
 
         self.xml = xml
-        self.plugins = {}
+        self.plugins = OrderedDict()
         self.iterables = []
         self._index = 0
         self.tag = self.tag_name()

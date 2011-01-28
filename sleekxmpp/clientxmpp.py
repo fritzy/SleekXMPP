@@ -18,9 +18,11 @@ import threading
 from sleekxmpp import plugins
 from sleekxmpp import stanza
 from sleekxmpp.basexmpp import BaseXMPP
-from sleekxmpp.stanza import Message, Presence, Iq
+from sleekxmpp.stanza import *
+from sleekxmpp.stanza import tls
+from sleekxmpp.stanza import sasl
 from sleekxmpp.xmlstream import XMLStream, RestartStream
-from sleekxmpp.xmlstream import StanzaBase, ET
+from sleekxmpp.xmlstream import StanzaBase, ET, register_stanza_plugin
 from sleekxmpp.xmlstream.matcher import *
 from sleekxmpp.xmlstream.handler import *
 
@@ -92,14 +94,24 @@ class ClientXMPP(BaseXMPP):
         self.stream_footer = "</stream:stream>"
 
         self.features = []
-        self.registered_features = []
+        self._stream_feature_handlers = {}
+        self._stream_feature_order = []
+        self._sasl_mechanism_handlers = {}
+        self._sasl_mechanism_priorities = []
 
         #TODO: Use stream state here
         self.authenticated = False
         self.sessionstarted = False
         self.bound = False
         self.bindfail = False
-        self.add_event_handler('connected', self.handle_connected)
+
+        self.add_event_handler('connected', self._handle_connected)
+
+        self.register_stanza(StreamFeatures)
+        self.register_stanza(tls.Proceed)
+        self.register_stanza(sasl.Success)
+        self.register_stanza(sasl.Failure)
+        self.register_stanza(sasl.Auth)
 
         self.register_handler(
                 Callback('Stream Features',
@@ -112,32 +124,25 @@ class ClientXMPP(BaseXMPP):
                              'jabber:iq:roster')),
                          self._handle_roster))
 
-        self.register_feature(
-            "<starttls xmlns='urn:ietf:params:xml:ns:xmpp-tls' />",
-            self._handle_starttls, True)
-        self.register_feature(
-            "<mechanisms xmlns='urn:ietf:params:xml:ns:xmpp-sasl' />",
-            self._handle_sasl_auth, True)
-        self.register_feature(
-            "<bind xmlns='urn:ietf:params:xml:ns:xmpp-bind' />",
-            self._handle_bind_resource)
-        self.register_feature(
-            "<session xmlns='urn:ietf:params:xml:ns:xmpp-session' />",
-            self._handle_start_session)
+        self.register_feature('starttls', self._handle_starttls,
+                              restart=True,
+                              order=0)
+        self.register_feature('mechanisms', self._handle_sasl_auth,
+                              restart=True,
+                              order=100)
+        self.register_feature('bind', self._handle_bind_resource,
+                              restart=False,
+                              order=10000)
+        self.register_feature('session', self._handle_start_session,
+                              restart=False,
+                              order=10001)
 
-    def handle_connected(self, event=None):
-        #TODO: Use stream state here
-        self.authenticated = False
-        self.sessionstarted = False
-        self.bound = False
-        self.bindfail = False
-        self.schedule("session timeout checker", 15,
-                      self._session_timeout_check)
-
-    def _session_timeout_check(self):
-        if not self.session_started_event.isSet():
-            log.debug("Session start has taken more than 15 seconds")
-            self.disconnect(reconnect=self.auto_reconnect)
+        self.register_sasl_mechanism('PLAIN',
+                                     self._handle_sasl_plain,
+                                     priority=1)
+        self.register_sasl_mechanism('ANONYMOUS',
+                                     self._handle_sasl_plain,
+                                     priority=0)
 
     def connect(self, address=tuple(), reattempt=True):
         """
@@ -197,19 +202,54 @@ class ClientXMPP(BaseXMPP):
         return XMLStream.connect(self, address[0], address[1],
                                  use_tls=True, reattempt=reattempt)
 
-    def register_feature(self, mask, pointer, breaker=False):
+    def register_feature(self, name, handler, restart=False, order=5000):
         """
         Register a stream feature.
 
         Arguments:
-            mask    -- An XML string matching the feature's element.
-            pointer -- The function to execute if the feature is received.
-            breaker -- Indicates if feature processing should halt with
+            name    -- The name of the stream feature.
+            handler -- The function to execute if the feature is received.
+            restart -- Indicates if feature processing should halt with
                        this feature. Defaults to False.
+            order   -- The relative ordering in which the feature should
+                       be negotiated. Lower values will be attempted
+                       earlier when available.
         """
-        self.registered_features.append((MatchXMLMask(mask),
-                                         pointer,
-                                         breaker))
+        self._stream_feature_handlers[name] = (handler, restart)
+        self._stream_feature_order.append((order, name))
+        self._stream_feature_order.sort()
+
+    def register_sasl_mechanism(self, name, handler, priority=0):
+        """
+        Register a handler for a SASL authentication mechanism.
+
+        Arguments:
+            name     -- The name of the mechanism (all caps)
+            handler  -- The function that will perform the
+                        authentication. The function must
+                        return True if it is able to carry
+                        out the authentication, False if
+                        a required condition is not met.
+            priority -- An integer value indicating the
+                        preferred ordering for the mechanism.
+                        High values will be attempted first.
+        """
+        self._sasl_mechanism_handlers[name] = handler
+        self._sasl_mechanism_priorities.append((priority, name))
+        self._sasl_mechanism_priorities.sort(reverse=True)
+
+    def remove_sasl_mechanism(self, name):
+        """
+        Remove support for a given SASL authentication mechanism.
+
+        Arguments:
+            name -- The name of the mechanism to remove (all caps)
+        """
+        if name in self._sasl_mechanism_handlers:
+            del self._sasl_mechanism_handlers[name]
+
+        p = self._sasl_mechanism_priorities
+        self._sasl_mechanism_priorities = [i for i in p if i[1] != name]
 
     def update_roster(self, jid, name=None, subscription=None, groups=[]):
         """
@@ -223,7 +263,8 @@ class ClientXMPP(BaseXMPP):
                             to 'remove', the entry will be deleted.
             groups       -- The roster groups that contain this item.
         """
-        iq = self.Iq()._set_stanza_values({'type': 'set'})
+        iq = self.Iq()
+        iq['type'] = 'set'
         iq['roster']['items'] = {jid: {'name': name,
                                        'subscription': subscription,
                                        'groups': groups}}
@@ -242,9 +283,26 @@ class ClientXMPP(BaseXMPP):
 
     def get_roster(self):
         """Request the roster from the server."""
-        iq = self.Iq()._set_stanza_values({'type': 'get'}).enable('roster')
+        iq = self.Iq()
+        iq['type'] = 'get'
+        iq.enable('roster')
         response = iq.send()
         self._handle_roster(response, request=True)
+
+    def _handle_connected(self, event=None):
+        #TODO: Use stream state here
+        self.authenticated = False
+        self.sessionstarted = False
+        self.bound = False
+        self.bindfail = False
+        self.features = []
+
+        def session_timeout():
+            if not self.session_started_event.isSet():
+                log.debug("Session start has taken more than 15 seconds")
+                self.disconnect(reconnect=self.auto_reconnect)
+
+        self.schedule("session timeout checker", 15, session_timeout)
 
     def _handle_stream_features(self, features):
         """
@@ -253,167 +311,174 @@ class ClientXMPP(BaseXMPP):
         Arguments:
             features -- The features stanza.
         """
-        # Record all of the features.
-        self.features = []
-        for sub in features.xml:
-            self.features.append(sub.tag)
+        for order, name in self._stream_feature_order:
+            if name in features['features']:
+                handler, restart = self._stream_feature_handlers[name]
+                if handler(features) and restart:
+                    # Don't continue if the feature requires
+                    # restarting the XML stream.
+                    return True
 
-        # Process the features.
-        for sub in features.xml:
-            for feature in self.registered_features:
-                mask, handler, halt = feature
-                if mask.match(sub):
-                    if handler(sub) and halt:
-                        # Don't continue if the feature was
-                        # marked as a breaker.
-                        return True
-
-    def _handle_starttls(self, xml):
+    def _handle_starttls(self, features):
         """
         Handle notification that the server supports TLS.
 
         Arguments:
-            xml -- The STARTLS proceed element.
+            features -- The stream:features element.
         """
-        if not self.authenticated and self.ssl_support:
-            tls_ns = 'urn:ietf:params:xml:ns:xmpp-tls'
-            self.add_handler("<proceed xmlns='%s' />" % tls_ns,
-                             self._handle_tls_start,
-                             name='TLS Proceed',
-                             instream=True)
-            self.send_xml(xml)
+
+        def tls_proceed(proceed):
+            """Restart the XML stream when TLS is accepted."""
+            log.debug("Starting TLS")
+            if self.start_tls():
+                self.features.append('starttls')
+                raise RestartStream()
+
+        if self.ssl_support:
+            self.register_handler(
+                    Callback('STARTTLS Proceed',
+                            MatchXPath(tls.Proceed.tag_name()),
+                            tls_proceed,
+                            instream=True))
+            self.send(features['starttls'])
             return True
         else:
             log.warning("The module tlslite is required to log in" +\
                             " to some servers, and has not been found.")
             return False
 
-    def _handle_tls_start(self, xml):
-        """
-        Handle encrypting the stream using TLS.
-
-        Restarts the stream.
-        """
-        log.debug("Starting TLS")
-        if self.start_tls():
-            raise RestartStream()
-
-    def _handle_sasl_auth(self, xml):
+    def _handle_sasl_auth(self, features):
         """
         Handle authenticating using SASL.
 
         Arguments:
-            xml -- The SASL mechanisms stanza.
+            features -- The stream features stanza.
         """
-        if '{urn:ietf:params:xml:ns:xmpp-tls}starttls' in self.features:
-            return False
 
-        log.debug("Starting SASL Auth")
-        sasl_ns = 'urn:ietf:params:xml:ns:xmpp-sasl'
-        self.add_handler("<success xmlns='%s' />" % sasl_ns,
-                         self._handle_auth_success,
-                         name='SASL Sucess',
-                         instream=True)
-        self.add_handler("<failure xmlns='%s' />" % sasl_ns,
-                         self._handle_auth_fail,
-                         name='SASL Failure',
-                         instream=True)
+        def sasl_success(stanza):
+            """SASL authentication succeeded. Restart the stream."""
+            self.authenticated = True
+            self.features.append('mechanisms')
+            raise RestartStream()
 
-        sasl_mechs = xml.findall('{%s}mechanism' % sasl_ns)
-        if sasl_mechs:
-            for sasl_mech in sasl_mechs:
-                self.features.append("sasl:%s" % sasl_mech.text)
-            if 'sasl:PLAIN' in self.features and self.boundjid.user:
-                if sys.version_info < (3, 0):
-                    user = bytes(self.boundjid.user)
-                    password = bytes(self.password)
-                else:
-                    user = bytes(self.boundjid.user, 'utf-8')
-                    password = bytes(self.password, 'utf-8')
+        def sasl_fail(stanza):
+            """SASL authentication failed. Disconnect and shutdown."""
+            log.info("Authentication failed.")
+            self.event("failed_auth", direct=True)
+            self.disconnect()
+            log.debug("Starting SASL Auth")
+            return True
 
-                auth = base64.b64encode(b'\x00' + user + \
-                                        b'\x00' + password).decode('utf-8')
+        self.register_handler(
+                Callback('SASL Success',
+                         MatchXPath(sasl.Success.tag_name()),
+                         sasl_success,
+                         instream=True,
+                         once=True))
 
-                self.send("<auth xmlns='%s' mechanism='PLAIN'>%s</auth>" % (
-                    sasl_ns,
-                    auth))
-            elif 'sasl:ANONYMOUS' in self.features and not self.boundjid.user:
-                self.send("<auth xmlns='%s' mechanism='%s' />" % (
-                    sasl_ns,
-                    'ANONYMOUS'))
-            else:
-                log.error("No appropriate login method.")
-                self.disconnect()
+        self.register_handler(
+                Callback('SASL Failure',
+                         MatchXPath(sasl.Failure.tag_name()),
+                         sasl_fail,
+                         instream=True,
+                         once=True))
+
+        for priority, mech in self._sasl_mechanism_priorities:
+            if mech in self._sasl_mechanism_handlers:
+                handler = self._sasl_mechanism_handlers[mech]
+                if handler(self):
+                    break
+        else:
+            log.error("No appropriate login method.")
+            self.disconnect()
+
         return True
 
-    def _handle_auth_success(self, xml):
+    def _handle_sasl_plain(self, xmpp):
         """
-        SASL authentication succeeded. Restart the stream.
+        Attempt to authenticate using SASL PLAIN.
 
         Arguments:
-            xml -- The SASL authentication success element.
+            xmpp -- The SleekXMPP connection instance.
         """
-        self.authenticated = True
-        self.features = []
-        raise RestartStream()
+        if not xmpp.boundjid.user:
+            return False
 
-    def _handle_auth_fail(self, xml):
+        if sys.version_info < (3, 0):
+            user = bytes(self.boundjid.user)
+            password = bytes(self.password)
+        else:
+            user = bytes(self.boundjid.user, 'utf-8')
+            password = bytes(self.password, 'utf-8')
+
+        auth = base64.b64encode(b'\x00' + user + \
+                                b'\x00' + password).decode('utf-8')
+
+        resp = sasl.Auth(xmpp)
+        resp['mechanism'] = 'PLAIN'
+        resp['value'] = auth
+        resp.send()
+
+        return True
+
+    def _handle_sasl_anonymous(self, xmpp):
         """
-        SASL authentication failed. Disconnect and shutdown.
+        Attempt to authenticate using SASL ANONYMOUS.
 
         Arguments:
-            xml -- The SASL authentication failure element.
+            xmpp -- The SleekXMPP connection instance.
         """
-        log.info("Authentication failed.")
-        self.event("failed_auth", direct=True)
-        self.disconnect()
+        if xmpp.boundjid.user:
+            return False
 
-    def _handle_bind_resource(self, xml):
+        resp = sasl.Auth(xmpp)
+        resp['mechanism'] = 'ANONYMOUS'
+        resp.send()
+
+        return True
+
+    def _handle_bind_resource(self, features):
         """
         Handle requesting a specific resource.
 
         Arguments:
-            xml -- The bind feature element.
+            features -- The stream features stanza.
         """
         log.debug("Requesting resource: %s" % self.boundjid.resource)
-        xml.clear()
-        iq = self.Iq(stype='set')
+        iq = self.Iq()
+        iq['type'] = 'set'
+        iq.enable('bind')
         if self.boundjid.resource:
-            res = ET.Element('resource')
-            res.text = self.boundjid.resource
-            xml.append(res)
-        iq.append(xml)
+            iq['bind']['resource'] = self.boundjid.resource
         response = iq.send()
 
-        bind_ns = 'urn:ietf:params:xml:ns:xmpp-bind'
-        self.set_jid(response.xml.find('{%s}bind/{%s}jid' % (bind_ns,
-                                                             bind_ns)).text)
+        self.set_jid(response['bind']['jid'])
         self.bound = True
+
         log.info("Node set to: %s" % self.boundjid.full)
-        session_ns = 'urn:ietf:params:xml:ns:xmpp-session'
-        if "{%s}session" % session_ns not in self.features or self.bindfail:
+
+        if 'session' not in features['features']:
             log.debug("Established Session")
             self.sessionstarted = True
             self.session_started_event.set()
             self.event("session_start")
 
-    def _handle_start_session(self, xml):
+    def _handle_start_session(self, features):
         """
         Handle the start of the session.
 
         Arguments:
-            xml -- The session feature element.
+            feature -- The stream features element.
         """
-        if self.authenticated and self.bound:
-            iq = self.makeIqSet(xml)
-            response = iq.send()
-            log.debug("Established Session")
-            self.sessionstarted = True
-            self.session_started_event.set()
-            self.event("session_start")
-        else:
-            # Bind probably hasn't happened yet.
-            self.bindfail = True
+        iq = self.Iq()
+        iq['type'] = 'set'
+        iq.enable('session')
+        response = iq.send()
+
+        log.debug("Established Session")
+        self.sessionstarted = True
+        self.session_started_event.set()
+        self.event("session_start")
 
     def _handle_roster(self, iq, request=False):
         """

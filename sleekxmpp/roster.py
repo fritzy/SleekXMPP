@@ -84,6 +84,17 @@ class Roster(object):
         if node not in self._rosters:
             self._rosters[node] = RosterNode(self.xmpp, node, self.db)
 
+    def set_backend(self, db=None):
+        """
+        Set the datastore interface object for the roster.
+
+        Arguments:
+            db -- The new datastore interface.
+        """
+        self.db = db
+        for node in self._rosters:
+            self._rosters[node].set_backend(db)
+
 
 class RosterNode(object):
 
@@ -147,6 +158,17 @@ class RosterNode(object):
     def __iter__(self):
         """Iterate over the roster items."""
         return self._jids.__iter__()
+
+    def set_backend(self, db=None):
+        """
+        Set the datastore interface object for the roster node.
+
+        Arguments:
+            db -- The new datastore interface.
+        """
+        self.db = db
+        for jid in self._jids:
+            self._jids[jid].set_backend(db)
 
     def add(self, jid, name='', groups=None, afrom=False, ato=False,
             pending_in=False, pending_out=False, whitelisted=False,
@@ -391,6 +413,16 @@ class RosterItem(object):
                 'name': '',
                 'groups': []}
         self._db_state = {}
+        self.load()
+
+    def set_backend(self, db=None):
+        """
+        Set the datastore interface object for the roster item.
+
+        Arguments:
+            db -- The new datastore interface.
+        """
+        self.db = db
         self.load()
 
     def load(self):

@@ -177,7 +177,10 @@ class xep_0030(base_plugin):
         elif node is None:
             self._handlers[htype]['jid'][jid] = handler
         elif jid is None:
-            jid = self.xmpp.boundjid.full
+            if self.xmpp.is_component:
+                jid = self.xmpp.boundjid.full
+            else:
+                jid = self.xmpp.boundjid.bare
             self._handlers[htype]['node'][(jid, node)] = handler
         else:
             self._handlers[htype]['node'][(jid, node)] = handler
@@ -342,7 +345,7 @@ class xep_0030(base_plugin):
         """
         self._run_node_handler('del_items', jid, node, kwargs)
 
-    def add_item(self, jid=None, name='', node=None, subnode='', ijid=None):
+    def add_item(self, jid='', name='', node=None, subnode='', ijid=None):
         """
         Add a new item element to the given JID/node combination.
 
@@ -356,10 +359,12 @@ class xep_0030(base_plugin):
             subnode -- Optional node for the item.
             ijid   -- The JID to modify.
         """
+        if not jid:
+            jid = self.xmpp.boundjid.full
         kwargs = {'ijid': jid,
                   'name': name,
                   'inode': subnode}
-        self._run_node_handler('add_item', jid, node, kwargs)
+        self._run_node_handler('add_item', ijid, node, kwargs)
 
     def del_item(self, jid=None, node=None, **kwargs):
         """
@@ -500,7 +505,10 @@ class xep_0030(base_plugin):
             data  -- Optional, custom data to pass to the handler.
         """
         if jid is None:
-            jid = self.xmpp.boundjid.full
+            if self.xmpp.is_component:
+                jid = self.xmpp.boundjid.full
+            else:
+                jid = self.xmpp.boundjid.bare
         if node is None:
             node = ''
 
@@ -526,8 +534,12 @@ class xep_0030(base_plugin):
         if iq['type'] == 'get':
             log.debug("Received disco info query from " + \
                       "<%s> to <%s>." % (iq['from'], iq['to']))
+            if self.xmpp.is_component:
+                jid = iq['to'].full
+            else:
+                jid = iq['to'].bare
             info = self._run_node_handler('get_info',
-                                          iq['to'].full,
+                                          jid,
                                           iq['disco_info']['node'],
                                           iq)
             iq.reply()
@@ -552,8 +564,12 @@ class xep_0030(base_plugin):
         if iq['type'] == 'get':
             log.debug("Received disco items query from " + \
                       "<%s> to <%s>." % (iq['from'], iq['to']))
+            if self.xmpp.is_component:
+                jid = iq['to'].full
+            else:
+                jid = iq['to'].bare
             items = self._run_node_handler('get_items',
-                                          iq['to'].full,
+                                          jid,
                                           iq['disco_items']['node'])
             iq.reply()
             if items:
@@ -590,3 +606,4 @@ class xep_0030(base_plugin):
                           "Using default disco#info feature.")
                 info.add_feature(info.namespace)
         return info
+

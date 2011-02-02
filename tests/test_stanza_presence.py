@@ -59,7 +59,7 @@ class TestPresenceStanzas(SleekTest):
         p['nick']['nick'] = 'A nickname!'
         self.check(p, """
           <presence>
-            <nick xmlns="http://jabber.org/nick/nick">A nickname!</nick>
+            <nick xmlns="http://jabber.org/protocol/nick">A nickname!</nick>
           </presence>
         """)
 

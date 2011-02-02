@@ -292,6 +292,7 @@ class XMLStream(object):
             return True
         except Socket.error as serr:
             error_msg = "Could not connect to %s:%s. Socket Error #%s: %s"
+            self.event('socket_error', serr)
             log.error(error_msg % (self.address[0], self.address[1],
                                        serr.errno, serr.strerror))
             time.sleep(1)
@@ -327,7 +328,7 @@ class XMLStream(object):
             self.filesocket.close()
             self.socket.shutdown(Socket.SHUT_RDWR)
         except Socket.error as serr:
-            pass
+            self.event('socket_error', serr)
         finally:
             #clear your application state
             self.event("disconnected", direct=True)
@@ -734,7 +735,8 @@ class XMLStream(object):
             except SystemExit:
                 log.debug("SystemExit in _process")
                 self.stop.set()
-            except Socket.error:
+            except Socket.error as serr:
+                self.event('socket_error', serr)
                 log.exception('Socket Error')
             except:
                 if not self.stop.isSet():
@@ -800,7 +802,8 @@ class XMLStream(object):
             default_ns = self.default_ns
         stanza_type = StanzaBase
         for stanza_class in self.__root_stanza:
-            if xml.tag == "{%s}%s" % (default_ns, stanza_class.name):
+            if xml.tag == "{%s}%s" % (default_ns, stanza_class.name) or \
+               xml.tag == stanza_class.tag_name():
                 stanza_type = stanza_class
                 break
         stanza = stanza_type(self, xml)
@@ -825,7 +828,8 @@ class XMLStream(object):
         # stanza type applies, a generic StanzaBase stanza will be used.
         stanza_type = StanzaBase
         for stanza_class in self.__root_stanza:
-            if xml.tag == "{%s}%s" % (self.default_ns, stanza_class.name):
+            if xml.tag == "{%s}%s" % (self.default_ns, stanza_class.name) or \
+               xml.tag == stanza_class.tag_name():
                 stanza_type = stanza_class
                 break
         stanza = stanza_type(self, xml)
@@ -899,7 +903,7 @@ class XMLStream(object):
                         args[0].exception(e)
                 elif etype == 'schedule':
                     try:
-                        log.debug(args)
+                        log.debug('Scheduled event: %s' % args)
                         handler(*args[0])
                     except:
                         log.exception('Error processing scheduled task')

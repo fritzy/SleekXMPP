@@ -14,6 +14,7 @@ from xml.etree import cElementTree as ET
 
 from sleekxmpp.xmlstream import JID
 from sleekxmpp.xmlstream.tostring import tostring
+from sleekxmpp.thirdparty import OrderedDict
 
 
 log = logging.getLogger(__name__)
@@ -23,17 +24,23 @@ log = logging.getLogger(__name__)
 XML_TYPE = type(ET.Element('xml'))
 
 
-def register_stanza_plugin(stanza, plugin):
+def register_stanza_plugin(stanza, plugin, iterable=False):
     """
     Associate a stanza object as a plugin for another stanza.
 
     Arguments:
-        stanza -- The class of the parent stanza.
-        plugin -- The class of the plugin stanza.
+        stanza   -- The class of the parent stanza.
+        plugin   -- The class of the plugin stanza.
+        iterable -- Indicates if the plugin stanza
+                    should be included in the parent
+                    stanza's iterable 'substanzas'
+                    interface results.
     """
     tag = "{%s}%s" % (plugin.namespace, plugin.name)
     stanza.plugin_attrib_map[plugin.plugin_attrib] = plugin
     stanza.plugin_tag_map[tag] = plugin
+    if iterable:
+        stanza.plugin_iterables.add(plugin)
 
 
 # To maintain backwards compatibility for now, preserve the camel case name.
@@ -95,10 +102,22 @@ class ElementBase(object):
     >>> message['custom']['useful_thing'] = 'foo'
 
     If a plugin provides an interface that is the same as the plugin's
-    plugin_attrib value, then the plugin's interface may be accessed
-    directly from the parent stanza, as so:
+    plugin_attrib value, then the plugin's interface may be assigned
+    directly from the parent stanza, as shown below, but retrieving
+    information will require all interfaces to be used, as so:
 
     >>> message['custom'] = 'bar' # Same as using message['custom']['custom']
+    >>> message['custom']['custom'] # Must use all interfaces
+    'bar'
+
+    If the plugin sets the value is_extension = True, then both setting
+    and getting an interface value that is the same as the plugin's
+    plugin_attrib value will work, as so:
+
+    >>> message['custom'] = 'bar'  # Using is_extension=True
+    >>> message['custom']
+    'bar'
+
 
     Class Attributes:
         name              -- The name of the stanza's main element.
@@ -108,14 +127,23 @@ class ElementBase(object):
         sub_interfaces    -- A subset of the set of interfaces which map
                              to subelements instead of attributes.
         subitem           -- A set of stanza classes which are allowed to
-                             be added as substanzas.
+                             be added as substanzas. Deprecated version
+                             of plugin_iterables.
         types             -- A set of generic type attribute values.
+        tag               -- The namespaced name of the stanza's root
+                             element. Example: "{foo_ns}bar"
         plugin_attrib     -- The interface name that the stanza uses to be
                              accessed as a plugin from another stanza.
         plugin_attrib_map -- A mapping of plugin attribute names with the
                              associated plugin stanza classes.
+        plugin_iterables  -- A set of stanza classes which are allowed to
+                             be added as substanzas.
         plugin_tag_map    -- A mapping of plugin stanza tag names with
                              the associated plugin stanza classes.
+        is_extension      -- When True, allows the stanza to provide one
+                             additional interface to the parent stanza,
+                             extending the interfaces supported by the
+                             parent. Defaults to False.
         xml_ns            -- The XML namespace,
                              http://www.w3.org/XML/1998/namespace,
                              for use with xml:lang values.
@@ -127,6 +155,10 @@ class ElementBase(object):
                              initialized plugin stanza objects.
         values            -- A dictionary of the stanza's interfaces
                              and interface values, including plugins.
+
+    Class Methods
+        tag_name -- Return the namespaced version of the stanza's
+                    root element's name.
 
     Methods:
         setup              -- Initialize the stanza's XML contents.
@@ -160,6 +192,7 @@ class ElementBase(object):
         appendxml          -- Add XML content to the stanza.
         pop                -- Remove a substanza.
         next               -- Return the next iterable substanza.
+        clear              -- Reset the stanza's XML contents.
         _fix_ns            -- Apply the stanza's namespace to non-namespaced
                               elements in an XPath expression.
     """
@@ -171,8 +204,10 @@ class ElementBase(object):
     types = set(('get', 'set', 'error', None, 'unavailable', 'normal', 'chat'))
     sub_interfaces = tuple()
     plugin_attrib_map = {}
+    plugin_iterables = set()
     plugin_tag_map = {}
     subitem = None
+    is_extension = False
     xml_ns = 'http://www.w3.org/XML/1998/namespace'
 
     def __init__(self, xml=None, parent=None):
@@ -196,9 +231,10 @@ class ElementBase(object):
         self.setStanzaValues = self._set_stanza_values
 
         self.xml = xml
-        self.plugins = {}
+        self.plugins = OrderedDict()
         self.iterables = []
         self._index = 0
+        self.tag = self.tag_name()
         if parent is None:
             self.parent = None
         else:
@@ -218,9 +254,11 @@ class ElementBase(object):
                 self.plugins[plugin.plugin_attrib] = plugin(child, self)
             if self.subitem is not None:
                 for sub in self.subitem:
-                    if child.tag == "{%s}%s" % (sub.namespace, sub.name):
-                        self.iterables.append(sub(child, self))
-                        break
+                    self.plugin_iterables.add(sub)
+            for sub in self.plugin_iterables:
+                if child.tag == "{%s}%s" % (sub.namespace, sub.name):
+                    self.iterables.append(sub(child, self))
+                    break
 
     def setup(self, xml=None):
         """
@@ -287,14 +325,12 @@ class ElementBase(object):
         for interface in self.interfaces:
             values[interface] = self[interface]
         for plugin, stanza in self.plugins.items():
-            values[plugin] = stanza._get_stanza_values()
+            values[plugin] = stanza.values
         if self.iterables:
             iterables = []
             for stanza in self.iterables:
-                iterables.append(stanza._get_stanza_values())
-                iterables[-1].update({
-                    '__childtag__': "{%s}%s" % (stanza.namespace,
-                                                stanza.name)})
+                iterables.append(stanza.values)
+                iterables[-1]['__childtag__'] = stanza.tag
             values['substanzas'] = iterables
         return values
 
@@ -318,7 +354,7 @@ class ElementBase(object):
                                                     subclass.name)
                             if subdict['__childtag__'] == child_tag:
                                 sub = subclass(parent=self)
-                                sub._set_stanza_values(subdict)
+                                sub.values = subdict
                                 self.iterables.append(sub)
                                 break
             elif interface in self.interfaces:
@@ -326,7 +362,7 @@ class ElementBase(object):
             elif interface in self.plugin_attrib_map:
                 if interface not in self.plugins:
                     self.init_plugin(interface)
-                self.plugins[interface]._set_stanza_values(value)
+                self.plugins[interface].values = value
         return self
 
     def __getitem__(self, attrib):
@@ -371,6 +407,8 @@ class ElementBase(object):
         elif attrib in self.plugin_attrib_map:
             if attrib not in self.plugins:
                 self.init_plugin(attrib)
+            if self.plugins[attrib].is_extension:
+                return self.plugins[attrib][attrib]
             return self.plugins[attrib]
         else:
             return ''
@@ -467,8 +505,13 @@ class ElementBase(object):
         elif attrib in self.plugin_attrib_map:
             if attrib in self.plugins:
                 xml = self.plugins[attrib].xml
+                if self.plugins[attrib].is_extension:
+                    del self.plugins[attrib][attrib]
                 del self.plugins[attrib]
-                self.xml.remove(xml)
+                try:
+                    self.xml.remove(xml)
+                except:
+                    pass
         return self
 
     def _set_attr(self, name, value):
@@ -790,6 +833,28 @@ class ElementBase(object):
         """
         return self.__next__()
 
+    def clear(self):
+        """
+        Remove all XML element contents and plugins.
+
+        Any attribute values will be preserved.
+        """
+        for child in self.xml.getchildren():
+            self.xml.remove(child)
+        for plugin in list(self.plugins.keys()):
+            del self.plugins[plugin]
+        return self
+
+    @classmethod
+    def tag_name(cls):
+        """
+        Return the namespaced name of the stanza's root element.
+
+        For example, for the stanza <foo xmlns="bar" />,
+        stanza.tag would return "{bar}foo".
+        """
+        return "{%s}%s" % (cls.namespace, cls.name)
+
     @property
     def attrib(self):
         """
@@ -862,13 +927,13 @@ class ElementBase(object):
             return False
 
         # Check that this stanza is a superset of the other stanza.
-        values = self._get_stanza_values()
+        values = self.values
         for key in other.keys():
             if key not in values or values[key] != other[key]:
                 return False
 
         # Check that the other stanza is a superset of this stanza.
-        values = other._get_stanza_values()
+        values = other.values
         for key in self.keys():
             if key not in values or values[key] != self[key]:
                 return False
@@ -972,7 +1037,6 @@ class StanzaBase(ElementBase):
 
     Attributes:
         stream -- The XMLStream instance that will handle sending this stanza.
-        tag    -- The namespaced version of the stanza's name.
 
     Methods:
         set_type    -- Set the type of the stanza.
@@ -983,7 +1047,6 @@ class StanzaBase(ElementBase):
         get_payload -- Return the stanza's XML contents.
         set_payload -- Append to the stanza's XML contents.
         del_payload -- Remove the stanza's XML contents.
-        clear       -- Reset the stanza's XML contents.
         reply       -- Reset the stanza and modify the 'to' and 'from'
                        attributes to prepare for sending a reply.
         error       -- Set the stanza's type to 'error'.
@@ -1096,18 +1159,6 @@ class StanzaBase(ElementBase):
     def del_payload(self):
         """Remove the XML contents of the stanza."""
         self.clear()
-        return self
-
-    def clear(self):
-        """
-        Remove all XML element contents and plugins.
-
-        Any attribute values will be preserved.
-        """
-        for child in self.xml.getchildren():
-            self.xml.remove(child)
-        for plugin in list(self.plugins.keys()):
-            del self.plugins[plugin]
         return self
 
     def reply(self):

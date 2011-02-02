@@ -1,123 +1,62 @@
-ElementBase sub_items not subitem?
-
-*XMPP needs to use JID class instead of lots of fields.
-
-BaseXMPP set_jid, makeIqQuery, getjidresource, getjidbare not needed
-
-Why CamelCase and underscore_names? Document semantics.
-
-conn_tests and sleekxmpp/tests and sleekxmpp/xmlstresm/test.* -> convert to either unit tests, or at least put in same place
-
-Update setup.py - github url, version #
-
-scheduler needs unit tests
-
-ClientXMPP stream:features handler should use new state machine
-
-Write stream tests for startls, features, etc.
-
-
-
--- PEP8 - all files
-
-Need to use spaces
-
-Docstrings are lacking. Need to document attributes and return values.
-
-Organize imports
-
-Use absolute, not relative imports
-
-Fix one-liner if statements
-
-Line length limit of 79 characters
-
-
-
--- Plugins
-
---- xep_0004
-
-Need more unit tests
-
---- xep_0009
-
-Need stanza objects
-
-Need unit tests
-
---- xep_0045
-
-Need to use stanza objects
-
-A few TODO comments for checking roles and using defaults
-
-Need unit tests
-
---- xep_0050
-
-Need unit tests
-
-Need stanza objects - use new xep_0004
-
---- xep_0060
-
-Need unit tests
-
-Need to use existing stanza objects
-
---- xep_0078
-
-Is it useful still?
-
-Need stanza objects/unit tests
-
---- xep_0086
-
-Is there a way to automate setting error codes?
-
-Seems like this should be part of the error stanza by default
-
-Use stanza objects
-
---- xep_0092
-
-Stanza objects
-
-Unit tests
-
---- xep_0199
-
-Stanza objects
-
-Unit tests
-
-Clean commented code
-
-Use the new scheduler
-
-
-
--- Documentation
-
-Document the Zen/Tao/Whatever of SleekXMPP to explain design goals and decisions
-
-Write architecture description 
-
-XMPP:TDG needs to be rewritten.
-
-Need to update docs that reference old JID attributes of sleekxmpp objects
-
-Page describing new JID class
-
-Message page needs updating
-
-Iq page needs to be written
-
-Make guides to go with example.py and component_example.py
-
-Page on xmlstream.matchers
-
-Page on xmlstream.handlers, especially waiters
-
-Page on using xmlstream.scheduler
+Plugins:
+    0004
+        PEP8
+        Stream/Unit tests
+        Fix serialization issue
+        Use OrderedDict for fields/values
+    0009
+        Review contribution from dannmartens
+    0012
+        PEP8
+        Documentation
+        Stream/Unit tests
+    0030
+        Done
+    0033
+        PEP8
+        Documentation
+        Stream/Unit tests
+    0045
+        PEP8
+        Documentation
+        Stream/Unit tests
+    0050
+        Review replacement in github.com/legastero/adhoc
+    0059
+        Done
+    0060
+        PEP8
+        Documentation
+        Stream/Unit tests
+    0078
+        Will require new stream features handling, see stream_features branch.
+        PEP8
+        Documentation
+        Stream/Unit tests
+    0085
+        PEP8
+        Documentation
+        Stream/Unit tests
+    0086
+        PEP8
+        Documentation
+        Consider any simplifications.
+    0092
+        Done
+    0128
+        Needs complete rewrite to work with new 0030 plugin.
+    0199
+        PEP8
+        Documentation
+        Stream/Unit tests
+        Needs to use scheduler instead of its own thread.
+    0202
+        PEP8
+        Documentation
+        Stream/Unit tests
+    0249
+        Review, minor cleanup
+    gmail_notify
+        PEP8
+        Documentation
+        Stream/Unit tests

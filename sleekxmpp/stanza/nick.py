@@ -44,7 +44,7 @@ class Nick(ElementBase):
         del_nick -- Remove the <nick> element.
     """
 
-    namespace = 'http://jabber.org/nick/nick'
+    namespace = 'http://jabber.org/protocol/nick'
     name = 'nick'
     plugin_attrib = name
     interfaces = set(('nick',))

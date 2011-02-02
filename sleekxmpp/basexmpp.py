@@ -16,7 +16,7 @@ import sleekxmpp
 from sleekxmpp import plugins
 
 import sleekxmpp.roster as roster
-from sleekxmpp.stanza import Message, Presence, Iq, Error
+from sleekxmpp.stanza import Message, Presence, Iq, Error, StreamError
 from sleekxmpp.stanza.roster import Roster
 from sleekxmpp.stanza.nick import Nick
 from sleekxmpp.stanza.htmlim import HTMLIM
@@ -133,6 +133,10 @@ class BaseXMPP(XMLStream):
             Callback('Presence',
                      MatchXPath("{%s}presence" % self.default_ns),
                      self._handle_presence))
+        self.register_handler(
+            Callback('Stream Error',
+                     MatchXPath("{%s}error" % self.stream_ns),
+                     self._handle_stream_error))
 
         self.add_event_handler('disconnected',
                                self._handle_disconnected)
@@ -165,6 +169,7 @@ class BaseXMPP(XMLStream):
         self.register_stanza(Message)
         self.register_stanza(Iq)
         self.register_stanza(Presence)
+        self.register_stanza(StreamError)
 
         # Initialize a few default stanza plugins.
         register_stanza_plugin(Iq, Roster)
@@ -605,6 +610,9 @@ class BaseXMPP(XMLStream):
     def _handle_disconnected(self, event):
         """When disconnected, reset the roster"""
         self.roster = {}
+
+    def _handle_stream_error(self, error):
+        self.event('stream_error', error)
 
     def _handle_message(self, msg):
         """Process incoming message stanzas."""

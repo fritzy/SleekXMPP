@@ -84,5 +84,5 @@ class xep_0092(base_plugin):
         result = iq.send()
 
         if result and result['type'] != 'error':
-            return result['software_version']._get_stanza_values()
+            return result['software_version'].values
         return False

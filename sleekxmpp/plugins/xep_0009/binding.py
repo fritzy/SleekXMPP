@@ -37,7 +37,7 @@ def xml2fault(params):
 def py2xml(*args):
     params = ET.Element("{%s}params" % _namespace)
     for x in args:
-        param = ET.Element("param")
+        param = ET.Element("{%s}param" % _namespace)
         param.append(_py2xml(x))
         params.append(param) #<params><param>...
     return params

@@ -6,9 +6,9 @@
     See the file LICENSE for copying permission.
 """
 
-from sleekxmpp.plugins.old_0009 import py2xml
 from sleekxmpp.plugins.xep_0009.stanza.RPC import RPCQuery, MethodCall, \
     MethodResponse
+from sleekxmpp.plugins.xep_0009.binding import py2xml
 from sleekxmpp.stanza.iq import Iq
 from sleekxmpp.test.sleektest import SleekTest
 from sleekxmpp.xmlstream.stanzabase import register_stanza_plugin

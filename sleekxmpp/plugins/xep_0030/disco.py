@@ -271,7 +271,7 @@ class xep_0030(base_plugin):
         iq['type'] = 'get'
         iq['disco_info']['node'] = node if node else ''
         return iq.send(timeout=kwargs.get('timeout', None),
-                       block=kwargs.get('block', None),
+                       block=kwargs.get('block', True),
                        callback=kwargs.get('callback', None))
 
     def get_items(self, jid=None, node=None, local=False, **kwargs):

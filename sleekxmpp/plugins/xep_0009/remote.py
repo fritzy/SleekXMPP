@@ -562,7 +562,7 @@ class RemoteSession(object):
             iq.send()
             return future.get_value(30)
         else:
-            print "[RemoteSession] _call_remote %s" % callback
+            log.debug("[RemoteSession] _call_remote %s" % callback)
             self._register_callback(pid, callback)
             iq.send()
 

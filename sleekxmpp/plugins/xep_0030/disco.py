@@ -318,7 +318,7 @@ class xep_0030(base_plugin):
             return self.xmpp['xep_0059'].iterate(iq, 'disco_items')
         else:
             return iq.send(timeout=kwargs.get('timeout', None),
-                           block=kwargs.get('block', None),
+                           block=kwargs.get('block', True),
                            callback=kwargs.get('callback', None))
 
     def set_items(self, jid=None, node=None, **kwargs):

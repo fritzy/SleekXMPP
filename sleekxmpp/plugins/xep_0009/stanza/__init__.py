@@ -6,4 +6,4 @@
     See the file LICENSE for copying permission.
 """
 
-from RPC import RPCQuery, MethodCall, MethodResponse
+from sleekxmpp.plugins.xep_0009.stanza.RPC import RPCQuery, MethodCall, MethodResponse

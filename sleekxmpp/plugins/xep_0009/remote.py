@@ -16,19 +16,15 @@ import sys
 import threading
 import traceback
 
-
-
 log = logging.getLogger(__name__)
-
-
 
 def _intercept(method, name, public):
     def _resolver(instance, *args, **kwargs):
         log.debug("Locally calling %s.%s with arguments %s." % (instance.FQN(), method.__name__, args))
-        try: 
+        try:
             value = method(instance, *args, **kwargs)
             if value == NotImplemented:
-                raise InvocationException("Local handler does not implement %s.%s!" % (instance.FQN(), method.__name__))            
+                raise InvocationException("Local handler does not implement %s.%s!" % (instance.FQN(), method.__name__))
             return value
         except InvocationException:
             raise
@@ -43,50 +39,49 @@ def remote(function_argument, public = True):
     Decorator for methods which are remotely callable. This decorator
     works in conjunction with classes which extend ABC Endpoint.
     Example:
-    
+
         @remote
         def remote_method(arg1, arg2)
-    
+
     Arguments:
         function_argument -- a stand-in for either the actual method
             OR a new name (string) for the method. In that case the
             method is considered mapped:
             Example:
-            
+
             @remote("new_name")
             def remote_method(arg1, arg2)
-            
+
         public -- A flag which indicates if this method should be part
             of the known dictionary of remote methods. Defaults to True.
             Example:
-            
+
             @remote(False)
             def remote_method(arg1, arg2)
-            
+
     Note: renaming and revising (public vs. private) can be combined.
     Example:
-    
+
             @remote("new_name", False)
             def remote_method(arg1, arg2)
     '''
     if hasattr(function_argument, '__call__'):
         return _intercept(function_argument, None, public)
-    else:        
+    else:
         if not isinstance(function_argument, basestring):
-            if not isinstance(function_argument, bool):                
+            if not isinstance(function_argument, bool):
                 raise Exception('Expected an RPC method name or visibility modifier!')
             else:
                 def _wrap_revised(function):
                     function = _intercept(function, None, function_argument)
                     return function
-                return _wrap_revised                
+                return _wrap_revised
         def _wrap_remapped(function):
             function = _intercept(function, function_argument, public)
             return function
         return _wrap_remapped
-    
-    
-    
+
+
 class ACL:
     '''
     An Access Control List (ACL) is a list of rules, which are evaluated
@@ -102,7 +97,7 @@ class ACL:
     [ (ACL.ALLOW, 'test@xmpp.org/unit', 'test.*'),
       (ACL.DENY, '*', '*') ] deny everyone everything, except named
         JID, which is allowed access to endpoint 'test' only.
-    
+
     The use of wildcards is allowed in expressions, as follows:
     '*' everyone, or everything (= all endpoints and methods)
     'test@xmpp.org/*' every JID regardless of JID resource
@@ -113,7 +108,7 @@ class ACL:
     '''
     ALLOW = True
     DENY = False
-    
+
     @classmethod
     def check(cls, rules, jid, resource):
         if rules is None:
@@ -121,9 +116,9 @@ class ACL:
         for rule in rules:
             policy = cls._check(rule, jid, resource)
             if policy is not None:
-                return policy        
+                return policy
         return cls.DENY   # By default if not rule matches, deny access.
-    
+
     @classmethod
     def _check(cls, rule, jid, resource):
         if cls._match(jid, rule[1]) and cls._match(resource, rule[2]):
@@ -138,13 +133,13 @@ class ACL:
             return ''
         else:
             if new_index == -1:
-                return expression[index : ]                
+                return expression[index : ]
             else:
                 return expression[index : new_index]
 
     @classmethod
-    def _match(cls, value, expression):  
-        #! print "_match [VALUE] %s [EXPR] %s" % (value, expression)      
+    def _match(cls, value, expression):
+        #! print "_match [VALUE] %s [EXPR] %s" % (value, expression)
         index = 0
         position = 0
         while index < len(expression):
@@ -169,24 +164,23 @@ class ACL:
 ANY_ALL = [ (ACL.ALLOW, '*', '*') ]
 
 
-
 class RemoteException(Exception):
     '''
     Base exception for RPC. This exception is raised when a problem
     occurs in the network layer.
     '''
-    
+
     def __init__(self, message="", cause=None):
         '''
         Initializes a new RemoteException.
-        
+
         Arguments:
             message -- The message accompanying this exception.
             cause -- The underlying cause of this exception.
-        '''        
+        '''
         self._message = message
-        self._cause = cause  
-        pass 
+        self._cause = cause
+        pass
 
     def __str__(self):
         return repr(self._message)
@@ -202,7 +196,7 @@ class RemoteException(Exception):
 class InvocationException(RemoteException):
     '''
     Exception raised when a problem occurs during the remote invocation
-    of a method. 
+    of a method.
     '''
     pass
 
@@ -216,48 +210,45 @@ class AuthorizationException(RemoteException):
     pass
 
 
-
 class TimeoutException(Exception):
     '''
     Exception raised when the synchronous execution of a method takes
     longer than the given threshold because an underlying asynchronous
     reply did not arrive in time.
     '''
-    pass 
-
+    pass
 
 
 class Callback(object):
     '''
-    A base class for callback handlers. 
+    A base class for callback handlers.
     '''
     __metaclass__ = abc.ABCMeta
-    
-    
+
+
     @abc.abstractproperty
     def set_value(self, value):
         return NotImplemented
-    
+
     @abc.abstractproperty
     def cancel_with_error(self, exception):
         return NotImplemented
-
 
 
 class Future(Callback):
     '''
     Represents the result of an asynchronous computation.
     '''
-    
+
     def __init__(self):
         '''
         Initializes a new Future.
         '''
         self._value = None
-        self._exception = None        
+        self._exception = None
         self._event = threading.Event()
         pass
-    
+
     def set_value(self, value):
         '''
         Sets the value of this Future. Once the value is set, a caller
@@ -265,13 +256,13 @@ class Future(Callback):
         '''
         self._value = value
         self._event.set()
-        
+
     def get_value(self, timeout=None):
         '''
         Gets the value of this Future. This call will block until
         the result is available, or until an optional timeout expires.
-        When this Future is cancelled with an error,  
-        
+        When this Future is cancelled with an error,
+
         Arguments:
             timeout -- The maximum waiting time to obtain the value.
         '''
@@ -281,7 +272,7 @@ class Future(Callback):
         if not self._event.is_set():
             raise TimeoutException
         return self._value
-    
+
     def is_done(self):
         '''
         Returns true if a value has been returned.
@@ -290,23 +281,23 @@ class Future(Callback):
 
     def cancel_with_error(self, exception):
         '''
-        Cancels the Future because of an error. Once cancelled, a 
+        Cancels the Future because of an error. Once cancelled, a
         caller blocked on get_value will be able to continue.
         '''
-        self._exception = exception     
-        self._event.set()      
+        self._exception = exception
+        self._event.set()
 
 
-        
+
 class Endpoint(object):
     '''
     The Endpoint class is an abstract base class for all objects
     participating in an RPC-enabled XMPP network.
-    
+
     A user subclassing this class is required to implement the method:
-        FQN(self) 
-    where FQN stands for Fully Qualified Name, an unambiguous name 
-    which specifies which object an RPC call refers to. It is the 
+        FQN(self)
+    where FQN stands for Fully Qualified Name, an unambiguous name
+    which specifies which object an RPC call refers to. It is the
     first part in a RPC method name '<fqn>.<method>'.
     '''
     __metaclass__ = abc.ABCMeta
@@ -317,38 +308,38 @@ class Endpoint(object):
         Initialize a new Endpoint. This constructor should never be
         invoked by a user, instead it will be called by the factories
         which instantiate the RPC-enabled objects, of which only
-        the classes are provided by the user. 
-        
+        the classes are provided by the user.
+
         Arguments:
             session -- An RPC session instance.
             target_jid -- the identity of the remote XMPP entity.
         '''
         self.session = session
         self.target_jid = target_jid
-        
+
     @abc.abstractproperty
     def FQN(self):
         return NotImplemented
-    
+
     def get_methods(self):
         '''
         Returns a dictionary of all RPC method names provided by this
         class. This method returns the actual  method names as found
         in the class definition which have been decorated with:
-        
+
             @remote
             def some_rpc_method(arg1, arg2)
-        
-        
+
+
         Unless:
             (1) the name has been remapped, in which case the new
                 name will be returned.
-                
+
                     @remote("new_name")
                     def some_rpc_method(arg1, arg2)
-                
+
             (2) the method is set to hidden
-            
+
                     @remote(False)
                     def some_hidden_method(arg1, arg2)
         '''
@@ -360,7 +351,7 @@ class Endpoint(object):
                     result[test_attr._rpc_name] = test_attr
             except Exception:
                 pass
-        return result     
+        return result
 
 
 
@@ -374,13 +365,13 @@ class Proxy(Endpoint):
     def __init__(self, endpoint, callback = None):
         '''
         Initializes a new Proxy.
-        
+
         Arguments:
             endpoint -- The endpoint which is proxified.
         '''
         self._endpoint = endpoint
         self._callback = callback
-        
+
     def __getattribute__(self, name, *args):
         if name in ('__dict__', '_endpoint', 'async', '_callback'):
             return object.__getattribute__(self, name)
@@ -389,31 +380,30 @@ class Proxy(Endpoint):
             if hasattr(attribute, '__call__'):
                 try:
                     if attribute._rpc:
-                        def _remote_call(*args, **kwargs): 
+                        def _remote_call(*args, **kwargs):
                             log.debug("Remotely calling '%s.%s' with arguments %s." % (self._endpoint.FQN(), attribute._rpc_name, args))
                             return self._endpoint.session._call_remote(self._endpoint.target_jid, "%s.%s" % (self._endpoint.FQN(), attribute._rpc_name), self._callback, *args, **kwargs)
                         return _remote_call
                 except:
-                    pass   # If the attribute doesn't exist, don't care! 
+                    pass   # If the attribute doesn't exist, don't care!
             return attribute
-    
-    def async(self, callback):        
+
+    def async(self, callback):
         return Proxy(self._endpoint, callback)
-               
+
     def get_endpoint(self):
         '''
         Returns the proxified endpoint.
         '''
         return self._endpoint
-        
+
     def FQN(self):
         return self._endpoint.FQN()
 
 
-
 class JabberRPCEntry(object):
-    
-    
+
+
     def __init__(self, endpoint_FQN, call):
         self._endpoint_FQN = endpoint_FQN
         self._call = call
@@ -424,28 +414,27 @@ class JabberRPCEntry(object):
             return return_value
         else:
             return self._return(return_value)
-        
+
     def get_endpoint_FQN(self):
         return self._endpoint_FQN
 
     def _return(self, *args):
         return args
-    
-    
-    
+
+
 class RemoteSession(object):
     '''
-    A context object for a Jabber-RPC session. 
+    A context object for a Jabber-RPC session.
     '''
-    
-            
+
+
     def __init__(self, client, session_close_callback):
         '''
         Initializes a new RPC session.
-        
+
         Arguments:
             client -- The SleekXMPP client associated with this session.
-            session_close_callback -- A callback called when the 
+            session_close_callback -- A callback called when the
                 session is closed.
         '''
         self._client = client
@@ -455,16 +444,16 @@ class RemoteSession(object):
         self._callbacks = {}
         self._acls = {}
         self._lock = RLock()
-            
+
     def _wait(self):
         self._event.wait()
-    
+
     def _notify(self, event):
         log.debug("RPC Session as %s started." % self._client.boundjid.full)
         self._client.sendPresence()
         self._event.set()
         pass
-        
+
     def _register_call(self, endpoint, method, name=None):
         '''
         Registers a method from an endpoint as remotely callable.
@@ -487,8 +476,8 @@ class RemoteSession(object):
     def _register_callback(self, pid, callback):
         with self._lock:
             self._callbacks[pid] = callback
-            
-    def forget_callback(self, callback):        
+
+    def forget_callback(self, callback):
         with self._lock:
             pid = self._find_key(self._callbacks, callback)
             if pid is not None:
@@ -496,7 +485,7 @@ class RemoteSession(object):
             else:
                 raise ValueError("Unknown callback!")
         pass
-    
+
     def _find_key(self, dict, value):
         """return the key of dictionary dic given the value"""
         search = [k for k, v in dict.iteritems() if v == value]
@@ -504,7 +493,7 @@ class RemoteSession(object):
             return None
         else:
             return search[0]
-    
+
     def _unregister_call(self, key):
         #removes the registered call
         with self._lock:
@@ -512,18 +501,18 @@ class RemoteSession(object):
                 del self._entries[key]
             else:
                 raise ValueError()
-        
+
     def new_proxy(self, target_jid, endpoint_cls):
         '''
         Instantiates a new proxy object, which proxies to a remote
-        endpoint. This method uses a class reference without 
+        endpoint. This method uses a class reference without
         constructor arguments to instantiate the proxy.
-        
+
         Arguments:
             target_jid -- the XMPP entity ID hosting the endpoint.
             endpoint_cls -- The remote (duck) type.
         '''
-        try:            
+        try:
             argspec = inspect.getargspec(endpoint_cls.__init__)
             args = [None] * (len(argspec[0]) - 1)
             result = endpoint_cls(*args)
@@ -531,7 +520,7 @@ class RemoteSession(object):
             return Proxy(result)
         except:
             traceback.print_exc(file=sys.stdout)
-    
+
     def new_handler(self, acl, handler_cls, *args, **kwargs):
         '''
         Instantiates a new handler object, which is called remotely
@@ -539,7 +528,7 @@ class RemoteSession(object):
         implementing the remote method in the local endpoint class. The
         returned reference can be called locally and will behave as a
         regular instance.
-        
+
         Arguments:
             acl -- Access control list (see ACL class)
             handler_clss -- The local (duck) type.
@@ -556,11 +545,11 @@ class RemoteSession(object):
             Endpoint.__init__(result, self, self._client.boundjid.full)
         method_dict = result.get_methods()
         for method_name, method in method_dict.iteritems():
-            #!!! self._client.plugin['xep_0009'].register_call(result.FQN(), method, method_name)        
+            #!!! self._client.plugin['xep_0009'].register_call(result.FQN(), method, method_name)
             self._register_call(result.FQN(), method, method_name)
         self._register_acl(result.FQN(), acl)
         return result
-                         
+
 #    def is_available(self, targetCls, pto):
 #        return self._client.is_available(pto)
 
@@ -571,19 +560,19 @@ class RemoteSession(object):
             future = Future()
             self._register_callback(pid, future)
             iq.send()
-            return future.get_value(30)            
+            return future.get_value(30)
         else:
             print "[RemoteSession] _call_remote %s" % callback
             self._register_callback(pid, callback)
             iq.send()
-        
+
     def close(self):
         '''
         Closes this session.
         '''
         self._client.disconnect(False)
         self._session_close_callback()
-                      
+
     def _on_jabber_rpc_method_call(self, iq):
         iq.enable('rpc_query')
         params = iq['rpc_query']['method_call']['params']
@@ -609,15 +598,15 @@ class RemoteSession(object):
         except AuthorizationException as ae:
             log.error(ae.get_message())
             error = self._client.plugin['xep_0009']._forbidden(iq)
-            error.send()                                            
-        except Exception as e:            
+            error.send()
+        except Exception as e:
             if isinstance(e, KeyError):
                 log.error("No handler available for %s!" % pmethod)
                 error = self._client.plugin['xep_0009']._item_not_found(iq)
             else:
                 traceback.print_exc(file=sys.stderr)
                 log.error("An unexpected problem occurred invoking method %s!" % pmethod)
-                error = self._client.plugin['xep_0009']._undefined_condition(iq) 
+                error = self._client.plugin['xep_0009']._undefined_condition(iq)
             #! print "[REMOTE.PY] _handle_remote_procedure_call AN ERROR SHOULD BE SENT NOW %s " % e
             error.send()
 
@@ -632,7 +621,7 @@ class RemoteSession(object):
             callback.set_value(args[0])
         else:
             callback.set_value(None)
-        pass        
+        pass
 
     def _on_jabber_rpc_method_response2(self, iq):
         iq.enable('rpc_query')
@@ -648,39 +637,38 @@ class RemoteSession(object):
                 callback.set_value(args[0])
             else:
                 callback.set_value(None)
-            pass    
+            pass
 
     def _on_jabber_rpc_method_fault(self, iq):
         iq.enable('rpc_query')
         fault = xml2fault(iq['rpc_query']['method_response']['fault'])
-        pid = iq['id']      
+        pid = iq['id']
         with self._lock:
             callback = self._callbacks[pid]
             del self._callbacks[pid]
         e = {
-             500: InvocationException 
+             500: InvocationException
         }[fault['code']](fault['string'])
-        callback.cancel_with_error(e)    
+        callback.cancel_with_error(e)
 
     def _on_jabber_rpc_error(self, iq):
         pid = iq['id']
         pmethod = self._client.plugin['xep_0009']._extract_method(iq['rpc_query'])
-        code = iq['error']['code']        
+        code = iq['error']['code']
         type = iq['error']['type']
         condition = iq['error']['condition']
         #! print("['REMOTE.PY']._BINDING_handle_remote_procedure_error -> ERROR! ERROR! ERROR! Condition is '%s'" % condition)
         with self._lock:
             callback = self._callbacks[pid]
             del self._callbacks[pid]
-        e = { 
+        e = {
             'item-not-found': RemoteException("No remote handler available for %s at %s!" % (pmethod, iq['from'])),
             'forbidden': AuthorizationException("Forbidden to invoke remote handler for %s at %s!" % (pmethod, iq['from'])),
-            'undefined-condition': RemoteException("An unexpected problem occured trying to invoke %s at %s!" % (pmethod, iq['from'])),            
+            'undefined-condition': RemoteException("An unexpected problem occured trying to invoke %s at %s!" % (pmethod, iq['from'])),
         }[condition]
         if e is None:
             RemoteException("An unexpected exception occurred at %s!" % iq['from'])
         callback.cancel_with_error(e)
-
 
 
 class Remote(object):
@@ -691,18 +679,18 @@ class Remote(object):
     _instance = None
     _sessions = dict()
     _lock = threading.RLock()
-    
+
     @classmethod
     def new_session_with_client(cls, client, callback=None):
         '''
         Opens a new session with a given client.
-        
+
         Arguments:
             client -- An XMPP client.
             callback -- An optional callback which can be used to track
                 the starting state of the session.
         '''
-        with Remote._lock:       
+        with Remote._lock:
             if(client.boundjid.bare in cls._sessions):
                 raise RemoteException("There already is a session associated with these credentials!")
             else:
@@ -710,21 +698,21 @@ class Remote(object):
         def _session_close_callback():
             with Remote._lock:
                 del cls._sessions[client.boundjid.bare]
-        result = RemoteSession(client, _session_close_callback)        
+        result = RemoteSession(client, _session_close_callback)
         client.plugin['xep_0009'].xmpp.add_event_handler('jabber_rpc_method_call', result._on_jabber_rpc_method_call)
         client.plugin['xep_0009'].xmpp.add_event_handler('jabber_rpc_method_response', result._on_jabber_rpc_method_response)
-        client.plugin['xep_0009'].xmpp.add_event_handler('jabber_rpc_method_fault', result._on_jabber_rpc_method_fault)        
+        client.plugin['xep_0009'].xmpp.add_event_handler('jabber_rpc_method_fault', result._on_jabber_rpc_method_fault)
         client.plugin['xep_0009'].xmpp.add_event_handler('jabber_rpc_error', result._on_jabber_rpc_error)
         if callback is None:
-            start_event_handler = result._notify        
+            start_event_handler = result._notify
         else:
-            start_event_handler = callback        
-        client.add_event_handler("session_start", start_event_handler)        
+            start_event_handler = callback
+        client.add_event_handler("session_start", start_event_handler)
         if client.connect():
             client.process(threaded=True)
         else:
             raise RemoteException("Could not connect to XMPP server!")
-        pass    
+        pass
         if callback is None:
             result._wait()
         return result
@@ -733,20 +721,19 @@ class Remote(object):
     def new_session(cls, jid, password, callback=None):
         '''
         Opens a new session and instantiates a new XMPP client.
-        
+
         Arguments:
             jid -- The XMPP JID for logging in.
             password -- The password for logging in.
             callback -- An optional callback which can be used to track
-                the starting state of the session.            
-        '''        
+                the starting state of the session.
+        '''
         client = sleekxmpp.ClientXMPP(jid, password)
-        #? Register plug-ins.        
+        #? Register plug-ins.
         client.registerPlugin('xep_0004') # Data Forms
         client.registerPlugin('xep_0009') # Jabber-RPC
         client.registerPlugin('xep_0030') # Service Discovery
         client.registerPlugin('xep_0060') # PubSub
-        client.registerPlugin('xep_0199') # XMPP Ping      
-        return cls.new_session_with_client(client, callback) 
+        client.registerPlugin('xep_0199') # XMPP Ping
+        return cls.new_session_with_client(client, callback)
 
-    

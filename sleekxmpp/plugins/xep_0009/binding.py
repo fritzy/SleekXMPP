@@ -11,11 +11,9 @@ import base64
 import logging
 import time
 
-
-
 log = logging.getLogger(__name__)
 
-_namespace = 'jabber:iq:rpc'  
+_namespace = 'jabber:iq:rpc'
 
 def fault2xml(fault):
     value = dict()
@@ -25,7 +23,7 @@ def fault2xml(fault):
     fault.append(_py2xml((value)))
     return fault
 
-def xml2fault(params):  
+def xml2fault(params):
     vals = []
     for value in params.findall('{%s}value' % _namespace):
         vals.append(_xml2py(value))
@@ -101,7 +99,7 @@ def xml2py(params):
 def _xml2py(value):
     namespace = 'jabber:iq:rpc'
     if value.find('{%s}nil' % namespace) is not None:
-        return None    
+        return None
     if value.find('{%s}i4' % namespace) is not None:
         return int(value.find('{%s}i4' % namespace).text)
     if value.find('{%s}int' % namespace) is not None:
@@ -131,7 +129,7 @@ def _xml2py(value):
 
 
 class rpcbase64(object):
-    
+
     def __init__(self, data):
         #base 64 encoded string
         self.data = data
@@ -148,7 +146,7 @@ class rpcbase64(object):
 
 
 class rpctime(object):
-    
+
     def __init__(self,data=None):
         #assume string data is in iso format YYYYMMDDTHH:MM:SS
         if type(data) is str:

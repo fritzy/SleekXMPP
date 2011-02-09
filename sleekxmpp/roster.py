@@ -50,6 +50,10 @@ class Roster(object):
         self.auto_subscribe = True
         self._rosters = {}
 
+        if self.db:
+            for node in self.db.entries(None, {}):
+                self.add(node)
+
     def __getitem__(self, key):
         """
         Return the roster node for a JID.
@@ -60,6 +64,8 @@ class Roster(object):
         Arguments:
             key -- Return the roster for this JID.
         """
+        if not isinstance(key, str):
+            key = key.bare
         if key not in self._rosters:
             self.add(key)
             self._rosters[key].auto_authorize = self.auto_authorize
@@ -81,6 +87,8 @@ class Roster(object):
         Arguments:
             node -- The JID for the new roster node.
         """
+        if not isinstance(node, str):
+            node = node.bare
         if node not in self._rosters:
             self._rosters[node] = RosterNode(self.xmpp, node, self.db)
 
@@ -92,6 +100,8 @@ class Roster(object):
             db -- The new datastore interface.
         """
         self.db = db
+        for node in self.db.entries(None, {}):
+            self.add(node)
         for node in self._rosters:
             self._rosters[node].set_backend(db)
 
@@ -141,12 +151,18 @@ class RosterNode(object):
         self.auto_subscribe = True
         self._jids = {}
 
+        if self.db:
+            for jid in self.db.entries(self.jid):
+                self.add(jid)
+
     def __getitem__(self, key):
         """
         Return the roster item for a subscribed JID.
 
         A new item entry will be created if one does not already exist.
         """
+        if not isinstance(key, str):
+            key = key.bare
         if key not in self._jids:
             self.add(key, save=True)
         return self._jids[key]
@@ -167,6 +183,8 @@ class RosterNode(object):
             db -- The new datastore interface.
         """
         self.db = db
+        for jid in self.db.entries(self.jid):
+            self.add(jid)
         for jid in self._jids:
             self._jids[jid].set_backend(db)
 
@@ -198,7 +216,8 @@ class RosterNode(object):
                            if one is used.
                            Defaults to False.
         """
-
+        if not isinstance(jid, str):
+            key = jid.bare
         state = {'name': name,
                  'groups': groups or [],
                  'from': afrom,
@@ -219,7 +238,7 @@ class RosterNode(object):
         Arguments:
             jid -- The JID to subscribe to.
         """
-        self._jids[jid].subscribe()
+        self[jid].subscribe()
 
     def unsubscribe(self, jid):
         """
@@ -228,7 +247,7 @@ class RosterNode(object):
         Arguments:
             jid -- The JID to unsubscribe from.
         """
-        self._jids[jid].unsubscribe()
+        self[jid].unsubscribe()
 
     def remove(self, jid):
         """
@@ -237,7 +256,7 @@ class RosterNode(object):
         Arguments:
             jid -- The JID to remove.
         """
-        self._jids[jid].remove()
+        self[jid].remove()
         if not self.xmpp.is_component:
             self.update(jid, subscription='remove')
 
@@ -252,9 +271,9 @@ class RosterNode(object):
                             'from', 'both', 'none', or 'remove'.
             groups       -- A list of group names.
         """
-        self._jids[jid]['name'] = name
-        self._jids[jid]['groups'] = group
-        self._jids[jid].save()
+        self[jid]['name'] = name
+        self[jid]['groups'] = group
+        self[jid].save()
 
         if not self.xmpp.is_component:
             iq = self.Iq()
@@ -278,13 +297,13 @@ class RosterNode(object):
                         only the status of a single connection.
         """
         if resource is None:
-            return self._jids[jid].resources
+            return self[jid].resources
 
         default_presence = {'status': '',
                             'priority': 0,
                             'show': ''}
-        return self._jids[jid].resources.get(resource,
-                                             default_presence)
+        return self[jid].resources.get(resource,
+                                       default_presence)
 
 
 class RosterItem(object):

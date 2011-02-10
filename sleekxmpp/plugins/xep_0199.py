@@ -42,7 +42,7 @@ class xep_0199(base.base_plugin):
         iq.attrib['to'] = xml.get('from', self.xmpp.boundjid.domain)
         self.xmpp.send(iq)
 
-    def sendPing(self, jid, timeout = 30):
+    def sendPing(self, jid, timeout = 30, errorfalse=False):
         """ sendPing(jid, timeout)
         Sends a ping to the specified jid, returning the time (in seconds)
         to receive a reply, or None if no reply is received in timeout seconds.
@@ -57,7 +57,7 @@ class xep_0199(base.base_plugin):
         #pingresult = self.xmpp.send(iq, self.xmpp.makeIq(id), timeout)
         pingresult = iq.send()
         endTime = time.clock()
-        if pingresult == False:
+        if pingresult == False or (errorfalse and pingresult['type'] == 'error'):
             #self.xmpp.disconnect(reconnect=True)
             return False
         return endTime - startTime

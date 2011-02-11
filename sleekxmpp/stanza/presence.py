@@ -173,14 +173,18 @@ class Presence(RootStanza):
             # The priority is not a number: we consider it 0 as a default
             return 0
 
-    def reply(self):
+    def reply(self, clear=True):
         """
         Set the appropriate presence reply type.
 
         Overrides StanzaBase.reply.
+
+        Arguments:
+            clear -- Indicates if the stanza contents should be removed
+                     before replying. Defaults to True.
         """
         if self['type'] == 'unsubscribe':
             self['type'] = 'unsubscribed'
         elif self['type'] == 'subscribe':
             self['type'] = 'subscribed'
-        return StanzaBase.reply(self)
+        return StanzaBase.reply(self, clear)

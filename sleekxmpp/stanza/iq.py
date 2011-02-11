@@ -144,7 +144,7 @@ class Iq(RootStanza):
                 self.xml.remove(child)
         return self
 
-    def reply(self):
+    def reply(self, clear=True):
         """
         Send a reply <iq> stanza.
 
@@ -152,9 +152,13 @@ class Iq(RootStanza):
 
         Sets the 'type' to 'result' in addition to the default
         StanzaBase.reply behavior.
+
+        Arguments:
+            clear -- Indicates if existing content should be
+                     removed before replying. Defaults to True.
         """
         self['type'] = 'result'
-        StanzaBase.reply(self)
+        StanzaBase.reply(self, clear)
         return self
 
     def send(self, block=True, timeout=None, callback=None):

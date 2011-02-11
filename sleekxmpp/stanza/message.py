@@ -104,7 +104,7 @@ class Message(RootStanza):
         self['type'] = 'normal'
         return self
 
-    def reply(self, body=None):
+    def reply(self, body=None, clear=True):
         """
         Create a message reply.
 
@@ -114,7 +114,9 @@ class Message(RootStanza):
         adds a message body if one is given.
 
         Arguments:
-            body -- Optional text content for the message.
+            body  -- Optional text content for the message.
+            clear -- Indicates if existing content should be removed
+                     before replying. Defaults to True.
         """
         StanzaBase.reply(self)
         if self['type'] == 'groupchat':

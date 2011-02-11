@@ -1,5 +1,7 @@
 import sys
 import sleekxmpp
+from sleekxmpp.xmlstream.matcher import MatchXPath
+from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.exceptions import XMPPError
 from sleekxmpp.test import *
 
@@ -44,6 +46,41 @@ class TestStreamExceptions(SleekTest):
               <foo xmlns="foo:error" test="true" />
             </error>
           </message>
+        """, use_values=False)
+
+    def testIqErrorException(self):
+        """Test using error exceptions with Iq stanzas."""
+
+        def handle_iq(iq):
+            raise XMPPError(condition='feature-not-implemented',
+                            text="We don't do things that way here.",
+                            etype='cancel',
+                            clear=False)
+
+        self.stream_start()
+        self.xmpp.register_handler(
+                Callback(
+                    'Test Iq',
+                     MatchXPath('{%s}iq/{test}query' % self.xmpp.default_ns),
+                     handle_iq))
+
+        self.recv("""
+          <iq type="get" id="0">
+            <query xmlns="test" />
+          </iq>
+        """)
+
+        self.send("""
+          <iq type="error" id="0">
+            <query xmlns="test" />
+            <error type="cancel">
+              <feature-not-implemented
+                  xmlns="urn:ietf:params:xml:ns:xmpp-stanzas" />
+              <text xmlns="urn:ietf:params:xml:ns:xmpp-stanzas">
+                We don&apos;t do things that way here.
+              </text>
+            </error>
+          </iq>
         """, use_values=False)
 
     def testThreadedXMPPErrorException(self):

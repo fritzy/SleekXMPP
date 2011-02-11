@@ -1161,12 +1161,17 @@ class StanzaBase(ElementBase):
         self.clear()
         return self
 
-    def reply(self):
+    def reply(self, clear=True):
         """
-        Reset the stanza and swap its 'from' and 'to' attributes to prepare
-        for sending a reply stanza.
+        Swap the 'from' and 'to' attributes to prepare the stanza for
+        sending a reply. If clear=True, then also remove the stanza's
+        contents to make room for the reply content.
 
         For client streams, the 'from' attribute is removed.
+
+        Arguments:
+            clear -- Indicates if the stanza's contents should be
+                     removed. Defaults to True
         """
         # if it's a component, use from
         if self.stream and hasattr(self.stream, "is_component") and \
@@ -1175,7 +1180,8 @@ class StanzaBase(ElementBase):
         else:
             self['to'] = self['from']
             del self['from']
-        self.clear()
+        if clear:
+            self.clear()
         return self
 
     def error(self):

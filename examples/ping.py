@@ -28,15 +28,15 @@ if sys.version_info < (3, 0):
 class PingTest(sleekxmpp.ClientXMPP):
 
     """
-    A simple SleekXMPP bot that will echo messages it
-    receives, along with a short thank you message.
+    A simple SleekXMPP bot that will send a ping request
+    to a given JID.
     """
 
     def __init__(self, jid, password, pingjid):
         sleekxmpp.ClientXMPP.__init__(self, jid, password)
         if pingjid is None:
             pingjid = self.jid
-        self.pingjid = pingjid 
+        self.pingjid = pingjid
 
         # The session_start event will be triggered when
         # the bot establishes its connection with the server
@@ -59,14 +59,16 @@ class PingTest(sleekxmpp.ClientXMPP):
                      data.
         """
         self.sendPresence()
-        result = self.plugin['xep_0199'].sendPing(self.pingjid, timeout=10, errorfalse=True)
+        result = self['xep_0199'].send_ping(self.pingjid,
+                                            timeout=10,
+                                            errorfalse=True)
         logging.info("Pinging...")
         if result is False:
             logging.info("Couldn't ping.")
             self.disconnect()
             sys.exit(1)
         else:
-            logging.info("Success!")
+            logging.info("Success! RTT: %s" % str(result))
             self.disconnect()
 
 
@@ -85,7 +87,8 @@ if __name__ == '__main__':
                     action='store_const', dest='loglevel',
                     const=5, default=logging.INFO)
     optp.add_option('-t', '--pingto', help='set jid to ping',
-                    action='store', type='string', dest='pingjid', default=None)
+                    action='store', type='string', dest='pingjid',
+                    default=None)
 
     # JID and password options.
     optp.add_option("-j", "--jid", dest="jid",
@@ -107,10 +110,10 @@ if __name__ == '__main__':
     # have interdependencies, the order in which you register them does
     # not matter.
     xmpp = PingTest(opts.jid, opts.password, opts.pingjid)
-    xmpp.registerPlugin('xep_0030') # Service Discovery
-    xmpp.registerPlugin('xep_0004') # Data Forms
-    xmpp.registerPlugin('xep_0060') # PubSub
-    xmpp.registerPlugin('xep_0199') # XMPP Ping
+    xmpp.register_plugin('xep_0030')  # Service Discovery
+    xmpp.register_plugin('xep_0004')  # Data Forms
+    xmpp.register_plugin('xep_0060')  # PubSub
+    xmpp.register_plugin('xep_0199')  # XMPP Ping
 
     # If you are working with an OpenFire server, you may need
     # to adjust the SSL version used:

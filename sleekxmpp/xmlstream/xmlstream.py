@@ -845,7 +845,7 @@ class XMLStream(object):
                 self.event_queue.put(('stanza', handler, stanza_copy))
                 try:
                     if handler.check_delete():
-                        self.__handlers.pop(self.__handlers.index(handler))
+                        self.__handlers.remove(handler)
                 except:
                     pass  # not thread safe
                 unhandled = False

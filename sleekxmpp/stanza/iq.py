@@ -189,13 +189,14 @@ class Iq(RootStanza):
         if timeout is None:
             timeout = self.stream.response_timeout
         if callback is not None and self['type'] in ('get', 'set'):
-            handler = Callback('IqCallback_%s' % self['id'],
+            handler_name = 'IqCallback_%s' % self['id']
+            handler = Callback(handler_name,
                                MatcherId(self['id']),
                                callback,
                                once=True)
             self.stream.register_handler(handler)
             StanzaBase.send(self)
-            return handler
+            return handler_name
         elif block and self['type'] in ('get', 'set'):
             waitfor = Waiter('IqWait_%s' % self['id'], MatcherId(self['id']))
             self.stream.register_handler(waitfor)

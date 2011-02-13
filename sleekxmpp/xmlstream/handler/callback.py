@@ -62,6 +62,8 @@ class Callback(BaseHandler):
             payload -- The matched stanza object.
         """
         BaseHandler.prerun(self, payload)
+        if self._once:
+            self._destroy = True
         if self._instream:
             self.run(payload, True)
 

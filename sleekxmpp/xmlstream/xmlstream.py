@@ -813,13 +813,7 @@ class XMLStream(object):
 
         # Convert the raw XML object into a stanza object. If no registered
         # stanza type applies, a generic StanzaBase stanza will be used.
-        stanza_type = StanzaBase
-        for stanza_class in self.__root_stanza:
-            if xml.tag == "{%s}%s" % (self.default_ns, stanza_class.name) or \
-               xml.tag == stanza_class.tag_name():
-                stanza_type = stanza_class
-                break
-        stanza = stanza_type(self, xml)
+        stanza = self._build_stanza(xml)
 
         # Match the stanza against registered handlers. Handlers marked
         # to run "in stream" will be executed immediately; the rest will
@@ -827,7 +821,7 @@ class XMLStream(object):
         unhandled = True
         for handler in self.__handlers:
             if handler.match(stanza):
-                stanza_copy = stanza_type(self, copy.deepcopy(xml))
+                stanza_copy = copy.copy(stanza)
                 handler.prerun(stanza_copy)
                 self.event_queue.put(('stanza', handler, stanza_copy))
                 try:

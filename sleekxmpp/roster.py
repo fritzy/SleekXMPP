@@ -105,6 +105,14 @@ class Roster(object):
         for node in self._rosters:
             self._rosters[node].set_backend(db)
 
+    def reset(self):
+        """
+        Reset the state of the roster to forget any current
+        presence information. Useful after a disconnection occurs.
+        """
+        for node in self:
+            self[node].reset()
+
 
 class RosterNode(object):
 
@@ -304,6 +312,15 @@ class RosterNode(object):
                             'show': ''}
         return self[jid].resources.get(resource,
                                        default_presence)
+
+    def reset(self):
+        """
+        Reset the state of the roster to forget any current
+        presence information. Useful after a disconnection occurs.
+        """
+        for jid in self:
+            self[jid].reset()
+
 
 
 class RosterItem(object):
@@ -725,3 +742,10 @@ class RosterItem(object):
             self.subscribe()
         if not self['to']:
             self._unsubscribed()
+
+    def reset(self):
+        """
+        Forgot current resource presence information as part of
+        a roster reset request.
+        """
+        self.resources = {}

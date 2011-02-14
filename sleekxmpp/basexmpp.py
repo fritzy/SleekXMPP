@@ -595,7 +595,7 @@ class BaseXMPP(XMLStream):
 
     def _handle_disconnected(self, event):
         """When disconnected, reset the roster"""
-        self.roster = {}
+        self.roster.reset()
 
     def _handle_stream_error(self, error):
         self.event('stream_error', error)

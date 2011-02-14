@@ -45,10 +45,13 @@ packages     = [ 'sleekxmpp',
                  'sleekxmpp/xmlstream/handler',
                  'sleekxmpp/thirdparty',
                  'sleekxmpp/plugins',
+                 'sleekxmpp/plugins/xep_0009',
+                 'sleekxmpp/plugins/xep_0009/stanza',
                  'sleekxmpp/plugins/xep_0030',
                  'sleekxmpp/plugins/xep_0030/stanza',
                  'sleekxmpp/plugins/xep_0059',
                  'sleekxmpp/plugins/xep_0092',
+                 'sleekxmpp/plugins/xep_0199',
                  ]
 
 if sys.version_info < (3, 0):

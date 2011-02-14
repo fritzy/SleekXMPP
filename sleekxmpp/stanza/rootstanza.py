@@ -43,8 +43,8 @@ class RootStanza(StanzaBase):
         Arguments:
             e -- Exception object
         """
-        self.reply()
         if isinstance(e, XMPPError):
+            self.reply(clear=e.clear)
             # We raised this deliberately
             self['error']['condition'] = e.condition
             self['error']['text'] = e.text
@@ -56,6 +56,7 @@ class RootStanza(StanzaBase):
                 self['error']['type'] = e.etype
             self.send()
         else:
+            self.reply()
             # We probably didn't raise this on purpose, so send an error stanza
             self['error']['condition'] = 'undefined-condition'
             self['error']['text'] = "SleekXMPP got into trouble."

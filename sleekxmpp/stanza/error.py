@@ -77,15 +77,6 @@ class Error(ElementBase):
         Arguments:
             xml -- Use an existing XML object for the stanza's values.
         """
-        # To comply with PEP8, method names now use underscores.
-        # Deprecated method names are re-mapped for backwards compatibility.
-        self.getCondition = self.get_condition
-        self.setCondition = self.set_condition
-        self.delCondition = self.del_condition
-        self.getText = self.get_text
-        self.setText = self.set_text
-        self.delText = self.del_text
-
         if ElementBase.setup(self, xml):
             #If we had to generate XML then set default values.
             self['type'] = 'cancel'
@@ -139,3 +130,13 @@ class Error(ElementBase):
         """Remove the <text> element."""
         self._del_sub('{%s}text' % self.condition_ns)
         return self
+
+
+# To comply with PEP8, method names now use underscores.
+# Deprecated method names are re-mapped for backwards compatibility.
+Error.getCondition = Error.get_condition
+Error.setCondition = Error.set_condition
+Error.delCondition = Error.del_condition
+Error.getText = Error.get_text
+Error.setText = Error.set_text
+Error.delText = Error.del_text

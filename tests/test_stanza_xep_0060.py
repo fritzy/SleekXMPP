@@ -181,7 +181,7 @@ class TestPubsubStanzas(SleekTest):
           <pubsub xmlns="http://jabber.org/protocol/pubsub">
             <subscribe node="cheese" jid="fritzy@netflint.net/sleekxmpp">
               <options node="cheese" jid="fritzy@netflint.net/sleekxmpp">
-                <x xmlns="jabber:x:data" type="form">
+                <x xmlns="jabber:x:data" type="submit">
                   <field var="pubsub#title" type="text-single">
                     <value>this thing is awesome</value>
                   </field>

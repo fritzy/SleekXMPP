@@ -91,20 +91,6 @@ class BaseXMPP(XMLStream):
 
         # To comply with PEP8, method names now use underscores.
         # Deprecated method names are re-mapped for backwards compatibility.
-        self.registerPlugin = self.register_plugin
-        self.makeIq = self.make_iq
-        self.makeIqGet = self.make_iq_get
-        self.makeIqResult = self.make_iq_result
-        self.makeIqSet = self.make_iq_set
-        self.makeIqError = self.make_iq_error
-        self.makeIqQuery = self.make_iq_query
-        self.makeQueryRoster = self.make_query_roster
-        self.makeMessage = self.make_message
-        self.makePresence = self.make_presence
-        self.sendMessage = self.send_message
-        self.sendPresence = self.send_presence
-        self.sendPresenceSubscription = self.send_presence_subscription
-
         self.default_ns = default_ns
         self.stream_ns = 'http://etherx.jabber.org/streams'
 
@@ -703,3 +689,19 @@ class BaseXMPP(XMLStream):
 
 # Restore the old, lowercased name for backwards compatibility.
 basexmpp = BaseXMPP
+
+# To comply with PEP8, method names now use underscores.
+# Deprecated method names are re-mapped for backwards compatibility.
+BaseXMPP.registerPlugin = BaseXMPP.register_plugin
+BaseXMPP.makeIq = BaseXMPP.make_iq
+BaseXMPP.makeIqGet = BaseXMPP.make_iq_get
+BaseXMPP.makeIqResult = BaseXMPP.make_iq_result
+BaseXMPP.makeIqSet = BaseXMPP.make_iq_set
+BaseXMPP.makeIqError = BaseXMPP.make_iq_error
+BaseXMPP.makeIqQuery = BaseXMPP.make_iq_query
+BaseXMPP.makeQueryRoster = BaseXMPP.make_query_roster
+BaseXMPP.makeMessage = BaseXMPP.make_message
+BaseXMPP.makePresence = BaseXMPP.make_presence
+BaseXMPP.sendMessage = BaseXMPP.send_message
+BaseXMPP.sendPresence = BaseXMPP.send_presence
+BaseXMPP.sendPresenceSubscription = BaseXMPP.send_presence_subscription

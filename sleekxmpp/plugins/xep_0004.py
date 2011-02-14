@@ -57,6 +57,7 @@ class Form(ElementBase):
 		return field
 
 	def getXML(self, type='submit'):
+		self['type'] = type
 		log.warning("Form.getXML() is deprecated API compatibility with plugins/old_0004.py")
 		return self.xml
 

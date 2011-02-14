@@ -75,13 +75,6 @@ class Iq(RootStanza):
         Overrides StanzaBase.__init__.
         """
         StanzaBase.__init__(self, *args, **kwargs)
-        # To comply with PEP8, method names now use underscores.
-        # Deprecated method names are re-mapped for backwards compatibility.
-        self.setPayload = self.set_payload
-        self.getQuery = self.get_query
-        self.setQuery = self.set_query
-        self.delQuery = self.del_query
-
         if self['id'] == '':
             if self.stream is not None:
                 self['id'] = self.stream.getNewId()
@@ -144,7 +137,7 @@ class Iq(RootStanza):
                 self.xml.remove(child)
         return self
 
-    def reply(self):
+    def reply(self, clear=True):
         """
         Send a reply <iq> stanza.
 
@@ -152,9 +145,13 @@ class Iq(RootStanza):
 
         Sets the 'type' to 'result' in addition to the default
         StanzaBase.reply behavior.
+
+        Arguments:
+            clear -- Indicates if existing content should be
+                     removed before replying. Defaults to True.
         """
         self['type'] = 'result'
-        StanzaBase.reply(self)
+        StanzaBase.reply(self, clear)
         return self
 
     def send(self, block=True, timeout=None, callback=None):
@@ -185,13 +182,14 @@ class Iq(RootStanza):
         if timeout is None:
             timeout = self.stream.response_timeout
         if callback is not None and self['type'] in ('get', 'set'):
-            handler = Callback('IqCallback_%s' % self['id'],
+            handler_name = 'IqCallback_%s' % self['id']
+            handler = Callback(handler_name,
                                MatcherId(self['id']),
                                callback,
                                once=True)
             self.stream.register_handler(handler)
             StanzaBase.send(self)
-            return None
+            return handler_name
         elif block and self['type'] in ('get', 'set'):
             waitfor = Waiter('IqWait_%s' % self['id'], MatcherId(self['id']))
             self.stream.register_handler(waitfor)
@@ -224,3 +222,11 @@ class Iq(RootStanza):
         else:
             StanzaBase._set_stanza_values(self, values)
         return self
+
+
+# To comply with PEP8, method names now use underscores.
+# Deprecated method names are re-mapped for backwards compatibility.
+Iq.setPayload = Iq.set_payload
+Iq.getQuery = Iq.get_query
+Iq.setQuery = Iq.set_query
+Iq.delQuery = Iq.del_query

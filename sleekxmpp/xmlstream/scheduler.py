@@ -140,7 +140,8 @@ class Scheduler(object):
         """Process scheduled tasks."""
         self.run = True
         try:
-            while self.run and (self.parentstop is None or not self.parentstop.isSet()):
+            while self.run and (self.parentstop is None or \
+                                not self.parentstop.isSet()):
                     wait = 1
                     updated = False
                     if self.schedule:

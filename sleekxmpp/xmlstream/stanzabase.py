@@ -218,18 +218,6 @@ class ElementBase(object):
             xml    -- Initialize the stanza with optional existing XML.
             parent -- Optional stanza object that contains this stanza.
         """
-        # To comply with PEP8, method names now use underscores.
-        # Deprecated method names are re-mapped for backwards compatibility.
-        self.initPlugin = self.init_plugin
-        self._getAttr = self._get_attr
-        self._setAttr = self._set_attr
-        self._delAttr = self._del_attr
-        self._getSubText = self._get_sub_text
-        self._setSubText = self._set_sub_text
-        self._delSub = self._del_sub
-        self.getStanzaValues = self._get_stanza_values
-        self.setStanzaValues = self._set_stanza_values
-
         self.xml = xml
         self.plugins = OrderedDict()
         self.iterables = []
@@ -1076,17 +1064,6 @@ class StanzaBase(ElementBase):
             sfrom  -- Optional string or JID object of the sender's JID.
             sid    -- Optional ID value for the stanza.
         """
-        # To comply with PEP8, method names now use underscores.
-        # Deprecated method names are re-mapped for backwards compatibility.
-        self.setType = self.set_type
-        self.getTo = self.get_to
-        self.setTo = self.set_to
-        self.getFrom = self.get_from
-        self.setFrom = self.set_from
-        self.getPayload = self.get_payload
-        self.setPayload = self.set_payload
-        self.delPayload = self.del_payload
-
         self.stream = stream
         if stream is not None:
             self.namespace = stream.default_ns
@@ -1224,3 +1201,25 @@ class StanzaBase(ElementBase):
         return tostring(self.xml, xmlns='',
                         stanza_ns=self.namespace,
                         stream=self.stream)
+
+
+# To comply with PEP8, method names now use underscores.
+# Deprecated method names are re-mapped for backwards compatibility.
+ElementBase.initPlugin = ElementBase.init_plugin
+ElementBase._getAttr = ElementBase._get_attr
+ElementBase._setAttr = ElementBase._set_attr
+ElementBase._delAttr = ElementBase._del_attr
+ElementBase._getSubText = ElementBase._get_sub_text
+ElementBase._setSubText = ElementBase._set_sub_text
+ElementBase._delSub = ElementBase._del_sub
+ElementBase.getStanzaValues = ElementBase._get_stanza_values
+ElementBase.setStanzaValues = ElementBase._set_stanza_values
+
+StanzaBase.setType = StanzaBase.set_type
+StanzaBase.getTo = StanzaBase.get_to
+StanzaBase.setTo = StanzaBase.set_to
+StanzaBase.getFrom = StanzaBase.get_from
+StanzaBase.setFrom = StanzaBase.set_from
+StanzaBase.getPayload = StanzaBase.get_payload
+StanzaBase.setPayload = StanzaBase.set_payload
+StanzaBase.delPayload = StanzaBase.del_payload

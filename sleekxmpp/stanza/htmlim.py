@@ -46,23 +46,6 @@ class HTMLIM(ElementBase):
     interfaces = set(('body',))
     plugin_attrib = name
 
-    def setup(self, xml=None):
-        """
-        Populate the stanza object using an optional XML object.
-
-        Overrides StanzaBase.setup.
-
-        Arguments:
-            xml -- Use an existing XML object for the stanza's values.
-        """
-        # To comply with PEP8, method names now use underscores.
-        # Deprecated method names are re-mapped for backwards compatibility.
-        self.setBody = self.set_body
-        self.getBody = self.get_body
-        self.delBody = self.del_body
-
-        return ElementBase.setup(self, xml)
-
     def set_body(self, html):
         """
         Set the contents of the HTML body.
@@ -95,3 +78,9 @@ class HTMLIM(ElementBase):
 
 
 register_stanza_plugin(Message, HTMLIM)
+
+# To comply with PEP8, method names now use underscores.
+# Deprecated method names are re-mapped for backwards compatibility.
+HTMLIM.setBody = HTMLIM.set_body
+HTMLIM.getBody = HTMLIM.get_body
+HTMLIM.delBody = HTMLIM.del_body

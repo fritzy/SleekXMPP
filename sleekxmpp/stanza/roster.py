@@ -38,23 +38,6 @@ class Roster(ElementBase):
     plugin_attrib = 'roster'
     interfaces = set(('items',))
 
-    def setup(self, xml=None):
-        """
-        Populate the stanza object using an optional XML object.
-
-        Overrides StanzaBase.setup.
-
-        Arguments:
-            xml -- Use an existing XML object for the stanza's values.
-        """
-        # To comply with PEP8, method names now use underscores.
-        # Deprecated method names are re-mapped for backwards compatibility.
-        self.setItems = self.set_items
-        self.getItems = self.get_items
-        self.delItems = self.del_items
-
-        return ElementBase.setup(self, xml)
-
     def set_items(self, items):
         """
         Set the roster entries in the <roster> stanza.
@@ -123,3 +106,9 @@ class Roster(ElementBase):
 
 
 register_stanza_plugin(Iq, Roster)
+
+# To comply with PEP8, method names now use underscores.
+# Deprecated method names are re-mapped for backwards compatibility.
+Roster.setItems = Roster.set_items
+Roster.getItems = Roster.get_items
+Roster.delItems = Roster.del_items

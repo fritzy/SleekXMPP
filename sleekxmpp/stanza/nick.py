@@ -49,23 +49,6 @@ class Nick(ElementBase):
     plugin_attrib = name
     interfaces = set(('nick',))
 
-    def setup(self, xml=None):
-        """
-        Populate the stanza object using an optional XML object.
-
-        Overrides StanzaBase.setup.
-
-        Arguments:
-            xml -- Use an existing XML object for the stanza's values.
-        """
-        # To comply with PEP8, method names now use underscores.
-        # Deprecated method names are re-mapped for backwards compatibility.
-        self.setNick = self.set_nick
-        self.getNick = self.get_nick
-        self.delNick = self.del_nick
-
-        return ElementBase.setup(self, xml)
-
     def set_nick(self, nick):
         """
         Add a <nick> element with the given nickname.
@@ -87,3 +70,9 @@ class Nick(ElementBase):
 
 register_stanza_plugin(Message, Nick)
 register_stanza_plugin(Presence, Nick)
+
+# To comply with PEP8, method names now use underscores.
+# Deprecated method names are re-mapped for backwards compatibility.
+Nick.setNick = Nick.set_nick
+Nick.getNick = Nick.get_nick
+Nick.delNick = Nick.del_nick

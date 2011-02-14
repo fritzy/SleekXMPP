@@ -63,27 +63,6 @@ class Message(RootStanza):
     plugin_attrib = name
     types = set((None, 'normal', 'chat', 'headline', 'error', 'groupchat'))
 
-    def setup(self, xml=None):
-        """
-        Populate the stanza object using an optional XML object.
-
-        Overrides StanzaBase.setup.
-
-        Arguments:
-            xml -- Use an existing XML object for the stanza's values.
-        """
-        # To comply with PEP8, method names now use underscores.
-        # Deprecated method names are re-mapped for backwards compatibility.
-        self.getType = self.get_type
-        self.getMucroom = self.get_mucroom
-        self.setMucroom = self.set_mucroom
-        self.delMucroom = self.del_mucroom
-        self.getMucnick = self.get_mucnick
-        self.setMucnick = self.set_mucnick
-        self.delMucnick = self.del_mucnick
-
-        return StanzaBase.setup(self, xml)
-
     def get_type(self):
         """
         Return the message type.
@@ -165,3 +144,14 @@ class Message(RootStanza):
     def del_mucnick(self):
         """Dummy method to prevent deletion."""
         pass
+
+
+# To comply with PEP8, method names now use underscores.
+# Deprecated method names are re-mapped for backwards compatibility.
+Message.getType = Message.get_type
+Message.getMucroom = Message.get_mucroom
+Message.setMucroom = Message.set_mucroom
+Message.delMucroom = Message.del_mucroom
+Message.getMucnick = Message.get_mucnick
+Message.setMucnick = Message.set_mucnick
+Message.delMucnick = Message.del_mucnick

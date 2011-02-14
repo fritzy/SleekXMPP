@@ -68,13 +68,6 @@ class ClientXMPP(BaseXMPP):
         """
         BaseXMPP.__init__(self, 'jabber:client')
 
-        # To comply with PEP8, method names now use underscores.
-        # Deprecated method names are re-mapped for backwards compatibility.
-        self.updateRoster = self.update_roster
-        self.delRosterItem = self.del_roster_item
-        self.getRoster = self.get_roster
-        self.registerFeature = self.register_feature
-
         self.set_jid(jid)
         self.password = password
         self.escape_quotes = escape_quotes
@@ -439,3 +432,11 @@ class ClientXMPP(BaseXMPP):
             iq.reply()
             iq.enable('roster')
             iq.send()
+
+
+# To comply with PEP8, method names now use underscores.
+# Deprecated method names are re-mapped for backwards compatibility.
+ClientXMPP.updateRoster = ClientXMPP.update_roster
+ClientXMPP.delRosterItem = ClientXMPP.del_roster_item
+ClientXMPP.getRoster = ClientXMPP.get_roster
+ClientXMPP.registerFeature = ClientXMPP.register_feature

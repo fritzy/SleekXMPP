@@ -54,9 +54,6 @@ class xep_0199(base_plugin):
         self.xep = '0199'
         self.stanza = stanza
 
-        # Backwards compatibility for names
-        self.sendPing = self.send_ping
-
         self.keepalive = self.config.get('keepalive', True)
         self.frequency = float(self.config.get('frequency', 300))
         self.timeout = self.config.get('timeout', 30)
@@ -160,3 +157,7 @@ class xep_0199(base_plugin):
 
         log.debug("Pong: %s %f" % (jid, delay))
         return delay
+
+
+# Backwards compatibility for names
+Ping.sendPing = Ping.send_ping

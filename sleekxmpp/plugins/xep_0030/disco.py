@@ -90,10 +90,6 @@ class xep_0030(base_plugin):
         self.description = 'Service Discovery'
         self.stanza = sleekxmpp.plugins.xep_0030.stanza
 
-        # Retain some backwards compatibility
-        self.getInfo = self.get_info
-        self.getItems = self.get_items
-
         self.xmpp.register_handler(
                 Callback('Disco Info',
                          StanzaPath('iq/disco_info'),
@@ -124,7 +120,8 @@ class xep_0030(base_plugin):
         """Handle cross-plugin dependencies."""
         base_plugin.post_init(self)
         if self.xmpp['xep_0059']:
-            register_stanza_plugin(DiscoItems, self.xmpp['xep_0059'].stanza.Set)
+            register_stanza_plugin(DiscoItems,
+                                   self.xmpp['xep_0059'].stanza.Set)
 
     def set_node_handler(self, htype, jid=None, node=None, handler=None):
         """
@@ -378,7 +375,8 @@ class xep_0030(base_plugin):
         """
         self._run_node_handler('del_item', jid, node, kwargs)
 
-    def add_identity(self, category='', itype='', name='', node=None, jid=None, lang=None):
+    def add_identity(self, category='', itype='', name='',
+                     node=None, jid=None, lang=None):
         """
         Add a new identity to the given JID/node combination.
 
@@ -607,3 +605,7 @@ class xep_0030(base_plugin):
                 info.add_feature(info.namespace)
         return info
 
+
+# Retain some backwards compatibility
+xep_0030.getInfo = xep_0030.get_info
+xep_0030.getItems = xep_0030.get_items

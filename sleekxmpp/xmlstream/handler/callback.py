@@ -61,7 +61,6 @@ class Callback(BaseHandler):
         Arguments:
             payload -- The matched stanza object.
         """
-        BaseHandler.prerun(self, payload)
         if self._once:
             self._destroy = True
         if self._instream:
@@ -80,7 +79,6 @@ class Callback(BaseHandler):
                         Defaults to False.
         """
         if not self._instream or instream:
-            BaseHandler.run(self, payload)
             self._pointer(payload)
             if self._once:
                 self._destroy = True

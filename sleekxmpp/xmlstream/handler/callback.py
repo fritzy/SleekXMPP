@@ -84,3 +84,4 @@ class Callback(BaseHandler):
             self._pointer(payload)
             if self._once:
                 self._destroy = True
+                del self._pointer

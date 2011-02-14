@@ -117,7 +117,8 @@ class MatchXMLMask(MatcherBase):
                 return False
 
         # If the mask includes text, compare it.
-        if mask.text and source.text and source.text.strip() != mask.text.strip():
+        if mask.text and source.text and \
+           source.text.strip() != mask.text.strip():
             return False
 
         # Compare attributes. The stanza must include the attributes

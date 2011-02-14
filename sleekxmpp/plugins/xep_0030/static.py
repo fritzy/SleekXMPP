@@ -262,4 +262,3 @@ class StaticDisco(object):
             self.nodes[(jid, node)]['items'].del_item(
                     data.get('ijid', ''),
                     node=data.get('inode', None))
-

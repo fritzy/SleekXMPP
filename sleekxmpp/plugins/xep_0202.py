@@ -27,10 +27,12 @@ class EntityTime(ElementBase):
     interfaces = set(('tzo', 'utc'))
     sub_interfaces = set(('tzo', 'utc'))
 
-    #def get_utc(self): # TODO: return a datetime.tzinfo object?
+    #def get_tzo(self):
+        # TODO: Right now it returns a string but maybe it should
+        # return a datetime.tzinfo object or maybe a datetime.timedelta?
         #pass
 
-    def set_tzo(self, tzo): # TODO: support datetime.tzinfo objects?
+    def set_tzo(self, tzo):
         if isinstance(tzo, tzinfo):
             td = datetime.now(tzo).utcoffset() # What if we are faking the time? datetime.now() shouldn't be used here'
             seconds = td.seconds + td.days * 24 * 3600
@@ -45,7 +47,7 @@ class EntityTime(ElementBase):
         # Returns a datetime object instead the string. Is this a good idea?
         value = self._get_sub_text('utc')
         if '.' in value:
-            return datetime.strptime(value, '%Y-%m-%d.%fT%H:%M:%SZ')
+            return datetime.strptime(value, '%Y-%m-%dT%H:%M:%S.%fZ')
         else:
             return datetime.strptime(value, '%Y-%m-%dT%H:%M:%SZ')
 

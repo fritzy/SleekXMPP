@@ -72,26 +72,6 @@ class Presence(RootStanza):
                  'subscribed', 'unsubscribe', 'unsubscribed'))
     showtypes = set(('dnd', 'chat', 'xa', 'away'))
 
-    def setup(self, xml=None):
-        """
-        Populate the stanza object using an optional XML object.
-
-        Overrides ElementBase.setup.
-
-        Arguments:
-            xml -- Use an existing XML object for the stanza's values.
-        """
-        # To comply with PEP8, method names now use underscores.
-        # Deprecated method names are re-mapped for backwards compatibility.
-        self.setShow = self.set_show
-        self.getType = self.get_type
-        self.setType = self.set_type
-        self.delType = self.get_type
-        self.getPriority = self.get_priority
-        self.setPriority = self.set_priority
-
-        return StanzaBase.setup(self, xml)
-
     def exception(self, e):
         """
         Override exception passback for presence.
@@ -173,14 +153,28 @@ class Presence(RootStanza):
             # The priority is not a number: we consider it 0 as a default
             return 0
 
-    def reply(self):
+    def reply(self, clear=True):
         """
         Set the appropriate presence reply type.
 
         Overrides StanzaBase.reply.
+
+        Arguments:
+            clear -- Indicates if the stanza contents should be removed
+                     before replying. Defaults to True.
         """
         if self['type'] == 'unsubscribe':
             self['type'] = 'unsubscribed'
         elif self['type'] == 'subscribe':
             self['type'] = 'subscribed'
-        return StanzaBase.reply(self)
+        return StanzaBase.reply(self, clear)
+
+
+# To comply with PEP8, method names now use underscores.
+# Deprecated method names are re-mapped for backwards compatibility.
+Presence.setShow = Presence.set_show
+Presence.getType = Presence.get_type
+Presence.setType = Presence.set_type
+Presence.delType = Presence.get_type
+Presence.getPriority = Presence.get_priority
+Presence.setPriority = Presence.set_priority

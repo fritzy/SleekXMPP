@@ -21,7 +21,8 @@ class XMPPError(Exception):
     """
 
     def __init__(self, condition='undefined-condition', text=None, etype=None,
-                 extension=None, extension_ns=None, extension_args=None):
+                 extension=None, extension_ns=None, extension_args=None,
+                 clear=True):
         """
         Create a new XMPPError exception.
 
@@ -37,6 +38,9 @@ class XMPPError(Exception):
             extension_args -- Content and attributes for the extension
                               element. Same as the additional arguments to
                               the ET.Element constructor.
+            clear          -- Indicates if the stanza's contents should be
+                              removed before replying with an error.
+                              Defaults to True.
         """
         if extension_args is None:
             extension_args = {}
@@ -44,6 +48,7 @@ class XMPPError(Exception):
         self.condition = condition
         self.text = text
         self.etype = etype
+        self.clear = clear
         self.extension = extension
         self.extension_ns = extension_ns
         self.extension_args = extension_args

@@ -42,8 +42,6 @@ class BaseHandler(object):
                        this handler.
             stream  -- The XMLStream instance the handler should monitor.
         """
-        self.checkDelete = self.check_delete
-
         self.name = name
         self.stream = stream
         self._destroy = False
@@ -87,3 +85,8 @@ class BaseHandler(object):
         handlers.
         """
         return self._destroy
+
+
+# To comply with PEP8, method names now use underscores.
+# Deprecated method names are re-mapped for backwards compatibility.
+BaseHandler.checkDelete = BaseHandler.check_delete

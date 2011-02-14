@@ -149,19 +149,6 @@ class XMLStream(object):
             port   -- The port to use for the connection.
                       Defaults to 0.
         """
-        # To comply with PEP8, method names now use underscores.
-        # Deprecated method names are re-mapped for backwards compatibility.
-        self.startTLS = self.start_tls
-        self.registerStanza = self.register_stanza
-        self.removeStanza = self.remove_stanza
-        self.registerHandler = self.register_handler
-        self.removeHandler = self.remove_handler
-        self.setSocket = self.set_socket
-        self.sendRaw = self.send_raw
-        self.getId = self.get_id
-        self.getNewId = self.new_id
-        self.sendXML = self.send_xml
-
         self.ssl_support = SSL_SUPPORT
         self.ssl_version = ssl.PROTOCOL_TLSv1
         self.ca_certs = None
@@ -826,13 +813,7 @@ class XMLStream(object):
 
         # Convert the raw XML object into a stanza object. If no registered
         # stanza type applies, a generic StanzaBase stanza will be used.
-        stanza_type = StanzaBase
-        for stanza_class in self.__root_stanza:
-            if xml.tag == "{%s}%s" % (self.default_ns, stanza_class.name) or \
-               xml.tag == stanza_class.tag_name():
-                stanza_type = stanza_class
-                break
-        stanza = stanza_type(self, xml)
+        stanza = self._build_stanza(xml)
 
         # Match the stanza against registered handlers. Handlers marked
         # to run "in stream" will be executed immediately; the rest will
@@ -840,12 +821,12 @@ class XMLStream(object):
         unhandled = True
         for handler in self.__handlers:
             if handler.match(stanza):
-                stanza_copy = stanza_type(self, copy.deepcopy(xml))
+                stanza_copy = copy.copy(stanza)
                 handler.prerun(stanza_copy)
                 self.event_queue.put(('stanza', handler, stanza_copy))
                 try:
                     if handler.check_delete():
-                        self.__handlers.pop(self.__handlers.index(handler))
+                        self.__handlers.remove(handler)
                 except:
                     pass  # not thread safe
                 unhandled = False
@@ -970,9 +951,11 @@ class XMLStream(object):
         is not caught.
         """
         init_old = threading.Thread.__init__
+
         def init(self, *args, **kwargs):
             init_old(self, *args, **kwargs)
             run_old = self.run
+
             def run_with_except_hook(*args, **kw):
                 try:
                     run_old(*args, **kw)
@@ -982,3 +965,17 @@ class XMLStream(object):
                     sys.excepthook(*sys.exc_info())
             self.run = run_with_except_hook
         threading.Thread.__init__ = init
+
+
+# To comply with PEP8, method names now use underscores.
+# Deprecated method names are re-mapped for backwards compatibility.
+XMLStream.startTLS = XMLStream.start_tls
+XMLStream.registerStanza = XMLStream.register_stanza
+XMLStream.removeStanza = XMLStream.remove_stanza
+XMLStream.registerHandler = XMLStream.register_handler
+XMLStream.removeHandler = XMLStream.remove_handler
+XMLStream.setSocket = XMLStream.set_socket
+XMLStream.sendRaw = XMLStream.send_raw
+XMLStream.getId = XMLStream.get_id
+XMLStream.getNewId = XMLStream.new_id
+XMLStream.sendXML = XMLStream.send_xml

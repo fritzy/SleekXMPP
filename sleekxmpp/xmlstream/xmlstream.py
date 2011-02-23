@@ -10,6 +10,7 @@ from __future__ import with_statement, unicode_literals
 
 import copy
 import logging
+import signal
 import socket as Socket
 import ssl
 import sys
@@ -194,6 +195,53 @@ class XMLStream(object):
 
         self.auto_reconnect = True
         self.is_client = False
+
+    def use_signals(self, signals=None):
+        """
+        Register signal handlers for SIGHUP and SIGTERM, if possible,
+        which will raise a "killed" event when the application is
+        terminated.
+
+        If a signal handler already existed, it will be executed first,
+        before the "killed" event is raised.
+
+        Arguments:
+            signals -- A list of signal names to be monitored.
+                       Defaults to ['SIGHUP', 'SIGTERM'].
+        """
+        if signals is None:
+            signals = ['SIGHUP', 'SIGTERM']
+
+        existing_handlers = {}
+        for sig_name in signals:
+            if hasattr(signal, sig_name):
+                sig = getattr(signal, sig_name)
+                handler = signal.getsignal(sig)
+                if handler:
+                    existing_handlers[sig] = handler
+
+        def handle_kill(signum, frame):
+            """
+            Capture kill event and disconnect cleanly after first
+            spawning the "killed" event.
+            """
+
+            if signum in existing_handlers and \
+                   existing_handlers[signum] != handle_kill:
+                existing_handlers[signum](signum, frame)
+
+            self.event("killed", direct=True)
+            self.disconnect()
+
+        try:
+            for sig_name in signals:
+                if hasattr(signal, sig_name):
+                    sig = getattr(signal, sig_name)
+                    signal.signal(sig, handle_kill)
+            self.__signals_installed = True
+        except:
+            log.debug("Can not set interrupt signal handlers. " + \
+                      "SleekXMPP is not running from a main thread.")
 
     def new_id(self):
         """
@@ -731,6 +779,7 @@ class XMLStream(object):
             if not self.stop.isSet() and self.auto_reconnect:
                 self.reconnect()
             else:
+                self.event('killed', direct=True)
                 self.disconnect()
                 self.event_queue.put(('quit', None, None))
         self.scheduler.run = False
@@ -909,6 +958,7 @@ class XMLStream(object):
                     return False
         except KeyboardInterrupt:
             log.debug("Keyboard Escape Detected in _event_runner")
+            self.event('killed', direct=True)
             self.disconnect()
             return
         except SystemExit:
@@ -934,6 +984,7 @@ class XMLStream(object):
                     self.disconnect(self.auto_reconnect)
         except KeyboardInterrupt:
             log.debug("Keyboard Escape Detected in _send_thread")
+            self.event('killed', direct=True)
             self.disconnect()
             return
         except SystemExit:

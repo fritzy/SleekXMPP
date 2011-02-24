@@ -119,7 +119,7 @@ class xep_0030(base_plugin):
     def post_init(self):
         """Handle cross-plugin dependencies."""
         base_plugin.post_init(self)
-        if self.xmpp['xep_0059']:
+        if 'xep_0059' in self.xmpp.plugin:
             register_stanza_plugin(DiscoItems,
                                    self.xmpp['xep_0059'].stanza.Set)
 

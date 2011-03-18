@@ -353,8 +353,7 @@ class XMLStream(object):
         self.send_raw(self.stream_footer)
         # Wait for confirmation that the stream was
         # closed in the other direction.
-        if not reconnect:
-            self.auto_reconnect = False
+        self.auto_reconnect = reconnect
         self.stream_end_event.wait(4)
         if not self.auto_reconnect:
             self.stop.set()

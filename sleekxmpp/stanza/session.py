@@ -15,7 +15,7 @@ class Session(ElementBase):
     """
     """
 
-    name = 'bind'
+    name = 'session'
     namespace = 'urn:ietf:params:xml:ns:xmpp-session'
     interfaces = set()
     plugin_attrib = 'session'

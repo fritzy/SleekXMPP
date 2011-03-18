@@ -991,13 +991,18 @@ class ElementBase(object):
         """
         return self.__class__(xml=copy.deepcopy(self.xml), parent=self.parent)
 
-    def __str__(self):
+    def __str__(self, top_level_ns=True):
         """
         Return a string serialization of the underlying XML object.
+
+        Arguments:
+            top_level_ns -- Display the top-most namespace.
+                            Defaults to True.
         """
+        stanza_ns = '' if top_level_ns else self.namespace
         return tostring(self.xml, xmlns='',
-                        stanza_ns=self.namespace,
-                        top_level=True)
+                        stanza_ns=stanza_ns,
+                        top_level = not top_level_ns)
 
     def __repr__(self):
         """
@@ -1198,12 +1203,19 @@ class StanzaBase(ElementBase):
         return self.__class__(xml=copy.deepcopy(self.xml),
                               stream=self.stream)
 
-    def __str__(self):
-        """Serialize the stanza's XML to a string."""
+    def __str__(self, top_level_ns=False):
+        """
+        Serialize the stanza's XML to a string.
+
+        Arguments:
+            top_level_ns -- Display the top-most namespace.
+                            Defaults to False.
+        """
+        stanza_ns = '' if top_level_ns else self.namespace
         return tostring(self.xml, xmlns='',
-                        stanza_ns=self.namespace,
+                        stanza_ns=stanza_ns,
                         stream=self.stream,
-                        top_level = True)
+                        top_level = not top_level_ns)
 
 
 # To comply with PEP8, method names now use underscores.

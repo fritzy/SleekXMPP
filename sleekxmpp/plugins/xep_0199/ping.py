@@ -54,7 +54,7 @@ class xep_0199(base_plugin):
         self.xep = '0199'
         self.stanza = stanza
 
-        self.keepalive = self.config.get('keepalive', True)
+        self.keepalive = self.config.get('keepalive', False)
         self.frequency = float(self.config.get('frequency', 300))
         self.timeout = self.config.get('timeout', 30)
 
@@ -90,7 +90,7 @@ class xep_0199(base_plugin):
             """Send ping request to the server."""
             log.debug("Pinging...")
             resp = self.send_ping(self.xmpp.boundjid.host, self.timeout)
-            if not resp:
+            if resp is None or resp is False:
                 log.debug("Did not recieve ping back in time." + \
                           "Requesting Reconnect.")
                 self.xmpp.reconnect()
@@ -160,4 +160,4 @@ class xep_0199(base_plugin):
 
 
 # Backwards compatibility for names
-Ping.sendPing = Ping.send_ping
+xep_0199.sendPing = xep_0199.send_ping

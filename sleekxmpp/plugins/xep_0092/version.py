@@ -42,7 +42,7 @@ class xep_0092(base_plugin):
 
         self.xmpp.register_handler(
                 Callback('Software Version',
-                         StanzaPath('iq/software_version'),
+                         StanzaPath('iq@=get/software_version'),
                          self._handle_version))
 
         register_stanza_plugin(Iq, Version)

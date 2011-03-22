@@ -132,7 +132,7 @@ class ClientXMPP(BaseXMPP):
             log.debug("Session start has taken more than 15 seconds")
             self.disconnect(reconnect=self.auto_reconnect)
 
-    def connect(self, address=tuple(), reattempt=True):
+    def connect(self, address=tuple(), reattempt=True, use_tls=True):
         """
         Connect to the XMPP server.
 
@@ -188,7 +188,7 @@ class ClientXMPP(BaseXMPP):
             address = (self.boundjid.host, 5222)
 
         return XMLStream.connect(self, address[0], address[1],
-                                 use_tls=True, reattempt=reattempt)
+                                 use_tls=use_tls, reattempt=reattempt)
 
     def register_feature(self, mask, pointer, breaker=False):
         """
@@ -268,7 +268,9 @@ class ClientXMPP(BaseXMPP):
         Arguments:
             xml -- The STARTLS proceed element.
         """
-        if not self.authenticated and self.ssl_support:
+        if not self.use_tls:
+            return False
+        elif not self.authenticated and self.ssl_support:
             tls_ns = 'urn:ietf:params:xml:ns:xmpp-tls'
             self.add_handler("<proceed xmlns='%s' />" % tls_ns,
                              self._handle_tls_start,
@@ -298,7 +300,8 @@ class ClientXMPP(BaseXMPP):
         Arguments:
             xml -- The SASL mechanisms stanza.
         """
-        if '{urn:ietf:params:xml:ns:xmpp-tls}starttls' in self.features:
+        if self.use_tls and \
+           '{urn:ietf:params:xml:ns:xmpp-tls}starttls' in self.features:
             return False
 
         log.debug("Starting SASL Auth")

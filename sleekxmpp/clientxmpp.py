@@ -143,7 +143,9 @@ class ClientXMPP(BaseXMPP):
         Arguments:
             address   -- A tuple containing the server's host and port.
             reattempt -- If True, reattempt the connection if an
-                         error occurs.
+                         error occurs. Defaults to True.
+            use_tls   -- Indicates if TLS should be used for the
+                         connection. Defaults to True.
         """
         self.session_started_event.clear()
         if not address or len(address) < 2:

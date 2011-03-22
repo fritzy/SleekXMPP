@@ -137,7 +137,7 @@ class ClientXMPP(BaseXMPP):
                                      self._handle_sasl_plain,
                                      priority=0)
 
-    def connect(self, address=tuple(), reattempt=True):
+    def connect(self, address=tuple(), reattempt=True, use_tls=True):
         """
         Connect to the XMPP server.
 
@@ -148,7 +148,9 @@ class ClientXMPP(BaseXMPP):
         Arguments:
             address   -- A tuple containing the server's host and port.
             reattempt -- If True, reattempt the connection if an
-                         error occurs.
+                         error occurs. Defaults to True.
+            use_tls   -- Indicates if TLS should be used for the
+                         connection. Defaults to True.
         """
         self.session_started_event.clear()
         if not address or len(address) < 2:
@@ -193,7 +195,7 @@ class ClientXMPP(BaseXMPP):
             address = (self.boundjid.host, 5222)
 
         return XMLStream.connect(self, address[0], address[1],
-                                 use_tls=True, reattempt=reattempt)
+                                 use_tls=use_tls, reattempt=reattempt)
 
     def register_feature(self, name, handler, restart=False, order=5000):
         """
@@ -327,7 +329,9 @@ class ClientXMPP(BaseXMPP):
                 self.features.append('starttls')
                 raise RestartStream()
 
-        if self.ssl_support:
+        if not self.use_tls:
+            return False
+        elif self.ssl_support:
             self.register_handler(
                     Callback('STARTTLS Proceed',
                             MatchXPath(tls.Proceed.tag_name()),

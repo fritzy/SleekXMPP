@@ -40,6 +40,7 @@ def register_stanza_plugin(stanza, plugin, iterable=False):
     stanza.plugin_attrib_map[plugin.plugin_attrib] = plugin
     stanza.plugin_tag_map[tag] = plugin
     if iterable:
+        stanza.plugin_iterables = stanza.plugin_iterables.copy()
         stanza.plugin_iterables.add(plugin)
 
 
@@ -206,7 +207,7 @@ class ElementBase(object):
     plugin_attrib_map = {}
     plugin_iterables = set()
     plugin_tag_map = {}
-    subitem = None
+    subitem = set()
     is_extension = False
     xml_ns = 'http://www.w3.org/XML/1998/namespace'
 
@@ -231,6 +232,10 @@ class ElementBase(object):
         ElementBase.values = property(ElementBase._get_stanza_values,
                                       ElementBase._set_stanza_values)
 
+        if self.subitem is not None:
+            for sub in self.subitem:
+                self.plugin_iterables.add(sub)
+
         if self.setup(xml):
             # If we generated our own XML, then everything is ready.
             return
@@ -240,9 +245,6 @@ class ElementBase(object):
             if child.tag in self.plugin_tag_map:
                 plugin = self.plugin_tag_map[child.tag]
                 self.plugins[plugin.plugin_attrib] = plugin(child, self)
-            if self.subitem is not None:
-                for sub in self.subitem:
-                    self.plugin_iterables.add(sub)
             for sub in self.plugin_iterables:
                 if child.tag == "{%s}%s" % (sub.namespace, sub.name):
                     self.iterables.append(sub(child, self))
@@ -333,11 +335,20 @@ class ElementBase(object):
                       Plugin interfaces may accept a nested dictionary that
                       will be used recursively.
         """
+        iterable_interfaces = [p.plugin_attrib for \
+                                    p in self.plugin_iterables]
+
         for interface, value in values.items():
             if interface == 'substanzas':
+                # Remove existing substanzas
+                for stanza in self.iterables:
+                    self.xml.remove(stanza.xml)
+                self.iterables = []
+
+                # Add new substanzas
                 for subdict in value:
                     if '__childtag__' in subdict:
-                        for subclass in self.subitem:
+                        for subclass in self.plugin_iterables:
                             child_tag = "{%s}%s" % (subclass.namespace,
                                                     subclass.name)
                             if subdict['__childtag__'] == child_tag:
@@ -348,9 +359,10 @@ class ElementBase(object):
             elif interface in self.interfaces:
                 self[interface] = value
             elif interface in self.plugin_attrib_map:
-                if interface not in self.plugins:
-                    self.init_plugin(interface)
-                self.plugins[interface].values = value
+                if interface not in iterable_interfaces:
+                    if interface not in self.plugins:
+                        self.init_plugin(interface)
+                    self.plugins[interface].values = value
         return self
 
     def __getitem__(self, attrib):

@@ -52,6 +52,7 @@ packages     = [ 'sleekxmpp',
                  'sleekxmpp/plugins/xep_0059',
                  'sleekxmpp/plugins/xep_0085',
                  'sleekxmpp/plugins/xep_0092',
+                 'sleekxmpp/plugins/xep_0128',
                  'sleekxmpp/plugins/xep_0199',
                  ]
 

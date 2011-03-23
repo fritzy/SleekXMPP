@@ -60,10 +60,13 @@ class xep_0030(base_plugin):
         disco_items_query  -- Received a disco#items Iq query request.
 
     Attributes:
-        stanza -- A reference to the module containing the stanza classes
-                  provided by this plugin.
-        static -- Object containing the default set of static node handlers.
-        xmpp   -- The main SleekXMPP object.
+        stanza           -- A reference to the module containing the
+                            stanza classes provided by this plugin.
+        static           -- Object containing the default set of
+                            static node handlers.
+        default_handlers -- A dictionary mapping operations to the default
+                            global handler (by default, the static handlers).
+        xmpp             -- The main SleekXMPP object.
 
     Methods:
         set_node_handler -- Assign a handler to a JID/node combination.
@@ -110,11 +113,10 @@ class xep_0030(base_plugin):
                            'add_identity', 'del_identity', 'add_feature',
                            'del_feature', 'add_item', 'del_item',
                            'del_identities', 'del_features']
+        self.default_handlers = {}
         self._handlers = {}
         for op in self._disco_ops:
-            self._handlers[op] = {'global': getattr(self.static, op),
-                                  'jid': {},
-                                  'node': {}}
+            self._add_disco_op(op, getattr(self.static, op))
 
     def post_init(self):
         """Handle cross-plugin dependencies."""
@@ -122,6 +124,12 @@ class xep_0030(base_plugin):
         if 'xep_0059' in self.xmpp.plugin:
             register_stanza_plugin(DiscoItems,
                                    self.xmpp['xep_0059'].stanza.Set)
+
+    def _add_disco_op(self, op, default_handler):
+        self.default_handlers[op] = default_handler
+        self._handlers[op] = {'global': default_handler,
+                              'jid': {},
+                              'node': {}}
 
     def set_node_handler(self, htype, jid=None, node=None, handler=None):
         """
@@ -205,26 +213,29 @@ class xep_0030(base_plugin):
         """
         self.set_node_handler(htype, jid, node, None)
 
-    def make_static(self, jid=None, node=None, handlers=None):
+    def restore_defaults(self, jid=None, node=None, handlers=None):
         """
-        Change all of a node's handlers to the default static
+        Change all or some of a node's handlers to the default
         handlers. Useful for manually overriding the contents
         of a node that would otherwise be handled by a JID level
         or global level dynamic handler.
+
+        The default is to use the built-in static handlers, but that
+        may be changed by modifying self.default_handlers.
 
         Arguments:
             jid      -- The JID owning the node to modify.
             node     -- The node to change to using static handlers.
             handlers -- Optional list of handlers to change to the
-                        static version. If provided, only these
+                        default version. If provided, only these
                         handlers will be changed. Otherwise, all
-                        handlers will use the static version.
+                        handlers will use the default version.
         """
         if handlers is None:
             handlers = self._disco_ops
         for op in handlers:
             self.del_node_handler(op, jid, node)
-            self.set_node_handler(op, jid, node, getattr(self.static, op))
+            self.set_node_handler(op, jid, node, self.default_handlers[op])
 
     def get_info(self, jid=None, node=None, local=False, **kwargs):
         """
@@ -609,3 +620,4 @@ class xep_0030(base_plugin):
 # Retain some backwards compatibility
 xep_0030.getInfo = xep_0030.get_info
 xep_0030.getItems = xep_0030.get_items
+xep_0030.make_static = xep_0030.restore_defaults

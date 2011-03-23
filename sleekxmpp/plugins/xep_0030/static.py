@@ -120,7 +120,8 @@ class StaticDisco(object):
         """
         Replace the stored items data for a JID/node combination.
 
-        The data parameter is not used.
+        The data parameter may provided:
+            items -- A set of items in tuple format.
         """
         items = data.get('items', set())
         self.add_node(jid, node)

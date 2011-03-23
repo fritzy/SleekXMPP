@@ -29,10 +29,6 @@ Plugins:
         PEP8
         Documentation
         Stream/Unit tests
-    0085
-        PEP8
-        Documentation
-        Stream/Unit tests
     0086
         PEP8
         Documentation

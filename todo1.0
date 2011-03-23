@@ -10,8 +10,6 @@ Plugins:
         PEP8
         Documentation
         Stream/Unit tests
-    0030
-        Done
     0033
         PEP8
         Documentation
@@ -22,8 +20,6 @@ Plugins:
         Stream/Unit tests
     0050
         Review replacement in github.com/legastero/adhoc
-    0059
-        Done
     0060
         PEP8
         Documentation
@@ -41,21 +37,10 @@ Plugins:
         PEP8
         Documentation
         Consider any simplifications.
-    0092
-        Done
-    0128
-        Needs complete rewrite to work with new 0030 plugin.
-    0199
-        PEP8
-        Documentation
-        Stream/Unit tests
-        Needs to use scheduler instead of its own thread.
     0202
         PEP8
         Documentation
         Stream/Unit tests
-    0249
-        Review, minor cleanup
     gmail_notify
         PEP8
         Documentation

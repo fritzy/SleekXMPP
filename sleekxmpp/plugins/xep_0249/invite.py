@@ -1,5 +1,10 @@
-"""Direct MUC Invitation."""
+"""
+    SleekXMPP: The Sleek XMPP Library
+    Copyright (C) 2011 Nathanael C. Fritz, Dalek
+    This file is part of SleekXMPP.
 
+    See the file LICENSE for copying permission.
+"""
 
 import logging
 
@@ -10,6 +15,7 @@ from sleekxmpp.xmlstream import register_stanza_plugin
 from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.xmlstream.matcher import StanzaPath
 from sleekxmpp.plugins.xep_0249 import Invite
+
 
 log = logging.getLogger(__name__)
 
@@ -34,15 +40,14 @@ class xep_0249(base_plugin):
 
     def post_init(self):
         base_plugin.post_init(self)
-        self.xmpp.plugin['xep_0030'].add_feature(Invite.namespace)
+        self.xmpp['xep_0030'].add_feature(Invite.namespace)
 
-    def _handle_invite(self, message):
+    def _handle_invite(self, msg):
         """
         Raise an event for all invitations received.
-
         """
         log.debug("Received direct muc invitation from %s to room %s",
-                  message['from'], message['groupchat_invite']['jid'])
+                  msg['from'], msg['groupchat_invite']['jid'])
 
         self.xmpp.event('groupchat_direct_invite', message)
 
@@ -52,24 +57,23 @@ class xep_0249(base_plugin):
         Send a direct MUC invitation to an XMPP entity.
 
         Arguments:
-            jid         -- The jid of the entity to which the inviation
-                           is sent
-            roomjid     -- the address of the groupchat room to be joined
-            password    -- a password needed for entry into a
-                           password-protected room (OPTIONAL).
-            reason      -- a human-readable purpose for the invitation
-                           (OPTIONAL).
-
+            jid      -- The JID of the entity that will receive
+                        the invitation
+            roomjid  -- the address of the groupchat room to be joined
+            password -- a password needed for entry into a
+                        password-protected room (OPTIONAL).
+            reason   -- a human-readable purpose for the invitation
+                        (OPTIONAL).
         """
 
-        message = self.xmpp.Message()
-        message['to'] = jid
+        msg = self.xmpp.Message()
+        msg['to'] = jid
         if ifrom is not None:
-            message['from'] = ifrom
-        message['groupchat_invite']['jid'] = roomjid
+            msg['from'] = ifrom
+        msg['groupchat_invite']['jid'] = roomjid
         if password is not None:
-            message['groupchat_invite']['password'] = password
+            msg['groupchat_invite']['password'] = password
         if reason is not None:
-            message['groupchat_invite']['reason'] = reason
+            msg['groupchat_invite']['reason'] = reason
 
-        return message.send()
+        return msg.send()

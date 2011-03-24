@@ -578,7 +578,7 @@ class SleekTest(unittest.TestCase):
             raise ValueError("Uknown matching method: %s" % method)
 
     def send(self, data, defaults=None, use_values=True,
-             timeout=.1, method='exact'):
+             timeout=.5, method='exact'):
         """
         Check that the XMPP client sent the given stanza XML.
 

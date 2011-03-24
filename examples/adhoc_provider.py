@@ -26,11 +26,11 @@ if sys.version_info < (3, 0):
     sys.setdefaultencoding('utf8')
 
 
-class EchoBot(sleekxmpp.ClientXMPP):
+class CommandBot(sleekxmpp.ClientXMPP):
 
     """
-    A simple SleekXMPP bot that will echo messages it
-    receives, along with a short thank you message.
+    A simple SleekXMPP bot that provides a basic
+    adhoc command.
     """
 
     def __init__(self, jid, password):
@@ -42,11 +42,6 @@ class EchoBot(sleekxmpp.ClientXMPP):
         # listen for this event so that we we can intialize
         # our roster.
         self.add_event_handler("session_start", self.start)
-
-        # The message event is triggered whenever a message
-        # stanza is received. Be aware that that includes
-        # MUC messages and error messages.
-        self.add_event_handler("message", self.message)
 
     def start(self, event):
         """
@@ -64,19 +59,82 @@ class EchoBot(sleekxmpp.ClientXMPP):
         self.send_presence()
         self.get_roster()
 
-    def message(self, msg):
+        # We add the command after session_start has fired
+        # to ensure that the correct full JID is used.
+
+        # If using a component, may also pass jid keyword parameter.
+
+        self['xep_0050'].add_command(node='greeting',
+                                     name='Greeting',
+                                     handler=self._handle_command)
+
+    def _handle_command(self, iq, session):
         """
-        Process incoming message stanzas. Be aware that this also
-        includes MUC messages and error messages. It is usually
-        a good idea to check the messages's type before processing
-        or sending replies.
+        Respond to the intial request for a command.
 
         Arguments:
-            msg -- The received message stanza. See the documentation
-                   for stanza objects and the Message stanza to see
-                   how it may be used.
+            iq      -- The iq stanza containing the command request.
+            session -- A dictionary of data relevant to the command
+                       session. Additional, custom data may be saved
+                       here to persist across handler callbacks.
         """
-        msg.reply("Thanks for sending\n%(body)s" % msg).send()
+        form = self['xep_0004'].makeForm('form', 'Greeting')
+        form.addField(var='greeting',
+                      ftype='text-single',
+                      label='Your greeting')
+
+        session['payload'] = form
+        session['next'] = self._handle_command_complete
+        session['has_next'] = False
+
+        # Other useful session values:
+        # session['to']                    -- The JID that received the
+        #                                     command request.
+        # session['from']                  -- The JID that sent the
+        #                                     command request.
+        # session['has_next'] = True       -- There are more steps to complete
+        # session['allow_complete'] = True -- Allow user to finish immediately
+        #                                     and possibly skip steps
+        # session['cancel'] = handler      -- Assign a handler for if the user
+        #                                     cancels the command.
+        # session['notes'] = [             -- Add informative notes about the
+        #   ('info', 'Info message'),         command's results.
+        #   ('warning', 'Warning message'),
+        #   ('error', 'Error message')]
+
+        return session
+
+    def _handle_command_complete(self, payload, session):
+        """
+        Process a command result from the user.
+
+        Arguments:
+            payload -- Either a single item, such as a form, or a list
+                       of items or forms if more than one form was
+                       provided to the user. The payload may be any
+                       stanza, such as jabber:x:oob for out of band
+                       data, or jabber:x:data for typical data forms.
+            session -- A dictionary of data relevant to the command
+                       session. Additional, custom data may be saved
+                       here to persist across handler callbacks.
+        """
+
+        # In this case (as is typical), the payload is a form
+        form = payload
+
+        greeting = form['values']['greeting']
+        self.send_message(mto=session['from'],
+                          mbody="%s, World!" % greeting)
+
+        # Having no return statement is the same as unsetting the 'payload'
+        # and 'next' session values and returning the session.
+
+        # Unless it is the final step, always return the session dictionary.
+
+        session['payload'] = None
+        session['next'] = None
+
+        return session
 
 
 if __name__ == '__main__':
@@ -111,14 +169,13 @@ if __name__ == '__main__':
     if opts.password is None:
         opts.password = getpass.getpass("Password: ")
 
-    # Setup the EchoBot and register plugins. Note that while plugins may
+    # Setup the CommandBot and register plugins. Note that while plugins may
     # have interdependencies, the order in which you register them does
     # not matter.
-    xmpp = EchoBot(opts.jid, opts.password)
+    xmpp = CommandBot(opts.jid, opts.password)
     xmpp.register_plugin('xep_0030') # Service Discovery
     xmpp.register_plugin('xep_0004') # Data Forms
-    xmpp.register_plugin('xep_0060') # PubSub
-    xmpp.register_plugin('xep_0199') # XMPP Ping
+    xmpp.register_plugin('xep_0050') # Adhoc Commands
 
     # If you are working with an OpenFire server, you may need
     # to adjust the SSL version used:

@@ -113,7 +113,7 @@ class Disco(sleekxmpp.ClientXMPP):
         if self.get in self.identity_types:
             print('Identities:')
             for identity in info['disco_info']['identities']:
-                print('  - ', identity)
+                print('  - %s' % str(identity))
 
         if self.get in self.feature_types:
             print('Features:')

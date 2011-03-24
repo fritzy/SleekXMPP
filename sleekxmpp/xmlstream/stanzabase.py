@@ -24,24 +24,32 @@ log = logging.getLogger(__name__)
 XML_TYPE = type(ET.Element('xml'))
 
 
-def register_stanza_plugin(stanza, plugin, iterable=False):
+def register_stanza_plugin(stanza, plugin, iterable=False, overrides=False):
     """
     Associate a stanza object as a plugin for another stanza.
 
     Arguments:
-        stanza   -- The class of the parent stanza.
-        plugin   -- The class of the plugin stanza.
-        iterable -- Indicates if the plugin stanza
-                    should be included in the parent
-                    stanza's iterable 'substanzas'
-                    interface results.
+        stanza    -- The class of the parent stanza.
+        plugin    -- The class of the plugin stanza.
+        iterable  -- Indicates if the plugin stanza should be
+                     included in the parent stanza's iterable
+                     'substanzas' interface results.
+        overrides -- Indicates if the plugin should be allowed
+                     to override the interface handlers for
+                     the parent stanza.
     """
     tag = "{%s}%s" % (plugin.namespace, plugin.name)
     stanza.plugin_attrib_map[plugin.plugin_attrib] = plugin
     stanza.plugin_tag_map[tag] = plugin
     if iterable:
+        # Prevent weird memory reference gotchas.
         stanza.plugin_iterables = stanza.plugin_iterables.copy()
         stanza.plugin_iterables.add(plugin)
+    if overrides:
+        # Prevent weird memory reference gotchas.
+        stanza.plugin_overrides = stanza.plugin_overrides.copy()
+        for interface in plugin.overrides:
+            stanza.plugin_overrides[interface] = plugin.plugin_attrib
 
 
 # To maintain backwards compatibility for now, preserve the camel case name.
@@ -130,6 +138,11 @@ class ElementBase(object):
         subitem           -- A set of stanza classes which are allowed to
                              be added as substanzas. Deprecated version
                              of plugin_iterables.
+        overrides         -- A list of interfaces prepended with 'get_',
+                             'set_', or 'del_'. If the stanza is registered
+                             as a plugin with overrides=True, then the
+                             parent's interface handlers will be
+                             overridden by the plugin's matching handler.
         types             -- A set of generic type attribute values.
         tag               -- The namespaced name of the stanza's root
                              element. Example: "{foo_ns}bar"
@@ -139,6 +152,10 @@ class ElementBase(object):
                              associated plugin stanza classes.
         plugin_iterables  -- A set of stanza classes which are allowed to
                              be added as substanzas.
+        plugin_overrides  -- A mapping of interfaces prepended with 'get_',
+                             'set_' or 'del_' to plugin attrib names. Allows
+                             a plugin to override the behaviour of a parent
+                             stanza's interface handlers.
         plugin_tag_map    -- A mapping of plugin stanza tag names with
                              the associated plugin stanza classes.
         is_extension      -- When True, allows the stanza to provide one
@@ -204,7 +221,9 @@ class ElementBase(object):
     interfaces = set(('type', 'to', 'from', 'id', 'payload'))
     types = set(('get', 'set', 'error', None, 'unavailable', 'normal', 'chat'))
     sub_interfaces = tuple()
+    overrides = {}
     plugin_attrib_map = {}
+    plugin_overrides = {}
     plugin_iterables = set()
     plugin_tag_map = {}
     subitem = set()
@@ -380,12 +399,13 @@ class ElementBase(object):
         The search order for interface value retrieval for an interface
         named 'foo' is:
             1. The list of substanzas.
-            2. The result of calling get_foo.
-            3. The result of calling getFoo.
-            4. The contents of the foo subelement, if foo is a sub interface.
-            5. The value of the foo attribute of the XML object.
-            6. The plugin named 'foo'
-            7. An empty string.
+            2. The result of calling the get_foo override handler.
+            3. The result of calling get_foo.
+            4. The result of calling getFoo.
+            5. The contents of the foo subelement, if foo is a sub interface.
+            6. The value of the foo attribute of the XML object.
+            7. The plugin named 'foo'
+            8. An empty string.
 
         Arguments:
             attrib -- The name of the requested stanza interface.
@@ -395,6 +415,16 @@ class ElementBase(object):
         elif attrib in self.interfaces:
             get_method = "get_%s" % attrib.lower()
             get_method2 = "get%s" % attrib.title()
+
+            if self.plugin_overrides:
+                plugin = self.plugin_overrides.get(get_method, None)
+                if plugin:
+                    if plugin not in self.plugins:
+                        self.init_plugin(plugin)
+                    handler = getattr(self.plugins[plugin], get_method, None)
+                    if handler:
+                        return handler()
+
             if hasattr(self, get_method):
                 return getattr(self, get_method)()
             elif hasattr(self, get_method2):
@@ -429,13 +459,14 @@ class ElementBase(object):
         The effect of interface value assignment for an interface
         named 'foo' will be one of:
             1. Delete the interface's contents if the value is None.
-            2. Call set_foo, if it exists.
-            3. Call setFoo, if it exists.
-            4. Set the text of a foo element, if foo is in sub_interfaces.
-            5. Set the value of a top level XML attribute name foo.
-            6. Attempt to pass value to a plugin named foo using the plugin's
+            2. Call the set_foo override handler, if it exists.
+            3. Call set_foo, if it exists.
+            4. Call setFoo, if it exists.
+            5. Set the text of a foo element, if foo is in sub_interfaces.
+            6. Set the value of a top level XML attribute name foo.
+            7. Attempt to pass value to a plugin named foo using the plugin's
                foo interface.
-            7. Do nothing.
+            8. Do nothing.
 
         Arguments:
             attrib -- The name of the stanza interface to modify.
@@ -445,6 +476,16 @@ class ElementBase(object):
             if value is not None:
                 set_method = "set_%s" % attrib.lower()
                 set_method2 = "set%s" % attrib.title()
+
+                if self.plugin_overrides:
+                    plugin = self.plugin_overrides.get(set_method, None)
+                    if plugin:
+                        if plugin not in self.plugins:
+                            self.init_plugin(plugin)
+                        handler = getattr(self.plugins[plugin], set_method, None)
+                        if handler:
+                            return handler(value)
+
                 if hasattr(self, set_method):
                     getattr(self, set_method)(value,)
                 elif hasattr(self, set_method2):
@@ -480,12 +521,13 @@ class ElementBase(object):
 
         The effect of deleting a stanza interface value named foo will be
         one of:
-            1. Call del_foo, if it exists.
-            2. Call delFoo, if it exists.
-            3. Delete foo element, if foo is in sub_interfaces.
-            4. Delete top level XML attribute named foo.
-            5. Remove the foo plugin, if it was loaded.
-            6. Do nothing.
+            1. Call del_foo override handler, if it exists.
+            2. Call del_foo, if it exists.
+            3. Call delFoo, if it exists.
+            4. Delete foo element, if foo is in sub_interfaces.
+            5. Delete top level XML attribute named foo.
+            6. Remove the foo plugin, if it was loaded.
+            7. Do nothing.
 
         Arguments:
             attrib -- The name of the affected stanza interface.
@@ -493,6 +535,16 @@ class ElementBase(object):
         if attrib in self.interfaces:
             del_method = "del_%s" % attrib.lower()
             del_method2 = "del%s" % attrib.title()
+
+            if self.plugin_overrides:
+                plugin = self.plugin_overrides.get(del_method, None)
+                if plugin:
+                    if plugin not in self.plugins:
+                        self.init_plugin(plugin)
+                    handler = getattr(self.plugins[plugin], del_method, None)
+                    if handler:
+                        return handler()
+
             if hasattr(self, del_method):
                 getattr(self, del_method)()
             elif hasattr(self, del_method2):

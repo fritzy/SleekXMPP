@@ -53,9 +53,8 @@ class TestElementBase(SleekTest):
             name = "foo"
             namespace = "foo"
             interfaces = set(('bar', 'baz'))
-            subitem = set((TestSubStanza,))
 
-        register_stanza_plugin(TestStanza, TestStanzaPlugin)
+        register_stanza_plugin(TestStanza, TestStanzaPlugin, iterable=True)
 
         stanza = TestStanza()
         stanza['bar'] = 'a'
@@ -100,8 +99,8 @@ class TestElementBase(SleekTest):
             name = "foo"
             namespace = "foo"
             interfaces = set(('bar', 'baz'))
-            subitem = set((TestSubStanza,))
 
+        register_stanza_plugin(TestStanza, TestSubStanza, iterable=True)
         register_stanza_plugin(TestStanza, TestStanzaPlugin)
         register_stanza_plugin(TestStanza, TestStanzaPlugin2)
 
@@ -115,7 +114,7 @@ class TestElementBase(SleekTest):
                   'substanzas': [{'__childtag__': '{foo}subfoo',
                                   'bar': 'c',
                                   'baz': ''}]}
-        stanza.setStanzaValues(values)
+        stanza.values = values
 
         self.check(stanza, """
           <foo xmlns="foo" bar="a">
@@ -143,7 +142,7 @@ class TestElementBase(SleekTest):
             plugin_attrib = "foobar"
             interfaces = set(('fizz',))
 
-        TestStanza.subitem = (TestStanza,)
+        register_stanza_plugin(TestStanza, TestStanza, iterable=True)
         register_stanza_plugin(TestStanza, TestStanzaPlugin)
 
         stanza = TestStanza()
@@ -457,7 +456,6 @@ class TestElementBase(SleekTest):
             namespace = "foo"
             interfaces = set(('bar','baz', 'qux'))
             sub_interfaces = set(('qux',))
-            subitem = (TestSubStanza,)
 
             def setQux(self, value):
                 self._set_sub_text('qux', text=value)
@@ -470,6 +468,7 @@ class TestElementBase(SleekTest):
             namespace = "http://test/slash/bar"
             interfaces = set(('attrib',))
 
+        register_stanza_plugin(TestStanza, TestSubStanza, iterable=True)
         register_stanza_plugin(TestStanza, TestStanzaPlugin)
 
         stanza = TestStanza()
@@ -590,7 +589,8 @@ class TestElementBase(SleekTest):
             name = "foo"
             namespace = "foo"
             interfaces = set(('bar', 'baz'))
-            subitem = (TestSubStanza,)
+
+        register_stanza_plugin(TestStanza, TestSubStanza, iterable=True)
 
         stanza = TestStanza()
         substanza1 = TestSubStanza()
@@ -656,5 +656,88 @@ class TestElementBase(SleekTest):
         stanza1['baz'] = 'b'
         self.failUnless(stanza1 != stanza2,
             "Divergent stanza copies incorrectly compared equal.")
+
+    def testExtension(self):
+        """Testing using is_extension."""
+
+        class TestStanza(ElementBase):
+            name = "foo"
+            namespace = "foo"
+            interfaces = set(('bar', 'baz'))
+
+        class TestExtension(ElementBase):
+            name = 'extended'
+            namespace = 'foo'
+            plugin_attrib = name
+            interfaces = set((name,))
+            is_extension = True
+
+            def set_extended(self, value):
+                self.xml.text = value
+
+            def get_extended(self):
+                return self.xml.text
+
+            def del_extended(self):
+                self.parent().xml.remove(self.xml)
+
+        register_stanza_plugin(TestStanza, TestExtension)
+
+        stanza = TestStanza()
+        stanza['extended'] = 'testing'
+
+        self.check(stanza, """
+          <foo xmlns="foo">
+            <extended>testing</extended>
+          </foo>
+        """)
+
+        self.failUnless(stanza['extended'] == 'testing',
+                "Could not retrieve stanza extension value.")
+
+        del stanza['extended']
+        self.check(stanza, """
+          <foo xmlns="foo" />
+        """)
+
+    def testOverrides(self):
+        """Test using interface overrides."""
+
+        class TestStanza(ElementBase):
+            name = "foo"
+            namespace = "foo"
+            interfaces = set(('bar', 'baz'))
+
+        class TestOverride(ElementBase):
+            name = 'overrider'
+            namespace = 'foo'
+            plugin_attrib = name
+            interfaces = set(('bar',))
+            overrides = ['set_bar']
+
+            def setup(self, xml):
+                # Don't create XML for the plugin
+                self.xml = ET.Element('')
+
+            def set_bar(self, value):
+                if not value.startswith('override-'):
+                    self.parent()._set_attr('bar', 'override-%s' % value)
+                else:
+                    self.parent()._set_attr('bar', value)
+
+        stanza = TestStanza()
+        stanza['bar'] = 'foo'
+        self.check(stanza, """
+          <foo xmlns="foo" bar="foo" />
+        """)
+
+        register_stanza_plugin(TestStanza, TestOverride, overrides=True)
+
+        stanza = TestStanza()
+        stanza['bar'] = 'foo'
+        self.check(stanza, """
+          <foo xmlns="foo" bar="override-foo" />
+        """)
+
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestElementBase)

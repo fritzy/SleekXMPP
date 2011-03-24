@@ -37,7 +37,7 @@ class TestStreamExceptions(SleekTest):
 
         self.send("""
           <message type="error">
-            <error type="cancel">
+            <error type="cancel" code="501">
               <feature-not-implemented
                   xmlns="urn:ietf:params:xml:ns:xmpp-stanzas" />
               <text xmlns="urn:ietf:params:xml:ns:xmpp-stanzas">
@@ -73,7 +73,7 @@ class TestStreamExceptions(SleekTest):
         self.send("""
           <iq type="error" id="0">
             <query xmlns="test" />
-            <error type="cancel">
+            <error type="cancel" code="501">
               <feature-not-implemented
                   xmlns="urn:ietf:params:xml:ns:xmpp-stanzas" />
               <text xmlns="urn:ietf:params:xml:ns:xmpp-stanzas">
@@ -103,7 +103,7 @@ class TestStreamExceptions(SleekTest):
 
         self.send("""
           <message type="error">
-            <error type="cancel">
+            <error type="cancel" code="501">
               <feature-not-implemented
                   xmlns="urn:ietf:params:xml:ns:xmpp-stanzas" />
               <text xmlns="urn:ietf:params:xml:ns:xmpp-stanzas">
@@ -137,7 +137,7 @@ class TestStreamExceptions(SleekTest):
 
         self.send("""
           <message type="error">
-            <error type="cancel">
+            <error type="cancel" code="500">
               <undefined-condition
                   xmlns="urn:ietf:params:xml:ns:xmpp-stanzas" />
               <text xmlns="urn:ietf:params:xml:ns:xmpp-stanzas">

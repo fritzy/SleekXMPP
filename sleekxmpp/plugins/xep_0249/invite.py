@@ -49,7 +49,7 @@ class xep_0249(base_plugin):
         log.debug("Received direct muc invitation from %s to room %s",
                   msg['from'], msg['groupchat_invite']['jid'])
 
-        self.xmpp.event('groupchat_direct_invite', message)
+        self.xmpp.event('groupchat_direct_invite', msg)
 
     def send_invitation(self, jid, roomjid, password=None,
                         reason=None, ifrom=None):

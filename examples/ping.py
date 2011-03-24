@@ -12,6 +12,7 @@
 import sys
 import logging
 import time
+import getpass
 from optparse import OptionParser
 
 import sleekxmpp
@@ -58,7 +59,8 @@ class PingTest(sleekxmpp.ClientXMPP):
                      event does not provide any additional
                      data.
         """
-        self.sendPresence()
+        self.send_presence()
+        self.get_roster()
         result = self['xep_0199'].send_ping(self.pingjid,
                                             timeout=10,
                                             errorfalse=True)
@@ -102,9 +104,10 @@ if __name__ == '__main__':
     logging.basicConfig(level=opts.loglevel,
                         format='%(levelname)-8s %(message)s')
 
-    if None in [opts.jid, opts.password]:
-        optp.print_help()
-        sys.exit(1)
+    if opts.jid is None:
+        opts.jid = raw_input("Username: ")
+    if opts.password is None:
+        opts.password = getpass.getpass("Password: ")
 
     # Setup the PingTest and register plugins. Note that while plugins may
     # have interdependencies, the order in which you register them does

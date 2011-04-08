@@ -77,7 +77,7 @@ class Iq(RootStanza):
         StanzaBase.__init__(self, *args, **kwargs)
         if self['id'] == '':
             if self.stream is not None:
-                self['id'] = self.stream.getNewId()
+                self['id'] = self.stream.new_id()
             else:
                 self['id'] = '0'
 

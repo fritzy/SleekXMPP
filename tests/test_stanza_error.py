@@ -9,7 +9,7 @@ class TestErrorStanzas(SleekTest):
         msg.enable('error')
         self.check(msg, """
           <message type="error">
-            <error type="cancel">
+            <error type="cancel" code="501">
               <feature-not-implemented xmlns="urn:ietf:params:xml:ns:xmpp-stanzas" />
             </error>
           </message>
@@ -22,7 +22,7 @@ class TestErrorStanzas(SleekTest):
 
         self.check(msg, """
           <message type="error">
-            <error type="cancel">
+            <error type="cancel" code="404">
               <item-not-found xmlns="urn:ietf:params:xml:ns:xmpp-stanzas" />
             </error>
           </message>
@@ -34,7 +34,7 @@ class TestErrorStanzas(SleekTest):
 
         self.check(msg, """
           <message type="error">
-            <error type="cancel">
+            <error type="wait" code="500">
               <resource-constraint xmlns="urn:ietf:params:xml:ns:xmpp-stanzas" />
             </error>
           </message>
@@ -50,7 +50,7 @@ class TestErrorStanzas(SleekTest):
 
         self.check(msg, """
           <message type="error">
-            <error type="cancel">
+            <error type="wait" code="500">
               <text xmlns="urn:ietf:params:xml:ns:xmpp-stanzas">Error!</text>
             </error>
           </message>
@@ -66,7 +66,7 @@ class TestErrorStanzas(SleekTest):
 
         self.check(msg, """
           <message type="error">
-            <error type="cancel">
+            <error type="wait" code="500">
               <internal-server-error xmlns="urn:ietf:params:xml:ns:xmpp-stanzas" />
             </error>
           </message>

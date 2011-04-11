@@ -132,6 +132,7 @@ class Scheduler(object):
         if threaded:
             self.thread = threading.Thread(name='sheduler_process',
                                            target=self._process)
+            self.thread.daemon = True
             self.thread.start()
         else:
             self._process()

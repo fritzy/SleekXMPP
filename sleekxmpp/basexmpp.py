@@ -146,8 +146,6 @@ class BaseXMPP(XMLStream):
                                self._handle_unsubscribe)
         self.add_event_handler('presence_unsubscribed',
                                self._handle_unsubscribed)
-        self.add_event_handler('presence_probe',
-                               self._handle_probe)
         self.add_event_handler('roster_subscription_request',
                                self._handle_new_subscription)
 
@@ -662,11 +660,6 @@ class BaseXMPP(XMLStream):
         pto = presence['to'].bare
         pfrom = presence['from'].bare
         self.roster[pto][pfrom].handle_unsubscribed(presence)
-
-    def _handle_probe(self, presence):
-        pto = presence['to'].bare
-        pfrom = presence['from'].bare
-        self.roster[pto][pfrom].handle_probe(presence)
 
     def _handle_presence(self, presence):
         """

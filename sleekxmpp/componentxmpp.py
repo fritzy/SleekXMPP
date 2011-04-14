@@ -78,6 +78,8 @@ class ComponentXMPP(BaseXMPP):
                 Callback('Handshake',
                          MatchXPath('{jabber:component:accept}handshake'),
                          self._handle_handshake))
+        self.add_event_handler('presence_probe',
+                               self._handle_probe)
 
     def connect(self):
         """
@@ -139,3 +141,8 @@ class ComponentXMPP(BaseXMPP):
             xml -- The reply handshake stanza.
         """
         self.event("session_start")
+
+    def _handle_probe(self, presence):
+        pto = presence['to'].bare
+        pfrom = presence['from'].bare
+        self.roster[pto][pfrom].handle_probe(presence)

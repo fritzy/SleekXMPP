@@ -237,6 +237,8 @@ class Unsubscribe(ElementBase):
 	def getJid(self):
 		return JID(self._getAttr('jid'))
 
+registerStanzaPlugin(Pubsub, Unsubscribe)
+
 class Subscribe(ElementBase):
 	namespace = 'http://jabber.org/protocol/pubsub'
 	name = 'subscribe'

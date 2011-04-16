@@ -179,6 +179,10 @@ class RosterNode(object):
         """Return a list of all subscribed JIDs."""
         return self._jids.keys()
 
+    def has_jid(self, jid):
+        """Returns whether the roster has a JID."""
+        return jid in self._jids
+
     def __iter__(self):
         """Iterate over the roster items."""
         return self._jids.__iter__()

@@ -626,8 +626,13 @@ class SleekTest(unittest.TestCase):
                             Defaults to the value of self.match_method.
         """
         sent = self.xmpp.socket.next_sent(timeout)
+        if data is None and sent is None:
+            return
+        if data is None and sent is not None:
+            self.fail("Stanza data was sent: %s" % sent)
         if sent is None:
             self.fail("No stanza was sent.")
+        
         xml = self.parse_xml(sent)
         self.fix_namespaces(xml, 'jabber:client')
         sent = self.xmpp._build_stanza(xml, 'jabber:client')

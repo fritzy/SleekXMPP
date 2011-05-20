@@ -206,7 +206,8 @@ class ClientXMPP(BaseXMPP):
                                          pointer,
                                          breaker))
 
-    def update_roster(self, jid, name=None, subscription=None, groups=[]):
+    def update_roster(self, jid, name=None, subscription=None, groups=[],
+                            block=True, timeout=None, callback=None):
         """
         Add or change a roster item.
 
@@ -217,12 +218,24 @@ class ClientXMPP(BaseXMPP):
                             'to', 'from', 'both', or 'none'. If set
                             to 'remove', the entry will be deleted.
             groups       -- The roster groups that contain this item.
+            block        -- Specify if the roster request will block
+                            until a response is received, or a timeout
+                            occurs. Defaults to True.
+            timeout      -- The length of time (in seconds) to wait
+                            for a response before continuing if blocking
+                            is used. Defaults to self.response_timeout.
+            callback     -- Optional reference to a stream handler function.
+                            Will be executed when the roster is received.
+                            Implies block=False.
         """
-        iq = self.Iq()._set_stanza_values({'type': 'set'})
+        iq = self.Iq()
+        iq['type'] = 'set'
         iq['roster']['items'] = {jid: {'name': name,
                                        'subscription': subscription,
                                        'groups': groups}}
-        response = iq.send()
+        response = iq.send(block, timeout, callback)
+        if response in [False, None]:
+            return response
         return response['type'] == 'result'
 
     def del_roster_item(self, jid):
@@ -235,11 +248,33 @@ class ClientXMPP(BaseXMPP):
         """
         return self.update_roster(jid, subscription='remove')
 
-    def get_roster(self):
-        """Request the roster from the server."""
-        iq = self.Iq()._set_stanza_values({'type': 'get'}).enable('roster')
-        response = iq.send()
-        self._handle_roster(response, request=True)
+    def get_roster(self, block=True, timeout=None, callback=None):
+        """
+        Request the roster from the server.
+
+        Arguments:
+            block    -- Specify if the roster request will block until a
+                        response is received, or a timeout occurs.
+                        Defaults to True.
+            timeout  -- The length of time (in seconds) to wait for a response
+                        before continuing if blocking is used.
+                        Defaults to self.response_timeout.
+            callback -- Optional reference to a stream handler function. Will
+                        be executed when the roster is received.
+                        Implies block=False.
+        """
+        iq = self.Iq()
+        iq['type'] = 'get'
+        iq.enable('roster')
+        response = iq.send(block, timeout, callback)
+
+        if response == False:
+            self.event('roster_timeout')
+
+        if response in [False, None] or not isinstance(response, Iq):
+            return response
+        else:
+            return self._handle_roster(response, request=True)
 
     def _handle_stream_features(self, features):
         """
@@ -431,12 +466,14 @@ class ClientXMPP(BaseXMPP):
                 roster[jid]['from'] = item['subscription'] in ['from', 'both']
                 roster[jid]['to'] = item['subscription'] in ['to', 'both']
                 roster[jid]['pending_out'] = (item['ask'] == 'subscribe')
+            self.event('roster_received', iq)
 
         self.event("roster_update", iq)
         if iq['type'] == 'set':
             iq.reply()
             iq.enable('roster')
             iq.send()
+        return True
 
 
 # To comply with PEP8, method names now use underscores.

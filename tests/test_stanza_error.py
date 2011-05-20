@@ -3,6 +3,11 @@ from sleekxmpp.test import *
 
 class TestErrorStanzas(SleekTest):
 
+    def setUp(self):
+        # Ensure that the XEP-0086 plugin has been loaded.
+        self.stream_start()
+        self.stream_close()
+
     def testSetup(self):
         """Test setting initial values in error stanza."""
         msg = self.Message()

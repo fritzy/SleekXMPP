@@ -8,6 +8,8 @@
 
 import logging
 
+from sleekxmpp.xmlstream import JID
+
 
 class Roster(object):
 
@@ -64,7 +66,7 @@ class Roster(object):
         Arguments:
             key -- Return the roster for this JID.
         """
-        if not isinstance(key, str):
+        if isinstance(key, JID):
             key = key.bare
         if key not in self._rosters:
             self.add(key)
@@ -87,7 +89,7 @@ class Roster(object):
         Arguments:
             node -- The JID for the new roster node.
         """
-        if not isinstance(node, str):
+        if isinstance(node, JID):
             node = node.bare
         if node not in self._rosters:
             self._rosters[node] = RosterNode(self.xmpp, node, self.db)
@@ -169,7 +171,7 @@ class RosterNode(object):
 
         A new item entry will be created if one does not already exist.
         """
-        if not isinstance(key, str):
+        if isinstance(key, JID):
             key = key.bare
         if key not in self._jids:
             self.add(key, save=True)
@@ -228,7 +230,7 @@ class RosterNode(object):
                            if one is used.
                            Defaults to False.
         """
-        if not isinstance(jid, str):
+        if isinstance(jid, JID):
             key = jid.bare
         state = {'name': name,
                  'groups': groups or [],

@@ -274,7 +274,7 @@ class ClientXMPP(BaseXMPP):
                                        'subscription': subscription,
                                        'groups': groups}}
         response = iq.send(block, timeout, callback)
-        if response in [False, None]:
+        if response in [False, None] or not isinstance(response, Iq):
             return response
         return response['type'] == 'result'
 

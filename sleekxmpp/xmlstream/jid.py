@@ -6,6 +6,8 @@
     See the file LICENSE for copying permission.
 """
 
+from __future__ import unicode_literals
+
 
 class JID(object):
     """
@@ -42,7 +44,9 @@ class JID(object):
         Arguments:
             jid - The new JID value.
         """
-        self._full = self._jid = str(jid)
+        if isinstance(jid, JID):
+            jid = jid.full
+        self._full = self._jid = jid
         self._domain = None
         self._resource = None
         self._user = None
@@ -123,10 +127,11 @@ class JID(object):
         return self.full
 
     def __repr__(self):
-        return str(self)
+        return self.full
 
     def __eq__(self, other):
         """
         Two JIDs are considered equal if they have the same full JID value.
         """
-        return str(other) == str(self)
+        other = JID(other)
+        return self.full == other.full

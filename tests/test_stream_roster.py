@@ -1,3 +1,7 @@
+# -*- encoding:utf-8 -*-
+
+from __future__ import unicode_literals
+
 from sleekxmpp.test import *
 import time
 import threading
@@ -161,6 +165,53 @@ class TestStreamRoster(SleekTest):
 
         self.failUnless(events == ['roster_callback'],
                  "Roster timeout event not triggered: %s." % events)
+
+    def testRosterUnicode(self):
+        """Test that JIDs with Unicode values are handled properly."""
+        self.stream_start()
+        self.recv("""
+          <iq to="tester@localhost" type="set" id="1">
+            <query xmlns="jabber:iq:roster">
+              <item jid="andré@foo" subscription="both">
+                <group>Unicode</group>
+              </item>
+            </query>
+          </iq>
+        """)
+
+        # Give the event queue time to process.
+        time.sleep(.1)
+
+        roster = {'andré@foo': {
+                    'name': '',
+                    'subscription': 'both',
+                    'groups': ['Unicode'],
+                    'presence': {},
+                    'in_roster': True}}
+        self.failUnless(self.xmpp.roster == roster,
+                "Unexpected roster values: %s" % self.xmpp.roster)
+
+        self.recv("""
+          <presence to="tester@localhost" from="andré@foo/bar">
+            <show>away</show>
+            <status>Testing</status>
+          </presence>
+        """)
+
+        # Give the event queue time to process.
+        time.sleep(.1)
+
+        roster = {'andré@foo': {
+                    'name': '',
+                    'subscription': 'both',
+                    'groups': ['Unicode'],
+                    'presence': {
+                        'bar':{'priority':0,
+                               'status':'Testing',
+                               'show':'away'}},
+                    'in_roster': True}}
+        self.failUnless(self.xmpp.roster == roster,
+                "Unexpected roster values: %s" % self.xmpp.roster)
 
 
 

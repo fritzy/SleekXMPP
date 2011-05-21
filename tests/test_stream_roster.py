@@ -182,7 +182,7 @@ class TestStreamRoster(SleekTest):
                           subscription='both',
                           groups=['Unicode'])
 
-        jids = self.xmpp.client_roster.keys()
+        jids = list(self.xmpp.client_roster.keys())
         self.failUnless(jids == ['andré@foo'],
                  "Too many roster entries found: %s" % jids)
 

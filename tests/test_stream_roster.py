@@ -192,7 +192,10 @@ class TestStreamRoster(SleekTest):
                 "Unexpected roster values: %s" % self.xmpp.roster)
 
         self.recv("""
-          <presence from="andré@foo/bar" />
+          <presence to="tester@localhost" from="andré@foo/bar">
+            <show>away</show>
+            <status>Testing</status>
+          </presence>
         """)
 
         # Give the event queue time to process.
@@ -204,8 +207,8 @@ class TestStreamRoster(SleekTest):
                     'groups': ['Unicode'],
                     'presence': {
                         'bar':{'priority':0,
-                               'status':'',
-                               'show':'available'}},
+                               'status':'Testing',
+                               'show':'away'}},
                     'in_roster': True}}
         self.failUnless(self.xmpp.roster == roster,
                 "Unexpected roster values: %s" % self.xmpp.roster)

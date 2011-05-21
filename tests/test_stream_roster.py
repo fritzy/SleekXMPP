@@ -1,4 +1,6 @@
-# -*- encoding:utf8 -*-
+# -*- encoding:utf-8 -*-
+
+from __future__ import unicode_literals
 
 from sleekxmpp.test import *
 import time
@@ -176,33 +178,30 @@ class TestStreamRoster(SleekTest):
         # Give the event queue time to process.
         time.sleep(.1)
 
-        roster = {'andré@foo': {
-                    'name': '',
-                    'subscription': 'both',
-                    'groups': ['Unicode'],
-                    'presence': {},
-                    'in_roster': True}}
-        self.failUnless(self.xmpp.roster == roster,
-                "Unexpected roster values: %s" % self.xmpp.roster)
+        self.check_roster('tester@localhost', 'andré@foo',
+                          subscription='both',
+                          groups=['Unicode'])
+
+        jids = self.xmpp.client_roster.keys()
+        self.failUnless(jids == ['andré@foo'],
+                 "Too many roster entries found: %s" % jids)
 
         self.recv("""
-          <presence from="andré@foo/bar" />
+          <presence to="tester@localhost" from="andré@foo/bar">
+            <show>away</show>
+            <status>Testing</status>
+          </presence>
         """)
 
         # Give the event queue time to process.
         time.sleep(.1)
 
-        roster = {'andré@foo': {
-                    'name': '',
-                    'subscription': 'both',
-                    'groups': ['Unicode'],
-                    'presence': {
-                        'bar':{'priority':0,
-                               'status':'',
-                               'show':'available'}},
-                    'in_roster': True}}
-        self.failUnless(self.xmpp.roster == roster,
-                "Unexpected roster values: %s" % self.xmpp.roster)
+        result = self.xmpp.client_roster['andré@foo'].resources
+        expected = {'bar': {'status':'Testing',
+                            'show':'away',
+                            'priority':0}}
+        self.failUnless(result == expected,
+                "Unexpected roster values: %s" % result)
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestStreamRoster)

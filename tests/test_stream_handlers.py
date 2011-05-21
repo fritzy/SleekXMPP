@@ -104,6 +104,9 @@ class TestHandlers(SleekTest):
         iq['query'] = 'test2'
         self.send(iq)
 
+        # Give the event queue time to process.
+        time.sleep(0.1)
+
         # Check that the waiter is no longer registered
         waiter_exists = self.xmpp.removeHandler('IqWait_test2')
 

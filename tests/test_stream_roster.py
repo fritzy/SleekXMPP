@@ -132,7 +132,7 @@ class TestStreamRoster(SleekTest):
         # Since get_roster blocks, we need to run it in a thread.
         t = threading.Thread(name='get_roster',
                              target=self.xmpp.get_roster,
-                             kwargs={'callback': roster_callback})
+                             kwargs={str('callback'): roster_callback})
         t.start()
 
         self.send("""

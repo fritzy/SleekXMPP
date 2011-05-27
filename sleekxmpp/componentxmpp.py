@@ -138,4 +138,5 @@ class ComponentXMPP(BaseXMPP):
         Arguments:
             xml -- The reply handshake stanza.
         """
+        self.session_started_event.set()
         self.event("session_start")

@@ -17,6 +17,7 @@ import sys
 import threading
 import time
 import types
+import random
 try:
     import queue
 except ImportError:
@@ -44,6 +45,9 @@ HANDLER_THREADS = 1
 
 # Flag indicating if the SSL library is available for use.
 SSL_SUPPORT = True
+
+# Maximum time to delay between connection attempts is one hour.
+RECONNECT_MAX_DELAY = 3600
 
 
 log = logging.getLogger(__name__)
@@ -104,7 +108,11 @@ class XMLStream(object):
         use_ssl       -- Flag indicating if SSL should be used.
         use_tls       -- Flag indicating if TLS should be used.
         stop          -- threading Event used to stop all threads.
-        auto_reconnect-- Flag to determine whether we auto reconnect.
+
+        auto_reconnect      -- Flag to determine whether we auto reconnect.
+        reconnect_max_delay -- Maximum time to delay between connection
+                               attempts. Defaults to RECONNECT_MAX_DELAY,
+                               which is one hour.
 
     Methods:
         add_event_handler    -- Add a handler for a custom event.
@@ -155,6 +163,7 @@ class XMLStream(object):
         self.ca_certs = None
 
         self.response_timeout = RESPONSE_TIMEOUT
+        self.reconnect_max_delay = RECONNECT_MAX_DELAY
 
         self.state = StateMachine(('disconnected', 'connected'))
         self.state._set_state('disconnected')
@@ -291,9 +300,14 @@ class XMLStream(object):
         # is established.
         connected = self.state.transition('disconnected', 'connected',
                                           func=self._connect)
+        delay = 1.0
         while reattempt and not connected:
             connected = self.state.transition('disconnected', 'connected',
                                               func=self._connect)
+            delay = min(delay * 2, self.reconnect_max_delay)
+            delay = random.normalvariate(delay, delay * 0.1)
+            log.debug('Waiting %s seconds before reconnecting.' % delay)
+            time.sleep(delay)
         return connected
 
     def _connect(self):

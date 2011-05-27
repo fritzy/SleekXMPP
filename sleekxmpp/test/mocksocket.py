@@ -39,6 +39,7 @@ class TestSocket(object):
         self.recv_queue = queue.Queue()
         self.send_queue = queue.Queue()
         self.is_live = False
+        self.disconnected = False
 
     def __getattr__(self, name):
         """
@@ -89,6 +90,13 @@ class TestSocket(object):
         """
         self.recv_queue.put(data)
 
+    def disconnect_error(self):
+        """
+        Simulate a disconnect error by raising a socket.error exception
+        for any current or further socket operations.
+        """
+        self.disconnected = True
+
     # ------------------------------------------------------------------
     # Socket Interface
 
@@ -99,6 +107,8 @@ class TestSocket(object):
         Arguments:
             Placeholders. Same as for socket.Socket.recv.
         """
+        if self.disconnected:
+            raise socket.error
         return self.read(block=True)
 
     def send(self, data):
@@ -108,6 +118,8 @@ class TestSocket(object):
         Arguments:
             data -- String value to write.
         """
+        if self.disconnected:
+            raise socket.error
         self.send_queue.put(data)
 
     # ------------------------------------------------------------------
@@ -132,6 +144,8 @@ class TestSocket(object):
             timeout -- Time in seconds a block should last before
                        returning None.
         """
+        if self.disconnected:
+            raise socket.error
         if timeout is not None:
             block = True
         try:

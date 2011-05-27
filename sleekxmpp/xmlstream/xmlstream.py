@@ -978,7 +978,8 @@ class XMLStream(object):
                 log.debug("SEND: %s" % data)
                 try:
                     self.socket.send(data.encode('utf-8'))
-                except:
+                except Socket.error as serr:
+                    self.event('socket_error', serr)
                     log.warning("Failed to send %s" % data)
                     self.disconnect(self.auto_reconnect)
         except KeyboardInterrupt:

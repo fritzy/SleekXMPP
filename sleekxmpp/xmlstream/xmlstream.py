@@ -323,7 +323,7 @@ class XMLStream(object):
 
             ssl_socket = ssl.wrap_socket(self.socket,
                                          ca_certs=self.ca_certs,
-                                         certs_reqs=cert_policy)
+                                         cert_reqs=cert_policy)
 
             if hasattr(self.socket, 'socket'):
                 # We are using a testing socket, so preserve the top

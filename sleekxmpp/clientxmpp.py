@@ -75,9 +75,6 @@ class ClientXMPP(BaseXMPP):
         self.plugin_whitelist = plugin_whitelist
         self.srv_support = SRV_SUPPORT
 
-        self.session_started_event = threading.Event()
-        self.session_started_event.clear()
-
         self.stream_header = "<stream:stream to='%s' %s %s version='1.0'>" % (
                 self.boundjid.host,
                 "xmlns:stream='%s'" % self.stream_ns,
@@ -313,7 +310,7 @@ class ClientXMPP(BaseXMPP):
                              self._handle_tls_start,
                              name='TLS Proceed',
                              instream=True)
-            self.send_xml(xml)
+            self.send_xml(xml, now=True)
             return True
         else:
             log.warning("The module tlslite is required to log in" +\
@@ -369,11 +366,13 @@ class ClientXMPP(BaseXMPP):
 
                 self.send("<auth xmlns='%s' mechanism='PLAIN'>%s</auth>" % (
                     sasl_ns,
-                    auth))
+                    auth),
+                    now=True)
             elif 'sasl:ANONYMOUS' in self.features and not self.boundjid.user:
                 self.send("<auth xmlns='%s' mechanism='%s' />" % (
                     sasl_ns,
-                    'ANONYMOUS'))
+                    'ANONYMOUS'),
+                    now=True)
             else:
                 log.error("No appropriate login method.")
                 self.disconnect()
@@ -416,7 +415,7 @@ class ClientXMPP(BaseXMPP):
             res.text = self.boundjid.resource
             xml.append(res)
         iq.append(xml)
-        response = iq.send()
+        response = iq.send(now=True)
 
         bind_ns = 'urn:ietf:params:xml:ns:xmpp-bind'
         self.set_jid(response.xml.find('{%s}bind/{%s}jid' % (bind_ns,
@@ -439,7 +438,7 @@ class ClientXMPP(BaseXMPP):
         """
         if self.authenticated and self.bound:
             iq = self.makeIqSet(xml)
-            response = iq.send()
+            response = iq.send(now=True)
             log.debug("Established Session")
             self.sessionstarted = True
             self.session_started_event.set()

@@ -1253,9 +1253,15 @@ class StanzaBase(ElementBase):
         log.exception('Error handling {%s}%s stanza' % (self.namespace,
                                                             self.name))
 
-    def send(self):
-        """Queue the stanza to be sent on the XML stream."""
-        self.stream.sendRaw(self.__str__())
+    def send(self, now=False):
+        """
+        Queue the stanza to be sent on the XML stream.
+        Arguments:
+            now -- Indicates if the queue should be skipped and the
+                   stanza sent immediately. Useful for stream
+                   initialization. Defaults to False.
+        """
+        self.stream.send_raw(self.__str__(), now=now)
 
     def __copy__(self):
         """

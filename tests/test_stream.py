@@ -1,5 +1,5 @@
+import time
 from sleekxmpp.test import *
-import sleekxmpp.plugins.xep_0033 as xep_0033
 
 
 class TestStreamTester(SleekTest):
@@ -56,5 +56,24 @@ class TestStreamTester(SleekTest):
         """Test that we can check a sent stream header."""
         self.stream_start(mode='client', skip=False)
         self.send_header(sto='localhost')
+
+    def testStreamDisconnect(self):
+        """Test that the test socket can simulate disconnections."""
+        self.stream_start()
+        events = set()
+
+        def stream_error(event):
+            events.add('socket_error')
+
+        self.xmpp.add_event_handler('socket_error', stream_error)
+
+        self.stream_disconnect()
+        self.xmpp.send_raw('  ')
+
+        time.sleep(.1)
+
+        self.failUnless('socket_error' in events,
+                "Stream error event not raised: %s" % events)
+
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestStreamTester)

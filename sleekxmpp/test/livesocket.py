@@ -58,6 +58,18 @@ class TestLiveSocket(object):
     # ------------------------------------------------------------------
     # Testing Interface
 
+    def disconnect_errror(self):
+        """
+        Used to simulate a socket disconnection error.
+
+        Not used by live sockets.
+        """
+        try:
+            self.socket.shutdown()
+            self.socket.close()
+        except:
+            pass
+
     def next_sent(self, timeout=None):
         """
         Get the next stanza that has been sent.

@@ -259,6 +259,13 @@ class SleekTest(unittest.TestCase):
     # ------------------------------------------------------------------
     # Methods for simulating stanza streams.
 
+    def stream_disconnect(self):
+        """
+        Simulate a stream disconnection.
+        """
+        if self.xmpp:
+            self.xmpp.socket.disconnect_error()
+
     def stream_start(self, mode='client', skip=True, header=None,
                            socket='mock', jid='tester@localhost',
                            password='test', server='localhost',
@@ -327,6 +334,8 @@ class SleekTest(unittest.TestCase):
         self.xmpp.process(threaded=True)
         if skip:
             if socket != 'live':
+                # Mark send queue as usable
+                self.xmpp.session_started_event.set()
                 # Clear startup stanzas
                 self.xmpp.socket.next_sent(timeout=1)
                 if mode == 'component':

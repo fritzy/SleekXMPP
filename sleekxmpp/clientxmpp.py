@@ -77,9 +77,6 @@ class ClientXMPP(BaseXMPP):
         self.plugin_whitelist = plugin_whitelist
         self.srv_support = SRV_SUPPORT
 
-        self.session_started_event = threading.Event()
-        self.session_started_event.clear()
-
         self.stream_header = "<stream:stream to='%s' %s %s version='1.0'>" % (
                 self.boundjid.host,
                 "xmlns:stream='%s'" % self.stream_ns,
@@ -369,7 +366,7 @@ class ClientXMPP(BaseXMPP):
                             MatchXPath(tls.Proceed.tag_name()),
                             tls_proceed,
                             instream=True))
-            self.send(features['starttls'])
+            self.send(features['starttls'], now=True)
             return True
         else:
             log.warning("The module tlslite is required to log in" +\
@@ -446,8 +443,7 @@ class ClientXMPP(BaseXMPP):
         resp = sasl.Auth(xmpp)
         resp['mechanism'] = 'PLAIN'
         resp['value'] = auth
-        resp.send()
-
+        resp.send(now=True)
         return True
 
     def _handle_sasl_anonymous(self, xmpp):
@@ -479,7 +475,7 @@ class ClientXMPP(BaseXMPP):
         iq.enable('bind')
         if self.boundjid.resource:
             iq['bind']['resource'] = self.boundjid.resource
-        response = iq.send()
+        response = iq.send(now=True)
 
         self.set_jid(response['bind']['jid'])
         self.bound = True
@@ -502,7 +498,7 @@ class ClientXMPP(BaseXMPP):
         iq = self.Iq()
         iq['type'] = 'set'
         iq.enable('session')
-        response = iq.send()
+        response = iq.send(now=True)
 
         log.debug("Established Session")
         self.sessionstarted = True

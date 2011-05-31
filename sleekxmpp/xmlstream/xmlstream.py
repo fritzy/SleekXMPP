@@ -727,7 +727,7 @@ class XMLStream(object):
                          Defaults to self.auto_reconnect.
         """
         if now:
-            log.debug("SEND: %s" % data)
+            log.debug("SEND (IMMED): %s" % data)
             try:
                 self.socket.send(data.encode('utf-8'))
             except Socket.error as serr:
@@ -829,35 +829,39 @@ class XMLStream(object):
         """
         depth = 0
         root = None
-        for (event, xml) in ET.iterparse(self.filesocket, (b'end', b'start')):
-            if event == b'start':
-                if depth == 0:
-                    # We have received the start of the root element.
-                    root = xml
-                    # Perform any stream initialization actions, such
-                    # as handshakes.
-                    self.stream_end_event.clear()
-                    self.start_stream_handler(root)
-                depth += 1
-            if event == b'end':
-                depth -= 1
-                if depth == 0:
-                    # The stream's root element has closed,
-                    # terminating the stream.
-                    log.debug("End of stream recieved")
-                    self.stream_end_event.set()
-                    return False
-                elif depth == 1:
-                    # We only raise events for stanzas that are direct
-                    # children of the root element.
-                    try:
-                        self.__spawn_event(xml)
-                    except RestartStream:
-                        return True
-                    if root:
-                        # Keep the root element empty of children to
-                        # save on memory use.
-                        root.clear()
+        try:
+            for (event, xml) in ET.iterparse(self.filesocket,
+                                             (b'end', b'start')):
+                if event == b'start':
+                    if depth == 0:
+                        # We have received the start of the root element.
+                        root = xml
+                        # Perform any stream initialization actions, such
+                        # as handshakes.
+                        self.stream_end_event.clear()
+                        self.start_stream_handler(root)
+                    depth += 1
+                if event == b'end':
+                    depth -= 1
+                    if depth == 0:
+                        # The stream's root element has closed,
+                        # terminating the stream.
+                        log.debug("End of stream recieved")
+                        self.stream_end_event.set()
+                        return False
+                    elif depth == 1:
+                        # We only raise events for stanzas that are direct
+                        # children of the root element.
+                        try:
+                            self.__spawn_event(xml)
+                        except RestartStream:
+                            return True
+                        if root:
+                            # Keep the root element empty of children to
+                            # save on memory use.
+                            root.clear()
+        except SyntaxError:
+            log.error("Error reading from XML stream.")
         log.debug("Ending read XML loop")
 
     def _build_stanza(self, xml, default_ns=None):

@@ -22,6 +22,8 @@ class FileSocket(_fileobject):
 
     def read(self, size=4096):
         """Read data from the socket as if it were a file."""
+        if self._sock is None:
+            return None
         data = self._sock.recv(size)
         if data is not None:
             return data

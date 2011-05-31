@@ -163,6 +163,7 @@ class XMLStream(object):
         self.ca_certs = None
 
         self.response_timeout = RESPONSE_TIMEOUT
+        self.reconnect_delay = None
         self.reconnect_max_delay = RECONNECT_MAX_DELAY
 
         self.state = StateMachine(('disconnected', 'connected'))
@@ -302,20 +303,24 @@ class XMLStream(object):
         # is established.
         connected = self.state.transition('disconnected', 'connected',
                                           func=self._connect)
-        delay = 1.0
         while reattempt and not connected:
             connected = self.state.transition('disconnected', 'connected',
                                               func=self._connect)
-            delay = min(delay * 2, self.reconnect_max_delay)
-            delay = random.normalvariate(delay, delay * 0.1)
-            log.debug('Waiting %s seconds before reconnecting.' % delay)
-            time.sleep(delay)
         return connected
 
     def _connect(self):
         self.stop.clear()
         self.socket = self.socket_class(Socket.AF_INET, Socket.SOCK_STREAM)
         self.socket.settimeout(None)
+
+        if self.reconnect_delay is None:
+            delay = 1.0
+        else:
+            delay = min(self.reconnect_delay * 2, self.reconnect_max_delay)
+            delay = random.normalvariate(delay, delay * 0.1)
+            log.debug('Waiting %s seconds before connecting.' % delay)
+            time.sleep(delay)
+
         if self.use_ssl and self.ssl_support:
             log.debug("Socket Wrapped for SSL")
             if self.ca_certs is None:
@@ -340,13 +345,14 @@ class XMLStream(object):
             self.set_socket(self.socket, ignore=True)
             #this event is where you should set your application state
             self.event("connected", direct=True)
+            self.reconnect_delay = 1.0
             return True
         except Socket.error as serr:
             error_msg = "Could not connect to %s:%s. Socket Error #%s: %s"
             self.event('socket_error', serr)
             log.error(error_msg % (self.address[0], self.address[1],
                                        serr.errno, serr.strerror))
-            time.sleep(1)
+            self.reconnect_delay = delay
             return False
 
     def disconnect(self, reconnect=False):

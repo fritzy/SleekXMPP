@@ -11,6 +11,7 @@ from sleekxmpp.stanza.rootstanza import RootStanza
 from sleekxmpp.xmlstream import StanzaBase, ET
 from sleekxmpp.xmlstream.handler import Waiter, Callback
 from sleekxmpp.xmlstream.matcher import MatcherId
+from sleekxmpp.exceptions import IqTimeout, IqError
 
 
 class Iq(RootStanza):
@@ -197,7 +198,12 @@ class Iq(RootStanza):
             waitfor = Waiter('IqWait_%s' % self['id'], MatcherId(self['id']))
             self.stream.register_handler(waitfor)
             StanzaBase.send(self, now=now)
-            return waitfor.wait(timeout)
+            result = waitfor.wait(timeout)
+            if not result:
+                raise IqTimeout()
+            if result['type'] == 'error':
+                raise IqError(result)
+            return result
         else:
             return StanzaBase.send(self, now=now)
 

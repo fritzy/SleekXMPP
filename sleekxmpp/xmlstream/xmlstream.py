@@ -192,6 +192,7 @@ class XMLStream(object):
 
         self.event_queue = queue.Queue()
         self.send_queue = queue.Queue()
+        self.__failed_send_stanza = None
         self.scheduler = Scheduler(self.event_queue, self.stop)
 
         self.namespace_map = {StanzaBase.xml_ns: 'xml'}
@@ -1021,16 +1022,21 @@ class XMLStream(object):
         try:
             while not self.stop.isSet():
                 self.session_started_event.wait()
-                try:
-                    data = self.send_queue.get(True, 1)
-                except queue.Empty:
-                    continue
+                if self.__failed_send_stanza is not None:
+                    data = self.__failed_send_stanza
+                    self.__failed_send_stanza = None
+                else:
+                    try:
+                        data = self.send_queue.get(True, 1)
+                    except queue.Empty:
+                        continue
                 log.debug("SEND: %s" % data)
                 try:
                     self.socket.send(data.encode('utf-8'))
                 except Socket.error as serr:
                     self.event('socket_error', serr)
                     log.warning("Failed to send %s" % data)
+                    self.__failed_send_stanza = data
                     self.disconnect(self.auto_reconnect)
         except KeyboardInterrupt:
             log.debug("Keyboard Escape Detected in _send_thread")

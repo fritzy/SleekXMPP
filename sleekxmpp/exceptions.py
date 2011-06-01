@@ -61,7 +61,15 @@ class IqTimeout(Exception):
     received within the alloted time window.
     """
 
+    def __init__(self, iq):
+        self.iq = iq
+
 class IqError(Exception):
+
+    """
+    An exception raised when an Iq stanza of type 'error' is received
+    after making a blocking send call.
+    """
 
     def __init__(self, iq):
         self.iq = iq

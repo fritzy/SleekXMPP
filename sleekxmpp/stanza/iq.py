@@ -200,7 +200,7 @@ class Iq(RootStanza):
             StanzaBase.send(self, now=now)
             result = waitfor.wait(timeout)
             if not result:
-                raise IqTimeout()
+                raise IqTimeout(self)
             if result['type'] == 'error':
                 raise IqError(result)
             return result

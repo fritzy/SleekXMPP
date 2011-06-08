@@ -171,7 +171,7 @@ class xep_0050(base_plugin):
         """
         if jid is None:
             jid = self.xmpp.boundjid
-        elif isinstance(jid, str):
+        elif not isinstance(jid, JID):
             jid = JID(jid)
         item_jid = jid.full
 

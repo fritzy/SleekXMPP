@@ -11,7 +11,7 @@ import logging
 from xml.etree import cElementTree as ET
 import time
 
-class xep_0050(base.base_plugin):
+class old_0050(base.base_plugin):
 	"""
 	XEP-0050 Ad-Hoc Commands
 	"""

@@ -389,6 +389,7 @@ class XMLStream(object):
             self.event('socket_error', serr)
         finally:
             #clear your application state
+            self.event('session_end', direct=True)
             self.event("disconnected", direct=True)
             return True
 

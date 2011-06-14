@@ -614,7 +614,7 @@ class BaseXMPP(XMLStream):
                                 'in_roster': False}
 
         # Alias to simplify some references.
-        connections = self.roster[jid]['presence']
+        connections = self.roster[jid].get('presence', {})
 
         # Determine if the user has just come online.
         if not resource in connections:

@@ -678,6 +678,7 @@ class BaseXMPP(XMLStream):
         elif not presence['type'] in ('available', 'unavailable') and \
              not presence['type'] in presence.showtypes:
             return
+
         self.event("changed_status", presence)
 
 # Restore the old, lowercased name for backwards compatibility.

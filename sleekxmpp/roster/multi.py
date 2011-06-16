@@ -34,7 +34,8 @@ class Roster(object):
                           Defaults to True.
 
     Methods:
-        add -- Create a new roster node for a JID.
+        add           -- Create a new roster node for a JID.
+        send_presence -- Shortcut for sending a presence stanza.
     """
 
     def __init__(self, xmpp, db=None):
@@ -113,3 +114,27 @@ class Roster(object):
         """
         for node in self:
             self[node].reset()
+
+    def send_presence(self, pshow=None, pstatus=None, ppriority=None,
+                      pto=None, pfrom=None, ptype=None, pnick=None):
+        """
+        Create, initialize, and send a Presence stanza.
+
+        Forwards the send request to the appropriate roster to
+        perform the actual sending.
+
+        Arguments:
+            pshow     -- The presence's show value.
+            pstatus   -- The presence's status message.
+            ppriority -- This connections' priority.
+            pto       -- The recipient of a directed presence.
+            ptype     -- The type of presence, such as 'subscribe'.
+            pfrom     -- The sender of the presence.
+            pnick     -- Optional nickname of the presence's sender.
+        """
+        self[pfrom].send_presence(ptype=ptype,
+                                  pshow=pshow,
+                                  pstatus=pstatus,
+                                  ppriority=ppriority,
+                                  pnick=pnick,
+                                  pto=pto)

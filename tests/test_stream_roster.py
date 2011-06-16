@@ -203,5 +203,35 @@ class TestStreamRoster(SleekTest):
         self.failUnless(result == expected,
                 "Unexpected roster values: %s" % result)
 
+    def testSendLastPresence(self):
+        """Test that sending the last presence works."""
+        self.stream_start()
+        self.xmpp.send_presence(pshow='dnd')
+        self.xmpp.auto_authorize = True
+        self.xmpp.auto_subscribe = True
+
+        self.send("""
+          <presence>
+            <show>dnd</show>
+          </presence>
+        """)
+
+        self.recv("""
+          <presence from="user@localhost"
+                    to="tester@localhost"
+                    type="subscribe" />
+        """)
+
+        self.send("""
+          <presence to="user@localhost"
+                    type="subscribed" />
+        """)
+
+        self.send("""
+          <presence to="user@localhost">
+            <show>dnd</show>
+          </presence>
+        """)
+
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestStreamRoster)

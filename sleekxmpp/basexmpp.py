@@ -426,7 +426,7 @@ class BaseXMPP(XMLStream):
             msubject -- Optional subject for the message.
             mtype    -- The message's type, such as 'chat' or 'groupchat'.
             mhtml    -- Optional HTML body content.
-            mfrom    -- The sender of the message. If sending from a client,
+            mfrom    -- The sender of the message. if sending from a client,
                         be aware that some servers require that the full JID
                         of the sender be used.
             mnick    -- Optional nickname of the sender.
@@ -441,7 +441,7 @@ class BaseXMPP(XMLStream):
         return message
 
     def make_presence(self, pshow=None, pstatus=None, ppriority=None,
-                      pto=None, ptype=None, pfrom=None):
+                      pto=None, ptype=None, pfrom=None, pnick=None):
         """
         Create and initialize a new Presence stanza.
 
@@ -452,14 +452,16 @@ class BaseXMPP(XMLStream):
             pto       -- The recipient of a directed presence.
             ptype     -- The type of presence, such as 'subscribe'.
             pfrom     -- The sender of the presence.
+            pnick     -- Optional nickname of the presence's sender.
         """
         presence = self.Presence(stype=ptype, sfrom=pfrom, sto=pto)
         if pshow is not None:
             presence['type'] = pshow
-        if pfrom is None:
+        if pfrom is None and self.is_component:
             presence['from'] = self.boundjid.full
         presence['priority'] = ppriority
         presence['status'] = pstatus
+        presence['nick'] = pnick
         return presence
 
     def send_message(self, mto, mbody, msubject=None, mtype=None,
@@ -467,13 +469,22 @@ class BaseXMPP(XMLStream):
         """
         Create, initialize, and send a Message stanza.
 
-
+        Arguments:
+            mto      -- The recipient of the message.
+            mbody    -- The main contents of the message.
+            msubject -- Optional subject for the message.
+            mtype    -- The message's type, such as 'chat' or 'groupchat'.
+            mhtml    -- Optional HTML body content.
+            mfrom    -- The sender of the message. if sending from a client,
+                        be aware that some servers require that the full JID
+                        of the sender be used.
+            mnick    -- Optional nickname of the sender.
         """
-        self.makeMessage(mto, mbody, msubject, mtype,
-                         mhtml, mfrom, mnick).send()
+        self.make_message(mto, mbody, msubject, mtype,
+                          mhtml, mfrom, mnick).send()
 
     def send_presence(self, pshow=None, pstatus=None, ppriority=None,
-                      pto=None, pfrom=None, ptype=None):
+                      pto=None, pfrom=None, ptype=None, pnick=None):
         """
         Create, initialize, and send a Presence stanza.
 
@@ -484,13 +495,20 @@ class BaseXMPP(XMLStream):
             pto       -- The recipient of a directed presence.
             ptype     -- The type of presence, such as 'subscribe'.
             pfrom     -- The sender of the presence.
+            pnick     -- Optional nickname of the presence's sender.
         """
-        self.makePresence(pshow, pstatus, ppriority, pto,
-                          ptype=ptype, pfrom=pfrom).send()
-        # Unexpected errors may occur if
-        if not self.sentpresence:
-            self.event('sent_presence')
-            self.sentpresence = True
+        # Python2.6 chokes on Unicode strings for dict keys.
+        args = {str('pto'): pto,
+                str('ptype'): ptype,
+                str('pshow'): pshow,
+                str('pstatus'): pstatus,
+                str('ppriority'): ppriority,
+                str('pnick'): pnick}
+
+        if self.is_component:
+            self.roster[pfrom].send_presence(**args)
+        else:
+            self.client_roster.send_presence(**args)
 
     def send_presence_subscription(self, pto, pfrom=None,
                                    ptype='subscribe', pnick=None):

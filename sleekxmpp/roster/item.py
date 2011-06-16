@@ -105,23 +105,25 @@ class RosterItem(object):
     """
 
     def __init__(self, xmpp, jid, owner=None,
-                 state=None, db=None):
+                 state=None, db=None, roster=None):
         """
         Create a new roster item.
 
         Arguments:
-            xmpp  -- The main SleekXMPP instance.
-            jid   -- The item's JID.
-            owner -- The roster owner's JID. Defaults
-                     so self.xmpp.boundjid.bare.
-            state -- A dictionary of initial state values.
-            db    -- An optional interface to an external datastore.
+            xmpp   -- The main SleekXMPP instance.
+            jid    -- The item's JID.
+            owner  -- The roster owner's JID. Defaults
+                      so self.xmpp.boundjid.bare.
+            state  -- A dictionary of initial state values.
+            db     -- An optional interface to an external datastore.
+            roster -- The roster object containing this entry.
         """
         self.xmpp = xmpp
         self.jid = jid
         self.owner = owner or self.xmpp.boundjid.bare
         self.last_status = None
         self.resources = {}
+        self.roster = roster
         self.db = db
         self._state = state or {
                 'from': False,
@@ -290,19 +292,46 @@ class RosterItem(object):
             p['from'] = self.owner
         p.send()
 
-    def send_presence(self, ptype='available', status=None):
-        p = self.xmpp.Presence()
-        p['to'] = self.jid
-        p['type'] = ptype
-        p['status'] = status
+    def send_presence(self, ptype=None, pshow=None, pstatus=None,
+                            ppriority=None, pnick=None):
+        """
+        Create, initialize, and send a Presence stanza.
+
+        Arguments:
+            pshow     -- The presence's show value.
+            pstatus   -- The presence's status message.
+            ppriority -- This connections' priority.
+            ptype     -- The type of presence, such as 'subscribe'.
+            pnick     -- Optional nickname of the presence's sender.
+        """
+        p = self.xmpp.make_presence(pshow=pshow,
+                                    pstatus=pstatus,
+                                    ppriority=ppriority,
+                                    ptype=ptype,
+                                    pnick=pnick,
+                                    pto=self.jid)
         if self.xmpp.is_component:
             p['from'] = self.owner
-        self.last_status = p
+        if p['type'] in p.showtypes or p['type'] == 'available':
+            self.last_status = p
         p.send()
+
+        if not self.xmpp.sentpresence:
+            self.xmpp.event('sent_presence')
+            self.xmpp.sentpresence = True
 
     def send_last_presence(self):
         if self.last_status is None:
-            self.send_presence()
+            pres = self.roster.last_status
+            if pres is None:
+                self.send_presence()
+            else:
+                pres['to'] = self.jid
+                if self.xmpp.is_component:
+                    pres['from'] = self.owner
+                else:
+                    del pres['from']
+                pres.send()
         else:
             self.last_status.send()
 

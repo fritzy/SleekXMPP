@@ -29,14 +29,17 @@ class RosterNode(object):
                           are created after automatically authrorizing
                           a subscription request.
                           Defaults to True
+        last_status    -- The last sent presence status that was broadcast
+                          to all contact JIDs.
 
     Methods:
-        add         -- Add a JID to the roster.
-        update      -- Update a JID's subscription information.
-        subscribe   -- Subscribe to a JID.
-        unsubscribe -- Unsubscribe from a JID.
-        remove      -- Remove a JID from the roster.
-        presence    -- Return presence information for a JID's resources.
+        add           -- Add a JID to the roster.
+        update        -- Update a JID's subscription information.
+        subscribe     -- Subscribe to a JID.
+        unsubscribe   -- Unsubscribe from a JID.
+        remove        -- Remove a JID from the roster.
+        presence      -- Return presence information for a JID's resources.
+        send_presence -- Shortcut for sending a presence stanza.
     """
 
     def __init__(self, xmpp, jid, db=None):
@@ -53,6 +56,7 @@ class RosterNode(object):
         self.db = db
         self.auto_authorize = True
         self.auto_subscribe = True
+        self.last_status = None
         self._jids = {}
 
         if self.db:
@@ -135,7 +139,8 @@ class RosterNode(object):
                  'whitelisted': whitelisted,
                  'subscription': 'none'}
         self._jids[jid] = RosterItem(self.xmpp, jid, self.jid,
-                                     state=state, db=self.db)
+                                     state=state, db=self.db,
+                                     roster=self)
         if save:
             self._jids[jid].save()
 
@@ -220,3 +225,38 @@ class RosterNode(object):
         """
         for jid in self:
             self[jid].reset()
+
+    def send_presence(self, ptype=None, pshow=None, pstatus=None,
+                            ppriority=None, pnick=None, pto=None):
+        """
+        Create, initialize, and send a Presence stanza.
+
+        If no recipient is specified, send the presence immediately.
+        Otherwise, forward the send request to the recipient's roster
+        entry for processing.
+
+        Arguments:
+            pshow     -- The presence's show value.
+            pstatus   -- The presence's status message.
+            ppriority -- This connections' priority.
+            pto       -- The recipient of a directed presence.
+            ptype     -- The type of presence, such as 'subscribe'.
+        """
+        if pto:
+            self[pto].send_presence(ptype, pshow, pstatus,
+                                    ppriority, pnick)
+        else:
+            p = self.xmpp.make_presence(pshow=pshow,
+                                        pstatus=pstatus,
+                                        ppriority=ppriority,
+                                        ptype=ptype,
+                                        pnick=pnick)
+            if self.xmpp.is_component:
+                p['from'] = self.jid
+            if p['type'] in p.showtypes or p['type'] == 'available':
+                self.last_status = p
+            p.send()
+
+            if not self.xmpp.sentpresence:
+                self.xmpp.event('sent_presence')
+                self.xmpp.sentpresence = True

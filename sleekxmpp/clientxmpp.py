@@ -225,15 +225,8 @@ class ClientXMPP(BaseXMPP):
                             Will be executed when the roster is received.
                             Implies block=False.
         """
-        iq = self.Iq()
-        iq['type'] = 'set'
-        iq['roster']['items'] = {jid: {'name': name,
-                                       'subscription': subscription,
-                                       'groups': groups}}
-        response = iq.send(block, timeout, callback)
-        if response in [False, None] or not isinstance(response, Iq):
-            return response
-        return response['type'] == 'result'
+        return self.client_roster.updtae(jid, name, subscription, groups,
+                                         block, timeout, callback)
 
     def del_roster_item(self, jid):
         """
@@ -243,7 +236,7 @@ class ClientXMPP(BaseXMPP):
         Arguments:
             jid -- The JID of the item to remove.
         """
-        return self.update_roster(jid, subscription='remove')
+        return self.client_roster.remove(jid)
 
     def get_roster(self, block=True, timeout=None, callback=None):
         """

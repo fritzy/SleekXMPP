@@ -171,9 +171,10 @@ class RosterNode(object):
         """
         self[jid].remove()
         if not self.xmpp.is_component:
-            self.update(jid, subscription='remove')
+            return self.update(jid, subscription='remove')
 
-    def update(self, jid, name=None, subscription=None, groups=[]):
+    def update(self, jid, name=None, subscription=None, groups=[],
+                     block=True, timeout=None, callback=None):
         """
         Update a JID's subscription information.
 
@@ -183,6 +184,15 @@ class RosterNode(object):
             subscription -- The subscription state. May be one of: 'to',
                             'from', 'both', 'none', or 'remove'.
             groups       -- A list of group names.
+            block        -- Specify if the roster request will block
+                            until a response is received, or a timeout
+                            occurs. Defaults to True.
+            timeout      -- The length of time (in seconds) to wait
+                            for a response before continuing if blocking
+                            is used. Defaults to self.response_timeout.
+            callback     -- Optional reference to a stream handler function.
+                            Will be executed when the roster is received.
+                            Implies block=False.
         """
         self[jid]['name'] = name
         self[jid]['groups'] = group
@@ -194,7 +204,9 @@ class RosterNode(object):
             iq['roster']['items'] = {jid: {'name': name,
                                            'subscription': subscription,
                                            'groups': groups}}
-            response = iq.send()
+            response = iq.send(block, timeout, callback)
+            if response in [False, None] or isinstance(response, Iq):
+                return response
             return response and response['type'] == 'result'
 
     def presence(self, jid, resource=None):

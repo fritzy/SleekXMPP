@@ -312,7 +312,8 @@ class RosterItem(object):
                                     pto=self.jid)
         if self.xmpp.is_component:
             p['from'] = self.owner
-        if p['type'] in p.showtypes or p['type'] == 'available':
+        if p['type'] in p.showtypes or \
+           p['type'] in ['available', 'unavailable']:
             self.last_status = p
         p.send()
 

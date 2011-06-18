@@ -265,7 +265,8 @@ class RosterNode(object):
                                         pnick=pnick)
             if self.xmpp.is_component:
                 p['from'] = self.jid
-            if p['type'] in p.showtypes or p['type'] == 'available':
+            if p['type'] in p.showtypes or \
+               p['type'] in ['available', 'unavailable']:
                 self.last_status = p
             p.send()
 

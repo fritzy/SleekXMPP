@@ -944,13 +944,14 @@ class XMLStream(object):
             func -- The event handler to execute.
             args -- Arguments to the event handler.
         """
+        orig = copy.copy(args[0])
         try:
             func(*args)
         except Exception as e:
             error_msg = 'Error processing event handler: %s'
             log.exception(error_msg % str(func))
-            if hasattr(args[0], 'exception'):
-                args[0].exception(e)
+            if hasattr(orig, 'exception'):
+                orig.exception(e)
 
     def _event_runner(self):
         """
@@ -973,6 +974,7 @@ class XMLStream(object):
 
                 etype, handler = event[0:2]
                 args = event[2:]
+                orig = copy.copy(args[0])
 
                 if etype == 'stanza':
                     try:
@@ -980,7 +982,7 @@ class XMLStream(object):
                     except Exception as e:
                         error_msg = 'Error processing stream handler: %s'
                         log.exception(error_msg % handler.name)
-                        args[0].exception(e)
+                        orig.exception(e)
                 elif etype == 'schedule':
                     try:
                         log.debug('Scheduled event: %s' % args)
@@ -989,6 +991,7 @@ class XMLStream(object):
                         log.exception('Error processing scheduled task')
                 elif etype == 'event':
                     func, threaded, disposable = handler
+                    orig = copy.copy(args[0])
                     try:
                         if threaded:
                             x = threading.Thread(
@@ -1001,8 +1004,8 @@ class XMLStream(object):
                     except Exception as e:
                         error_msg = 'Error processing event handler: %s'
                         log.exception(error_msg % str(func))
-                        if hasattr(args[0], 'exception'):
-                            args[0].exception(e)
+                        if hasattr(orig, 'exception'):
+                            orig.exception(e)
                 elif etype == 'quit':
                     log.debug("Quitting event runner thread")
                     return False

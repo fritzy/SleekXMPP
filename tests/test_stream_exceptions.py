@@ -15,6 +15,35 @@ class TestStreamExceptions(SleekTest):
         sys.excepthook = sys.__excepthook__
         self.stream_close()
 
+    def testExceptionReply(self):
+        """Test that raising an exception replies with the original stanza."""
+
+        def message(msg):
+            msg.reply()
+            msg['body'] = 'Body changed'
+            raise XMPPError(clear=False)
+
+
+        sys.excepthook = lambda *args, **kwargs: None
+        self.stream_start()
+        self.xmpp.add_event_handler('message', message)
+
+        self.recv("""
+          <message>
+            <body>This is going to cause an error.</body>
+          </message>
+        """)
+
+        self.send("""
+          <message type="error">
+            <body>This is going to cause an error.</body>
+            <error type="cancel" code="500">
+              <undefined-condition
+                  xmlns="urn:ietf:params:xml:ns:xmpp-stanzas" />
+            </error>
+          </message>
+        """)
+
     def testXMPPErrorException(self):
         """Test raising an XMPPError exception."""
 

@@ -112,6 +112,23 @@ class ClientXMPP(BaseXMPP):
                              self.default_ns,
                              'jabber:iq:roster')),
                          self._handle_roster))
+        self.register_handler(
+                Callback('SASL Success',
+                         MatchXPath(sasl.Success.tag_name()),
+                         self._handle_sasl_success,
+                         instream=True,
+                         once=True))
+        self.register_handler(
+                Callback('SASL Failure',
+                         MatchXPath(sasl.Failure.tag_name()),
+                         self._handle_sasl_fail,
+                         instream=True,
+                         once=True))
+        self.register_handler(
+                Callback('STARTTLS Proceed',
+                        MatchXPath(tls.Proceed.tag_name()),
+                        self._handle_starttls_proceed,
+                        instream=True))
 
         self.register_feature('starttls', self._handle_starttls,
                               restart=True,
@@ -130,7 +147,7 @@ class ClientXMPP(BaseXMPP):
                                      self._handle_sasl_plain,
                                      priority=1)
         self.register_sasl_mechanism('ANONYMOUS',
-                                     self._handle_sasl_plain,
+                                     self._handle_sasl_anonymous,
                                      priority=0)
 
     def connect(self, address=tuple(), reattempt=True, use_tls=True):
@@ -349,28 +366,22 @@ class ClientXMPP(BaseXMPP):
         Arguments:
             features -- The stream:features element.
         """
-
-        def tls_proceed(proceed):
-            """Restart the XML stream when TLS is accepted."""
-            log.debug("Starting TLS")
-            if self.start_tls():
-                self.features.append('starttls')
-                raise RestartStream()
-
         if not self.use_tls:
             return False
         elif self.ssl_support:
-            self.register_handler(
-                    Callback('STARTTLS Proceed',
-                            MatchXPath(tls.Proceed.tag_name()),
-                            tls_proceed,
-                            instream=True))
             self.send(features['starttls'], now=True)
             return True
         else:
             log.warning("The module tlslite is required to log in" +\
                             " to some servers, and has not been found.")
             return False
+
+    def _handle_starttls_proceed(self, proceed):
+        """Restart the XML stream when TLS is accepted."""
+        log.debug("Starting TLS")
+        if self.start_tls():
+            self.features.append('starttls')
+            raise RestartStream()
 
     def _handle_sasl_auth(self, features):
         """
@@ -379,44 +390,30 @@ class ClientXMPP(BaseXMPP):
         Arguments:
             features -- The stream features stanza.
         """
-
-        def sasl_success(stanza):
-            """SASL authentication succeeded. Restart the stream."""
-            self.authenticated = True
-            self.features.append('mechanisms')
-            raise RestartStream()
-
-        def sasl_fail(stanza):
-            """SASL authentication failed. Disconnect and shutdown."""
-            log.info("Authentication failed.")
-            self.event("failed_auth", direct=True)
-            self.disconnect()
-            log.debug("Starting SASL Auth")
-            return True
-
-        self.register_handler(
-                Callback('SASL Success',
-                         MatchXPath(sasl.Success.tag_name()),
-                         sasl_success,
-                         instream=True,
-                         once=True))
-
-        self.register_handler(
-                Callback('SASL Failure',
-                         MatchXPath(sasl.Failure.tag_name()),
-                         sasl_fail,
-                         instream=True,
-                         once=True))
-
         for priority, mech in self._sasl_mechanism_priorities:
-            if mech in self._sasl_mechanism_handlers:
+            if mech in features['mechanisms']:
                 handler = self._sasl_mechanism_handlers[mech]
                 if handler(self):
                     break
         else:
             log.error("No appropriate login method.")
+            self.event("no_auth", direct=True)
             self.disconnect()
 
+        return True
+
+    def _handle_sasl_success(self, stanza):
+        """SASL authentication succeeded. Restart the stream."""
+        self.authenticated = True
+        self.features.append('mechanisms')
+        raise RestartStream()
+
+    def _handle_sasl_fail(self, stanza):
+        """SASL authentication failed. Disconnect and shutdown."""
+        log.info("Authentication failed.")
+        self.event("failed_auth", direct=True)
+        self.disconnect()
+        log.debug("Starting SASL Auth")
         return True
 
     def _handle_sasl_plain(self, xmpp):

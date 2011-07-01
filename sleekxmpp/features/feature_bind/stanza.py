@@ -6,8 +6,7 @@
     See the file LICENSE for copying permission.
 """
 
-from sleekxmpp.stanza import Iq
-from sleekxmpp.stanza.stream import StreamFeatures
+from sleekxmpp.stanza import Iq, StreamFeatures
 from sleekxmpp.xmlstream import ElementBase, ET, register_stanza_plugin
 
 
@@ -21,7 +20,3 @@ class Bind(ElementBase):
     interfaces = set(('resource', 'jid'))
     sub_interfaces = interfaces
     plugin_attrib = 'bind'
-
-
-register_stanza_plugin(Iq, Bind)
-register_stanza_plugin(StreamFeatures, Bind)

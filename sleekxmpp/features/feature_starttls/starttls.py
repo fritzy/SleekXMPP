@@ -8,11 +8,12 @@
 
 import logging
 
-from sleekxmpp.stanza.stream import tls
-from sleekxmpp.xmlstream import RestartStream
+from sleekxmpp.stanza import StreamFeatures
+from sleekxmpp.xmlstream import RestartStream, register_stanza_plugin
 from sleekxmpp.xmlstream.matcher import *
 from sleekxmpp.xmlstream.handler import *
 from sleekxmpp.plugins.base import base_plugin
+from sleekxmpp.features.feature_starttls import stanza
 
 
 log = logging.getLogger(__name__)
@@ -24,17 +25,21 @@ class feature_starttls(base_plugin):
         self.name = "STARTTLS"
         self.rfc = '6120'
         self.description = "STARTTLS Stream Feature"
+        self.stanza = stanza
 
-        self.xmpp.register_stanza(tls.Proceed)
         self.xmpp.register_handler(
                 Callback('STARTTLS Proceed',
-                        MatchXPath(tls.Proceed.tag_name()),
+                        MatchXPath(stanza.Proceed.tag_name()),
                         self._handle_starttls_proceed,
                         instream=True))
         self.xmpp.register_feature('starttls',
                 self._handle_starttls,
                 restart=True,
                 order=self.config.get('order', 0))
+
+        self.xmpp.register_stanza(stanza.Proceed)
+        self.xmpp.register_stanza(stanza.Failure)
+        register_stanza_plugin(StreamFeatures, stanza.STARTTLS)
 
     def _handle_starttls(self, features):
         """

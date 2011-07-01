@@ -11,7 +11,5 @@ from sleekxmpp.stanza.error import Error
 from sleekxmpp.stanza.iq import Iq
 from sleekxmpp.stanza.message import Message
 from sleekxmpp.stanza.presence import Presence
-from sleekxmpp.stanza.stream import StreamFeatures
-from sleekxmpp.stanza.stream import Bind
-from sleekxmpp.stanza.stream import Session
-from sleekxmpp.stanza.stream import StreamError
+from sleekxmpp.stanza.stream_features import StreamFeatures
+from sleekxmpp.stanza.stream_error import StreamError

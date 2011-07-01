@@ -45,6 +45,3 @@ class Failure(StanzaBase):
     name = 'failure'
     namespace = 'urn:ietf:params:xml:ns:xmpp-tls'
     interfaces = set()
-
-
-register_stanza_plugin(StreamFeatures, STARTTLS)

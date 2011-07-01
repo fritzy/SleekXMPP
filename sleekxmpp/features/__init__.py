@@ -7,4 +7,5 @@
 """
 
 __all__ = ['feature_starttls', 'feature_mechanisms',
+           'feature_bind', 'feature_session',
            'sasl_plain', 'sasl_anonymous']

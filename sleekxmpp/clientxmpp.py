@@ -87,8 +87,6 @@ class ClientXMPP(BaseXMPP):
         self.features = []
         self._stream_feature_handlers = {}
         self._stream_feature_order = []
-        self._sasl_mechanism_handlers = {}
-        self._sasl_mechanism_priorities = []
 
         #TODO: Use stream state here
         self.authenticated = False

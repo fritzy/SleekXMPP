@@ -6,3 +6,5 @@
     See the file LICENSE for copying permission.
 """
 
+from sleekxmpp.features.feature_mechanisms.mechanisms import feature_mechanisms
+from sleekxmpp.features.feature_mechanisms.stanza import *

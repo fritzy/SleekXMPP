@@ -13,7 +13,6 @@ class TestStreamDirectInvite(SleekTest):
     """
 
     def tearDown(self):
-        sys.excepthook = sys.__excepthook__
         self.stream_close()
 
     def testReceiveInvite(self):

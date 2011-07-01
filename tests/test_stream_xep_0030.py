@@ -12,7 +12,6 @@ class TestStreamDisco(SleekTest):
     """
 
     def tearDown(self):
-        sys.excepthook = sys.__excepthook__
         self.stream_close()
 
     def testInfoEmptyDefaultNode(self):
@@ -531,11 +530,6 @@ class TestStreamDisco(SleekTest):
 
         raised_exceptions = []
 
-        def catch_exception(*args, **kwargs):
-            raised_exceptions.append(True)
-
-        sys.excepthook = catch_exception
-
         self.stream_start(mode='client',
                           plugins=['xep_0030', 'xep_0059'])
 
@@ -544,8 +538,14 @@ class TestStreamDisco(SleekTest):
                                                   iterator=True)
         results.amount = 10
 
+        def run_test():
+            try:
+                results.next()
+            except StopIteration:
+                raised_exceptions.append(True)
+
         t = threading.Thread(name="get_items_iterator",
-                             target=results.next)
+                             target=run_test)
         t.start()
 
         self.send("""

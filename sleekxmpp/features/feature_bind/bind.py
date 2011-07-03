@@ -53,7 +53,7 @@ class feature_bind(base_plugin):
         self.xmpp.set_jid(response['bind']['jid'])
         self.xmpp.bound = True
 
-        self.features.add('bind')
+        self.xmpp.features.add('bind')
 
         log.info("Node set to: %s" % self.xmpp.boundjid.full)
 

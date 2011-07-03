@@ -7,4 +7,7 @@
 """
 
 from sleekxmpp.features.feature_mechanisms.mechanisms import feature_mechanisms
-from sleekxmpp.features.feature_mechanisms.stanza import *
+from sleekxmpp.features.feature_mechanisms.stanza import Mechanisms
+from sleekxmpp.features.feature_mechanisms.stanza import Auth
+from sleekxmpp.features.feature_mechanisms.stanza import Success
+from sleekxmpp.features.feature_mechanisms.stanza import Failure

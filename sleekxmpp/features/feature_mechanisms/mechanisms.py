@@ -8,7 +8,8 @@
 
 import logging
 
-from sleekxmpp.xmlstream import RestartStream
+from sleekxmpp.stanza import StreamFeatures
+from sleekxmpp.xmlstream import RestartStream, register_stanza_plugin
 from sleekxmpp.xmlstream.matcher import *
 from sleekxmpp.xmlstream.handler import *
 from sleekxmpp.plugins.base import base_plugin
@@ -26,6 +27,7 @@ class feature_mechanisms(base_plugin):
         self.description = "SASL Stream Feature"
         self.stanza = stanza
 
+        register_stanza_plugin(StreamFeatures, stanza.Mechanisms)
         self.xmpp.register_stanza(stanza.Success)
         self.xmpp.register_stanza(stanza.Failure)
         self.xmpp.register_stanza(stanza.Auth)
@@ -115,8 +117,7 @@ class feature_mechanisms(base_plugin):
 
     def _handle_fail(self, stanza):
         """SASL authentication failed. Disconnect and shutdown."""
-        log.info("Authentication failed.")
-        self.xmpp.event("failed_auth", direct=True)
+        log.info("Authentication failed: %s" % stanza['condition'])
+        self.xmpp.event("failed_auth", stanza, direct=True)
         self.xmpp.disconnect()
-        log.debug("Starting SASL Auth")
         return True

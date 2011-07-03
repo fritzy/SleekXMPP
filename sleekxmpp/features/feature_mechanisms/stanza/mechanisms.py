@@ -1,6 +1,6 @@
 """
     SleekXMPP: The Sleek XMPP Library
-    Copyright (C) 2010  Nathanael C. Fritz
+    Copyright (C) 2011  Nathanael C. Fritz
     This file is part of SleekXMPP.
 
     See the file LICENSE for copying permission.
@@ -53,52 +53,3 @@ class Mechanisms(ElementBase):
         if mechs:
             for mech in mechs:
                 self.xml.remove(mech)
-
-
-class Success(StanzaBase):
-
-    """
-    """
-
-    name = 'success'
-    namespace = 'urn:ietf:params:xml:ns:xmpp-sasl'
-    interfaces = set()
-    plugin_attrib = name
-
-
-class Failure(StanzaBase):
-
-    """
-    """
-
-    name = 'failure'
-    namespace = 'urn:ietf:params:xml:ns:xmpp-sasl'
-    interfaces = set()
-    plugin_attrib = name
-
-
-class Auth(StanzaBase):
-
-    """
-    """
-
-    name = 'auth'
-    namespace = 'urn:ietf:params:xml:ns:xmpp-sasl'
-    interfaces = set(('mechanism', 'value'))
-    plugin_attrib = name
-
-    def setup(self, xml):
-        StanzaBase.setup(self, xml)
-        self.xml.tag = self.tag_name()
-
-    def set_value(self, value):
-        self.xml.text = value
-
-    def get_value(self):
-        return self.xml.text
-
-    def del_value(self):
-        self.xml.text = ''
-
-
-register_stanza_plugin(StreamFeatures, Mechanisms)

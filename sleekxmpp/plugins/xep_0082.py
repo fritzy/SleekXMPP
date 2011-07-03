@@ -105,8 +105,9 @@ def time(hour=None, min=None, sec=None, micro=None, offset=None):
         min    -- Integer value of the number of minutes.
         sec    -- Integer value of the number of seconds.
         micro  -- Integer value of the number of microseconds.
-        offset -- A positive or negative number of seconds to
-                  offset from UTC to match a desired timezone.
+        offset -- Either a positive or negative number of seconds
+                  to offset from UTC to match a desired timezone,
+                  or a tzinfo object.
     """
     now = dt.datetime.utcnow()
     if hour is None:
@@ -119,7 +120,7 @@ def time(hour=None, min=None, sec=None, micro=None, offset=None):
         micro = now.microsecond
     if offset is None:
         offset = tzutc()
-    else:
+    elif not isinstance(offset, dt.tzinfo):
         offset = tzoffset(None, offset)
     time = dt.time(hour, min, sec, micro, offset)
     return format_time(time)
@@ -140,8 +141,9 @@ def datetime(year=None, month=None, day=None, hour=None,
         min    -- Integer value of the number of minutes.
         sec    -- Integer value of the number of seconds.
         micro  -- Integer value of the number of microseconds.
-        offset -- A positive or negative number of seconds to
-                  offset from UTC to match a desired timezone.
+        offset -- Either a positive or negative number of seconds
+                  to offset from UTC to match a desired timezone,
+                  or a tzinfo object.
     """
     now = dt.datetime.utcnow()
     if year is None:
@@ -160,11 +162,11 @@ def datetime(year=None, month=None, day=None, hour=None,
         micro = now.microsecond
     if offset is None:
         offset = tzutc()
-    else:
+    elif not isinstance(offset, dt.tzinfo):
         offset = tzoffset(None, offset)
 
     date = dt.datetime(year, month, day, hour,
-                             sec, min, micro, offset)
+                       min, sec, micro, offset)
     return format_datetime(date)
 
 class xep_0082(base_plugin):

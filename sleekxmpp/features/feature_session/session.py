@@ -48,6 +48,8 @@ class feature_session(base_plugin):
         iq.enable('session')
         response = iq.send(now=True)
 
+        self.xmpp.features.add('session')
+
         log.debug("Established Session")
         self.xmpp.sessionstarted = True
         self.xmpp.session_started_event.set()

@@ -90,6 +90,11 @@ class feature_mechanisms(base_plugin):
         Arguments:
             features -- The stream features stanza.
         """
+        if 'mechanisms' in self.xmpp.features:
+            # SASL authentication has already succeeded, but the
+            # server has incorrectly offered it again.
+            return False
+
         for priority, mech in self._mechanism_priorities:
             if mech in features['mechanisms']:
                 log.debug('Attempt to use SASL %s' % mech)
@@ -105,7 +110,7 @@ class feature_mechanisms(base_plugin):
     def _handle_success(self, stanza):
         """SASL authentication succeeded. Restart the stream."""
         self.xmpp.authenticated = True
-        self.xmpp.features.append('mechanisms')
+        self.xmpp.features.add('mechanisms')
         raise RestartStream()
 
     def _handle_fail(self, stanza):

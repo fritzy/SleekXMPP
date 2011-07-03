@@ -83,7 +83,7 @@ class ClientXMPP(BaseXMPP):
                 "xmlns='%s'" % self.default_ns)
         self.stream_footer = "</stream:stream>"
 
-        self.features = []
+        self.features = set()
         self._stream_feature_handlers = {}
         self._stream_feature_order = []
 
@@ -273,7 +273,7 @@ class ClientXMPP(BaseXMPP):
         self.sessionstarted = False
         self.bound = False
         self.bindfail = False
-        self.features = []
+        self.features = set()
 
         def session_timeout():
             if not self.session_started_event.isSet():

@@ -48,7 +48,11 @@ class feature_starttls(base_plugin):
         Arguments:
             features -- The stream:features element.
         """
-        if not self.xmpp.use_tls:
+        if 'starttls' in self.xmpp.features:
+            # We have already negotiated TLS, but the server is
+            # offering it again, against spec.
+            return False
+        elif not self.xmpp.use_tls:
             return False
         elif self.xmpp.ssl_support:
             self.xmpp.send(features['starttls'], now=True)
@@ -62,5 +66,5 @@ class feature_starttls(base_plugin):
         """Restart the XML stream when TLS is accepted."""
         log.debug("Starting TLS")
         if self.xmpp.start_tls():
-            self.xmpp.features.append('starttls')
+            self.xmpp.features.add('starttls')
             raise RestartStream()

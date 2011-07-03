@@ -51,7 +51,7 @@ class feature_mechanisms(base_plugin):
                 restart=True,
                 order=self.config.get('order', 100))
 
-    def register_mechanism(self, name, handler, priority=0):
+    def register(self, name, handler, priority=0):
         """
         Register a handler for a SASL authentication mechanism.
 
@@ -70,7 +70,7 @@ class feature_mechanisms(base_plugin):
         self._mechanism_priorities.append((priority, name))
         self._mechanism_priorities.sort(reverse=True)
 
-    def remove_mechanism(self, name):
+    def remove(self, name):
         """
         Remove support for a given SASL authentication mechanism.
 

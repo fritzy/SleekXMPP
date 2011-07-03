@@ -14,8 +14,9 @@ class sasl_plain(base_plugin):
         self.name = 'SASL PLAIN'
         self.rfc = '6120'
         self.description = 'SASL PLAIN Mechanism'
+        self.stanza = self.xmpp['feature_mechanisms'].stanza
 
-        self.xmpp.register_sasl_mechanism('PLAIN',
+        self.xmpp['feature_mechanisms'].register('PLAIN',
                 self._handle_plain,
                 priority=self.config.get('priority', 1))
 
@@ -33,7 +34,7 @@ class sasl_plain(base_plugin):
         auth = base64.b64encode(b'\x00' + user + \
                                 b'\x00' + password).decode('utf-8')
 
-        resp = self.xmpp['feature_mechanisms'].stanza.Auth(self.xmpp)
+        resp = self.stanza.Auth(self.xmpp)
         resp['mechanism'] = 'PLAIN'
         resp['value'] = auth
         resp.send(now=True)

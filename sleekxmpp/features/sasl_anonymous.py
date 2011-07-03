@@ -14,8 +14,9 @@ class sasl_anonymous(base_plugin):
         self.name = 'SASL ANONYMOUS'
         self.rfc = '6120'
         self.description = 'SASL ANONYMOUS Mechanism'
+        self.stanza = self.xmpp['feature_mechanisms'].stanza
 
-        self.xmpp.register_sasl_mechanism('ANONYMOUS',
+        self.xmpp['feature_mechanisms'].register('ANONYMOUS',
                 self._handle_anonymous,
                 priority=self.config.get('priority', 0))
 
@@ -23,7 +24,7 @@ class sasl_anonymous(base_plugin):
         if self.xmpp.boundjid.user:
             return False
 
-        resp = self.xmpp['feature_sasl'].stanza.Auth(self.xmpp)
+        resp = self.stanza.Auth(self.xmpp)
         resp['mechanism'] = 'ANONYMOUS'
         resp.send(now=True)
 

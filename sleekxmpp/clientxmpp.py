@@ -197,32 +197,6 @@ class ClientXMPP(BaseXMPP):
         self._stream_feature_order.append((order, name))
         self._stream_feature_order.sort()
 
-    def register_sasl_mechanism(self, name, handler, priority=0):
-        """
-        Register a handler for a SASL authentication mechanism.
-
-        Arguments:
-            name     -- The name of the mechanism (all caps)
-            handler  -- The function that will perform the
-                        authentication. The function must
-                        return True if it is able to carry
-                        out the authentication, False if
-                        a required condition is not met.
-            priority -- An integer value indicating the
-                        preferred ordering for the mechanism.
-                        High values will be attempted first.
-        """
-        self['feature_mechanisms'].register_mechanism(name, handler, priority)
-
-    def remove_sasl_mechanism(self, name):
-        """
-        Remove support for a given SASL authentication mechanism.
-
-        Arguments:
-            name -- The name of the mechanism to remove (all caps)
-        """
-        self['feature_mechanisms'].remove_mechanism(name)
-
     def update_roster(self, jid, name=None, subscription=None, groups=[],
                             block=True, timeout=None, callback=None):
         """

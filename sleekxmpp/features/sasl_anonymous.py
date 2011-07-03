@@ -2,7 +2,6 @@ import base64
 import sys
 import logging
 
-from sleekxmpp.stanza.stream import sasl
 from sleekxmpp.plugins.base import base_plugin
 
 
@@ -24,7 +23,7 @@ class sasl_anonymous(base_plugin):
         if self.xmpp.boundjid.user:
             return False
 
-        resp = sasl.Auth(self.xmpp)
+        resp = self.xmpp['feature_sasl'].stanza.Auth(self.xmpp)
         resp['mechanism'] = 'ANONYMOUS'
         resp.send(now=True)
 

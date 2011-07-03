@@ -8,11 +8,11 @@
 
 import logging
 
-from sleekxmpp.stanza import stream
 from sleekxmpp.xmlstream import RestartStream
 from sleekxmpp.xmlstream.matcher import *
 from sleekxmpp.xmlstream.handler import *
 from sleekxmpp.plugins.base import base_plugin
+from sleekxmpp.features.feature_mechanisms import stanza
 
 
 log = logging.getLogger(__name__)
@@ -24,23 +24,24 @@ class feature_mechanisms(base_plugin):
         self.name = 'SASL Mechanisms'
         self.rfc = '6120'
         self.description = "SASL Stream Feature"
+        self.stanza = stanza
 
-        self.xmpp.register_stanza(stream.sasl.Success)
-        self.xmpp.register_stanza(stream.sasl.Failure)
-        self.xmpp.register_stanza(stream.sasl.Auth)
+        self.xmpp.register_stanza(stanza.Success)
+        self.xmpp.register_stanza(stanza.Failure)
+        self.xmpp.register_stanza(stanza.Auth)
 
         self._mechanism_handlers = {}
         self._mechanism_priorities = []
 
         self.xmpp.register_handler(
                 Callback('SASL Success',
-                         MatchXPath(stream.sasl.Success.tag_name()),
+                         MatchXPath(stanza.Success.tag_name()),
                          self._handle_success,
                          instream=True,
                          once=True))
         self.xmpp.register_handler(
                 Callback('SASL Failure',
-                         MatchXPath(stream.sasl.Failure.tag_name()),
+                         MatchXPath(stanza.Failure.tag_name()),
                          self._handle_fail,
                          instream=True,
                          once=True))

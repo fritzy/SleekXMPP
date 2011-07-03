@@ -2,7 +2,6 @@ import base64
 import sys
 import logging
 
-from sleekxmpp.stanza.stream import sasl
 from sleekxmpp.plugins.base import base_plugin
 
 
@@ -34,7 +33,7 @@ class sasl_plain(base_plugin):
         auth = base64.b64encode(b'\x00' + user + \
                                 b'\x00' + password).decode('utf-8')
 
-        resp = sasl.Auth(self.xmpp)
+        resp = self.xmpp['feature_mechanisms'].stanza.Auth(self.xmpp)
         resp['mechanism'] = 'PLAIN'
         resp['value'] = auth
         resp.send(now=True)

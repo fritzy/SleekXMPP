@@ -21,7 +21,6 @@ from sleekxmpp import stanza
 from sleekxmpp import features
 from sleekxmpp.basexmpp import BaseXMPP
 from sleekxmpp.stanza import *
-from sleekxmpp.stanza.stream import tls, sasl
 from sleekxmpp.xmlstream import XMLStream, RestartStream
 from sleekxmpp.xmlstream import StanzaBase, ET, register_stanza_plugin
 from sleekxmpp.xmlstream.matcher import *

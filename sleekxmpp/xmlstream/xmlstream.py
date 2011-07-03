@@ -764,7 +764,6 @@ class XMLStream(object):
                         Event handlers and the send queue will be threaded
                         regardless of this parameter's value.
         """
-        self._thread_excepthook()
         self.scheduler.process(threaded=True)
 
         def start_thread(name, target):
@@ -1052,30 +1051,16 @@ class XMLStream(object):
             self.event_queue.put(('quit', None, None))
             return
 
-    def _thread_excepthook(self):
+    def exception(self, exception):
         """
-        If a threaded event handler raises an exception, there is no way to
-        catch it except with an excepthook. Currently, each thread has its own
-        excepthook, but ideally we could use the main sys.excepthook.
+        Process an unknown exception.
 
-        Modifies threading.Thread to use sys.excepthook when an exception
-        is not caught.
+        Meant to be overridden.
+
+        Arguments:
+            exception -- An unhandled exception object.
         """
-        init_old = threading.Thread.__init__
-
-        def init(self, *args, **kwargs):
-            init_old(self, *args, **kwargs)
-            run_old = self.run
-
-            def run_with_except_hook(*args, **kw):
-                try:
-                    run_old(*args, **kw)
-                except (KeyboardInterrupt, SystemExit):
-                    raise
-                except:
-                    sys.excepthook(*sys.exc_info())
-            self.run = run_with_except_hook
-        threading.Thread.__init__ = init
+        pass
 
 
 # To comply with PEP8, method names now use underscores.

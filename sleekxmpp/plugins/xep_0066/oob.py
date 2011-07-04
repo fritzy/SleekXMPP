@@ -6,6 +6,7 @@
     See the file LICENSE for copying permission.
 """
 
+import logging
 
 from sleekxmpp.stanza import Message, Presence, Iq
 from sleekxmpp.xmlstream import register_stanza_plugin
@@ -13,6 +14,9 @@ from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.xmlstream.matcher import StanzaPath
 from sleekxmpp.plugins.base import base_plugin
 from sleekxmpp.plugins.xep_0066 import stanza
+
+
+log = logging.getLogger(__name__)
 
 
 class xep_0066(base_plugin):
@@ -86,4 +90,6 @@ class xep_0066(base_plugin):
 
     def _handle_transfer(self, iq):
         """Handle receiving an out-of-band transfer request."""
+        log.debug('Received out-of-band data request for %s from %s:' % (
+            iq['oob_transfer']['url'], iq['from']))
         self.xmpp.event('oob_transfer', iq)

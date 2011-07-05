@@ -9,6 +9,7 @@
 import logging
 
 from sleekxmpp.stanza import Message, Presence, Iq
+from sleekxmpp.exceptions import XMPPError
 from sleekxmpp.xmlstream import register_stanza_plugin
 from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.xmlstream.matcher import StanzaPath
@@ -47,6 +48,9 @@ class xep_0066(base_plugin):
         self.description = 'Out-of-Band Transfer'
         self.stanza = stanza
 
+        self.url_handlers = {'global': self._default_handler,
+                             'jid': {}}
+
         register_stanza_plugin(Iq, stanza.OOBTransfer)
         register_stanza_plugin(Message, stanza.OOB)
         register_stanza_plugin(Presence, stanza.OOB)
@@ -61,6 +65,28 @@ class xep_0066(base_plugin):
         base_plugin.post_init(self)
         self.xmpp['xep_0030'].add_feature(stanza.OOBTransfer.namespace)
         self.xmpp['xep_0030'].add_feature(stanza.OOB.namespace)
+
+    def register_url_handler(self, jid=None, handler=None):
+        """
+        Register a handler to process download requests, either for all
+        JIDs or a single JID.
+
+        Arguments:
+            jid     -- If None, then set the handler as a global default.
+            handler -- If None, then remove the existing handler for the
+                       given JID, or reset the global handler if the JID
+                       is None.
+        """
+        if jid is None:
+            if handler is not None:
+                self.url_handlers['global'] = handler
+            else:
+                self.url_handlers['global'] = self._default_handler
+        else:
+            if handler is not None:
+                self.url_handlers['jid'][jid] = handler
+            else:
+                del self.url_handlers['jid'][jid]
 
     def send_oob(self, to, url, desc=None, ifrom=None, **iqargs):
         """
@@ -88,8 +114,41 @@ class xep_0066(base_plugin):
         iq['oob_transfer']['desc'] = desc
         return iq.send(**iqargs)
 
+    def _run_url_handler(self, iq):
+        """
+        Execute the appropriate handler for a transfer request.
+
+        Arguments:
+            iq -- The Iq stanza containing the OOB transfer request.
+        """
+        if iq['to'] in self.url_handlers['jid']:
+            return self.url_handlers['jid'][jid](iq)
+        else:
+            if self.url_handlers['global']:
+                self.url_handlers['global'](iq)
+            else:
+                raise XMPPError('service-unavailable')
+
+    def _default_handler(self, iq):
+        """
+        As a safe default, don't actually download files.
+
+        Register a new handler using self.register_url_handler to
+        screen requests and download files.
+
+        Arguments:
+            iq -- The Iq stanza containing the OOB transfer request.
+        """
+        raise XMPPError('service-unavailable')
+
     def _handle_transfer(self, iq):
-        """Handle receiving an out-of-band transfer request."""
+        """
+        Handle receiving an out-of-band transfer request.
+
+        Arguments:
+            iq -- An Iq stanza containing an OOB transfer request.
+        """
         log.debug('Received out-of-band data request for %s from %s:' % (
             iq['oob_transfer']['url'], iq['from']))
-        self.xmpp.event('oob_transfer', iq)
+        self._run_url_handler(iq)
+        iq.reply().send()

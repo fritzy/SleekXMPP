@@ -183,7 +183,7 @@ class ClientXMPP(BaseXMPP):
 
                     picked = random.randint(0, intmax)
                     for item in items:
-                        if picked <= priority:
+                        if picked <= item:
                             address = addresses[item]
                             break
 

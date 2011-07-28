@@ -200,5 +200,56 @@ class TestStreamPresence(SleekTest):
         self.assertEqual(events, expected,
                 "Incorrect events triggered: %s" % events)
 
+    def test_presence_events(self):
+        """Test that presence events are raised."""
+
+        events = []
+
+        self.stream_start()
+
+        ptypes = ['available', 'away', 'dnd', 'xa', 'chat',
+                  'unavailable', 'subscribe', 'subscribed',
+                  'unsubscribe', 'unsubscribed']
+
+        for ptype in ptypes:
+            handler = lambda p: events.append(p['type'])
+            self.xmpp.add_event_handler('presence_%s' % ptype, handler)
+
+        self.recv("""
+          <presence />
+        """)
+        self.recv("""
+          <presence><show>away</show></presence>
+        """)
+        self.recv("""
+          <presence><show>dnd</show></presence>
+        """)
+        self.recv("""
+          <presence><show>xa</show></presence>
+        """)
+        self.recv("""
+          <presence><show>chat</show></presence>
+        """)
+        self.recv("""
+          <presence type="unavailable" />
+        """)
+        self.recv("""
+          <presence type="subscribe" />
+        """)
+        self.recv("""
+          <presence type="subscribed" />
+        """)
+        self.recv("""
+          <presence type="unsubscribe" />
+        """)
+        self.recv("""
+          <presence type="unsubscribed" />
+        """)
+
+        time.sleep(.5)
+
+        self.assertEqual(events, ptypes,
+            "Not all events raised: %s" % events)
+
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestStreamPresence)

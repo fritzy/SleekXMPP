@@ -8,6 +8,7 @@
 
 from __future__ import with_statement, unicode_literals
 
+import base64
 import copy
 import logging
 import signal
@@ -23,6 +24,7 @@ try:
 except ImportError:
     import Queue as queue
 
+import sleekxmpp
 from sleekxmpp.thirdparty.statemachine import StateMachine
 from sleekxmpp.xmlstream import Scheduler, tostring
 from sleekxmpp.xmlstream.stanzabase import StanzaBase, ET
@@ -107,7 +109,13 @@ class XMLStream(object):
         stream_header -- The closing tag of the stream's root element.
         use_ssl       -- Flag indicating if SSL should be used.
         use_tls       -- Flag indicating if TLS should be used.
+        use_proxy     -- Flag indicating that an HTTP Proxy should be used.
         stop          -- threading Event used to stop all threads.
+        proxy_config  -- An optional dictionary with the following entries:
+                            host     -- The host offering proxy services.
+                            port     -- The port for the proxy service.
+                            username -- Optional username for the proxy.
+                            password -- Optional password for the proxy.
 
         auto_reconnect      -- Flag to determine whether we auto reconnect.
         reconnect_max_delay -- Maximum time to delay between connection
@@ -180,6 +188,9 @@ class XMLStream(object):
 
         self.use_ssl = False
         self.use_tls = False
+        self.use_proxy = False
+
+        self.proxy_config = {}
 
         self.default_ns = ''
         self.stream_header = "<stream>"
@@ -322,6 +333,12 @@ class XMLStream(object):
             log.debug('Waiting %s seconds before connecting.' % delay)
             time.sleep(delay)
 
+        if self.use_proxy:
+            connected = self._connect_proxy()
+            if not connected:
+                self.reconnect_delay = delay
+                return False
+
         if self.use_ssl and self.ssl_support:
             log.debug("Socket Wrapped for SSL")
             if self.ca_certs is None:
@@ -341,8 +358,10 @@ class XMLStream(object):
                 self.socket = ssl_socket
 
         try:
-            log.debug("Connecting to %s:%s" % self.address)
-            self.socket.connect(self.address)
+            if not self.use_proxy:
+                log.debug("Connecting to %s:%s" % self.address)
+                self.socket.connect(self.address)
+
             self.set_socket(self.socket, ignore=True)
             #this event is where you should set your application state
             self.event("connected", direct=True)
@@ -356,22 +375,86 @@ class XMLStream(object):
             self.reconnect_delay = delay
             return False
 
-    def disconnect(self, reconnect=False):
+    def _connect_proxy(self):
+        """Attempt to connect using an HTTP Proxy."""
+
+        # Extract the proxy address, and optional credentials
+        address = (self.proxy_config['host'], int(self.proxy_config['port']))
+        cred = None
+        if self.proxy_config['username']:
+            username = self.proxy_config['username']
+            password = self.proxy_config['password']
+
+            cred = '%s:%s' % (username, password)
+            if sys.version_info < (3, 0):
+                cred = bytes(cred)
+            else:
+                cred = bytes(cred, 'utf-8')
+            cred = base64.b64encode(cred).decode('utf-8')
+
+        # Build the HTTP headers for connecting to the XMPP server
+        headers = ['CONNECT %s:%s HTTP/1.0' % self.address,
+                   'Host: %s:%s' % self.address,
+                   'Proxy-Connection: Keep-Alive',
+                   'Pragma: no-cache',
+                   'User-Agent: SleekXMPP/%s' % sleekxmpp.__version__]
+        if cred:
+            headers.append('Proxy-Authorization: Basic %s' % cred)
+        headers = '\r\n'.join(headers) + '\r\n\r\n'
+
+        try:
+            log.debug("Connecting to proxy: %s:%s" % address)
+            self.socket.connect(address)
+            self.send_raw(headers, now=True)
+            resp = ''
+            while '\r\n\r\n' not in resp:
+                resp += self.socket.recv(1024).decode('utf-8')
+            log.debug('RECV: %s' % resp)
+
+            lines = resp.split('\r\n')
+            if '200' not in lines[0]:
+                self.event('proxy_error', resp)
+                log.error('Proxy Error: %s' % lines[0])
+                return False
+
+            # Proxy connection established, continue connecting
+            # with the XMPP server.
+            return True
+        except Socket.error as serr:
+            error_msg = "Could not connect to %s:%s. Socket Error #%s: %s"
+            self.event('socket_error', serr)
+            log.error(error_msg % (self.address[0], self.address[1],
+                                       serr.errno, serr.strerror))
+            return False
+
+    def disconnect(self, reconnect=False, wait=False):
         """
         Terminate processing and close the XML streams.
 
         Optionally, the connection may be reconnected and
         resume processing afterwards.
 
+        If the disconnect should take place after all items
+        in the send queue have been sent, use wait=True. However,
+        take note: If you are constantly adding items to the queue
+        such that it is never empty, then the disconnect will
+        not occur and the call will continue to block.
+
         Arguments:
             reconnect -- Flag indicating if the connection
                          and processing should be restarted.
                          Defaults to False.
+            wait      -- Flag indicating if the send queue should
+                         be emptied before disconnecting.
         """
         self.state.transition('connected', 'disconnected', wait=0.0,
-                              func=self._disconnect, args=(reconnect,))
+                              func=self._disconnect, args=(reconnect, wait))
 
-    def _disconnect(self, reconnect=False):
+    def _disconnect(self, reconnect=False, wait=False):
+        # Wait for the send queue to empty.
+        if wait:
+            self.send_queue.join()
+
         # Send the end of stream marker.
         self.send_raw(self.stream_footer, now=True)
         self.session_started_event.clear()
@@ -1036,6 +1119,7 @@ class XMLStream(object):
                 log.debug("SEND: %s" % data)
                 try:
                     self.socket.send(data.encode('utf-8'))
+                    self.send_queue.task_done()
                 except Socket.error as serr:
                     self.event('socket_error', serr)
                     log.warning("Failed to send %s" % data)

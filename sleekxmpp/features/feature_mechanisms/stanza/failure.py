@@ -45,6 +45,8 @@ class Failure(StanzaBase):
             #If we had to generate XML then set default values.
             self['condition'] = 'not-authorized'
 
+        self.xml.tag = self.tag_name()
+
     def get_condition(self):
         """Return the condition element's name."""
         for child in self.xml.getchildren():

@@ -8,6 +8,8 @@
 
 import logging
 
+from sleekxmpp.thirdparty import suelta
+
 from sleekxmpp.stanza import StreamFeatures
 from sleekxmpp.xmlstream import RestartStream, register_stanza_plugin
 from sleekxmpp.xmlstream.matcher import *
@@ -27,13 +29,35 @@ class feature_mechanisms(base_plugin):
         self.description = "SASL Stream Feature"
         self.stanza = stanza
 
+
+        def tls_active():
+            return 'starttls' in self.xmpp.features
+
+        def basic_callback(mech, values):
+            if 'username' in values:
+                values['username'] = self.xmpp.boundjid.user
+            if 'password' in values:
+                values['password'] = self.xmpp.password
+            mech.fulfill(values)
+
+        sasl_callback = self.config.get('sasl_callback', None)
+        if sasl_callback is None:
+            sasl_callback = basic_callback
+
+        self.mech = None
+        self.sasl = suelta.SASL(self.xmpp.boundjid.domain, 'xmpp',
+                                username=self.xmpp.boundjid.user,
+                                sec_query=suelta.sec_query_allow,
+                                request_values=sasl_callback,
+                                tls_active=tls_active)
+
         register_stanza_plugin(StreamFeatures, stanza.Mechanisms)
+
         self.xmpp.register_stanza(stanza.Success)
         self.xmpp.register_stanza(stanza.Failure)
         self.xmpp.register_stanza(stanza.Auth)
-
-        self._mechanism_handlers = {}
-        self._mechanism_priorities = []
+        self.xmpp.register_stanza(stanza.Challenge)
+        self.xmpp.register_stanza(stanza.Response)
 
         self.xmpp.register_handler(
                 Callback('SASL Success',
@@ -47,43 +71,15 @@ class feature_mechanisms(base_plugin):
                          self._handle_fail,
                          instream=True,
                          once=True))
+        self.xmpp.register_handler(
+                Callback('SASL Challenge',
+                         MatchXPath(stanza.Challenge.tag_name()),
+                         self._handle_challenge))
 
         self.xmpp.register_feature('mechanisms',
                 self._handle_sasl_auth,
                 restart=True,
                 order=self.config.get('order', 100))
-
-    def register(self, name, handler, priority=0):
-        """
-        Register a handler for a SASL authentication mechanism.
-
-        Arguments:
-            name     -- The name of the mechanism (all caps)
-            handler  -- The function that will perform the
-                        authentication. The function must
-                        return True if it is able to carry
-                        out the authentication, False if
-                        a required condition is not met.
-            priority -- An integer value indicating the
-                        preferred ordering for the mechanism.
-                        High values will be attempted first.
-        """
-        self._mechanism_handlers[name] = handler
-        self._mechanism_priorities.append((priority, name))
-        self._mechanism_priorities.sort(reverse=True)
-
-    def remove(self, name):
-        """
-        Remove support for a given SASL authentication mechanism.
-
-        Arguments:
-            name -- The name of the mechanism to remove (all caps)
-        """
-        if name in self._mechanism_handlers:
-            del self._mechanism_handlers[name]
-
-        p = self._mechanism_priorities
-        self._mechanism_priorities = [i for i in p if i[1] != name]
 
     def _handle_sasl_auth(self, features):
         """
@@ -97,17 +93,25 @@ class feature_mechanisms(base_plugin):
             # server has incorrectly offered it again.
             return False
 
-        for priority, mech in self._mechanism_priorities:
-            if mech in features['mechanisms']:
-                log.debug('Attempt to use SASL %s' % mech)
-                if self._mechanism_handlers[mech]():
-                    break
+        mech_list = features['mechanisms']
+        self.mech = self.sasl.choose_mechanism(mech_list)
+
+        if self.mech is not None:
+            resp = stanza.Auth(self.xmpp)
+            resp['mechanism'] = self.mech.name
+            resp['value'] = self.mech.process()
+            resp.send(now=True)
         else:
             log.error("No appropriate login method.")
             self.xmpp.event("no_auth", direct=True)
             self.xmpp.disconnect()
-
         return True
+
+    def _handle_challenge(self, stanza):
+        """SASL challenge received. Process and send response."""
+        resp = self.stanza.Response(self.xmpp)
+        resp['value'] = self.mech.process(stanza['value'])
+        resp.send(now=True)
 
     def _handle_success(self, stanza):
         """SASL authentication succeeded. Restart the stream."""

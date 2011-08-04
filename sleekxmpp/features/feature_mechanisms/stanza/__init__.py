@@ -11,4 +11,5 @@ from sleekxmpp.features.feature_mechanisms.stanza.mechanisms import Mechanisms
 from sleekxmpp.features.feature_mechanisms.stanza.auth import Auth
 from sleekxmpp.features.feature_mechanisms.stanza.success import Success
 from sleekxmpp.features.feature_mechanisms.stanza.failure import Failure
-
+from sleekxmpp.features.feature_mechanisms.stanza.challenge import Challenge
+from sleekxmpp.features.feature_mechanisms.stanza.response import Response

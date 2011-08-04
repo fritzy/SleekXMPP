@@ -6,6 +6,10 @@
     See the file LICENSE for copying permission.
 """
 
+import base64
+
+from sleekxmpp.thirdparty.suelta.util import bytes
+
 from sleekxmpp.stanza import StreamFeatures
 from sleekxmpp.xmlstream import ElementBase, StanzaBase, ET
 from sleekxmpp.xmlstream import register_stanza_plugin
@@ -25,11 +29,11 @@ class Auth(StanzaBase):
         StanzaBase.setup(self, xml)
         self.xml.tag = self.tag_name()
 
-    def set_value(self, value):
-        self.xml.text = value
-
     def get_value(self):
-        return self.xml.text
+        return base64.b64decode(bytes(self.xml.text))
+
+    def set_value(self, values):
+        self.xml.text = bytes(base64.b64encode(values)).decode('utf-8')
 
     def del_value(self):
         self.xml.text = ''

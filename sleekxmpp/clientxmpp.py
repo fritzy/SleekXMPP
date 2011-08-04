@@ -114,12 +114,6 @@ class ClientXMPP(BaseXMPP):
         self.register_plugin('feature_bind')
         self.register_plugin('feature_session')
 
-        # Setup default SASL mechanisms
-        self.register_plugin('sasl_plain',
-                {'priority': 1})
-        self.register_plugin('sasl_anonymous',
-                {'priority': 0})
-
     def connect(self, address=tuple(), reattempt=True, use_tls=True):
         """
         Connect to the XMPP server.

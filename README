@@ -9,6 +9,9 @@ We try to keep requirements to a minimum, but we suggest that you install http:/
 If you do not install this library, you may need to specify the server/port for services that use SRV records (like GTalk).
 "sudo pip install dnspython" on a *nix system with pip installed.
 
+Two time related plugins (XEP-0082 and XEP-0202) also require the dateutil package, but that is not a hard requirement if you
+don't need those plugins. 
+
 SleekXMPP has several design goals/philosophies:
 - Low number of dependencies.
 - Every XEP as a plugin.

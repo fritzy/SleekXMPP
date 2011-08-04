@@ -6,10 +6,17 @@
     See the file LICENSE for copying permission.
 """
 
+import logging
 import datetime as dt
-from dateutil import parser
-from dateutil.tz import tzoffset, tzutc
+
 from sleekxmpp.plugins.base import base_plugin
+
+try:
+    from dateutil import parser
+    from dateutil.tz import tzoffset, tzutc
+except e:
+    log = logging.getLogger(__name__)
+    log.warning("XEP-0082 plugin requires dateutil")
 
 
 # =====================================================================

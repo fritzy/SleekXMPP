@@ -6,8 +6,10 @@
     See the file LICENSE for copying permission.
 """
 
-from __future__ import unicode_literals
-import types
+import sys
+
+if sys.version_info < (3, 0):
+    import types
 
 
 def tostring(xml=None, xmlns='', stanza_ns='', stream=None,
@@ -43,7 +45,7 @@ def tostring(xml=None, xmlns='', stanza_ns='', stream=None,
     if '}' in xml.tag:
         tag_xmlns = xml.tag.split('}', 1)[0][1:]
     else:
-        tag_xmlns = u''
+        tag_xmlns = ''
 
     default_ns = ''
     stream_ns = ''
@@ -52,15 +54,15 @@ def tostring(xml=None, xmlns='', stanza_ns='', stream=None,
         stream_ns = stream.stream_ns
 
     # Output the tag name and derived namespace of the element.
-    namespace = u''
+    namespace = ''
     if top_level and tag_xmlns not in ['', default_ns, stream_ns] or \
             tag_xmlns not in ['', xmlns, stanza_ns, stream_ns]:
-        namespace = u' xmlns="%s"' % tag_xmlns
+        namespace = ' xmlns="%s"' % tag_xmlns
     if stream and tag_xmlns in stream.namespace_map:
         mapped_namespace = stream.namespace_map[tag_xmlns]
         if mapped_namespace:
-            tag_name = u"%s:%s" % (mapped_namespace, tag_name)
-    output.append(u"<%s" % tag_name)
+            tag_name = "%s:%s" % (mapped_namespace, tag_name)
+    output.append("<%s" % tag_name)
     output.append(namespace)
 
     # Output escaped attribute values.
@@ -80,23 +82,23 @@ def tostring(xml=None, xmlns='', stanza_ns='', stream=None,
 
     if len(xml) or xml.text:
         # If there are additional child elements to serialize.
-        output.append(u">")
+        output.append(">")
         if xml.text:
             output.append(xml_escape(xml.text))
         if len(xml):
             for child in xml.getchildren():
                 output.append(tostring(child, tag_xmlns, stanza_ns, stream))
-        output.append(u"</%s>" % tag_name)
+        output.append("</%s>" % tag_name)
     elif xml.text:
         # If we only have text content.
-        output.append(u">%s</%s>" % (xml_escape(xml.text), tag_name))
+        output.append(">%s</%s>" % (xml_escape(xml.text), tag_name))
     else:
         # Empty element.
-        output.append(u" />")
+        output.append(" />")
     if xml.tail:
         # If there is additional text after the element.
         output.append(xml_escape(xml.tail))
-    return u''.join(output)
+    return ''.join(output)
 
 
 def xml_escape(text):
@@ -106,15 +108,16 @@ def xml_escape(text):
     Arguments:
         text -- The XML text to convert.
     """
-    if type(text) != types.UnicodeType:
-        text = list(unicode(text, 'utf-8', 'ignore'))
-    else:
-        text = list(text)
-    escapes = {u'&': u'&amp;',
-               u'<': u'&lt;',
-               u'>': u'&gt;',
-               u"'": u'&apos;',
-               u'"': u'&quot;'}
+    if sys.version_info < (3, 0):
+        if type(text) != types.UnicodeType:
+            text = unicode(text, 'utf-8', 'ignore')
+
+    text = list(text)
+    escapes = {'&': '&amp;',
+               '<': '&lt;',
+               '>': '&gt;',
+               "'": '&apos;',
+               '"': '&quot;'}
     for i, c in enumerate(text):
         text[i] = escapes.get(c, c)
-    return u''.join(text)
+    return ''.join(text)

@@ -93,6 +93,7 @@ class BaseXMPP(XMLStream):
         # Deprecated method names are re-mapped for backwards compatibility.
         self.default_ns = default_ns
         self.stream_ns = 'http://etherx.jabber.org/streams'
+        self.namespace_map[self.stream_ns] = 'stream'
 
         self.boundjid = JID(jid)
 
@@ -109,6 +110,8 @@ class BaseXMPP(XMLStream):
         self.auto_subscribe = True
 
         self.sentpresence = False
+
+        self.stanza = sleekxmpp.stanza
 
         self.register_handler(
             Callback('IM',
@@ -187,9 +190,14 @@ class BaseXMPP(XMLStream):
         try:
             # Import the given module that contains the plugin.
             if not module:
-                module = sleekxmpp.plugins
-                module = __import__("%s.%s" % (module.__name__, plugin),
-                                    globals(), locals(), [plugin])
+                try:
+                    module = sleekxmpp.plugins
+                    module = __import__(str("%s.%s" % (module.__name__, plugin)),
+                                        globals(), locals(), [str(plugin)])
+                except ImportError:
+                    module = sleekxmpp.features
+                    module = __import__(str("%s.%s" % (module.__name__, plugin)),
+                                        globals(), locals(), [str(plugin)])
             if isinstance(module, str):
                 # We probably want to load a module from outside
                 # the sleekxmpp package, so leave out the globals().
@@ -198,12 +206,14 @@ class BaseXMPP(XMLStream):
             # Load the plugin class from the module.
             self.plugin[plugin] = getattr(module, plugin)(self, pconfig)
 
-            # Let XEP implementing plugins have some extra logging info.
-            xep = ''
-            if hasattr(self.plugin[plugin], 'xep'):
-                xep = "(XEP-%s) " % self.plugin[plugin].xep
+            # Let XEP/RFC implementing plugins have some extra logging info.
+            spec = '(CUSTOM) '
+            if self.plugin[plugin].xep:
+                spec = "(XEP-%s) " % self.plugin[plugin].xep
+            elif self.plugin[plugin].rfc:
+                spec = "(RFC-%s) " % self.plugin[plugin].rfc
 
-            desc = (xep, self.plugin[plugin].description)
+            desc = (spec, self.plugin[plugin].description)
             log.debug("Loaded Plugin %s%s" % desc)
         except:
             log.exception("Unable to load plugin: %s", plugin)

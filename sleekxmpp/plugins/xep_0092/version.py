@@ -35,7 +35,7 @@ class xep_0092(base_plugin):
         self.stanza = sleekxmpp.plugins.xep_0092.stanza
 
         self.name = self.config.get('name', 'SleekXMPP')
-        self.version = self.config.get('version', '0.1-dev')
+        self.version = self.config.get('version', sleekxmpp.__version__)
         self.os = self.config.get('os', '')
 
         self.getVersion = self.get_version

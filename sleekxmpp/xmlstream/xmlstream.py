@@ -356,22 +356,34 @@ class XMLStream(object):
             self.reconnect_delay = delay
             return False
 
-    def disconnect(self, reconnect=False):
+    def disconnect(self, reconnect=False, wait=False):
         """
         Terminate processing and close the XML streams.
 
         Optionally, the connection may be reconnected and
         resume processing afterwards.
 
+        If the disconnect should take place after all items
+        in the send queue have been sent, use wait=True. However,
+        take note: If you are constantly adding items to the queue
+        such that it is never empty, then the disconnect will
+        not occur and the call will continue to block.
+
         Arguments:
             reconnect -- Flag indicating if the connection
                          and processing should be restarted.
                          Defaults to False.
+            wait      -- Flag indicating if the send queue should
+                         be emptied before disconnecting.
         """
         self.state.transition('connected', 'disconnected', wait=0.0,
-                              func=self._disconnect, args=(reconnect,))
+                              func=self._disconnect, args=(reconnect, wait))
 
-    def _disconnect(self, reconnect=False):
+    def _disconnect(self, reconnect=False, wait=False):
+        # Wait for the send queue to empty.
+        if wait:
+            self.send_queue.join()
+
         # Send the end of stream marker.
         self.send_raw(self.stream_footer, now=True)
         self.session_started_event.clear()
@@ -1036,6 +1048,7 @@ class XMLStream(object):
                 log.debug("SEND: %s" % data)
                 try:
                     self.socket.send(data.encode('utf-8'))
+                    self.send_queue.task_done()
                 except Socket.error as serr:
                     self.event('socket_error', serr)
                     log.warning("Failed to send %s" % data)

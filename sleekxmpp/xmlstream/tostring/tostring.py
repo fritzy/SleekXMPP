@@ -7,7 +7,8 @@
 """
 
 
-def tostring(xml=None, xmlns='', stanza_ns='', stream=None, outbuffer=''):
+def tostring(xml=None, xmlns='', stanza_ns='', stream=None,
+             outbuffer='', top_level=False):
     """
     Serialize an XML object to a Unicode string.
 
@@ -26,6 +27,8 @@ def tostring(xml=None, xmlns='', stanza_ns='', stream=None, outbuffer=''):
         stream    -- The XML stream that generated the XML object.
         outbuffer -- Optional buffer for storing serializations during
                      recursive calls.
+        top_level -- Indicates that the element is the outermost
+                     element.
     """
     # Add previous results to the start of the output.
     output = [outbuffer]
@@ -39,14 +42,21 @@ def tostring(xml=None, xmlns='', stanza_ns='', stream=None, outbuffer=''):
     else:
         tag_xmlns = ''
 
+    default_ns = ''
+    stream_ns = ''
+    if stream:
+        default_ns = stream.default_ns
+        stream_ns = stream.stream_ns
+
     # Output the tag name and derived namespace of the element.
     namespace = ''
-    if tag_xmlns not in ['', xmlns, stanza_ns]:
+    if top_level and tag_xmlns not in ['', default_ns, stream_ns] or \
+            tag_xmlns not in ['', xmlns, stanza_ns, stream_ns]:
         namespace = ' xmlns="%s"' % tag_xmlns
-        if stream and tag_xmlns in stream.namespace_map:
-            mapped_namespace = stream.namespace_map[tag_xmlns]
-            if mapped_namespace:
-                tag_name = "%s:%s" % (mapped_namespace, tag_name)
+    if stream and tag_xmlns in stream.namespace_map:
+        mapped_namespace = stream.namespace_map[tag_xmlns]
+        if mapped_namespace:
+            tag_name = "%s:%s" % (mapped_namespace, tag_name)
     output.append("<%s" % tag_name)
     output.append(namespace)
 

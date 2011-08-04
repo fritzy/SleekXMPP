@@ -1,0 +1,8 @@
+Suelta - A pure-Python SASL client library
+
+Suelta is a SASL library, providing you with authentication and in some cases
+security layers.
+
+It supports a wide range of typical SASL mechanisms, including the MTI for
+all known protocols.
+

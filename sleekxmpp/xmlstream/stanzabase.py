@@ -1064,7 +1064,9 @@ class ElementBase(object):
                             Defaults to True.
         """
         stanza_ns = '' if top_level_ns else self.namespace
-        return tostring(self.xml, xmlns='', stanza_ns=stanza_ns)
+        return tostring(self.xml, xmlns='',
+                        stanza_ns=stanza_ns,
+                        top_level = not top_level_ns)
 
     def __repr__(self):
         """
@@ -1282,7 +1284,8 @@ class StanzaBase(ElementBase):
         stanza_ns = '' if top_level_ns else self.namespace
         return tostring(self.xml, xmlns='',
                         stanza_ns=stanza_ns,
-                        stream=self.stream)
+                        stream=self.stream,
+                        top_level = not top_level_ns)
 
 
 # To comply with PEP8, method names now use underscores.

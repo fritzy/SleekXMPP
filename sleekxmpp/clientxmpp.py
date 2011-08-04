@@ -153,18 +153,23 @@ class ClientXMPP(BaseXMPP):
 
                     addresses = {}
                     intmax = 0
+                    topprio = 65535
                     for answer in answers:
-                        intmax += answer.priority
-                        addresses[intmax] = (answer.target.to_text()[:-1],
+                        topprio = min(topprio, answer.priority)
+                    for answer in answers:
+                        if answer.priority == topprio:
+                            intmax += answer.weight
+                            addresses[intmax] = (answer.target.to_text()[:-1],
                                              answer.port)
+
                     #python3 returns a generator for dictionary keys
-                    priorities = [x for x in addresses.keys()]
-                    priorities.sort()
+                    items = [x for x in addresses.keys()]
+                    items.sort()
 
                     picked = random.randint(0, intmax)
-                    for priority in priorities:
-                        if picked <= priority:
-                            address = addresses[priority]
+                    for item in items:
+                        if picked <= item:
+                            address = addresses[item]
                             break
 
         if not address:

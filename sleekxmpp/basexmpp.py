@@ -141,7 +141,7 @@ class BaseXMPP(XMLStream):
     def process(self, *args, **kwargs):
         """
         Overrides XMLStream.process.
-        
+
         Initialize the XML streams and begin processing events.
 
         The number of threads used for processing stream events is determined
@@ -185,12 +185,14 @@ class BaseXMPP(XMLStream):
             if not module:
                 try:
                     module = sleekxmpp.plugins
-                    module = __import__(str("%s.%s" % (module.__name__, plugin)),
-                                        globals(), locals(), [str(plugin)])
+                    module = __import__(
+                            str("%s.%s" % (module.__name__, plugin)),
+                            globals(), locals(), [str(plugin)])
                 except ImportError:
                     module = sleekxmpp.features
-                    module = __import__(str("%s.%s" % (module.__name__, plugin)),
-                                        globals(), locals(), [str(plugin)])
+                    module = __import__(
+                            str("%s.%s" % (module.__name__, plugin)),
+                            globals(), locals(), [str(plugin)])
             if isinstance(module, str):
                 # We probably want to load a module from outside
                 # the sleekxmpp package, so leave out the globals().

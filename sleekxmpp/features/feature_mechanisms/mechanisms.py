@@ -29,7 +29,6 @@ class feature_mechanisms(base_plugin):
         self.description = "SASL Stream Feature"
         self.stanza = stanza
 
-
         def tls_active():
             return 'starttls' in self.xmpp.features
 

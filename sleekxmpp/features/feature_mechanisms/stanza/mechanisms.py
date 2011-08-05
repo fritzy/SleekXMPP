@@ -42,9 +42,9 @@ class Mechanisms(ElementBase):
         """
         self.del_mechanisms()
         for val in values:
-           mech = ET.Element('{%s}mechanism' % self.namespace)
-           mech.text = val
-           self.append(mech)
+            mech = ET.Element('{%s}mechanism' % self.namespace)
+            mech.text = val
+            self.append(mech)
 
     def del_mechanisms(self):
         """

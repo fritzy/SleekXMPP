@@ -854,13 +854,14 @@ class XMLStream(object):
             Event handlers and the send queue will be threaded
             regardless of these parameters.
         """
-        if kwargs.has_key('threaded') and kwargs.has_key('block'):
-            raise ValueError("process() called with both block and threaded arguments")
-        elif kwargs.has_key('block'):
+        if 'threaded' in kwargs and 'block' in kwargs:
+            raise ValueError("process() called with both " + \
+                             "block and threaded arguments")
+        elif 'block' in kwargs:
             threaded = not(kwargs.get('block', False))
         else:
             threaded = kwargs.get('threaded', True)
-        
+
         self.scheduler.process(threaded=True)
 
         def start_thread(name, target):

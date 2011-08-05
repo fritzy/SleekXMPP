@@ -144,17 +144,17 @@ except:
         if offsetmins == 0:
             return UTC
 
-        if not _fixed_offset_tzs.has_key(offsetmins):
-           if offsetmins < 0:
-               sign = '-'
-               absoff = -offsetmins
-           else:
-               sign = '+'
-               absoff = offsetmins
+        if not offsetmins in _fixed_offset_tzs:
+            if offsetmins < 0:
+                sign = '-'
+                absoff = -offsetmins
+            else:
+                sign = '+'
+                absoff = offsetmins
 
-           name = "UTC%s%02d:%02d" % (sign, int(absoff / 60), absoff % 60)
-           inst = tzoffset(offsetmins, name)
-           _fixed_offset_tzs[offsetmins] = inst
+            name = "UTC%s%02d:%02d" % (sign, int(absoff / 60), absoff % 60)
+            inst = tzoffset(offsetmins, name)
+            _fixed_offset_tzs[offsetmins] = inst
 
         return _fixed_offset_tzs[offsetmins]
 
@@ -240,13 +240,13 @@ except:
         if frac != None:
             # ok, fractions of hour?
             if min == None:
-               frac, min = _math.modf(frac * 60.0)
-               min = int(min)
+                frac, min = _math.modf(frac * 60.0)
+                min = int(min)
 
             # fractions of second?
             if s == None:
-               frac, s = _math.modf(frac * 60.0)
-               s = int(s)
+                frac, s = _math.modf(frac * 60.0)
+                s = int(s)
 
             # and extract microseconds...
             us = int(frac * 1000000)

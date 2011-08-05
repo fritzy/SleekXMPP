@@ -463,7 +463,7 @@ class RemoteSession(object):
         key = "%s.%s" % (endpoint, name)
         log.debug("Registering call handler for %s (%s)." % (key, method))
         with self._lock:
-            if self._entries.has_key(key):
+            if key in self._entries:
                 raise KeyError("A handler for %s has already been regisered!" % endpoint)
             self._entries[key] = JabberRPCEntry(endpoint, method)
         return key

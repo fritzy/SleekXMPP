@@ -74,11 +74,6 @@ packages     = [ 'sleekxmpp',
                  'sleekxmpp/thirdparty/suelta/mechanisms',
                  ]
 
-if sys.version_info < (3, 0):
-    py_modules = ['sleekxmpp.xmlstream.tostring.tostring26']
-else:
-    py_modules = ['sleekxmpp.xmlstream.tostring.tostring']
-
 setup(
     name             = "sleekxmpp",
     version          = VERSION,
@@ -90,7 +85,6 @@ setup(
     license      = 'MIT',
     platforms    = [ 'any' ],
     packages     = packages,
-    py_modules   = py_modules,
     requires     = [ 'tlslite', 'pythondns' ],
     )
 

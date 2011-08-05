@@ -5,8 +5,8 @@ from sleekxmpp.basexmpp import basexmpp
 from sleekxmpp.xmlstream.xmlstream import XMLStream
 import logging
 from sleekxmpp.plugins import xep_0004
-from base import OptionalSetting
-from pubsub import Affiliations, Affiliation, Configure, Subscriptions
+from sleekxmpp.plugins.xep_0060.stanza.base import OptionalSetting
+from sleekxmpp.plugins.xep_0060.stanza.pubsub import Affiliations, Affiliation, Configure, Subscriptions
 
 class PubsubOwner(ElementBase):
 	namespace = 'http://jabber.org/protocol/pubsub#owner'
@@ -25,7 +25,7 @@ class DefaultConfig(ElementBase):
 	interfaces = set(('node', 'type', 'config'))
 	plugin_attrib_map = {}
 	plugin_tag_map = {}
-	
+
 	def __init__(self, *args, **kwargs):
 		ElementBase.__init__(self, *args, **kwargs)
 
@@ -33,10 +33,10 @@ class DefaultConfig(ElementBase):
 		t = self._getAttr('type')
 		if not t: t = 'leaf'
 		return t
-	
+
 	def getConfig(self):
 		return self['form']
-	
+
 	def setConfig(self, value):
 		self['form'].setStanzaValues(value.getStanzaValues())
 		return self
@@ -49,7 +49,7 @@ class OwnerAffiliations(Affiliations):
 	interfaces = set(('node'))
 	plugin_attrib_map = {}
 	plugin_tag_map = {}
-	
+
 	def append(self, affiliation):
 		if not isinstance(affiliation, OwnerAffiliation):
 			raise TypeError
@@ -77,10 +77,10 @@ class OwnerDefault(OwnerConfigure):
 	interfaces = set(('node', 'config'))
 	plugin_attrib_map = {}
 	plugin_tag_map = {}
-	
+
 	def getConfig(self):
 		return self['form']
-	
+
 	def setConfig(self, value):
 		self['form'].setStanzaValues(value.getStanzaValues())
 		return self
@@ -114,10 +114,10 @@ class OwnerRedirect(ElementBase):
 	interfaces = set(('node', 'jid'))
 	plugin_attrib_map = {}
 	plugin_tag_map = {}
-	
+
 	def setJid(self, value):
 		self._setAttr('jid', str(value))
-	
+
 	def getJid(self):
 		return JID(self._getAttr('jid'))
 
@@ -128,7 +128,7 @@ class OwnerSubscriptions(Subscriptions):
 	interfaces = set(('node',))
 	plugin_attrib_map = {}
 	plugin_tag_map = {}
-	
+
 	def append(self, subscription):
 		if not isinstance(subscription, OwnerSubscription):
 			raise TypeError
@@ -147,6 +147,6 @@ class OwnerSubscription(ElementBase):
 
 	def setJid(self, value):
 		self._setAttr('jid', str(value))
-	
+
 	def getJid(self):
 		return JID(self._getAttr('from'))

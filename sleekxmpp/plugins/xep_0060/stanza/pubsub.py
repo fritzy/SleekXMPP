@@ -5,7 +5,7 @@ from sleekxmpp.basexmpp import basexmpp
 from sleekxmpp.xmlstream.xmlstream import XMLStream
 import logging
 from sleekxmpp.plugins import xep_0004
-from base import OptionalSetting
+from sleekxmpp.plugins.xep_0060.stanza.base import OptionalSetting
 
 
 class Pubsub(ElementBase):
@@ -55,7 +55,7 @@ class Subscription(ElementBase):
 
 	def setjid(self, value):
 		self._setattr('jid', str(value))
-	
+
 	def getjid(self):
 		return jid(self._getattr('jid'))
 
@@ -93,12 +93,12 @@ class Item(ElementBase):
 
 	def setPayload(self, value):
 		self.xml.append(value)
-	
+
 	def getPayload(self):
 		childs = self.xml.getchildren()
 		if len(childs) > 0:
 			return childs[0]
-	
+
 	def delPayload(self):
 		for child in self.xml.getchildren():
 			self.xml.remove(child)
@@ -167,10 +167,10 @@ class Unsubscribe(ElementBase):
 	interfaces = set(('node', 'jid'))
 	plugin_attrib_map = {}
 	plugin_tag_map = {}
-	
+
 	def setJid(self, value):
 		self._setAttr('jid', str(value))
-	
+
 	def getJid(self):
 		return JID(self._getAttr('jid'))
 
@@ -186,7 +186,7 @@ class Subscribe(ElementBase):
 
 	def setJid(self, value):
 		self._setAttr('jid', str(value))
-	
+
 	def getJid(self):
 		return JID(self._getAttr('jid'))
 
@@ -204,7 +204,7 @@ class Configure(ElementBase):
 		t = self._getAttr('type')
 		if not t: t == 'leaf'
 		return t
-	
+
 registerStanzaPlugin(Pubsub, Configure)
 registerStanzaPlugin(Configure, xep_0004.Form)
 
@@ -215,28 +215,28 @@ class Options(ElementBase):
 	interfaces = set(('jid', 'node', 'options'))
 	plugin_attrib_map = {}
 	plugin_tag_map = {}
-	
+
 	def __init__(self, *args, **kwargs):
 		ElementBase.__init__(self, *args, **kwargs)
-		
+
 	def getOptions(self):
 		config = self.xml.find('{jabber:x:data}x')
 		form = xep_0004.Form()
 		if config is not None:
 			form.fromXML(config)
 		return form
-	
+
 	def setOptions(self, value):
 		self.xml.append(value.getXML())
 		return self
-	
+
 	def delOptions(self):
 		config = self.xml.find('{jabber:x:data}x')
 		self.xml.remove(config)
-	
+
 	def setJid(self, value):
 		self._setAttr('jid', str(value))
-	
+
 	def getJid(self):
 		return JID(self._getAttr('jid'))
 
@@ -250,15 +250,15 @@ class PubsubState(ElementBase):
     interfaces = set(('node', 'item', 'payload'))
     plugin_attrib_map = {}
     plugin_tag_map = {}
-    
+
     def setPayload(self, value):
         self.xml.append(value)
-    
+
     def getPayload(self):
         childs = self.xml.getchildren()
         if len(childs) > 0:
             return childs[0]
-    
+
     def delPayload(self):
         for child in self.xml.getchildren():
             self.xml.remove(child)

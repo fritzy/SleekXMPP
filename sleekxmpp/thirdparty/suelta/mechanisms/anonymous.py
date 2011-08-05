@@ -10,7 +10,7 @@ class ANONYMOUS(Mechanism):
     def __init__(self, sasl, name):
         """
         """
-        super(ANONYMOUS, self).__init__(self, sasl, name, 0)
+        super(ANONYMOUS, self).__init__(sasl, name, 0)
 
     def get_values(self):
         """

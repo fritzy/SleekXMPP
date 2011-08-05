@@ -140,10 +140,28 @@ class BaseXMPP(XMLStream):
 
     def process(self, *args, **kwargs):
         """
-        Ensure that plugin inter-dependencies are handled before starting
-        event processing.
-
         Overrides XMLStream.process.
+        
+        Initialize the XML streams and begin processing events.
+
+        The number of threads used for processing stream events is determined
+        by HANDLER_THREADS.
+
+        Arguments:
+            block -- If block=False then event dispatcher will run
+                     in a separate thread, allowing for the stream to be
+                     used in the background for another application.
+                     Otherwise, process(block=True) blocks the current thread.
+                     Defaults to False.
+
+            **threaded is deprecated and included for API compatibility**
+            threaded -- If threaded=True then event dispatcher will run
+                        in a separate thread, allowing for the stream to be
+                        used in the background for another application.
+                        Defaults to True.
+
+            Event handlers and the send queue will be threaded
+            regardless of these parameters.
         """
         for name in self.plugin:
             if not self.plugin[name].post_inited:

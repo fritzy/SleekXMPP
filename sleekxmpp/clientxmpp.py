@@ -40,9 +40,12 @@ log = logging.getLogger(__name__)
 class ClientXMPP(BaseXMPP):
 
     """
-    SleekXMPP's client class.
+    SleekXMPP's client class. ( Use only for good, not for evil.)
 
-    Use only for good, not for evil.
+    Typical Use:
+    xmpp = ClientXMPP('user@server.tld/resource', 'password')
+    xmpp.process(block=False) // when block is True, it blocks the current
+    //                           thread. False by default.
 
     Attributes:
 

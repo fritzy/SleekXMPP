@@ -226,7 +226,7 @@ except:
         if m.group('frac'):
             frac = m.group('frac')
             power = len(frac)
-            frac  = long(frac) / 10.0 ** power
+            frac  = int(frac) / 10.0 ** power
 
         if m.group('hour'):
             h = vals['hour']
@@ -260,7 +260,7 @@ except:
 
             # add optional minutes
             if tzm != None:
-                tzm = long(tzm)
+                tzm = int(tzm)
                 offsetmins += tzm if offsetmins > 0 else -tzm
 
         tz = _get_fixed_offset_tz(offsetmins)

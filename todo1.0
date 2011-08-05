@@ -18,22 +18,12 @@ Plugins:
         PEP8
         Documentation
         Stream/Unit tests
-    0050
-        Review replacement in github.com/legastero/adhoc
     0060
         PEP8
         Documentation
         Stream/Unit tests
     0078
         Will require new stream features handling, see stream_features branch.
-        PEP8
-        Documentation
-        Stream/Unit tests
-    0086
-        PEP8
-        Documentation
-        Consider any simplifications.
-    0202
         PEP8
         Documentation
         Stream/Unit tests

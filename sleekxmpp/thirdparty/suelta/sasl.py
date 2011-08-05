@@ -225,7 +225,7 @@ class SASL(object):
                 requested_mech = 'ANONYMOUS'
             else:
                 requested_mech = self.mech
-        if requested_mech == '*' and self.user == 'anonymous':
+        if requested_mech == '*' and self.user in ['', 'anonymous', None]:
             requested_mech = 'ANONYMOUS'
 
         # If a specific mechanism was requested, try it
@@ -243,7 +243,7 @@ class SASL(object):
                 if MECH_SEC_SCORES[name] > best_score:
                     best_score = MECH_SEC_SCORES[name]
                     best_mech = name
-        if best_mech != None:
+        if best_mech is not None:
             best_mech = MECHANISMS[best_mech](self, best_mech)
 
         return best_mech

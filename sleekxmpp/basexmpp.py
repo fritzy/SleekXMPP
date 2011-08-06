@@ -198,6 +198,10 @@ class BaseXMPP(XMLStream):
                 # the sleekxmpp package, so leave out the globals().
                 module = __import__(module, fromlist=[plugin])
 
+            # Use the global plugin config cache, if applicable
+            if not pconfig:
+                pconfig = self.plugin_config.get(plugin, {})
+
             # Load the plugin class from the module.
             self.plugin[plugin] = getattr(module, plugin)(self, pconfig)
 

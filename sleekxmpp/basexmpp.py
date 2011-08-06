@@ -138,6 +138,17 @@ class BaseXMPP(XMLStream):
         register_stanza_plugin(Message, Nick)
         register_stanza_plugin(Message, HTMLIM)
 
+    def start_stream_handler(self, xml):
+        """
+        Save the stream ID once the streams have been established.
+
+        Overrides XMLStream.start_stream_handler.
+
+        Arguments:
+            xml -- The incoming stream's root element.
+        """
+        self.stream_id = xml.get('id', '')
+
     def process(self, *args, **kwargs):
         """
         Overrides XMLStream.process.

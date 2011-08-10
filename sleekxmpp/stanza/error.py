@@ -88,7 +88,9 @@ class Error(ElementBase):
         """Return the condition element's name."""
         for child in self.xml.getchildren():
             if "{%s}" % self.condition_ns in child.tag:
-                return child.tag.split('}', 1)[-1]
+                cond = child.tag.split('}', 1)[-1]
+                if cond in self.conditions:
+                    return cond
         return ''
 
     def set_condition(self, value):

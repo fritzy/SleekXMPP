@@ -589,5 +589,5 @@ class xep_0050(base_plugin):
         elif iq['type'] == 'error':
             self.terminate_command(session)
 
-        if iq['command']['status']  == 'completed':
+        if iq['command']['status'] == 'completed':
             self.terminate_command(session)

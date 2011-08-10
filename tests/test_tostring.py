@@ -102,11 +102,13 @@ class TestToString(SleekTest):
         """
         Test that stanza objects are serialized properly.
         """
+        self.stream_start()
+
         utf8_message = '\xe0\xb2\xa0_\xe0\xb2\xa0'
         if not hasattr(utf8_message, 'decode'):
             # Python 3
             utf8_message = bytes(utf8_message, encoding='utf-8')
-        msg = Message()
+        msg = self.Message()
         msg['body'] = utf8_message.decode('utf-8')
         expected = '<message><body>\xe0\xb2\xa0_\xe0\xb2\xa0</body></message>'
         result = msg.__str__()

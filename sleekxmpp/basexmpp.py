@@ -92,6 +92,7 @@ class BaseXMPP(XMLStream):
         # Deprecated method names are re-mapped for backwards compatibility.
         self.default_ns = default_ns
         self.stream_ns = 'http://etherx.jabber.org/streams'
+        self.namespace_map[self.stream_ns] = 'stream'
 
         self.boundjid = JID("")
 
@@ -104,6 +105,8 @@ class BaseXMPP(XMLStream):
         self.auto_subscribe = True
 
         self.sentpresence = False
+
+        self.stanza = sleekxmpp.stanza
 
         self.register_handler(
             Callback('IM',
@@ -135,12 +138,41 @@ class BaseXMPP(XMLStream):
         register_stanza_plugin(Message, Nick)
         register_stanza_plugin(Message, HTMLIM)
 
+    def start_stream_handler(self, xml):
+        """
+        Save the stream ID once the streams have been established.
+
+        Overrides XMLStream.start_stream_handler.
+
+        Arguments:
+            xml -- The incoming stream's root element.
+        """
+        self.stream_id = xml.get('id', '')
+
     def process(self, *args, **kwargs):
         """
-        Ensure that plugin inter-dependencies are handled before starting
-        event processing.
-
         Overrides XMLStream.process.
+
+        Initialize the XML streams and begin processing events.
+
+        The number of threads used for processing stream events is determined
+        by HANDLER_THREADS.
+
+        Arguments:
+            block -- If block=False then event dispatcher will run
+                     in a separate thread, allowing for the stream to be
+                     used in the background for another application.
+                     Otherwise, process(block=True) blocks the current thread.
+                     Defaults to False.
+
+            **threaded is deprecated and included for API compatibility**
+            threaded -- If threaded=True then event dispatcher will run
+                        in a separate thread, allowing for the stream to be
+                        used in the background for another application.
+                        Defaults to True.
+
+            Event handlers and the send queue will be threaded
+            regardless of these parameters.
         """
         for name in self.plugin:
             if not self.plugin[name].post_inited:
@@ -162,23 +194,36 @@ class BaseXMPP(XMLStream):
         try:
             # Import the given module that contains the plugin.
             if not module:
-                module = sleekxmpp.plugins
-                module = __import__("%s.%s" % (module.__name__, plugin),
-                                    globals(), locals(), [plugin])
+                try:
+                    module = sleekxmpp.plugins
+                    module = __import__(
+                            str("%s.%s" % (module.__name__, plugin)),
+                            globals(), locals(), [str(plugin)])
+                except ImportError:
+                    module = sleekxmpp.features
+                    module = __import__(
+                            str("%s.%s" % (module.__name__, plugin)),
+                            globals(), locals(), [str(plugin)])
             if isinstance(module, str):
                 # We probably want to load a module from outside
                 # the sleekxmpp package, so leave out the globals().
                 module = __import__(module, fromlist=[plugin])
 
+            # Use the global plugin config cache, if applicable
+            if not pconfig:
+                pconfig = self.plugin_config.get(plugin, {})
+
             # Load the plugin class from the module.
             self.plugin[plugin] = getattr(module, plugin)(self, pconfig)
 
-            # Let XEP implementing plugins have some extra logging info.
-            xep = ''
-            if hasattr(self.plugin[plugin], 'xep'):
-                xep = "(XEP-%s) " % self.plugin[plugin].xep
+            # Let XEP/RFC implementing plugins have some extra logging info.
+            spec = '(CUSTOM) '
+            if self.plugin[plugin].xep:
+                spec = "(XEP-%s) " % self.plugin[plugin].xep
+            elif self.plugin[plugin].rfc:
+                spec = "(RFC-%s) " % self.plugin[plugin].rfc
 
-            desc = (xep, self.plugin[plugin].description)
+            desc = (spec, self.plugin[plugin].description)
             log.debug("Loaded Plugin %s%s" % desc)
         except:
             log.exception("Unable to load plugin: %s", plugin)
@@ -640,7 +685,8 @@ class BaseXMPP(XMLStream):
             log.debug("%s %s got offline" % (jid, resource))
             del connections[resource]
 
-            if not connections and not self.roster[jid]['in_roster']:
+            if not connections and \
+               not self.roster[jid].get('in_roster', False):
                 del self.roster[jid]
             if not was_offline:
                 self.event("got_offline", presence)

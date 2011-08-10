@@ -66,7 +66,8 @@ class base_plugin(object):
         """
         if config is None:
             config = {}
-        self.xep = 'base'
+        self.xep = None
+        self.rfc = None
         self.description = 'Base Plugin'
         self.xmpp = xmpp
         self.config = config

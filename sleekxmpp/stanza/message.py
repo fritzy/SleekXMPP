@@ -97,7 +97,7 @@ class Message(RootStanza):
             clear -- Indicates if existing content should be removed
                      before replying. Defaults to True.
         """
-        StanzaBase.reply(self)
+        StanzaBase.reply(self, clear)
         if self['type'] == 'groupchat':
             self['to'] = self['to'].bare
 

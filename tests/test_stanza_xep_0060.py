@@ -182,7 +182,7 @@ class TestPubsubStanzas(SleekTest):
             <subscribe node="cheese" jid="fritzy@netflint.net/sleekxmpp">
               <options node="cheese" jid="fritzy@netflint.net/sleekxmpp">
                 <x xmlns="jabber:x:data" type="submit">
-                  <field var="pubsub#title" type="text-single">
+                  <field var="pubsub#title">
                     <value>this thing is awesome</value>
                   </field>
                 </x>
@@ -306,42 +306,42 @@ class TestPubsubStanzas(SleekTest):
               <create node="testnode2" />
               <configure>
                 <x xmlns="jabber:x:data" type="submit">
-                  <field var="FORM_TYPE" type="hidden">
+                  <field var="FORM_TYPE">
                     <value>http://jabber.org/protocol/pubsub#node_config</value>
                   </field>
-                  <field var="pubsub#node_type" type="list-single" label="Select the node type">
+                  <field var="pubsub#node_type">
                     <value>leaf</value>
                   </field>
-                  <field var="pubsub#title" type="text-single" label="A friendly name for the node" />
-                  <field var="pubsub#deliver_notifications" type="boolean" label="Deliver event notifications">
+                  <field var="pubsub#title" />
+                  <field var="pubsub#deliver_notifications">
                     <value>1</value>
                   </field>
-                  <field var="pubsub#deliver_payloads" type="boolean" label="Deliver payloads with event notifications">
+                  <field var="pubsub#deliver_payloads">
                     <value>1</value>
                   </field>
-                  <field var="pubsub#notify_config" type="boolean" label="Notify subscribers when the node configuration changes" />
-                  <field var="pubsub#notify_delete" type="boolean" label="Notify subscribers when the node is deleted" />
-                  <field var="pubsub#notify_retract" type="boolean" label="Notify subscribers when items are removed from the node">
+                  <field var="pubsub#notify_config" />
+                  <field var="pubsub#notify_delete" />
+                  <field var="pubsub#notify_retract">
                     <value>1</value>
                   </field>
-                  <field var="pubsub#notify_sub" type="boolean" label="Notify owners about new subscribers and unsubscribes" />
-                  <field var="pubsub#persist_items" type="boolean" label="Persist items in storage" />
-                  <field var="pubsub#max_items" type="text-single" label="Max # of items to persist">
+                  <field var="pubsub#notify_sub" />
+                  <field var="pubsub#persist_items" />
+                  <field var="pubsub#max_items">
                     <value>10</value>
                   </field>
-                  <field var="pubsub#subscribe" type="boolean" label="Whether to allow subscriptions">
+                  <field var="pubsub#subscribe">
                     <value>1</value>
                   </field>
-                  <field var="pubsub#access_model" type="list-single" label="Specify the subscriber model">
+                  <field var="pubsub#access_model">
                     <value>open</value>
                   </field>
-                  <field var="pubsub#publish_model" type="list-single" label="Specify the publisher model">
+                  <field var="pubsub#publish_model">
                     <value>publishers</value>
                   </field>
-                  <field var="pubsub#send_last_published_item" type="list-single" label="Send last published item">
+                  <field var="pubsub#send_last_published_item">
                     <value>never</value>
                   </field>
-                  <field var="pubsub#presence_based_delivery" type="boolean" label="Deliver notification only to available users" />
+                  <field var="pubsub#presence_based_delivery" />
                 </x>
               </configure>
             </pubsub>

@@ -52,3 +52,24 @@ class XMPPError(Exception):
         self.extension = extension
         self.extension_ns = extension_ns
         self.extension_args = extension_args
+
+
+class IqTimeout(Exception):
+
+    """
+    An exception which indicates that an IQ request response has not been
+    received within the alloted time window.
+    """
+
+    def __init__(self, iq):
+        self.iq = iq
+
+class IqError(Exception):
+
+    """
+    An exception raised when an Iq stanza of type 'error' is received
+    after making a blocking send call.
+    """
+
+    def __init__(self, iq):
+        self.iq = iq

@@ -227,8 +227,8 @@ class ClientXMPP(BaseXMPP):
                                        'subscription': subscription,
                                        'groups': groups}}
         response = iq.send(block, timeout, callback)
-        if response in [False, None] or not isinstance(response, Iq):
-            return response
+        if response is None:
+            return None
         return response['type'] == 'result'
 
     def del_roster_item(self, jid):
@@ -261,12 +261,7 @@ class ClientXMPP(BaseXMPP):
         iq.enable('roster')
         response = iq.send(block, timeout, callback)
 
-        if response == False:
-            self.event('roster_timeout')
-
-        if response in [False, None] or not isinstance(response, Iq):
-            return response
-        else:
+        if callback is None:
             return self._handle_roster(response, request=True)
 
     def _handle_connected(self, event=None):

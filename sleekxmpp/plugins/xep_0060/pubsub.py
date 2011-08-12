@@ -19,295 +19,110 @@ class xep_0060(base.base_plugin):
 		self.xep = '0060'
 		self.description = 'Publish-Subscribe'
 
-	def create_node(self, jid, node, config=None, collection=False, ntype=None):
-		pubsub = ET.Element('{http://jabber.org/protocol/pubsub}pubsub')
-		create = ET.Element('create')
-		create.set('node', node)
-		pubsub.append(create)
-		configure = ET.Element('configure')
-		if collection:
-			ntype = 'collection'
-		#if config is None:
-		#	submitform = self.xmpp.plugin['xep_0004'].makeForm('submit')
-		#else:
-		if config is not None:
-			submitform = config
-			if 'FORM_TYPE' in submitform.field:
-				submitform.field['FORM_TYPE'].setValue('http://jabber.org/protocol/pubsub#node_config')
+    def create_node(self, jid, node, config=None, ntype=None):
+        iq = IQ(sto=jid, stype='set', sfrom=self.xmpp.jid)
+        iq['pubsub']['create']['node'] = node
+        if ntype is None:
+            ntype = 'leaf'
+        if config is not None:
+            if 'FORM_TYPE' in submitform.field:
+				config.field['FORM_TYPE'].setValue('http://jabber.org/protocol/pubsub#node_config')
 			else:
-				submitform.addField('FORM_TYPE', 'hidden', value='http://jabber.org/protocol/pubsub#node_config')
-			if ntype:
-				if 'pubsub#node_type' in submitform.field:
-					submitform.field['pubsub#node_type'].setValue(ntype)
-				else:
-					submitform.addField('pubsub#node_type', value=ntype)
-			else:
-				if 'pubsub#node_type' in submitform.field:
-					submitform.field['pubsub#node_type'].setValue('leaf')
-				else:
-					submitform.addField('pubsub#node_type', value='leaf')
-			submitform['type'] = 'submit'
-			configure.append(submitform.xml)
-		pubsub.append(configure)
-		iq = self.xmpp.makeIqSet(pubsub)
-		iq.attrib['to'] = jid
-		iq.attrib['from'] = self.xmpp.boundjid.full
-		id = iq['id']
-		result = iq.send()
-		if result is False or result is None or result['type'] == 'error': return False
-		return True
+				config.addField('FORM_TYPE', 'hidden', value='http://jabber.org/protocol/pubsub#node_config')
+            if 'pubsub#node_type' in submitform.field:
+                config.field['pubsub#node_type'].setValue(ntype)
+            else:
+                config.addField('pubsub#node_type', value=ntype)
+            iq['pubsub']['configure']['form'] = config
+        return iq.send()
 
-	def subscribe(self, jid, node, bare=True, subscribee=None):
-		pubsub = ET.Element('{http://jabber.org/protocol/pubsub}pubsub')
-		subscribe = ET.Element('subscribe')
-		subscribe.attrib['node'] = node
-		if subscribee is None:
-			if bare:
-				subscribe.attrib['jid'] = self.xmpp.boundjid.bare
-			else:
-				subscribe.attrib['jid'] = self.xmpp.boundjid.full
-		else:
-			subscribe.attrib['jid'] = subscribee
-		pubsub.append(subscribe)
-		iq = self.xmpp.makeIqSet(pubsub)
-		iq.attrib['to'] = jid
-		iq.attrib['from'] = self.xmpp.boundjid.full
-		id = iq['id']
-		result = iq.send()
-		if result is False or result is None or result['type'] == 'error': return False
-		return True
+    def subscribe(self, jid, node, bare=True, subscribee=None):
+        iq = IQ(sto=jid, sfrom=self.xmpp.jid, stype='set')
+        iq['pubsub']['subscribe']['node'] = node
+        if subscribee is None:
+            if bare:
+                iq['pubsub']['subscribe']['jid'] = self.xmpp.jid.bare
+            else:
+                iq['pubsub']['subscribe']['jid'] = self.xmpp.jid.full
+        else:
+            iq['pubsub']['subscribe']['jid'] = subscribee
+        return iq.send()
 
-	def unsubscribe(self, jid, node, bare=True, subscribee=None):
-		pubsub = ET.Element('{http://jabber.org/protocol/pubsub}pubsub')
-		unsubscribe = ET.Element('unsubscribe')
-		unsubscribe.attrib['node'] = node
-		if subscribee is None:
-			if bare:
-				unsubscribe.attrib['jid'] = self.xmpp.boundjid.bare
-			else:
-				unsubscribe.attrib['jid'] = self.xmpp.boundjid.full
-		else:
-			unsubscribe.attrib['jid'] = subscribee
-		pubsub.append(unsubscribe)
-		iq = self.xmpp.makeIqSet(pubsub)
-		iq.attrib['to'] = jid
-		iq.attrib['from'] = self.xmpp.boundjid.full
-		id = iq['id']
-		result = iq.send()
-		if result is False or result is None or result['type'] == 'error': return False
-		return True
+	def unsubscribe(self, jid, node, subid=None, bare=True, subscribee=None):
+        iq = IQ(sto=jid, sfrom=self.xmpp.jid, stype='set')
+        iq['pubsub']['unsubscribe']['node'] = node
+        if subscribee is None:
+            if bare:
+                iq['pubsub']['unsubscribe']['jid'] = self.xmpp.jid.bare
+            else:
+                iq['pubsub']['unsubscribe']['jid'] = self.xmpp.jid.full
+        else:
+            iq['pubsub']['unsubscribe']['jid'] = subscribee
+        if subid is not None:
+            iq['pubsub']['unsubscribe']['subid'] = subid
+        return iq.send()
 
-	def getNodeConfig(self, jid, node=None): # if no node, then grab default
-		pubsub = ET.Element('{http://jabber.org/protocol/pubsub#owner}pubsub')
-		if node is not None:
-			configure = ET.Element('configure')
-			configure.attrib['node'] = node
-		else:
-			configure = ET.Element('default')
-		pubsub.append(configure)
-		#TODO: Add configure support.
-		iq = self.xmpp.makeIqGet()
-		iq.append(pubsub)
-		iq.attrib['to'] = jid
-		iq.attrib['from'] = self.xmpp.boundjid.full
-		id = iq['id']
-		#self.xmpp.add_handler("<iq id='%s'/>" % id, self.handlerCreateNodeResponse)
-		result = iq.send()
-		if result is None or result == False or result['type'] == 'error':
-			log.warning("got error instead of config")
-			return False
-		if node is not None:
-			form = result.find('{http://jabber.org/protocol/pubsub#owner}pubsub/{http://jabber.org/protocol/pubsub#owner}configure/{jabber:x:data}x')
-		else:
-			form = result.find('{http://jabber.org/protocol/pubsub#owner}pubsub/{http://jabber.org/protocol/pubsub#owner}default/{jabber:x:data}x')
-		if not form or form is None:
-			log.error("No form found.")
-			return False
-		return Form(xml=form)
+	def get_node_config(self, jid, node=None): # if no node, then grab default
+        iq = IQ(sto=jid, sfrom=self.xmpp.jid, stype='get')
+        if node is None:
+            iq['pubsub_owner']['default']
+        else:
+            iq['pubsub_owner']['configure']['node'] = node
+        return iq.send()
 
-	def getNodeSubscriptions(self, jid, node):
-		pubsub = ET.Element('{http://jabber.org/protocol/pubsub#owner}pubsub')
-		subscriptions = ET.Element('subscriptions')
-		subscriptions.attrib['node'] = node
-		pubsub.append(subscriptions)
-		iq = self.xmpp.makeIqGet()
-		iq.append(pubsub)
-		iq.attrib['to'] = jid
-		iq.attrib['from'] = self.xmpp.boundjid.full
-		id = iq['id']
-		result = iq.send()
-		if result is None or result == False or result['type'] == 'error':
-			log.warning("got error instead of config")
-			return False
-		else:
-			results = result.findall('{http://jabber.org/protocol/pubsub#owner}pubsub/{http://jabber.org/protocol/pubsub#owner}subscriptions/{http://jabber.org/protocol/pubsub#owner}subscription')
-			if results is None:
-				return False
-			subs = {}
-			for sub in results:
-				subs[sub.get('jid')] = sub.get('subscription')
-			return subs
+	def get_node_subscriptions(self, jid, node):
+        iq = IQ(sto=jid, sfrom=self.xmpp.jid, stype='get')
+        iq['pubsub_owner']['subscriptions']['node'] = node
+        return iq.send()
 
-	def getNodeAffiliations(self, jid, node):
-		pubsub = ET.Element('{http://jabber.org/protocol/pubsub#owner}pubsub')
-		affiliations = ET.Element('affiliations')
-		affiliations.attrib['node'] = node
-		pubsub.append(affiliations)
-		iq = self.xmpp.makeIqGet()
-		iq.append(pubsub)
-		iq.attrib['to'] = jid
-		iq.attrib['from'] = self.xmpp.boundjid.full
-		id = iq['id']
-		result = iq.send()
-		if result is None or result == False or result['type'] == 'error':
-			log.warning("got error instead of config")
-			return False
-		else:
-			results = result.findall('{http://jabber.org/protocol/pubsub#owner}pubsub/{http://jabber.org/protocol/pubsub#owner}affiliations/{http://jabber.org/protocol/pubsub#owner}affiliation')
-			if results is None:
-				return False
-			subs = {}
-			for sub in results:
-				subs[sub.get('jid')] = sub.get('affiliation')
-			return subs
+	def get_node_affiliations(self, jid, node):
+        iq = IQ(sto=jid, sfrom=self.xmpp.jid, stype='get')
+        iq['pubsub_owner']['affiliations']['node'] = node
+        return iq.send()
 
-	def deleteNode(self, jid, node):
-		pubsub = ET.Element('{http://jabber.org/protocol/pubsub#owner}pubsub')
-		iq = self.xmpp.makeIqSet()
-		delete = ET.Element('delete')
-		delete.attrib['node'] = node
-		pubsub.append(delete)
-		iq.append(pubsub)
-		iq.attrib['to'] = jid
-		iq.attrib['from'] = self.xmpp.boundjid.full
-		result = iq.send()
-		if result is not None and result is not False and result['type'] != 'error':
-			return True
-		else:
-			return False
+	def delete_node(self, jid, node):
+        iq = IQ(sto=jid, sfrom=self.xmpp.jid, stype='get')
+        iq['pubsub_owner']['delete']['node'] = node
+        return iq.send()
 
+	def set_node_config(self, jid, node, config):
+        iq = IQ(sto=jid, sfrom=self.xmpp.jid, stype='set')
+        iq['pubsub_owner']['configure']['node'] = node
+        iq['pubsub_owner']['configure']['config'] = config
+        return iq.send()
 
-	def setNodeConfig(self, jid, node, config):
-		pubsub = ET.Element('{http://jabber.org/protocol/pubsub#owner}pubsub')
-		configure = ET.Element('configure')
-		configure.attrib['node'] = node
-		config = config.getXML('submit')
-		configure.append(config)
-		pubsub.append(configure)
-		iq = self.xmpp.makeIqSet(pubsub)
-		iq.attrib['to'] = jid
-		iq.attrib['from'] = self.xmpp.boundjid.full
-		id = iq['id']
-		result = iq.send()
-		if result is None or result['type'] == 'error':
-			return False
-		return True
+	def publish(self, jid, node, items=[]):
+        iq = IQ(sto=jid, sfrom=self.xmpp.jid, stype='set')
+        iq['pubsub']['publish']['node'] = node
+        for id, payload in items:
+            item = stanza.pubsub.Item()
+            if id is not None:
+                item['id'] = id
+            item['payload'] = payload
+            iq['pubsub']['publish'].append(item)
+        return iq.send()
 
-	def setItem(self, jid, node, items=[]):
-		pubsub = ET.Element('{http://jabber.org/protocol/pubsub}pubsub')
-		publish = ET.Element('publish')
-		publish.attrib['node'] = node
-		for pub_item in items:
-			id, payload = pub_item
-			item = ET.Element('item')
-			if id is not None:
-				item.attrib['id'] = id
-			item.append(payload)
-			publish.append(item)
-		pubsub.append(publish)
-		iq = self.xmpp.makeIqSet(pubsub)
-		iq.attrib['to'] = jid
-		iq.attrib['from'] = self.xmpp.boundjid.full
-		id = iq['id']
-		result = iq.send()
-		if result is None or result is False or result['type'] == 'error': return False
-		return True
+	def retract(self, jid, node, item):
+        iq = IQ(sto=jid, sfrom=self.xmpp.jid, stype='set')
+        iq['pubsub']['retract']['node'] = node
+        item = stanza.pubsub.Item()
+        item['id'] = item
+        iq['pubsub']['retract'].append(item)
+        return iq.send()
 
-	def addItem(self, jid, node, items=[]):
-		return self.setItem(jid, node, items)
-
-	def deleteItem(self, jid, node, item):
-		pubsub = ET.Element('{http://jabber.org/protocol/pubsub}pubsub')
-		retract = ET.Element('retract')
-		retract.attrib['node'] = node
-		itemn = ET.Element('item')
-		itemn.attrib['id'] = item
-		retract.append(itemn)
-		pubsub.append(retract)
-		iq = self.xmpp.makeIqSet(pubsub)
-		iq.attrib['to'] = jid
-		iq.attrib['from'] = self.xmpp.boundjid.full
-		id = iq['id']
-		result = iq.send()
-		if result is None or result is False or result['type'] == 'error': return False
-		return True
-
-	def getNodes(self, jid):
-		response = self.xmpp.plugin['xep_0030'].getItems(jid)
-		items = response.findall('{http://jabber.org/protocol/disco#items}query/{http://jabber.org/protocol/disco#items}item')
-		nodes = {}
-		if items is not None and items is not False:
-			for item in items:
-				nodes[item.get('node')] = item.get('name')
-		return nodes
+	def get_nodes(self, jid):
+		return self.xmpp.plugin['xep_0030'].get_items(jid)
 
 	def getItems(self, jid, node):
-		response = self.xmpp.plugin['xep_0030'].getItems(jid, node)
-		items = response.findall('{http://jabber.org/protocol/disco#items}query/{http://jabber.org/protocol/disco#items}item')
-		nodeitems = []
-		if items is not None and items is not False:
-			for item in items:
-				nodeitems.append(item.get('node'))
-		return nodeitems
+		return self.xmpp.plugin['xep_0030'].get_items(jid, node)
 
-	def addNodeToCollection(self, jid, child, parent=''):
-		config = self.getNodeConfig(jid, child)
-		if not config or config is None:
-			self.lasterror = "Config Error"
-			return False
-		try:
-			config.field['pubsub#collection'].setValue(parent)
-		except KeyError:
-			log.warning("pubsub#collection doesn't exist in config, trying to add it")
-			config.addField('pubsub#collection', value=parent)
-		if not self.setNodeConfig(jid, child, config):
-			return False
-		return True
-
-	def modifyAffiliation(self, ps_jid, node, user_jid, affiliation):
-		if affiliation not in ('owner', 'publisher', 'member', 'none', 'outcast'):
-			raise TypeError
-		pubsub = ET.Element('{http://jabber.org/protocol/pubsub#owner}pubsub')
-		affs = ET.Element('affiliations')
-		affs.attrib['node'] = node
-		aff = ET.Element('affiliation')
-		aff.attrib['jid'] = user_jid
-		aff.attrib['affiliation'] = affiliation
-		affs.append(aff)
-		pubsub.append(affs)
-		iq = self.xmpp.makeIqSet(pubsub)
-		iq.attrib['to'] = ps_jid
-		iq.attrib['from'] = self.xmpp.boundjid.full
-		id = iq['id']
-		result = iq.send()
-		if result is None or result is False or result['type'] == 'error':
-		    return False
-		return True
-
-	def addNodeToCollection(self, jid, child, parent=''):
-		config = self.getNodeConfig(jid, child)
-		if not config or config is None:
-			self.lasterror = "Config Error"
-			return False
-		try:
-			config.field['pubsub#collection'].setValue(parent)
-		except KeyError:
-			log.warning("pubsub#collection doesn't exist in config, trying to add it")
-			config.addField('pubsub#collection', value=parent)
-		if not self.setNodeConfig(jid, child, config):
-			return False
-		return True
-
-	def removeNodeFromCollection(self, jid, child):
-		self.addNodeToCollection(jid, child, '')
-
+    def modify_affiliation(self, jid, node, affiliation, user_jid=None):
+        iq = IQ(sto=jid, sfrom=self.xmpp.jid, stype='set')
+        iq['pubsub_owner']['affiliations']
+        aff = stanza.pubsub.Affiliation()
+        aff['node'] = node
+        if user_jid is not None:
+            aff['jid'] = user_jid
+        aff['affiliation'] = affiliation
+        iq['pubsub_owner']['affiliations'].append(aff)
+        return iq.send()

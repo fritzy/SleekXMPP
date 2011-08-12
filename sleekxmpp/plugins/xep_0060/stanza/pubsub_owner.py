@@ -65,10 +65,19 @@ class OwnerAffiliation(Affiliation):
 	plugin_tag_map = {}
 
 class OwnerConfigure(Configure):
+    name = 'configure'
+    plugin_attrib = 'configure'
 	namespace = 'http://jabber.org/protocol/pubsub#owner'
 	interfaces = set(('node', 'config'))
 	plugin_attrib_map = {}
 	plugin_tag_map = {}
+	
+    def getConfig(self):
+		return self['form']
+
+	def setConfig(self, value):
+		self['form'].setStanzaValues(value.getStanzaValues())
+		return self
 
 registerStanzaPlugin(PubsubOwner, OwnerConfigure)
 
@@ -78,12 +87,6 @@ class OwnerDefault(OwnerConfigure):
 	plugin_attrib_map = {}
 	plugin_tag_map = {}
 
-	def getConfig(self):
-		return self['form']
-
-	def setConfig(self, value):
-		self['form'].setStanzaValues(value.getStanzaValues())
-		return self
 
 registerStanzaPlugin(PubsubOwner, OwnerDefault)
 registerStanzaPlugin(OwnerDefault, xep_0004.Form)

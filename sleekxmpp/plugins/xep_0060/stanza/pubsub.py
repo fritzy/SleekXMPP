@@ -23,9 +23,15 @@ class Affiliation(ElementBase):
 	namespace = 'http://jabber.org/protocol/pubsub'
 	name = 'affiliation'
 	plugin_attrib = name
-	interfaces = set(('node', 'affiliation'))
+	interfaces = set(('node', 'affiliation', 'jid'))
 	plugin_attrib_map = {}
 	plugin_tag_map = {}
+	
+    def setJid(self, value):
+		self._setAttr('jid', str(value))
+
+	def getJid(self):
+		return JID(self._getAttr('jid'))
 
 class Affiliations(ElementBase):
 	namespace = 'http://jabber.org/protocol/pubsub'
@@ -35,12 +41,6 @@ class Affiliations(ElementBase):
 	plugin_attrib_map = {}
 	plugin_tag_map = {}
 	subitem = (Affiliation,)
-
-	def append(self, affiliation):
-		if not isinstance(affiliation, Affiliation):
-			raise TypeError
-		self.xml.append(affiliation.xml)
-		return self.iterables.append(affiliation)
 
 registerStanzaPlugin(Pubsub, Affiliations)
 
@@ -164,7 +164,7 @@ class Unsubscribe(ElementBase):
 	namespace = 'http://jabber.org/protocol/pubsub'
 	name = 'unsubscribe'
 	plugin_attrib = name
-	interfaces = set(('node', 'jid'))
+	interfaces = set(('node', 'jid', 'subid'))
 	plugin_attrib_map = {}
 	plugin_tag_map = {}
 

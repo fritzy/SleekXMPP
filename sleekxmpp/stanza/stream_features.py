@@ -19,6 +19,8 @@ class StreamFeatures(StanzaBase):
     namespace = 'http://etherx.jabber.org/streams'
     interfaces = set(('features', 'required', 'optional'))
     sub_interfaces = interfaces
+    plugin_tag_map = {}
+    plugin_attrib_map = {}
 
     def setup(self, xml):
         StanzaBase.setup(self, xml)

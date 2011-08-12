@@ -138,6 +138,17 @@ class BaseXMPP(XMLStream):
         register_stanza_plugin(Message, Nick)
         register_stanza_plugin(Message, HTMLIM)
 
+    def start_stream_handler(self, xml):
+        """
+        Save the stream ID once the streams have been established.
+
+        Overrides XMLStream.start_stream_handler.
+
+        Arguments:
+            xml -- The incoming stream's root element.
+        """
+        self.stream_id = xml.get('id', '')
+
     def process(self, *args, **kwargs):
         """
         Overrides XMLStream.process.
@@ -197,6 +208,10 @@ class BaseXMPP(XMLStream):
                 # We probably want to load a module from outside
                 # the sleekxmpp package, so leave out the globals().
                 module = __import__(module, fromlist=[plugin])
+
+            # Use the global plugin config cache, if applicable
+            if not pconfig:
+                pconfig = self.plugin_config.get(plugin, {})
 
             # Load the plugin class from the module.
             self.plugin[plugin] = getattr(module, plugin)(self, pconfig)

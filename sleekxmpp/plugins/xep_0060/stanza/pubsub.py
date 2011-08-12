@@ -9,236 +9,236 @@ from sleekxmpp.plugins.xep_0060.stanza.base import OptionalSetting
 
 
 class Pubsub(ElementBase):
-	namespace = 'http://jabber.org/protocol/pubsub'
-	name = 'pubsub'
-	plugin_attrib = 'pubsub'
-	interfaces = set(tuple())
-	plugin_attrib_map = {}
-	plugin_tag_map = {}
+    namespace = 'http://jabber.org/protocol/pubsub'
+    name = 'pubsub'
+    plugin_attrib = 'pubsub'
+    interfaces = set(tuple())
+    plugin_attrib_map = {}
+    plugin_tag_map = {}
 
 registerStanzaPlugin(Iq, Pubsub)
 
 
 class Affiliation(ElementBase):
-	namespace = 'http://jabber.org/protocol/pubsub'
-	name = 'affiliation'
-	plugin_attrib = name
-	interfaces = set(('node', 'affiliation', 'jid'))
-	plugin_attrib_map = {}
-	plugin_tag_map = {}
-	
+    namespace = 'http://jabber.org/protocol/pubsub'
+    name = 'affiliation'
+    plugin_attrib = name
+    interfaces = set(('node', 'affiliation', 'jid'))
+    plugin_attrib_map = {}
+    plugin_tag_map = {}
+    
     def setJid(self, value):
-		self._setAttr('jid', str(value))
+        self._setAttr('jid', str(value))
 
-	def getJid(self):
-		return JID(self._getAttr('jid'))
+    def getJid(self):
+        return JID(self._getAttr('jid'))
 
 class Affiliations(ElementBase):
-	namespace = 'http://jabber.org/protocol/pubsub'
-	name = 'affiliations'
-	plugin_attrib = 'affiliations'
-	interfaces = set(tuple())
-	plugin_attrib_map = {}
-	plugin_tag_map = {}
-	subitem = (Affiliation,)
+    namespace = 'http://jabber.org/protocol/pubsub'
+    name = 'affiliations'
+    plugin_attrib = 'affiliations'
+    interfaces = set(tuple())
+    plugin_attrib_map = {}
+    plugin_tag_map = {}
+    subitem = (Affiliation,)
 
 registerStanzaPlugin(Pubsub, Affiliations)
 
 
 class Subscription(ElementBase):
-	namespace = 'http://jabber.org/protocol/pubsub'
-	name = 'subscription'
-	plugin_attrib = name
-	interfaces = set(('jid', 'node', 'subscription', 'subid'))
-	plugin_attrib_map = {}
-	plugin_tag_map = {}
+    namespace = 'http://jabber.org/protocol/pubsub'
+    name = 'subscription'
+    plugin_attrib = name
+    interfaces = set(('jid', 'node', 'subscription', 'subid'))
+    plugin_attrib_map = {}
+    plugin_tag_map = {}
 
-	def setjid(self, value):
-		self._setattr('jid', str(value))
+    def setjid(self, value):
+        self._setattr('jid', str(value))
 
-	def getjid(self):
-		return jid(self._getattr('jid'))
+    def getjid(self):
+        return jid(self._getattr('jid'))
 
 registerStanzaPlugin(Pubsub, Subscription)
 
 class Subscriptions(ElementBase):
-	namespace = 'http://jabber.org/protocol/pubsub'
-	name = 'subscriptions'
-	plugin_attrib = 'subscriptions'
-	interfaces = set(tuple())
-	plugin_attrib_map = {}
-	plugin_tag_map = {}
-	subitem = (Subscription,)
+    namespace = 'http://jabber.org/protocol/pubsub'
+    name = 'subscriptions'
+    plugin_attrib = 'subscriptions'
+    interfaces = set(tuple())
+    plugin_attrib_map = {}
+    plugin_tag_map = {}
+    subitem = (Subscription,)
 
 registerStanzaPlugin(Pubsub, Subscriptions)
 
 
 class SubscribeOptions(ElementBase, OptionalSetting):
-	namespace = 'http://jabber.org/protocol/pubsub'
-	name = 'subscribe-options'
-	plugin_attrib = 'suboptions'
-	plugin_attrib_map = {}
-	plugin_tag_map = {}
-	interfaces = set(('required',))
+    namespace = 'http://jabber.org/protocol/pubsub'
+    name = 'subscribe-options'
+    plugin_attrib = 'suboptions'
+    plugin_attrib_map = {}
+    plugin_tag_map = {}
+    interfaces = set(('required',))
 
 registerStanzaPlugin(Subscription, SubscribeOptions)
 
 class Item(ElementBase):
-	namespace = 'http://jabber.org/protocol/pubsub'
-	name = 'item'
-	plugin_attrib = name
-	interfaces = set(('id', 'payload'))
-	plugin_attrib_map = {}
-	plugin_tag_map = {}
+    namespace = 'http://jabber.org/protocol/pubsub'
+    name = 'item'
+    plugin_attrib = name
+    interfaces = set(('id', 'payload'))
+    plugin_attrib_map = {}
+    plugin_tag_map = {}
 
-	def setPayload(self, value):
-		self.xml.append(value)
+    def setPayload(self, value):
+        self.xml.append(value)
 
-	def getPayload(self):
-		childs = self.xml.getchildren()
-		if len(childs) > 0:
-			return childs[0]
+    def getPayload(self):
+        childs = self.xml.getchildren()
+        if len(childs) > 0:
+            return childs[0]
 
-	def delPayload(self):
-		for child in self.xml.getchildren():
-			self.xml.remove(child)
+    def delPayload(self):
+        for child in self.xml.getchildren():
+            self.xml.remove(child)
 
 class Items(ElementBase):
-	namespace = 'http://jabber.org/protocol/pubsub'
-	name = 'items'
-	plugin_attrib = 'items'
-	interfaces = set(('node',))
-	plugin_attrib_map = {}
-	plugin_tag_map = {}
-	subitem = (Item,)
+    namespace = 'http://jabber.org/protocol/pubsub'
+    name = 'items'
+    plugin_attrib = 'items'
+    interfaces = set(('node',))
+    plugin_attrib_map = {}
+    plugin_tag_map = {}
+    subitem = (Item,)
 
 registerStanzaPlugin(Pubsub, Items)
 
 class Create(ElementBase):
-	namespace = 'http://jabber.org/protocol/pubsub'
-	name = 'create'
-	plugin_attrib = name
-	interfaces = set(('node',))
-	plugin_attrib_map = {}
-	plugin_tag_map = {}
+    namespace = 'http://jabber.org/protocol/pubsub'
+    name = 'create'
+    plugin_attrib = name
+    interfaces = set(('node',))
+    plugin_attrib_map = {}
+    plugin_tag_map = {}
 
 registerStanzaPlugin(Pubsub, Create)
 
 #class Default(ElementBase):
-#	namespace = 'http://jabber.org/protocol/pubsub'
-#	name = 'default'
-#	plugin_attrib = name
-#	interfaces = set(('node', 'type'))
-#	plugin_attrib_map = {}
-#	plugin_tag_map = {}
+#    namespace = 'http://jabber.org/protocol/pubsub'
+#    name = 'default'
+#    plugin_attrib = name
+#    interfaces = set(('node', 'type'))
+#    plugin_attrib_map = {}
+#    plugin_tag_map = {}
 #
-#	def getType(self):
-#		t = self._getAttr('type')
-#		if not t: t == 'leaf'
-#		return t
+#    def getType(self):
+#        t = self._getAttr('type')
+#        if not t: t == 'leaf'
+#        return t
 #
 #registerStanzaPlugin(Pubsub, Default)
 
 class Publish(Items):
-	namespace = 'http://jabber.org/protocol/pubsub'
-	name = 'publish'
-	plugin_attrib = name
-	interfaces = set(('node',))
-	plugin_attrib_map = {}
-	plugin_tag_map = {}
-	subitem = (Item,)
+    namespace = 'http://jabber.org/protocol/pubsub'
+    name = 'publish'
+    plugin_attrib = name
+    interfaces = set(('node',))
+    plugin_attrib_map = {}
+    plugin_tag_map = {}
+    subitem = (Item,)
 
 registerStanzaPlugin(Pubsub, Publish)
 
 class Retract(Items):
-	namespace = 'http://jabber.org/protocol/pubsub'
-	name = 'retract'
-	plugin_attrib = name
-	interfaces = set(('node', 'notify'))
-	plugin_attrib_map = {}
-	plugin_tag_map = {}
+    namespace = 'http://jabber.org/protocol/pubsub'
+    name = 'retract'
+    plugin_attrib = name
+    interfaces = set(('node', 'notify'))
+    plugin_attrib_map = {}
+    plugin_tag_map = {}
 
 registerStanzaPlugin(Pubsub, Retract)
 
 class Unsubscribe(ElementBase):
-	namespace = 'http://jabber.org/protocol/pubsub'
-	name = 'unsubscribe'
-	plugin_attrib = name
-	interfaces = set(('node', 'jid', 'subid'))
-	plugin_attrib_map = {}
-	plugin_tag_map = {}
+    namespace = 'http://jabber.org/protocol/pubsub'
+    name = 'unsubscribe'
+    plugin_attrib = name
+    interfaces = set(('node', 'jid', 'subid'))
+    plugin_attrib_map = {}
+    plugin_tag_map = {}
 
-	def setJid(self, value):
-		self._setAttr('jid', str(value))
+    def setJid(self, value):
+        self._setAttr('jid', str(value))
 
-	def getJid(self):
-		return JID(self._getAttr('jid'))
+    def getJid(self):
+        return JID(self._getAttr('jid'))
 
 registerStanzaPlugin(Pubsub, Unsubscribe)
 
 class Subscribe(ElementBase):
-	namespace = 'http://jabber.org/protocol/pubsub'
-	name = 'subscribe'
-	plugin_attrib = name
-	interfaces = set(('node', 'jid'))
-	plugin_attrib_map = {}
-	plugin_tag_map = {}
+    namespace = 'http://jabber.org/protocol/pubsub'
+    name = 'subscribe'
+    plugin_attrib = name
+    interfaces = set(('node', 'jid'))
+    plugin_attrib_map = {}
+    plugin_tag_map = {}
 
-	def setJid(self, value):
-		self._setAttr('jid', str(value))
+    def setJid(self, value):
+        self._setAttr('jid', str(value))
 
-	def getJid(self):
-		return JID(self._getAttr('jid'))
+    def getJid(self):
+        return JID(self._getAttr('jid'))
 
 registerStanzaPlugin(Pubsub, Subscribe)
 
 class Configure(ElementBase):
-	namespace = 'http://jabber.org/protocol/pubsub'
-	name = 'configure'
-	plugin_attrib = name
-	interfaces = set(('node', 'type'))
-	plugin_attrib_map = {}
-	plugin_tag_map = {}
+    namespace = 'http://jabber.org/protocol/pubsub'
+    name = 'configure'
+    plugin_attrib = name
+    interfaces = set(('node', 'type'))
+    plugin_attrib_map = {}
+    plugin_tag_map = {}
 
-	def getType(self):
-		t = self._getAttr('type')
-		if not t: t == 'leaf'
-		return t
+    def getType(self):
+        t = self._getAttr('type')
+        if not t: t == 'leaf'
+        return t
 
 registerStanzaPlugin(Pubsub, Configure)
 registerStanzaPlugin(Configure, xep_0004.Form)
 
 class Options(ElementBase):
-	namespace = 'http://jabber.org/protocol/pubsub'
-	name = 'options'
-	plugin_attrib = 'options'
-	interfaces = set(('jid', 'node', 'options'))
-	plugin_attrib_map = {}
-	plugin_tag_map = {}
+    namespace = 'http://jabber.org/protocol/pubsub'
+    name = 'options'
+    plugin_attrib = 'options'
+    interfaces = set(('jid', 'node', 'options'))
+    plugin_attrib_map = {}
+    plugin_tag_map = {}
 
-	def __init__(self, *args, **kwargs):
-		ElementBase.__init__(self, *args, **kwargs)
+    def __init__(self, *args, **kwargs):
+        ElementBase.__init__(self, *args, **kwargs)
 
-	def getOptions(self):
-		config = self.xml.find('{jabber:x:data}x')
-		form = xep_0004.Form()
-		if config is not None:
-			form.fromXML(config)
-		return form
+    def getOptions(self):
+        config = self.xml.find('{jabber:x:data}x')
+        form = xep_0004.Form()
+        if config is not None:
+            form.fromXML(config)
+        return form
 
-	def setOptions(self, value):
-		self.xml.append(value.getXML())
-		return self
+    def setOptions(self, value):
+        self.xml.append(value.getXML())
+        return self
 
-	def delOptions(self):
-		config = self.xml.find('{jabber:x:data}x')
-		self.xml.remove(config)
+    def delOptions(self):
+        config = self.xml.find('{jabber:x:data}x')
+        self.xml.remove(config)
 
-	def setJid(self, value):
-		self._setAttr('jid', str(value))
+    def setJid(self, value):
+        self._setAttr('jid', str(value))
 
-	def getJid(self):
-		return JID(self._getAttr('jid'))
+    def getJid(self):
+        return JID(self._getAttr('jid'))
 
 registerStanzaPlugin(Pubsub, Options)
 registerStanzaPlugin(Subscribe, Options)

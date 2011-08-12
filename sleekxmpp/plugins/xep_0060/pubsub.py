@@ -11,13 +11,13 @@ log = logging.getLogger(__name__)
 
 
 class xep_0060(base.base_plugin):
-	"""
-	XEP-0060 Publish Subscribe
-	"""
+    """
+    XEP-0060 Publish Subscribe
+    """
 
-	def plugin_init(self):
-		self.xep = '0060'
-		self.description = 'Publish-Subscribe'
+    def plugin_init(self):
+        self.xep = '0060'
+        self.description = 'Publish-Subscribe'
 
     def create_node(self, jid, node, config=None, ntype=None):
         iq = IQ(sto=jid, stype='set', sfrom=self.xmpp.jid)
@@ -26,9 +26,9 @@ class xep_0060(base.base_plugin):
             ntype = 'leaf'
         if config is not None:
             if 'FORM_TYPE' in submitform.field:
-				config.field['FORM_TYPE'].setValue('http://jabber.org/protocol/pubsub#node_config')
-			else:
-				config.addField('FORM_TYPE', 'hidden', value='http://jabber.org/protocol/pubsub#node_config')
+                config.field['FORM_TYPE'].setValue('http://jabber.org/protocol/pubsub#node_config')
+            else:
+                config.addField('FORM_TYPE', 'hidden', value='http://jabber.org/protocol/pubsub#node_config')
             if 'pubsub#node_type' in submitform.field:
                 config.field['pubsub#node_type'].setValue(ntype)
             else:
@@ -48,7 +48,7 @@ class xep_0060(base.base_plugin):
             iq['pubsub']['subscribe']['jid'] = subscribee
         return iq.send()
 
-	def unsubscribe(self, jid, node, subid=None, bare=True, subscribee=None):
+    def unsubscribe(self, jid, node, subid=None, bare=True, subscribee=None):
         iq = IQ(sto=jid, sfrom=self.xmpp.jid, stype='set')
         iq['pubsub']['unsubscribe']['node'] = node
         if subscribee is None:
@@ -62,7 +62,7 @@ class xep_0060(base.base_plugin):
             iq['pubsub']['unsubscribe']['subid'] = subid
         return iq.send()
 
-	def get_node_config(self, jid, node=None): # if no node, then grab default
+    def get_node_config(self, jid, node=None): # if no node, then grab default
         iq = IQ(sto=jid, sfrom=self.xmpp.jid, stype='get')
         if node is None:
             iq['pubsub_owner']['default']
@@ -70,28 +70,28 @@ class xep_0060(base.base_plugin):
             iq['pubsub_owner']['configure']['node'] = node
         return iq.send()
 
-	def get_node_subscriptions(self, jid, node):
+    def get_node_subscriptions(self, jid, node):
         iq = IQ(sto=jid, sfrom=self.xmpp.jid, stype='get')
         iq['pubsub_owner']['subscriptions']['node'] = node
         return iq.send()
 
-	def get_node_affiliations(self, jid, node):
+    def get_node_affiliations(self, jid, node):
         iq = IQ(sto=jid, sfrom=self.xmpp.jid, stype='get')
         iq['pubsub_owner']['affiliations']['node'] = node
         return iq.send()
 
-	def delete_node(self, jid, node):
+    def delete_node(self, jid, node):
         iq = IQ(sto=jid, sfrom=self.xmpp.jid, stype='get')
         iq['pubsub_owner']['delete']['node'] = node
         return iq.send()
 
-	def set_node_config(self, jid, node, config):
+    def set_node_config(self, jid, node, config):
         iq = IQ(sto=jid, sfrom=self.xmpp.jid, stype='set')
         iq['pubsub_owner']['configure']['node'] = node
         iq['pubsub_owner']['configure']['config'] = config
         return iq.send()
 
-	def publish(self, jid, node, items=[]):
+    def publish(self, jid, node, items=[]):
         iq = IQ(sto=jid, sfrom=self.xmpp.jid, stype='set')
         iq['pubsub']['publish']['node'] = node
         for id, payload in items:
@@ -102,7 +102,7 @@ class xep_0060(base.base_plugin):
             iq['pubsub']['publish'].append(item)
         return iq.send()
 
-	def retract(self, jid, node, item):
+    def retract(self, jid, node, item):
         iq = IQ(sto=jid, sfrom=self.xmpp.jid, stype='set')
         iq['pubsub']['retract']['node'] = node
         item = stanza.pubsub.Item()
@@ -110,11 +110,11 @@ class xep_0060(base.base_plugin):
         iq['pubsub']['retract'].append(item)
         return iq.send()
 
-	def get_nodes(self, jid):
-		return self.xmpp.plugin['xep_0030'].get_items(jid)
+    def get_nodes(self, jid):
+        return self.xmpp.plugin['xep_0030'].get_items(jid)
 
-	def getItems(self, jid, node):
-		return self.xmpp.plugin['xep_0030'].get_items(jid, node)
+    def getItems(self, jid, node):
+        return self.xmpp.plugin['xep_0030'].get_items(jid, node)
 
     def modify_affiliation(self, jid, node, affiliation, user_jid=None):
         iq = IQ(sto=jid, sfrom=self.xmpp.jid, stype='set')

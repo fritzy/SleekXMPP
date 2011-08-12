@@ -831,7 +831,7 @@ class XMLStream(object):
             self.send_queue.put(data)
         return True
 
-    def process(self, threaded=True):
+    def process(self, **kwargs):
         """
         Initialize the XML streams and begin processing events.
 
@@ -839,14 +839,29 @@ class XMLStream(object):
         by HANDLER_THREADS.
 
         Arguments:
+            block -- If block=False then event dispatcher will run
+                     in a separate thread, allowing for the stream to be
+                     used in the background for another application.
+                     Otherwise, process(block=True) blocks the current thread.
+                     Defaults to False.
+
+            **threaded is deprecated and included for API compatibility**
             threaded -- If threaded=True then event dispatcher will run
                         in a separate thread, allowing for the stream to be
                         used in the background for another application.
                         Defaults to True.
 
-                        Event handlers and the send queue will be threaded
-                        regardless of this parameter's value.
+            Event handlers and the send queue will be threaded
+            regardless of these parameters.
         """
+        if 'threaded' in kwargs and 'block' in kwargs:
+            raise ValueError("process() called with both " + \
+                             "block and threaded arguments")
+        elif 'block' in kwargs:
+            threaded = not(kwargs.get('block', False))
+        else:
+            threaded = kwargs.get('threaded', True)
+
         self.scheduler.process(threaded=True)
 
         def start_thread(name, target):

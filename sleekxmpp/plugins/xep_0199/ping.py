@@ -108,7 +108,7 @@ class xep_0199(base_plugin):
             iq -- The ping request.
         """
         log.debug("Pinged by %s" % iq['from'])
-        iq.reply().enable('ping').send()
+        iq.reply().send()
 
     def send_ping(self, jid, timeout=None, errorfalse=False,
                   ifrom=None, block=True, callback=None):

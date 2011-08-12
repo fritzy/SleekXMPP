@@ -163,12 +163,41 @@ class BaseXMPP(XMLStream):
         register_stanza_plugin(Message, Nick)
         register_stanza_plugin(Message, HTMLIM)
 
+    def start_stream_handler(self, xml):
+        """
+        Save the stream ID once the streams have been established.
+
+        Overrides XMLStream.start_stream_handler.
+
+        Arguments:
+            xml -- The incoming stream's root element.
+        """
+        self.stream_id = xml.get('id', '')
+
     def process(self, *args, **kwargs):
         """
-        Ensure that plugin inter-dependencies are handled before starting
-        event processing.
-
         Overrides XMLStream.process.
+
+        Initialize the XML streams and begin processing events.
+
+        The number of threads used for processing stream events is determined
+        by HANDLER_THREADS.
+
+        Arguments:
+            block -- If block=False then event dispatcher will run
+                     in a separate thread, allowing for the stream to be
+                     used in the background for another application.
+                     Otherwise, process(block=True) blocks the current thread.
+                     Defaults to False.
+
+            **threaded is deprecated and included for API compatibility**
+            threaded -- If threaded=True then event dispatcher will run
+                        in a separate thread, allowing for the stream to be
+                        used in the background for another application.
+                        Defaults to True.
+
+            Event handlers and the send queue will be threaded
+            regardless of these parameters.
         """
         for name in self.plugin:
             if not self.plugin[name].post_inited:
@@ -192,16 +221,22 @@ class BaseXMPP(XMLStream):
             if not module:
                 try:
                     module = sleekxmpp.plugins
-                    module = __import__(str("%s.%s" % (module.__name__, plugin)),
-                                        globals(), locals(), [str(plugin)])
+                    module = __import__(
+                            str("%s.%s" % (module.__name__, plugin)),
+                            globals(), locals(), [str(plugin)])
                 except ImportError:
                     module = sleekxmpp.features
-                    module = __import__(str("%s.%s" % (module.__name__, plugin)),
-                                        globals(), locals(), [str(plugin)])
+                    module = __import__(
+                            str("%s.%s" % (module.__name__, plugin)),
+                            globals(), locals(), [str(plugin)])
             if isinstance(module, str):
                 # We probably want to load a module from outside
                 # the sleekxmpp package, so leave out the globals().
                 module = __import__(module, fromlist=[plugin])
+
+            # Use the global plugin config cache, if applicable
+            if not pconfig:
+                pconfig = self.plugin_config.get(plugin, {})
 
             # Load the plugin class from the module.
             self.plugin[plugin] = getattr(module, plugin)(self, pconfig)

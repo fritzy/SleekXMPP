@@ -40,9 +40,12 @@ log = logging.getLogger(__name__)
 class ClientXMPP(BaseXMPP):
 
     """
-    SleekXMPP's client class.
+    SleekXMPP's client class. ( Use only for good, not for evil.)
 
-    Use only for good, not for evil.
+    Typical Use:
+    xmpp = ClientXMPP('user@server.tld/resource', 'password')
+    xmpp.process(block=False) // when block is True, it blocks the current
+    //                           thread. False by default.
 
     Attributes:
 
@@ -251,12 +254,7 @@ class ClientXMPP(BaseXMPP):
         iq.enable('roster')
         response = iq.send(block, timeout, callback)
 
-        if response == False:
-            self.event('roster_timeout')
-
-        if response in [False, None] or not isinstance(response, Iq):
-            return response
-        else:
+        if callback is None:
             return self._handle_roster(response, request=True)
 
     def _handle_connected(self, event=None):

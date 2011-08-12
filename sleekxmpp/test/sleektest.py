@@ -16,6 +16,7 @@ import sleekxmpp
 from sleekxmpp import ClientXMPP, ComponentXMPP
 from sleekxmpp.stanza import Message, Iq, Presence
 from sleekxmpp.test import TestSocket, TestLiveSocket
+from sleekxmpp.exceptions import XMPPError, IqTimeout, IqError
 from sleekxmpp.xmlstream import ET, register_stanza_plugin
 from sleekxmpp.xmlstream import ElementBase, StanzaBase
 from sleekxmpp.xmlstream.tostring import tostring
@@ -344,9 +345,11 @@ class SleekTest(unittest.TestCase):
             self.xmpp.socket.recv_data(header)
         elif socket == 'live':
             self.xmpp.socket_class = TestLiveSocket
+
             def wait_for_session(x):
                 self.xmpp.socket.clear()
                 skip_queue.put('started')
+
             self.xmpp.add_event_handler('session_start', wait_for_session)
             self.xmpp.connect()
         else:

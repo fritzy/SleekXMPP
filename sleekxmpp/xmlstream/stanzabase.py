@@ -482,7 +482,8 @@ class ElementBase(object):
                     if plugin:
                         if plugin not in self.plugins:
                             self.init_plugin(plugin)
-                        handler = getattr(self.plugins[plugin], set_method, None)
+                        handler = getattr(self.plugins[plugin],
+                                          set_method, None)
                         if handler:
                             return handler(value)
 
@@ -1066,7 +1067,7 @@ class ElementBase(object):
         stanza_ns = '' if top_level_ns else self.namespace
         return tostring(self.xml, xmlns='',
                         stanza_ns=stanza_ns,
-                        top_level = not top_level_ns)
+                        top_level=not top_level_ns)
 
     def __repr__(self):
         """
@@ -1285,7 +1286,7 @@ class StanzaBase(ElementBase):
         return tostring(self.xml, xmlns='',
                         stanza_ns=stanza_ns,
                         stream=self.stream,
-                        top_level = not top_level_ns)
+                        top_level=not top_level_ns)
 
 
 # To comply with PEP8, method names now use underscores.

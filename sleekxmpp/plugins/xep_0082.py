@@ -6,10 +6,11 @@
     See the file LICENSE for copying permission.
 """
 
+import logging
 import datetime as dt
-from dateutil import parser
-from dateutil.tz import tzoffset, tzutc
+
 from sleekxmpp.plugins.base import base_plugin
+from sleekxmpp.thirdparty import tzutc, tzoffset, parse_iso
 
 
 # =====================================================================
@@ -24,7 +25,8 @@ def parse(time_str):
     Arguments:
         time_str -- A formatted timestamp string.
     """
-    return parser.parse(time_str)
+    return parse_iso(time_str)
+
 
 def format_date(time_obj):
     """
@@ -45,7 +47,7 @@ def format_time(time_obj):
     Return a formatted string version of a time object.
 
     format:
-        hh:mm:ss[.sss][TZD
+        hh:mm:ss[.sss][TZD]
 
     arguments:
         time_obj -- A time or datetime object.

@@ -6,6 +6,4 @@
     See the file LICENSE for copying permission.
 """
 
-__all__ = ['feature_starttls', 'feature_mechanisms',
-           'feature_bind', 'feature_session',
-           'sasl_plain', 'sasl_anonymous']
+__all__ = ['feature_starttls', 'feature_mechanisms', 'feature_bind']

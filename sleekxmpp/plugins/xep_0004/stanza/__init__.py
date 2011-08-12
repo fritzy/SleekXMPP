@@ -6,7 +6,5 @@
     See the file LICENSE for copying permission.
 """
 
-
-from sleekxmpp.plugins.xep_0202 import stanza
-from sleekxmpp.plugins.xep_0202.stanza import EntityTime
-from sleekxmpp.plugins.xep_0202.time import xep_0202
+from sleekxmpp.plugins.xep_0004.stanza.field import FormField, FieldOption
+from sleekxmpp.plugins.xep_0004.stanza.form import Form

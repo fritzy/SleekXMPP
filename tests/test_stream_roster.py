@@ -107,19 +107,12 @@ class TestStreamRoster(SleekTest):
     def testRosterTimeout(self):
         """Test handling a timed out roster request."""
         self.stream_start()
-        events = []
 
-        def roster_timeout(event):
-            events.append('roster_timeout')
+        def do_test():
+            self.xmpp.get_roster(timeout=0)
+            time.sleep(.1)
 
-        self.xmpp.add_event_handler('roster_timeout', roster_timeout)
-        self.xmpp.get_roster(timeout=0)
-
-        # Give the event queue time to process.
-        time.sleep(.1)
-
-        self.failUnless(events == ['roster_timeout'],
-                 "Roster timeout event not triggered: %s." % events)
+        self.assertRaises(IqTimeout, do_test)
 
     def testRosterCallback(self):
         """Test handling a roster request callback."""

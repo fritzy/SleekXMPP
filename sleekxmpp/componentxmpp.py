@@ -117,11 +117,13 @@ class ComponentXMPP(BaseXMPP):
         Once the streams are established, attempt to handshake
         with the server to be accepted as a component.
 
-        Overrides XMLStream.start_stream_handler.
+        Overrides BaseXMPP.start_stream_handler.
 
         Arguments:
             xml -- The incoming stream's root element.
         """
+        BaseXMPP.start_stream_handler(self, xml)
+
         # Construct a hash of the stream ID and the component secret.
         sid = xml.get('id', '')
         pre_hash = '%s%s' % (sid, self.secret)

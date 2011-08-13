@@ -29,8 +29,19 @@ class FormField(ElementBase):
     multi_value_types = set(('hidden', 'jid-multi',
                              'list-multi', 'text-multi'))
 
+    def setup(self, xml=None):
+        if ElementBase.setup(self, xml):
+            self._type = None
+        else:
+            self._type = self['type']
+
+    def set_type(self, value):
+        self._set_attr('type', value)
+        if value:
+            self._type = value
+
     def add_option(self, label='', value=''):
-        if self['type'] in self.option_types:
+        if self._type in self.option_types:
             opt = FieldOption(parent=self)
             opt['label'] = label
             opt['value'] = value
@@ -72,15 +83,15 @@ class FormField(ElementBase):
         valsXML = self.xml.findall('{%s}value' % self.namespace)
         if len(valsXML) == 0:
             return None
-        elif self['type'] == 'boolean':
+        elif self._type == 'boolean':
             return valsXML[0].text in self.true_values
-        elif self['type'] in self.multi_value_types:
+        elif self._type in self.multi_value_types:
             values = []
             for valXML in valsXML:
                 if valXML.text is None:
                     valXML.text = ''
                 values.append(valXML.text)
-            if self['type'] == 'text-multi':
+            if self._type == 'text-multi':
                 values = "\n".join(values)
             return values
         else:
@@ -113,7 +124,7 @@ class FormField(ElementBase):
         del self['value']
         valXMLName = '{%s}value' % self.namespace
 
-        if self['type'] == 'boolean':
+        if self._type == 'boolean':
             if value in self.true_values:
                 valXML = ET.Element(valXMLName)
                 valXML.text = '1'
@@ -122,14 +133,12 @@ class FormField(ElementBase):
                 valXML = ET.Element(valXMLName)
                 valXML.text = '0'
                 self.xml.append(valXML)
-        elif self['type'] in self.multi_value_types or not self['type']:
+        elif self._type in self.multi_value_types or self._type in ('', None):
             if not isinstance(value, list):
-                if self['type'] in self.multi_line_types:
-                    value = value.split('\n')
-                else:
-                    value = [value]
+                value = value.replace('\r', '')
+                value = value.split('\n')
             for val in value:
-                if self['type'] in ['', None] and val in self.true_values:
+                if self._type in ('', None) and val in self.true_values:
                     val = '1'
                 valXML = ET.Element(valXMLName)
                 valXML.text = val
@@ -137,7 +146,7 @@ class FormField(ElementBase):
         else:
             if isinstance(value, list):
                 raise ValueError("Cannot add multiple values " + \
-                                 "to a %s field." % self['type'])
+                                 "to a %s field." % self._type)
             valXML = ET.Element(valXMLName)
             valXML.text = value
             self.xml.append(valXML)

@@ -117,4 +117,82 @@ class TestDataForms(SleekTest):
             </x>
           </message>""")
 
+    def testSubmitType(self):
+        """Test that setting type to 'submit' clears extra details"""
+        msg = self.Message()
+        form = msg['form']
+
+        fields = OrderedDict()
+        fields['f1'] = {'type': 'text-single',
+                        'label': 'Username',
+                        'required': True}
+        fields['f2'] = {'type': 'text-private',
+                        'label': 'Password',
+                        'required': True}
+        fields['f3'] = {'type': 'text-multi',
+                        'label': 'Message',
+                        'value': 'Enter message.\nA long one even.'}
+        fields['f4'] = {'type': 'list-single',
+                        'label': 'Message Type',
+                        'options': [{'label': 'Cool!',
+                                     'value': 'cool'},
+                                    {'label': 'Urgh!',
+                                     'value': 'urgh'}]}
+        form['fields'] = fields
+
+        form['type'] = 'submit'
+        form['values'] = {'f1': 'username',
+                          'f2': 'hunter2',
+                          'f3': 'A long\nmultiline\nmessage',
+                          'f4': 'cool'}
+
+        self.check(form, """
+          <x xmlns="jabber:x:data" type="submit">
+            <field var="f1">
+              <value>username</value>
+            </field>
+            <field var="f2">
+              <value>hunter2</value>
+            </field>
+            <field var="f3">
+              <value>A long</value>
+              <value>multiline</value>
+              <value>message</value>
+            </field>
+            <field var="f4">
+              <value>cool</value>
+            </field>
+          </x>
+        """, use_values=False)
+
+    def testCancelType(self):
+        """Test that setting type to 'cancel' clears all fields"""
+        msg = self.Message()
+        form = msg['form']
+
+        fields = OrderedDict()
+        fields['f1'] = {'type': 'text-single',
+                        'label': 'Username',
+                        'required': True}
+        fields['f2'] = {'type': 'text-private',
+                        'label': 'Password',
+                        'required': True}
+        fields['f3'] = {'type': 'text-multi',
+                        'label': 'Message',
+                        'value': 'Enter message.\nA long one even.'}
+        fields['f4'] = {'type': 'list-single',
+                        'label': 'Message Type',
+                        'options': [{'label': 'Cool!',
+                                     'value': 'cool'},
+                                    {'label': 'Urgh!',
+                                     'value': 'urgh'}]}
+        form['fields'] = fields
+
+        form['type'] = 'cancel'
+
+        self.check(form, """
+          <x xmlns="jabber:x:data" type="cancel" />
+        """)
+
+
 suite = unittest.TestLoader().loadTestsFromTestCase(TestDataForms)

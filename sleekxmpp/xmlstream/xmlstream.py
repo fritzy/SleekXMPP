@@ -49,7 +49,7 @@ HANDLER_THREADS = 1
 SSL_SUPPORT = True
 
 # Maximum time to delay between connection attempts is one hour.
-RECONNECT_MAX_DELAY = 3600
+RECONNECT_MAX_DELAY = 600
 
 
 log = logging.getLogger(__name__)

@@ -10,6 +10,7 @@ import logging
 import time
 
 from sleekxmpp import Iq
+from sleekxmpp.exceptions import IqError
 from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.xmlstream.matcher import StanzaPath
 from sleekxmpp.xmlstream import register_stanza_plugin, JID
@@ -90,16 +91,6 @@ class xep_0050(base_plugin):
                 Callback("Ad-Hoc Execute",
                          StanzaPath('iq@type=set/command'),
                          self._handle_command))
-
-        self.xmpp.register_handler(
-                Callback("Ad-Hoc Result",
-                         StanzaPath('iq@type=result/command'),
-                         self._handle_command_result))
-
-        self.xmpp.register_handler(
-                Callback("Ad-Hoc Error",
-                         StanzaPath('iq@type=error/command'),
-                         self._handle_command_result))
 
         register_stanza_plugin(Iq, stanza.Command)
 
@@ -408,7 +399,7 @@ class xep_0050(base_plugin):
                                                **kwargs)
 
     def send_command(self, jid, node, ifrom=None, action='execute',
-                    payload=None, sessionid=None, **kwargs):
+                    payload=None, sessionid=None, flow=False, **kwargs):
         """
         Create and send a command stanza, without using the provided
         workflow management APIs.
@@ -422,6 +413,10 @@ class xep_0050(base_plugin):
             payload   -- Either a list of payload items, or a single
                          payload item such as a data form.
             sessionid -- The current session's ID value.
+            flow      -- If True, process the Iq result using the
+                         command workflow methods contained in the
+                         session instead of returning the response
+                         stanza itself. Defaults to False.
             block     -- Specify if the send call will block until a
                          response is received, or a timeout occurs.
                          Defaults to True.
@@ -431,7 +426,7 @@ class xep_0050(base_plugin):
                          sleekxmpp.xmlstream.RESPONSE_TIMEOUT
             callback  -- Optional reference to a stream handler
                          function. Will be executed when a reply
-                         stanza is received.
+                         stanza is received if flow=False.
         """
         iq = self.xmpp.Iq()
         iq['type'] = 'set'
@@ -447,13 +442,24 @@ class xep_0050(base_plugin):
                 payload = [payload]
             for item in payload:
                 iq['command'].append(item)
-        return iq.send(**kwargs)
+        if not flow:
+            return iq.send(**kwargs)
+        else:
+            if kwargs.get('block', True):
+                try:
+                    result = iq.send(**kwargs)
+                except IqError as err:
+                    result = err.iq
+                self._handle_command_result(result)
+            else:
+                iq.send(block=False, callback=self._handle_command_result)
 
-    def start_command(self, jid, node, session, ifrom=None):
+    def start_command(self, jid, node, session, ifrom=None, block=False):
         """
         Initiate executing a command provided by a remote agent.
 
-        The workflow provided is always non-blocking.
+        The default workflow provided is non-blocking, but a blocking
+        version may be used with block=True.
 
         The provided session dictionary should contain:
             next  -- A handler for processing the command result.
@@ -465,11 +471,14 @@ class xep_0050(base_plugin):
             node    -- The node for the desired command.
             session -- A dictionary of relevant session data.
             ifrom   -- Optionally specify the sender's JID.
+            block   -- If True, block execution until a result
+                       is received. Defaults to False.
         """
         session['jid'] = jid
         session['node'] = node
         session['timestamp'] = time.time()
         session['payload'] = None
+        session['block'] = block
         iq = self.xmpp.Iq()
         iq['type'] = 'set'
         iq['to'] = jid
@@ -481,7 +490,14 @@ class xep_0050(base_plugin):
         sessionid = 'client:pending_' + iq['id']
         session['id'] = sessionid
         self.sessions[sessionid] = session
-        iq.send(block=False)
+        if session['block']:
+            try:
+                result = iq.send(block=True)
+            except IqError as err:
+                result = err.iq
+            self._handle_command_result(result)
+        else:
+            iq.send(block=False, callback=self._handle_command_result)
 
     def continue_command(self, session):
         """
@@ -499,7 +515,9 @@ class xep_0050(base_plugin):
                           ifrom=session.get('from', None),
                           action='next',
                           payload=session.get('payload', None),
-                          sessionid=session['id'])
+                          sessionid=session['id'],
+                          flow=True,
+                          block=session['block'])
 
     def cancel_command(self, session):
         """
@@ -517,7 +535,9 @@ class xep_0050(base_plugin):
                           ifrom=session.get('from', None),
                           action='cancel',
                           payload=session.get('payload', None),
-                          sessionid=session['id'])
+                          sessionid=session['id'],
+                          flow=True,
+                          block=session['block'])
 
     def complete_command(self, session):
         """
@@ -535,7 +555,9 @@ class xep_0050(base_plugin):
                           ifrom=session.get('from', None),
                           action='complete',
                           payload=session.get('payload', None),
-                          sessionid=session['id'])
+                          sessionid=session['id'],
+                          flow=True,
+                          block=session['block'])
 
     def terminate_command(self, session):
         """

@@ -504,7 +504,7 @@ class TestAdHocCommands(SleekTest):
         """)
 
         self.recv("""
-          <iq id="1" to="foo@example.com" type="result">
+          <iq id="1" from="foo@example.com" type="result">
             <command xmlns="http://jabber.org/protocol/commands"
                      node="test_client"
                      sessionid="_sessionid_"
@@ -532,7 +532,7 @@ class TestAdHocCommands(SleekTest):
         """)
 
         self.recv("""
-          <iq id="2" to="foo@example.com" type="result">
+          <iq id="2" from="foo@example.com" type="result">
             <command xmlns="http://jabber.org/protocol/commands"
                      node="test_client"
                      sessionid="_sessionid_"
@@ -560,7 +560,7 @@ class TestAdHocCommands(SleekTest):
         """)
 
         self.recv("""
-          <iq id="3" to="foo@example.com" type="result">
+          <iq id="3" from="foo@example.com" type="result">
             <command xmlns="http://jabber.org/protocol/commands"
                      node="test_client"
                      sessionid="_sessionid_"
@@ -680,6 +680,46 @@ class TestAdHocCommands(SleekTest):
 
         self.failUnless(results == ['foo'],
                 'Incomplete command workflow: %s' % results)
+
+    def testClientAPIErrorStrippedResponse(self):
+        """Test errors that don't include the command substanza."""
+        results = []
+
+        def handle_error(iq, session):
+            for item in session['custom_data']:
+                results.append(item)
+
+        session = {'custom_data': ['foo'],
+                   'error': handle_error}
+
+        self.xmpp['xep_0050'].start_command(
+                'foo@example.com',
+                'test_client',
+                session)
+
+        self.send("""
+          <iq id="1" to="foo@example.com" type="set">
+            <command xmlns="http://jabber.org/protocol/commands"
+                     node="test_client"
+                     action="execute" />
+          </iq>
+        """)
+
+        self.recv("""
+          <iq id="1" to="foo@example.com" type="error">
+            <error type='cancel'>
+              <item-not-found xmlns='urn:ietf:params:xml:ns:xmpp-stanzas' />
+            </error>
+          </iq>
+        """)
+
+        # Give the event queue time to process
+        time.sleep(0.3)
+
+        self.failUnless(results == ['foo'],
+                'Incomplete command workflow: %s' % results)
+
+
 
 
 

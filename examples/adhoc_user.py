@@ -136,6 +136,7 @@ class CommandUserBot(sleekxmpp.ClientXMPP):
         # The session will automatically be cleared if no error
         # handler is provided.
         self['xep_0050'].terminate_command(session)
+        self.disconnect()
 
 
 if __name__ == '__main__':
@@ -176,7 +177,7 @@ if __name__ == '__main__':
     if opts.other is None:
         opts.other = raw_input("JID Providing Commands: ")
     if opts.greeting is None:
-        opts.other = raw_input("Greeting: ")
+        opts.greeting = raw_input("Greeting: ")
 
     # Setup the CommandBot and register plugins. Note that while plugins may
     # have interdependencies, the order in which you register them does

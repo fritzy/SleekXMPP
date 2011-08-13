@@ -461,6 +461,7 @@ class XMLStream(object):
         # Wait for confirmation that the stream was
         # closed in the other direction.
         self.auto_reconnect = reconnect
+        log.debug('Waiting for %s from server' % self.stream_footer)
         self.stream_end_event.wait(4)
         if not self.auto_reconnect:
             self.stop.set()

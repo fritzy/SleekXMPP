@@ -41,6 +41,10 @@ class Form(ElementBase):
             # If we had to generate xml
             self['type'] = 'form'
 
+    @property
+    def field(self):
+        return self['fields']
+
     def set_type(self, ftype):
         self._set_attr('type', ftype)
         if ftype == 'submit':

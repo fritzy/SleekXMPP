@@ -76,7 +76,8 @@ class EchoBot(sleekxmpp.ClientXMPP):
                    for stanza objects and the Message stanza to see
                    how it may be used.
         """
-        msg.reply("Thanks for sending\n%(body)s" % msg).send()
+        if msg['type'] in ('chat', 'normal'):
+            msg.reply("Thanks for sending\n%(body)s" % msg).send()
 
 
 if __name__ == '__main__':

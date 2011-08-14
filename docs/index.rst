@@ -22,14 +22,13 @@ SleekXMPP
 
     **Develop Releases**
         - `Latest Develop Version <http://github.com/fritzy/SleekXMPP/zipball/develop>`_
-        - `External Roster (Based on Develop Version) <http://github.com/fritzy/SleekXMPP/zipball/roster>`_
 
 
     A mailing list and XMPP chat room are available for discussing and getting
     help with SleekXMPP.
 
     **Mailing List**
-        http://groups.google.com/group/sleekxmpp-discussion
+        `SleekXMPP Discussion on Google Groups <http://groups.google.com/group/sleekxmpp-discussion>`_
 
     **Chat**
         `sleek@conference.jabber.org <xmpp:sleek@conference.jabber.org?join>`_
@@ -65,23 +64,45 @@ SleekXMPP's design goals and philosphy are:
     sensible defaults and appropriate abstractions. XML can be ugly to work
     with, but it doesn't have to be that way.
 
+Getting Started (with Examples)
+-------------------------------
+.. toctree::
+    :maxdepth: 2
+    
+    getting_started/echobot
+    getting_started/sendlogout
+    getting_started/component
+    getting_started/presence
+    getting_started/muc
+    getting_started/proxy
+    getting_started/scheduler
+    getting_started/iq
+
+
+Tutorials, FAQs, and How To Guides
+----------------------------------
+.. toctree::
+    :maxdepth: 2
+   
+    xeps
+    xmpp_tdg
+    create_plugin
+    sasl
+    handlersmatchers
+
+Plugin Guides
+~~~~~~~~~~~~~
+.. toctree:: 
+    :maxdepth: 2
+
+    guide_xep_0030
+
 SleekXMPP Architecture and Design
 ---------------------------------
 .. toctree::
     :maxdepth: 2
 
     architecture.rst
-
-Tutorials, FAQs, and How To Guides
-----------------------------------
-.. toctree::
-    :maxdepth: 2
-    
-    quickstart
-    xmpp_tdg
-    create_plugin
-    guide_xep_0030
-
 
 API Reference
 -------------

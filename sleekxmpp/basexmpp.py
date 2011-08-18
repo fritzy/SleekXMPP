@@ -730,7 +730,6 @@ class BaseXMPP(XMLStream):
 
         Update the roster with presence information.
         """
-        logging.debug(presence['type'])
         self.event("presence_%s" % presence['type'], presence)
 
         # Check for changes in subscription state.

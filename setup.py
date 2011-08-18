@@ -29,7 +29,7 @@ import sleekxmpp
 
 VERSION          = sleekxmpp.__version__
 DESCRIPTION      = 'SleekXMPP is an elegant Python library for XMPP (aka Jabber, Google Talk, etc).'
-with open('README') as readme:
+with open('README.rst') as readme:
     LONG_DESCRIPTION = '\n'.join(readme)
 
 CLASSIFIERS      = [ 'Intended Audience :: Developers',

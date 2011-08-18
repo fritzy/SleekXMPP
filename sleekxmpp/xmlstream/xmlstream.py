@@ -657,6 +657,13 @@ class XMLStream(object):
         return False
 
     def get_dns_records(self, domain, port=None):
+        """
+        Get the DNS records for a domain.
+
+        Arguments:
+            domain -- The domain in question.
+            port   -- If the results don't include a port, use this one.
+        """
         if port is None:
             port = self.default_port
         if DNSPYTHON:
@@ -673,6 +680,15 @@ class XMLStream(object):
             return [((domain, port), 0, 0)]
 
     def pick_dns_answer(self, domain, port=None):
+        """
+        Pick a server and port from DNS answers.
+        Gets DNS answers if none available.
+        Removes used answer from available answers.
+
+        Arguments:
+            domain -- The domain in question.
+            port   -- If the results don't include a port, use this one.
+        """
         if not self.dns_answers:
             self.dns_answers = self.get_dns_records(domain, port)
         addresses = {}

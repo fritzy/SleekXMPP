@@ -141,6 +141,14 @@ class ClientXMPP(BaseXMPP):
                                  use_tls=use_tls, reattempt=reattempt)
 
     def get_dns_records(self, domain, port=None):
+        """
+        Get the DNS records for a domain.
+        Overridden XMLStream.get_dns_records to use SRV.
+
+        Arguments:
+            domain -- The domain in question.
+            port   -- If the results don't include a port, use this one.
+        """
         if port is None:
             port = self.default_port
         if DNSPYTHON:

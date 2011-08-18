@@ -134,7 +134,8 @@ class ClientXMPP(BaseXMPP):
                          connection. Defaults to True.
         """
         self.session_started_event.clear()
-        address = (self.boundjid.host, 5222)
+        if not address:
+            address = (self.boundjid.host, 5222)
 
         return XMLStream.connect(self, address[0], address[1],
                                  use_tls=use_tls, reattempt=reattempt)

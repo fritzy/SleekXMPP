@@ -56,11 +56,17 @@ class xep_0078(base_plugin):
         iq['type'] = 'get'
         iq['to'] = self.xmpp.boundjid.host
         iq['auth']['username'] = self.xmpp.boundjid.user
-        resp = iq.send(now=True)
 
-        if resp is None or resp['type'] != 'result':
+        try:
+            resp = iq.send(now=True)
+        except IqError:
             log.info("Authentication failed: %s" % resp['error']['condition'])
-            self.xmpp.event('failed_auth', resp, direct=True)
+            self.xmpp.event('failed_auth', direct=True)
+            self.xmpp.disconnect()
+            return True
+        except IqTimeout:
+            log.info("Authentication failed: %s" % 'timeout')
+            self.xmpp.event('failed_auth', direct=True)
             self.xmpp.disconnect()
             return True
 
@@ -91,18 +97,23 @@ class xep_0078(base_plugin):
             iq['auth']['password'] = self.xmpp.password
 
         # Step 3: Send credentials
-        result = iq.send(now=True)
-        if result is not None and result.attrib['type'] == 'result':
-            self.xmpp.features.add('auth')
-
-            self.xmpp.authenticated = True
-            log.debug("Established Session")
-            self.xmpp.sessionstarted = True
-            self.xmpp.session_started_event.set()
-            self.xmpp.event('session_start')
-        else:
+        try:
+            result = iq.send(now=True)
+        except IqError as err:
             log.info("Authentication failed")
             self.xmpp.disconnect()
-            self.xmpp.event("failed_auth")
+            self.xmpp.event("failed_auth", direct=True)
+        except IqTimeout:
+            log.info("Authentication failed")
+            self.xmpp.disconnect()
+            self.xmpp.event("failed_auth", direct=True)
+
+        self.xmpp.features.add('auth')
+
+        self.xmpp.authenticated = True
+        log.debug("Established Session")
+        self.xmpp.sessionstarted = True
+        self.xmpp.session_started_event.set()
+        self.xmpp.event('session_start')
 
         return True

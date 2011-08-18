@@ -85,7 +85,7 @@ class FormField(ElementBase):
             return None
         elif self._type == 'boolean':
             return valsXML[0].text in self.true_values
-        elif self._type in self.multi_value_types:
+        elif self._type in self.multi_value_types or len(valsXML) > 1:
             values = []
             for valXML in valsXML:
                 if valXML.text is None:
@@ -95,6 +95,8 @@ class FormField(ElementBase):
                 values = "\n".join(values)
             return values
         else:
+            if valsXML[0].text is None:
+                return ''
             return valsXML[0].text
 
     def set_answer(self, answer):

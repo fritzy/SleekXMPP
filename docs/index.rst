@@ -67,7 +67,7 @@ SleekXMPP's design goals and philosphy are:
 Getting Started (with Examples)
 -------------------------------
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
     
     getting_started/echobot
     getting_started/sendlogout
@@ -82,27 +82,29 @@ Getting Started (with Examples)
 Tutorials, FAQs, and How To Guides
 ----------------------------------
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
    
     xeps
     xmpp_tdg
     create_plugin
+    features
     sasl
     handlersmatchers
 
 Plugin Guides
 ~~~~~~~~~~~~~
 .. toctree:: 
-    :maxdepth: 2
+    :maxdepth: 1
 
     guide_xep_0030
 
 SleekXMPP Architecture and Design
 ---------------------------------
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 3
 
-    architecture.rst
+    architecture
+    plugin_arch
 
 API Reference
 -------------
@@ -111,6 +113,8 @@ API Reference
     
     event_index
     api/clientxmpp
+    api/basexmpp
+    api/xmlstream
 
 Additional Info
 ---------------

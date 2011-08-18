@@ -11,6 +11,7 @@ import logging
 
 import sleekxmpp
 from sleekxmpp import Iq
+from sleekxmpp.exceptions import IqError, IqTimeout
 from sleekxmpp.xmlstream import register_stanza_plugin
 from sleekxmpp.xmlstream.matcher import StanzaPath
 from sleekxmpp.xmlstream.handler import Callback
@@ -89,8 +90,13 @@ class xep_0199(base_plugin):
         def scheduled_ping():
             """Send ping request to the server."""
             log.debug("Pinging...")
-            resp = self.send_ping(self.xmpp.boundjid.host, self.timeout)
-            if resp is None or resp is False:
+            try:
+                self.send_ping(self.xmpp.boundjid.host, self.timeout)
+            except IqError:
+                log.debug("Ping response was an error." + \
+                          "Requesting Reconnect.")
+                self.xmpp.reconnect()
+            except IqTimeout:
                 log.debug("Did not recieve ping back in time." + \
                           "Requesting Reconnect.")
                 self.xmpp.reconnect()
@@ -142,18 +148,20 @@ class xep_0199(base_plugin):
         iq.enable('ping')
 
         start_time = time.clock()
-        resp = iq.send(block=block,
-                       timeout=timeout,
-                       callback=callback)
+
+        try:
+            resp = iq.send(block=block,
+                           timeout=timeout,
+                           callback=callback)
+        except IqError as err:
+            resp = err.iq
+
         end_time = time.clock()
 
         delay = end_time - start_time
 
         if not block:
             return None
-
-        if not resp or resp['type'] == 'error':
-            return False
 
         log.debug("Pong: %s %f" % (jid, delay))
         return delay

@@ -45,7 +45,7 @@ else:
 
 
 # The time in seconds to wait before timing out waiting for response stanzas.
-RESPONSE_TIMEOUT = 10
+RESPONSE_TIMEOUT = 30
 
 # The number of threads to use to handle XML stream events. This is not the
 # same as the number of custom event handling threads. HANDLER_THREADS must

@@ -27,11 +27,12 @@ from sleekxmpp.xmlstream.matcher import *
 from sleekxmpp.xmlstream.handler import *
 
 # Flag indicating if DNS SRV records are available for use.
-SRV_SUPPORT = True
 try:
     import dns.resolver
-except:
-    SRV_SUPPORT = False
+except ImportError:
+    DNSPYTHON = False
+else:
+    DNSPYTHON = True
 
 
 log = logging.getLogger(__name__)
@@ -78,7 +79,7 @@ class ClientXMPP(BaseXMPP):
         self.escape_quotes = escape_quotes
         self.plugin_config = plugin_config
         self.plugin_whitelist = plugin_whitelist
-        self.srv_support = SRV_SUPPORT
+        self.default_port = 5222
 
         self.stream_header = "<stream:stream to='%s' %s %s version='1.0'>" % (
                 self.boundjid.host,
@@ -133,54 +134,27 @@ class ClientXMPP(BaseXMPP):
                          connection. Defaults to True.
         """
         self.session_started_event.clear()
-        if not address or len(address) < 2:
-            if not self.srv_support:
-                log.debug("Did not supply (address, port) to connect" + \
-                              " to and no SRV support is installed" + \
-                              " (http://www.dnspython.org)." + \
-                              " Continuing to attempt connection, using" + \
-                              " server hostname from JID.")
-            else:
-                log.debug("Since no address is supplied," + \
-                              "attempting SRV lookup.")
-                try:
-                    xmpp_srv = "_xmpp-client._tcp.%s" % self.boundjid.host
-                    answers = dns.resolver.query(xmpp_srv, dns.rdatatype.SRV)
-                except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
-                    log.debug("No appropriate SRV record found." + \
-                                  " Using JID server name.")
-                except (dns.exception.Timeout,):
-                    log.debug("DNS resolution timed out.")
-                else:
-                    # Pick a random server, weighted by priority.
-
-                    addresses = {}
-                    intmax = 0
-                    topprio = 65535
-                    for answer in answers:
-                        topprio = min(topprio, answer.priority)
-                    for answer in answers:
-                        if answer.priority == topprio:
-                            intmax += answer.weight
-                            addresses[intmax] = (answer.target.to_text()[:-1],
-                                             answer.port)
-
-                    #python3 returns a generator for dictionary keys
-                    items = [x for x in addresses.keys()]
-                    items.sort()
-
-                    picked = random.randint(0, intmax)
-                    for item in items:
-                        if picked <= item:
-                            address = addresses[item]
-                            break
-
-        if not address:
-            # If all else fails, use the server from the JID.
-            address = (self.boundjid.host, 5222)
+        address = (self.boundjid.host, 5222)
 
         return XMLStream.connect(self, address[0], address[1],
                                  use_tls=use_tls, reattempt=reattempt)
+
+    def get_dns_records(self, domain, port=None):
+        if port is None:
+            port = self.default_port
+        if DNSPYTHON:
+            try:
+                answers = [((answer.target.to_text()[:-1], answer.port), answer.priority, answer.weight) for answer in dns.resolver.query("_xmpp-client._tcp.%s" % domain, dns.rdatatype.SRV)]
+            except dns.resolver.NXDOMAIN, dns.resolver.NoAnswer:
+                log.warning("No SRV records for %s" % domain)
+                answers = super(ClientXMPP, self).get_dns_records(domain, port)
+            except dns.exception.Timeout:
+                log.warning("DNS resolution timed out for SRV record of %s" % domain)
+                answers = super(ClientXMPP, self).get_dns_records(domain, port)
+            return answers
+        else:
+            log.warning("dnspython is not installed -- relying on OS A record resolution")
+            return [((domain, port), 0, 0)]
 
     def register_feature(self, name, handler, restart=False, order=5000):
         """

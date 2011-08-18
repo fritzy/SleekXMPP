@@ -29,12 +29,17 @@ if sys.version_info < (3, 0):
 class SendMsgBot(sleekxmpp.ClientXMPP):
 
     """
-    A simple SleekXMPP bot that will echo messages it
-    receives, along with a short thank you message.
+    A basic SleekXMPP bot that will log in, send a message,
+    and then log out.
     """
 
-    def __init__(self, jid, password):
+    def __init__(self, jid, password, recipient, message):
         sleekxmpp.ClientXMPP.__init__(self, jid, password)
+
+        # The message we wish to send, and the JID that
+        # will receive it.
+        self.recipient = recipient
+        self.msg = message
 
         # The session_start event will be triggered when
         # the bot establishes its connection with the server
@@ -42,11 +47,6 @@ class SendMsgBot(sleekxmpp.ClientXMPP):
         # listen for this event so that we we can intialize
         # our roster.
         self.add_event_handler("session_start", self.start)
-
-        # The message event is triggered whenever a message
-        # stanza is received. Be aware that that includes
-        # MUC messages and error messages.
-        self.add_event_handler("message", self.message)
 
     def start(self, event):
         """
@@ -63,27 +63,14 @@ class SendMsgBot(sleekxmpp.ClientXMPP):
         """
         self.send_presence()
         self.get_roster()
-        msg = self.Message()
-        msg['to'] = 'user@example.com'
-        msg['type'] = 'chat'
-        msg['body'] = "Hello there!"
-        msg.send()
-        self.disconnect()
 
-    def message(self, msg):
-        """
-        Process incoming message stanzas. Be aware that this also
-        includes MUC messages and error messages. It is usually
-        a good idea to check the messages's type before processing
-        or sending replies.
+        self.send_message(mto=self.recipient,
+                          mbody=self.msg,
+                          mtype='chat')
 
-        Arguments:
-            msg -- The received message stanza. See the documentation
-                   for stanza objects and the Message stanza to see
-                   how it may be used.
-        """
-        #msg.reply("Thanks for sending\n%(body)s" % msg).send()
-        print "Msg rceived from %(body)s: %(jid)s" % msg
+        # Using wait=True ensures that the send queue will be
+        # emptied before ending the session.
+        self.disconnect(wait=True)
 
 
 if __name__ == '__main__':
@@ -106,6 +93,10 @@ if __name__ == '__main__':
                     help="JID to use")
     optp.add_option("-p", "--password", dest="password",
                     help="password to use")
+    optp.add_option("-t", "--to", dest="to",
+                    help="JID to send the message to")
+    optp.add_option("-m", "--message", dest="message",
+                    help="message to send")
 
     opts, args = optp.parse_args()
 
@@ -117,14 +108,16 @@ if __name__ == '__main__':
         opts.jid = raw_input("Username: ")
     if opts.password is None:
         opts.password = getpass.getpass("Password: ")
+    if opts.to is None:
+        opts.to = raw_input("Send To: ")
+    if opts.message is None:
+        opts.message = raw_input("Message: ")
 
     # Setup the EchoBot and register plugins. Note that while plugins may
     # have interdependencies, the order in which you register them does
     # not matter.
-    xmpp = SendMsgBot(opts.jid, opts.password)
+    xmpp = SendMsgBot(opts.jid, opts.password, opts.to, opts.message)
     xmpp.register_plugin('xep_0030') # Service Discovery
-    xmpp.register_plugin('xep_0004') # Data Forms
-    xmpp.register_plugin('xep_0060') # PubSub
     xmpp.register_plugin('xep_0199') # XMPP Ping
 
     # If you are working with an OpenFire server, you may need

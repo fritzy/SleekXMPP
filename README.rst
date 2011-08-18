@@ -66,6 +66,84 @@ help with SleekXMPP.
 **Chat**
     `sleek@conference.jabber.org <xmpp:sleek@conference.jabber.org?join>`_
 
+Documentation and Testing
+-------------------------
+
+Documentation can be found both inline in the code, and as a Sphinx project in ``/docs``.
+To generate the Sphinx documentation, follow the commands below. The HTML output will
+be in ``docs/_build/html``::
+
+    cd docs
+    make html
+    open _build/html/index.html
+
+To run the test suite for SleekXMPP::
+
+    python testall.py
+
+
+The SleekXMPP Boilerplate
+-------------------------
+
+Projects using SleekXMPP tend to follow a basic pattern for setting up client/component
+connections and configuration. Here is the gist of the boilerplate needed for a SleekXMPP
+based project. See the documetation or examples directory for more detailed archetypes for
+SleekXMPP projects::
+
+    import logging
+
+    from sleekxmpp import ClientXMPP
+    from sleekxmpp.exceptions import IqError, IqTimeout
+
+
+    class EchoBot(ClientXMPP):
+
+        def __init__(self, jid, password):
+            ClientXMPP.__init__(self, jid, password)
+
+            self.add_event_handler("session_start", self.start)
+            self.add_event_handler("message", self.message)
+
+        def start(self, event):
+            self.send_presence()
+
+            # Most get_* methods from plugins use Iq stanzas, which
+            # can generate IqError and IqTimeout exceptions
+            try:
+                self.get_roster()
+            except IqError as err:
+                logging.error('There was an error getting the roster')
+                logging.error(err.iq['error']['condition'])
+                self.disconnect()
+            except IqTimeout:
+                logging.error('Server is taking too long to respond')
+                self.disconnect()
+
+        def message(self, msg):
+            if msg['type'] in ('chat', 'normal'):
+                msg.reply("Thanks for sending\n%(body)s" % msg).send()
+
+
+    if __name__ == '__main__':
+        # Ideally use optparse or argparse to get JID, 
+        # password, and log level.
+
+        logging.basicConfig(level=logging.DEBUG,
+                            format='%(levelname)-8s %(message)s')
+
+        xmpp = EchoBot('somejid@example.com', 'use_getpass')
+        xmpp.register_plugin('xep_0030') # Service Discovery
+        xmpp.register_plugin('xep_0199') # XMPP Ping
+
+        # If you are working with an OpenFire server, you will need
+        # to useuterborg Larsson version:
+        # xmppissl_version = ssl.PROTOCOL_SSLv3
+
+        if xmpp.connect():
+            xmpp.process(block=True)
+        else:
+            print("Unable to connect.")
+
 
 Credits
 -------

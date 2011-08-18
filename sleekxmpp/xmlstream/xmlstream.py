@@ -662,7 +662,7 @@ class XMLStream(object):
         if DNSPYTHON:
             try:
                 answers = dns.resolver.query(domain, dns.rdatatype.A)
-            except dns.resolver.NXDOMAIN, dns.resolver.NoAnswer:
+            except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
                 log.warning("No A records for %s" % domain)
             except dns.exception.Timeout:
                 log.warning("DNS resolution timed out for A record of %s" % domain)

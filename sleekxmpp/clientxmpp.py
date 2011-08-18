@@ -145,7 +145,7 @@ class ClientXMPP(BaseXMPP):
         if DNSPYTHON:
             try:
                 answers = [((answer.target.to_text()[:-1], answer.port), answer.priority, answer.weight) for answer in dns.resolver.query("_xmpp-client._tcp.%s" % domain, dns.rdatatype.SRV)]
-            except dns.resolver.NXDOMAIN, dns.resolver.NoAnswer:
+            except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
                 log.warning("No SRV records for %s" % domain)
                 answers = super(ClientXMPP, self).get_dns_records(domain, port)
             except dns.exception.Timeout:

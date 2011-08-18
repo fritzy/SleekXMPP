@@ -112,7 +112,4 @@ class xep_0012(base.base_plugin):
         iq.attrib['from'] = self.xmpp.boundjid.full
         id = iq.get('id')
         result = iq.send()
-        if result and result is not None and result.get('type', 'error') != 'error':
-            return result['last_activity']['seconds']
-        else:
-            return False
+        return result['last_activity']['seconds']

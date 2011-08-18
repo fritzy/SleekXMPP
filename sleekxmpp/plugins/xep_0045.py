@@ -188,8 +188,12 @@ class xep_0045(base.base_plugin):
             iq['from'] = ifrom
         query = ET.Element('{http://jabber.org/protocol/muc#owner}query')
         iq.append(query)
-        result = iq.send()
-        if result['type'] == 'error':
+        # For now, swallow errors to preserve existing API
+        try:
+            result = iq.send()
+        except IqError:
+            return False
+        except IqTimeout:
             return False
         xform = result.xml.find('{http://jabber.org/protocol/muc#owner}query/{jabber:x:data}x')
         if xform is None: return False
@@ -209,8 +213,12 @@ class xep_0045(base.base_plugin):
         form = form.getXML('submit')
         query.append(form)
         iq.append(query)
-        result = iq.send()
-        if result['type'] == 'error':
+        # For now, swallow errors to preserve existing API
+        try:
+            result = iq.send()
+        except IqError:
+            return False
+        except IqTimeout:
             return False
         return True
 
@@ -254,8 +262,12 @@ class xep_0045(base.base_plugin):
         destroy.append(xreason)
         query.append(destroy)
         iq.append(query)
-        r = iq.send()
-        if r is False or r['type'] == 'error':
+        # For now, swallow errors to preserve existing API
+        try:
+            r = iq.send()
+        except IqError:
+            return False
+        except IqTimeout:
             return False
         return True
 
@@ -271,9 +283,13 @@ class xep_0045(base.base_plugin):
         query.append(item)
         iq = self.xmpp.makeIqSet(query)
         iq['to'] = room
-        result = iq.send()
-        if result is False or result['type'] != 'result':
-            raise ValueError
+        # For now, swallow errors to preserve existing API
+        try:
+            result = iq.send()
+        except IqError:
+            return False
+        except IqTimeout:
+            return False
         return True
 
     def invite(self, room, jid, reason='', mfrom=''):
@@ -303,8 +319,12 @@ class xep_0045(base.base_plugin):
         iq = self.xmpp.makeIqGet('http://jabber.org/protocol/muc#owner')
         iq['to'] = room
         iq['from'] = ifrom
-        result = iq.send()
-        if result is None or result['type'] != 'result':
+        # For now, swallow errors to preserve existing API
+        try:
+            result = iq.send()
+        except IqError:
+            raise ValueError
+        except IqTimeout:
             raise ValueError
         form = result.xml.find('{http://jabber.org/protocol/muc#owner}query/{jabber:x:data}x')
         if form is None:

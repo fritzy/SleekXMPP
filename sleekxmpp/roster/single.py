@@ -204,10 +204,8 @@ class RosterNode(object):
             iq['roster']['items'] = {jid: {'name': name,
                                            'subscription': subscription,
                                            'groups': groups}}
-            response = iq.send(block, timeout, callback)
-            if response in [False, None] or isinstance(response, Iq):
-                return response
-            return response and response['type'] == 'result'
+
+            return iq.send(block, timeout, callback)
 
     def presence(self, jid, resource=None):
         """

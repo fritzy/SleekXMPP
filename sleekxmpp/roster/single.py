@@ -75,6 +75,10 @@ class RosterNode(object):
             self.add(key, save=True)
         return self._jids[key]
 
+    def __len__(self):
+        """Return the number of JIDs referenced by the roster."""
+        return len(self._jids)
+
     def keys(self):
         """Return a list of all subscribed JIDs."""
         return self._jids.keys()
@@ -82,6 +86,16 @@ class RosterNode(object):
     def has_jid(self, jid):
         """Returns whether the roster has a JID."""
         return jid in self._jids
+
+    def groups(self):
+        """Return a dictionary mapping group names to JIDs."""
+        result = {}
+        for jid in self._jids:
+            for group in self._jids[jid]['groups']:
+                if group not in result:
+                    result[group] = []
+                result[group].append(jid)
+        return result
 
     def __iter__(self):
         """Iterate over the roster items."""

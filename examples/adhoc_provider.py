@@ -24,6 +24,8 @@ import sleekxmpp
 if sys.version_info < (3, 0):
     reload(sys)
     sys.setdefaultencoding('utf8')
+else:
+    raw_input = input
 
 
 class CommandBot(sleekxmpp.ClientXMPP):
@@ -79,9 +81,21 @@ class CommandBot(sleekxmpp.ClientXMPP):
                        here to persist across handler callbacks.
         """
         form = self['xep_0004'].makeForm('form', 'Greeting')
+        form['instructions'] = 'Send a custom greeting to a JID'
         form.addField(var='greeting',
                       ftype='text-single',
                       label='Your greeting')
+        form.addField(var='recipient',
+                      ftype='jid-single',
+                      label='Who to greet')
+        form.addField(var='message',
+                      ftype='text-multi',
+                      label='Your message')
+        form.addField(var='demobool',
+                      ftype='boolean',
+                      label='Test booleans',
+                      desc='Test default values too',
+                      value=True)
 
         session['payload'] = form
         session['next'] = self._handle_command_complete
@@ -123,8 +137,14 @@ class CommandBot(sleekxmpp.ClientXMPP):
         form = payload
 
         greeting = form['values']['greeting']
-        self.send_message(mto=session['from'],
-                          mbody="%s, World!" % greeting)
+        recipient = form['values']['recipient']
+        message = '\n'.join(form['values']['message'])
+
+        if recipient is None:
+            recipient = session['from']
+        self.send_message(mto=recipient,
+                          mbody="%s, %s!\n%s" % (greeting, recipient, message),
+                          mtype='chat')
 
         # Having no return statement is the same as unsetting the 'payload'
         # and 'next' session values and returning the session.
@@ -176,6 +196,7 @@ if __name__ == '__main__':
     xmpp.register_plugin('xep_0030') # Service Discovery
     xmpp.register_plugin('xep_0004') # Data Forms
     xmpp.register_plugin('xep_0050') # Adhoc Commands
+    xmpp.register_plugin('xep_0199', {'keepalive': True, 'frequency':15})
 
     # If you are working with an OpenFire server, you may need
     # to adjust the SSL version used:

@@ -25,6 +25,8 @@ import sleekxmpp
 if sys.version_info < (3, 0):
     reload(sys)
     sys.setdefaultencoding('utf8')
+else:
+    raw_input = input
 
 
 class Disco(sleekxmpp.ClientXMPP):

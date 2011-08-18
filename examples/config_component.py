@@ -27,6 +27,8 @@ from sleekxmpp.xmlstream.stanzabase import ET, registerStanzaPlugin
 if sys.version_info < (3, 0):
     reload(sys)
     sys.setdefaultencoding('utf8')
+else:
+    raw_input = input
 
 
 class Config(ElementBase):

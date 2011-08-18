@@ -24,6 +24,8 @@ import sleekxmpp
 if sys.version_info < (3, 0):
     reload(sys)
     sys.setdefaultencoding('utf8')
+else:
+    raw_input = input
 
 
 class EchoBot(sleekxmpp.ClientXMPP):
@@ -34,7 +36,7 @@ class EchoBot(sleekxmpp.ClientXMPP):
     """
 
     def __init__(self, jid, password):
-        sleekxmpp.ClientXMPP.__init__(self, jid, password)
+        sleekxmpp.ClientXMPP.__init__(self, jid, password, plugin_config={'feature_mechanisms': {'use_mech': 'PLAIN'}})
 
         # The session_start event will be triggered when
         # the bot establishes its connection with the server

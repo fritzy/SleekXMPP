@@ -23,6 +23,8 @@ import sleekxmpp
 if sys.version_info < (3, 0):
     reload(sys)
     sys.setdefaultencoding('utf8')
+else:
+    raw_input = input
 
 
 class MUCBot(sleekxmpp.ClientXMPP):
@@ -59,7 +61,7 @@ class MUCBot(sleekxmpp.ClientXMPP):
         # muc::room@server::got_online, or muc::room@server::got_offline.
         self.add_event_handler("muc::%s::got_online" % self.room,
                                self.muc_online)
-        
+
 
     def start(self, event):
         """
@@ -76,15 +78,15 @@ class MUCBot(sleekxmpp.ClientXMPP):
         """
         self.getRoster()
         self.sendPresence()
-        self.plugin['xep_0045'].joinMUC(self.room, 
-                                        self.nick, 
+        self.plugin['xep_0045'].joinMUC(self.room,
+                                        self.nick,
                                         # If a room password is needed, use:
                                         # password=the_room_password,
                                         wait=True)
 
     def muc_message(self, msg):
         """
-        Process incoming message stanzas from any chat room. Be aware 
+        Process incoming message stanzas from any chat room. Be aware
         that if you also have any handlers for the 'message' event,
         message stanzas may be processed by both handlers, so check
         the 'type' attribute when using a 'message' event handler.
@@ -96,7 +98,7 @@ class MUCBot(sleekxmpp.ClientXMPP):
                    otherwise you will create an infinite loop responding
                    to your own messages.
 
-        This handler will reply to messages that mention 
+        This handler will reply to messages that mention
         the bot's nickname.
 
         Arguments:
@@ -112,12 +114,12 @@ class MUCBot(sleekxmpp.ClientXMPP):
     def muc_online(self, presence):
         """
         Process a presence stanza from a chat room. In this case,
-        presences from users that have just come online are 
+        presences from users that have just come online are
         handled by sending a welcome message that includes
         the user's nickname and role in the room.
 
         Arguments:
-            presence -- The received presence stanza. See the 
+            presence -- The received presence stanza. See the
                         documentation for the Presence stanza
                         to see how else it may be used.
         """

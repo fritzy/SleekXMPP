@@ -338,7 +338,8 @@ class XMLStream(object):
     def _connect(self):
         self.stop.clear()
         if self.default_domain:
-            self.address = self.pick_dns_answer(self.default_domain, self.address[1])
+            self.address = self.pick_dns_answer(self.default_domain,
+                                                self.address[1])
         self.socket = self.socket_class(Socket.AF_INET, Socket.SOCK_STREAM)
         self.socket.settimeout(None)
 
@@ -672,11 +673,13 @@ class XMLStream(object):
             except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
                 log.warning("No A records for %s" % domain)
             except dns.exception.Timeout:
-                log.warning("DNS resolution timed out for A record of %s" % domain)
+                log.warning("DNS resolution timed out " + \
+                            "for A record of %s" % domain)
             answers = [((answer.address, port), 0, 0) for answer in answers]
             return answers
         else:
-            log.warning("dnspython is not installed -- relying on OS A record resolution")
+            log.warning("dnspython is not installed -- " + \
+                        "relying on OS A record resolution")
             return [((domain, port), 0, 0)]
 
     def pick_dns_answer(self, domain, port=None):

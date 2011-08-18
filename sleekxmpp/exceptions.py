@@ -64,6 +64,7 @@ class IqTimeout(Exception):
     def __init__(self, iq):
         self.iq = iq
 
+
 class IqError(Exception):
 
     """

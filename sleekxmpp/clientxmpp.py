@@ -143,7 +143,7 @@ class ClientXMPP(BaseXMPP):
     def get_dns_records(self, domain, port=None):
         """
         Get the DNS records for a domain.
-        Overridden XMLStream.get_dns_records to use SRV.
+        Overriddes XMLStream.get_dns_records to use SRV.
 
         Arguments:
             domain -- The domain in question.
@@ -153,16 +153,22 @@ class ClientXMPP(BaseXMPP):
             port = self.default_port
         if DNSPYTHON:
             try:
-                answers = [((answer.target.to_text()[:-1], answer.port), answer.priority, answer.weight) for answer in dns.resolver.query("_xmpp-client._tcp.%s" % domain, dns.rdatatype.SRV)]
+                record = "_xmpp-client._tcp.%s" % domain
+                answers = []
+                for answer in dns.resolver.query(record, dns.rdatatype.SRV):
+                    address = (answer.target.to_text()[:-1], answer.port)
+                    answers.append((address, answer.priority, answer.weight))
             except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
                 log.warning("No SRV records for %s" % domain)
                 answers = super(ClientXMPP, self).get_dns_records(domain, port)
             except dns.exception.Timeout:
-                log.warning("DNS resolution timed out for SRV record of %s" % domain)
+                log.warning("DNS resolution timed out " + \
+                            "for SRV record of %s" % domain)
                 answers = super(ClientXMPP, self).get_dns_records(domain, port)
             return answers
         else:
-            log.warning("dnspython is not installed -- relying on OS A record resolution")
+            log.warning("dnspython is not installed -- " + \
+                        "relying on OS A record resolution")
             return [((domain, port), 0, 0)]
 
     def register_feature(self, name, handler, restart=False, order=5000):

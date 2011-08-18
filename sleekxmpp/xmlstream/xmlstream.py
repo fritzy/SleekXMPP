@@ -203,6 +203,7 @@ class XMLStream(object):
         self.proxy_config = {}
 
         self.default_ns = ''
+        self.stream_ns = ''
         self.stream_header = "<stream>"
         self.stream_footer = "</stream>"
 
@@ -790,6 +791,8 @@ class XMLStream(object):
                     log.exception(error_msg % str(handler[0]))
                     if hasattr(data, 'exception'):
                         data.exception(e)
+                    else:
+                        self.exception(e)
             else:
                 self.event_queue.put(('event', handler, copy.copy(data)))
 
@@ -1131,6 +1134,8 @@ class XMLStream(object):
             log.exception(error_msg % str(func))
             if hasattr(orig, 'exception'):
                 orig.exception(e)
+            else:
+                self.exception(e)
 
     def _event_runner(self):
         """
@@ -1166,8 +1171,9 @@ class XMLStream(object):
                     try:
                         log.debug('Scheduled event: %s' % args)
                         handler(*args[0])
-                    except:
+                    except Exception as e:
                         log.exception('Error processing scheduled task')
+                        self.exception(e)
                 elif etype == 'event':
                     func, threaded, disposable = handler
                     orig = copy.copy(args[0])
@@ -1185,6 +1191,8 @@ class XMLStream(object):
                         log.exception(error_msg % str(func))
                         if hasattr(orig, 'exception'):
                             orig.exception(e)
+                        else:
+                            self.exception(e)
                 elif etype == 'quit':
                     log.debug("Quitting event runner thread")
                     return False

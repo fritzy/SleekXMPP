@@ -13,9 +13,9 @@ import copy
 import logging
 
 import sleekxmpp
-from sleekxmpp import plugins
+from sleekxmpp import plugins, roster
+from sleekxmpp.exceptions import IqError, IqTimeout
 
-import sleekxmpp.roster as roster
 from sleekxmpp.stanza import Message, Presence, Iq, Error, StreamError
 from sleekxmpp.stanza.roster import Roster
 from sleekxmpp.stanza.nick import Nick
@@ -742,6 +742,29 @@ class BaseXMPP(XMLStream):
             return
 
         self.event("changed_status", presence)
+
+    def exception(self, exception):
+        """
+        Process any uncaught exceptions, notably IqError and
+        IqTimeout exceptions.
+
+        Overrides XMLStream.exception.
+
+        Arguments:
+            exception -- An unhandled exception object.
+        """
+        if isinstance(exception, IqError):
+            iq = exception.iq
+            log.error('%s: %s' % (iq['error']['condition'],
+                                  iq['error']['text']))
+            log.warning('You should catch IqError exceptions')
+        elif isinstance(exception, IqTimeout):
+            iq = exception.iq
+            log.error('Request timed out: %s' % iq)
+            log.warning('You should catch IqTimeout exceptions')
+        else:
+            log.exception(exception)
+
 
 # Restore the old, lowercased name for backwards compatibility.
 basexmpp = BaseXMPP

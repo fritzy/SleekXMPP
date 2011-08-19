@@ -10,7 +10,7 @@ import logging
 import traceback
 import sys
 
-from sleekxmpp.exceptions import XMPPError
+from sleekxmpp.exceptions import XMPPError, IqError, IqTimeout
 from sleekxmpp.stanza import Error
 from sleekxmpp.xmlstream import ET, StanzaBase, register_stanza_plugin
 
@@ -43,23 +43,41 @@ class RootStanza(StanzaBase):
         Arguments:
             e -- Exception object
         """
-        if isinstance(e, XMPPError):
-            self.reply(clear=e.clear)
+        if isinstance(e, IqError):
+            # We received an Iq error reply, but it wasn't caught
+            # locally. Using the condition/text from that error
+            # response could leak too much information, so we'll
+            # only use a generic error here.
+            self.reply()
+            self['error']['condition'] = 'undefined-condition'
+            self['error']['text'] = 'External error'
+            self['error']['type'] = 'cancel'
+            log.warning('You should catch IqError exceptions')
+            self.send()
+        elif isinstance(e, IqTimeout):
+            self.reply()
+            self['error']['condition'] = 'remote-server-timeout'
+            self['error']['type'] = 'wait'
+            log.warning('You should catch IqTimeout exceptions')
+            self.send()
+        elif isinstance(e, XMPPError):
             # We raised this deliberately
+            self.reply(clear=e.clear)
             self['error']['condition'] = e.condition
             self['error']['text'] = e.text
+            self['error']['type'] = e.etype
             if e.extension is not None:
                 # Extended error tag
                 extxml = ET.Element("{%s}%s" % (e.extension_ns, e.extension),
                                     e.extension_args)
                 self['error'].append(extxml)
-                self['error']['type'] = e.etype
             self.send()
         else:
-            self.reply()
             # We probably didn't raise this on purpose, so send an error stanza
+            self.reply()
             self['error']['condition'] = 'undefined-condition'
             self['error']['text'] = "SleekXMPP got into trouble."
+            self['error']['type'] = 'cancel'
             self.send()
             # log the error
             log.exception('Error handling {%s}%s stanza' %

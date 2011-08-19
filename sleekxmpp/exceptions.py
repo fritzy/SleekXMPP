@@ -20,9 +20,9 @@ class XMPPError(Exception):
     Meant for use in SleekXMPP plugins and applications using SleekXMPP.
     """
 
-    def __init__(self, condition='undefined-condition', text=None, etype=None,
-                 extension=None, extension_ns=None, extension_args=None,
-                 clear=True):
+    def __init__(self, condition='undefined-condition', text=None,
+                etype='cancel', extension=None, extension_ns=None,
+                extension_args=None, clear=True):
         """
         Create a new XMPPError exception.
 
@@ -31,8 +31,10 @@ class XMPPError(Exception):
 
         Arguments:
             condition      -- The XMPP defined error condition.
+                              Defaults to 'undefined-condition'.
             text           -- Human readable text describing the error.
             etype          -- The XMPP error type, such as cancel or modify.
+                              Defaults to 'cancel'.
             extension      -- Tag name of the extension's XML content.
             extension_ns   -- XML namespace of the extensions' XML content.
             extension_args -- Content and attributes for the extension
@@ -54,7 +56,7 @@ class XMPPError(Exception):
         self.extension_args = extension_args
 
 
-class IqTimeout(Exception):
+class IqTimeout(XMPPError):
 
     """
     An exception which indicates that an IQ request response has not been
@@ -62,10 +64,13 @@ class IqTimeout(Exception):
     """
 
     def __init__(self, iq):
+        super(IqTimeout, self).__init__(
+                condition='remote-server-timeout',
+                etype='cancel')
+
         self.iq = iq
 
-
-class IqError(Exception):
+class IqError(XMPPError):
 
     """
     An exception raised when an Iq stanza of type 'error' is received
@@ -73,4 +78,9 @@ class IqError(Exception):
     """
 
     def __init__(self, iq):
+        super(IqError, self).__init__(
+                condition=iq['error']['condition'],
+                text=iq['error']['text'],
+                etype=iq['error']['type'])
+
         self.iq = iq

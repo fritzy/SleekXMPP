@@ -36,7 +36,7 @@ class EchoBot(sleekxmpp.ClientXMPP):
     """
 
     def __init__(self, jid, password):
-        sleekxmpp.ClientXMPP.__init__(self, jid, password, plugin_config={'feature_mechanisms': {'use_mech': 'PLAIN'}})
+        sleekxmpp.ClientXMPP.__init__(self, jid, password)
 
         # The session_start event will be triggered when
         # the bot establishes its connection with the server

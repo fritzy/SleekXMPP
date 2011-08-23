@@ -85,17 +85,6 @@ class CommandBot(sleekxmpp.ClientXMPP):
         form.addField(var='greeting',
                       ftype='text-single',
                       label='Your greeting')
-        form.addField(var='recipient',
-                      ftype='jid-single',
-                      label='Who to greet')
-        form.addField(var='message',
-                      ftype='text-multi',
-                      label='Your message')
-        form.addField(var='demobool',
-                      ftype='boolean',
-                      label='Test booleans',
-                      desc='Test default values too',
-                      value=True)
 
         session['payload'] = form
         session['next'] = self._handle_command_complete
@@ -137,13 +126,9 @@ class CommandBot(sleekxmpp.ClientXMPP):
         form = payload
 
         greeting = form['values']['greeting']
-        recipient = form['values']['recipient']
-        message = '\n'.join(form['values']['message'])
 
-        if recipient is None:
-            recipient = session['from']
-        self.send_message(mto=recipient,
-                          mbody="%s, %s!\n%s" % (greeting, recipient, message),
+        self.send_message(mto=session['from'],
+                          mbody="%s, World!" % greeting,
                           mtype='chat')
 
         # Having no return statement is the same as unsetting the 'payload'

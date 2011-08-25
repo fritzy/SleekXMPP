@@ -211,6 +211,7 @@ class XMLStream(object):
         self.stream_end_event = threading.Event()
         self.stream_end_event.set()
         self.session_started_event = threading.Event()
+        self.session_timeout = 45
 
         self.event_queue = queue.Queue()
         self.send_queue = queue.Queue()
@@ -231,6 +232,8 @@ class XMLStream(object):
         self.auto_reconnect = True
         self.is_client = False
         self.dns_answers = []
+
+        self.add_event_handler('connected', self._handle_connected)
 
     def use_signals(self, signals=None):
         """
@@ -337,6 +340,7 @@ class XMLStream(object):
         return connected
 
     def _connect(self):
+        self.scheduler.remove('Session timeout check')
         self.stop.clear()
         if self.default_domain:
             self.address = self.pick_dns_answer(self.default_domain,
@@ -445,6 +449,23 @@ class XMLStream(object):
             log.error(error_msg % (self.address[0], self.address[1],
                                        serr.errno, serr.strerror))
             return False
+
+    def _handle_connected(self, event=None):
+        """
+        Add check to ensure that a session is established within
+        a reasonable amount of time.
+        """
+
+        def _handle_session_timeout():
+            if not self.session_started_event.isSet():
+                log.debug("Session start has taken more " + \
+                          "than %d seconds" % self.session_timeout)
+                self.disconnect(reconnect=self.auto_reconnect)
+
+        self.schedule("Session timeout check",
+                self.session_timeout,
+                _handle_session_timeout)
+
 
     def disconnect(self, reconnect=False, wait=False):
         """

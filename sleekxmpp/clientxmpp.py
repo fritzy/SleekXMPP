@@ -254,13 +254,6 @@ class ClientXMPP(BaseXMPP):
         self.bindfail = False
         self.features = set()
 
-        def session_timeout():
-            if not self.session_started_event.isSet():
-                log.debug("Session start has taken more than 15 seconds")
-                self.disconnect(reconnect=self.auto_reconnect)
-
-        self.schedule("session timeout checker", 15, session_timeout)
-
     def _handle_stream_features(self, features):
         """
         Process the received stream features.

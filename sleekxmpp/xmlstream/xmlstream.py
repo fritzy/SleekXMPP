@@ -561,6 +561,23 @@ class XMLStream(object):
         """
         self.socket.settimeout(None)
 
+    def configure_dns(self, resolver, domain=None, port=None):
+        """
+        Configure and set options for a dns.resolver.Resolver
+        instance, and other DNS related tasks. For example, you
+        can also check Socket.getaddrinfo to see if you need to
+        call out to libresolv.so.2 to run res_init().
+
+        Meant to be overridden.
+
+        Arguments:
+            resolver -- A dns.resolver.Resolver instance, or None
+                        if dnspython is not installed.
+            domain   -- The initial domain under consideration.
+            port     -- The initial port under consideration.
+        """
+        pass
+
     def start_tls(self):
         """
         Perform handshakes for TLS.
@@ -698,8 +715,11 @@ class XMLStream(object):
         if port is None:
             port = self.default_port
         if DNSPYTHON:
+            resolver = dns.resolver.get_default_resolver()
+            self.configure_dns(resolver, domain=domain, port=port)
+
             try:
-                answers = dns.resolver.query(domain, dns.rdatatype.A)
+                answers = resolver.query(domain, dns.rdatatype.A)
             except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
                 log.warning("No A records for %s" % domain)
                 return [((domain, port), 0, 0)]
@@ -712,6 +732,7 @@ class XMLStream(object):
         else:
             log.warning("dnspython is not installed -- " + \
                         "relying on OS A record resolution")
+            self.configure_dns(None, domain=domain, port=port)
             return [((domain, port), 0, 0)]
 
     def pick_dns_answer(self, domain, port=None):

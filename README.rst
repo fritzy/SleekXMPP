@@ -34,7 +34,8 @@ SleekXMPP's design goals and philosphy are:
 
 Get the Code
 ------------
-.. code-block:: sh
+
+Get the latest stable version from PyPI::
 
     pip install sleekxmpp
 
@@ -54,6 +55,15 @@ The latest source code for SleekXMPP may be found on `Github
 **Develop Releases**
     - `Latest Develop Version <http://github.com/fritzy/SleekXMPP/zipball/develop>`_
 
+Installing DNSPython
+---------------------
+If you are using Python3 and wish to use dnspython, you will have to checkout and
+install the ``python3`` branch::
+
+    git clone http://github.com/rthalley/dnspython
+    cd dnspython
+    git checkout python3
+    python3 setup.py install
 
 Discussion
 ----------
@@ -68,7 +78,6 @@ help with SleekXMPP.
 
 Documentation and Testing
 -------------------------
-
 Documentation can be found both inline in the code, and as a Sphinx project in ``/docs``.
 To generate the Sphinx documentation, follow the commands below. The HTML output will
 be in ``docs/_build/html``::
@@ -84,7 +93,6 @@ To run the test suite for SleekXMPP::
 
 The SleekXMPP Boilerplate
 -------------------------
-
 Projects using SleekXMPP tend to follow a basic pattern for setting up client/component
 connections and configuration. Here is the gist of the boilerplate needed for a SleekXMPP
 based project. See the documetation or examples directory for more detailed archetypes for
@@ -136,8 +144,10 @@ SleekXMPP projects::
         xmpp.register_plugin('xep_0199') # XMPP Ping
 
         # If you are working with an OpenFire server, you will need
-        # to useuterborg Larsson version:
-        # xmppissl_version = ssl.PROTOCOL_SSLv3
+        # to use a different SSL version:
+        #
+        # import ssl
+        # xmpp.ssl_version = ssl.PROTOCOL_SSLv3
 
         if xmpp.connect():
             xmpp.process(block=True)

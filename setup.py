@@ -4,16 +4,15 @@
 # Copyright (C) 2007-2011 Nathanael C. Fritz
 # All Rights Reserved
 #
-# This software is licensed as described in the README file,
-# which you should have received as part of this distribution.
-#
+# This software is licensed as described in the README.rst and LICENSE
+# file, which you should have received as part of this distribution.
 
-# from ez_setup import use_setuptools
-from distutils.core import setup
 import sys
+from distutils.core import setup, Command
+# from ez_setup import use_setuptools
 
-import sleekxmpp
-
+from testall import TestCommand
+from sleekxmpp.version import __version__
 # if 'cygwin' in sys.platform.lower():
 #     min_version = '0.6c6'
 # else:
@@ -27,10 +26,10 @@ import sleekxmpp
 #
 # from setuptools import setup, find_packages, Extension, Feature
 
-VERSION          = sleekxmpp.__version__
+VERSION          = __version__
 DESCRIPTION      = 'SleekXMPP is an elegant Python library for XMPP (aka Jabber, Google Talk, etc).'
 with open('README.rst') as readme:
-    LONG_DESCRIPTION = '\n'.join(readme)
+    LONG_DESCRIPTION = ''.join(readme)
 
 CLASSIFIERS      = [ 'Intended Audience :: Developers',
                      'License :: OSI Approved :: MIT License',
@@ -93,5 +92,7 @@ setup(
     license      = 'MIT',
     platforms    = [ 'any' ],
     packages     = packages,
-    requires     = [ 'tlslite', 'pythondns' ],
+    requires     = [ 'dnspython' ],
+    classifiers  = CLASSIFIERS,
+    cmdclass     = {'test': TestCommand}
 )

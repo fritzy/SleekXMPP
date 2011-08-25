@@ -4,8 +4,6 @@ clientxmpp
 
 .. module:: sleekxmpp.clientxmpp
 
-.. autodata:: SRV_SUPPORT
-
 .. autoclass:: ClientXMPP
     
     .. automethod:: connect

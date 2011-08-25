@@ -485,9 +485,9 @@ class XMLStream(object):
         if not self.auto_reconnect:
             self.stop.set()
         try:
+            self.socket.shutdown(Socket.SHUT_RDWR)
             self.socket.close()
             self.filesocket.close()
-            self.socket.shutdown(Socket.SHUT_RDWR)
         except Socket.error as serr:
             self.event('socket_error', serr)
         finally:

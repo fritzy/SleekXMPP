@@ -121,6 +121,7 @@ class TestSocket(object):
         if self.disconnected:
             raise socket.error
         self.send_queue.put(data)
+        return len(data)
 
     # ------------------------------------------------------------------
     # File Socket

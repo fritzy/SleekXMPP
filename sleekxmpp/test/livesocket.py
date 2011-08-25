@@ -138,7 +138,7 @@ class TestLiveSocket(object):
         """
         with self.send_queue_lock:
             self.send_queue.put(data)
-        self.socket.send(data)
+        return self.socket.send(data)
 
     # ------------------------------------------------------------------
     # File Socket

@@ -915,7 +915,15 @@ class XMLStream(object):
         if now:
             log.debug("SEND (IMMED): %s" % data)
             try:
-                self.socket.send(data.encode('utf-8'))
+                data = data.encode('utf-8')
+                total = len(data)
+                sent = 0
+                count = 0
+                while sent < total and not self.stop.is_set():
+                    sent += self.socket.send(data[sent:])
+                    count += 1
+                if count > 1:
+                    log.debug('SENT: %d chunks' % count)
             except Socket.error as serr:
                 self.event('socket_error', serr)
                 log.warning("Failed to send %s" % data)
@@ -1222,7 +1230,7 @@ class XMLStream(object):
         Extract stanzas from the send queue and send them on the stream.
         """
         try:
-            while not self.stop.isSet():
+            while not self.stop.is_set():
                 self.session_started_event.wait()
                 if self.__failed_send_stanza is not None:
                     data = self.__failed_send_stanza
@@ -1234,22 +1242,26 @@ class XMLStream(object):
                         continue
                 log.debug("SEND: %s" % data)
                 try:
-                    self.socket.send(data.encode('utf-8'))
+                    enc_data = data.encode('utf-8')
+                    total = len(enc_data)
+                    sent = 0
+                    count = 0
+                    while sent < total and not self.stop.is_set():
+                        sent += self.socket.send(enc_data[sent:])
+                        count += 1
+                    if count > 1:
+                        log.debug('SENT: %d chunks' % count)
                     self.send_queue.task_done()
                 except Socket.error as serr:
                     self.event('socket_error', serr)
                     log.warning("Failed to send %s" % data)
                     self.__failed_send_stanza = data
                     self.disconnect(self.auto_reconnect)
-        except KeyboardInterrupt:
-            log.debug("Keyboard Escape Detected in _send_thread")
-            self.event('killed', direct=True)
-            self.disconnect()
-            return
-        except SystemExit:
-            self.disconnect()
-            self.event_queue.put(('quit', None, None))
-            return
+        except Exception as ex:
+            log.exception('Unexpected error in send thread: %s' % ex)
+            self.exception(ex)
+            if not self.stop.is_set():
+                self.disconnect(self.auto_reconnect)
 
     def exception(self, exception):
         """

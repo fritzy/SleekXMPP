@@ -342,7 +342,7 @@ class XMLStream(object):
             self.address = self.pick_dns_answer(self.default_domain,
                                                 self.address[1])
         self.socket = self.socket_class(Socket.AF_INET, Socket.SOCK_STREAM)
-        self.socket.settimeout(None)
+        self.configure_socket()
 
         if self.reconnect_delay is None:
             delay = 1.0
@@ -531,6 +531,14 @@ class XMLStream(object):
                 self.filesocket = self.socket.makefile('rb', 0)
             if not ignore:
                 self.state._set_state('connected')
+
+    def configure_socket(self):
+        """
+        Set timeout and other options for self.socket.
+
+        Meant to be overridden.
+        """
+        self.socket.settimeout(None)
 
     def start_tls(self):
         """

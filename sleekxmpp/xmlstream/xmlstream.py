@@ -47,6 +47,10 @@ else:
 # The time in seconds to wait before timing out waiting for response stanzas.
 RESPONSE_TIMEOUT = 30
 
+# The time in seconds to wait for events from the event queue, and also the
+# time between checks for the process stop signal.
+WAIT_TIMEOUT = 1
+
 # The number of threads to use to handle XML stream events. This is not the
 # same as the number of custom event handling threads. HANDLER_THREADS must
 # be at least 1.
@@ -178,6 +182,7 @@ class XMLStream(object):
         self.ssl_version = ssl.PROTOCOL_TLSv1
         self.ca_certs = None
 
+        self.wait_timeout = WAIT_TIMEOUT
         self.response_timeout = RESPONSE_TIMEOUT
         self.reconnect_delay = None
         self.reconnect_max_delay = RECONNECT_MAX_DELAY
@@ -1210,7 +1215,8 @@ class XMLStream(object):
         try:
             while not self.stop.isSet():
                 try:
-                    event = self.event_queue.get(True, timeout=5)
+                    wait = self.wait_timeout
+                    event = self.event_queue.get(True, timeout=wait)
                 except queue.Empty:
                     event = None
                 if event is None:

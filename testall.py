@@ -7,7 +7,7 @@ import unittest
 import distutils.core
 
 from glob import glob
-from os.path import splitext, basename, join as pjoin, walk
+from os.path import splitext, basename, join as pjoin
 
 
 def run_tests():
@@ -18,7 +18,7 @@ def run_tests():
     """
     testfiles = ['tests.test_overall']
     exclude = ['__init__.py', 'test_overall.py']
-    for t in glob(pjoin('.', 'tests', '*.py')):
+    for t in glob(pjoin('tests', '*.py')):
         if True not in [t.endswith(ex) for ex in exclude]:
             if basename(t).startswith('test_'):
                 testfiles.append('tests.%s' % splitext(basename(t))[0])

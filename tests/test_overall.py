@@ -14,7 +14,7 @@ class TestOverall(unittest.TestCase):
 
     def testModules(self):
         """Testing all modules by compiling them"""
-        src = '..%ssleekxmpp' % os.sep
+        src = '.%ssleekxmpp' % os.sep
         if sys.version_info < (3, 0):
             rx = re.compile('/[.]svn')
         else:

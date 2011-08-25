@@ -215,7 +215,7 @@ class XMLStream(object):
         self.event_queue = queue.Queue()
         self.send_queue = queue.Queue()
         self.__failed_send_stanza = None
-        self.scheduler = Scheduler(self.event_queue, self.stop)
+        self.scheduler = Scheduler(self.stop)
 
         self.namespace_map = {StanzaBase.xml_ns: 'xml'}
 
@@ -1178,8 +1178,9 @@ class XMLStream(object):
                         log.exception(error_msg % handler.name)
                         orig.exception(e)
                 elif etype == 'schedule':
+                    name = args[1]
                     try:
-                        log.debug('Scheduled event: %s' % args)
+                        log.debug('Scheduled event: %s: %s' % (name, args[0]))
                         handler(*args[0])
                     except Exception as e:
                         log.exception('Error processing scheduled task')

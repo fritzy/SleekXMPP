@@ -673,11 +673,13 @@ class XMLStream(object):
                 answers = dns.resolver.query(domain, dns.rdatatype.A)
             except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
                 log.warning("No A records for %s" % domain)
+                return [((domain, port), 0, 0)]
             except dns.exception.Timeout:
                 log.warning("DNS resolution timed out " + \
                             "for A record of %s" % domain)
-            answers = [((answer.address, port), 0, 0) for answer in answers]
-            return answers
+                return [((domain, port), 0, 0)]
+            else:
+                return [((ans.address, port), 0, 0) for ans in answers]
         else:
             log.warning("dnspython is not installed -- " + \
                         "relying on OS A record resolution")

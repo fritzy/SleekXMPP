@@ -8,6 +8,7 @@
 
 import logging
 
+from sleekxmpp.xmlstream import JID
 from sleekxmpp.plugins.base import base_plugin
 from sleekxmpp.plugins.xep_0060 import stanza
 
@@ -79,63 +80,197 @@ class xep_0060(base_plugin):
 
         return iq.send(block=block, callback=callback, timeout=timeout)
 
-    def subscribe(self, jid, node, bare=True, subscribee=None):
-        iq = self.xmpp.Iq(sto=jid, sfrom=self.xmpp.boundjid, stype='set')
+    def subscribe(self, jid, node, bare=True, subscribee=None, ifrom=None,
+                  block=True, callback=None, timeout=None):
+        """
+        Subscribe to updates from a pubsub node.
+
+        The rules for determining the JID that is subscribing to the node are:
+            1. If subscribee is given, use that as provided.
+            2. If ifrom was given, use the bare or full version based on bare.
+            3. Otherwise, use self.xmpp.boundjid based on bare.
+
+        Arguments:
+            jid        -- The pubsub service JID.
+            node       -- The node to subscribe to.
+            bare       -- Indicates if the subscribee is a bare or full JID.
+                          Defaults to True for a bare JID.
+            subscribee -- The JID that is subscribing to the node.
+            ifrom      -- Specify the sender's JID.
+            block      -- Specify if the send call will block until a response
+                          is received, or a timeout occurs. Defaults to True.
+            timeout    -- The length of time (in seconds) to wait for a response
+                          before exiting the send call if blocking is used.
+                          Defaults to sleekxmpp.xmlstream.RESPONSE_TIMEOUT
+            callback   -- Optional reference to a stream handler function. Will
+                          be executed when a reply stanza is received.
+        """
+        iq = self.xmpp.Iq(sto=jid, stype='set')
         iq['pubsub']['subscribe']['node'] = node
-        if subscribee is None:
-            if bare:
-                iq['pubsub']['subscribe']['jid'] = self.xmpp.boundjid.bare
-            else:
-                iq['pubsub']['subscribe']['jid'] = self.xmpp.boundjid.full
-        else:
-            iq['pubsub']['subscribe']['jid'] = subscribee
-        return iq.send()
+        if ifrom:
+            iq['from'] = ifrom
 
-    def unsubscribe(self, jid, node, subid=None, bare=True, subscribee=None):
-        iq = self.xmpp.Iq(sto=jid, sfrom=self.xmpp.boundjid, stype='set')
+        if subscribee is None:
+            if ifrom:
+                if bare:
+                    subscribee = JID(ifrom).bare
+                else:
+                    subscribee = ifrom
+            else:
+                if bare:
+                    subscribee = self.xmpp.boundjid.bare
+                else:
+                    subscribee = self.xmpp.boundjid
+
+        iq['pubsub']['subscribe']['jid'] = subscribee
+        return iq.send(block=block, callback=callback, timeout=timeout)
+
+    def unsubscribe(self, jid, node, subid=None, bare=True, subscribee=None,
+                    ifrom=None, block=True, callback=None, timeout=None):
+        """
+        Unubscribe from updates from a pubsub node.
+
+        The rules for determining the JID that is unsubscribing
+        from the node are:
+            1. If subscribee is given, use that as provided.
+            2. If ifrom was given, use the bare or full version based on bare.
+            3. Otherwise, use self.xmpp.boundjid based on bare.
+
+        Arguments:
+            jid        -- The pubsub service JID.
+            node       -- The node to subscribe to.
+            subid      -- The specific subscription, if multiple subscriptions
+                          exist for this JID/node combination.
+            bare       -- Indicates if the subscribee is a bare or full JID.
+                          Defaults to True for a bare JID.
+            subscribee -- The JID that is subscribing to the node.
+            ifrom      -- Specify the sender's JID.
+            block      -- Specify if the send call will block until a response
+                          is received, or a timeout occurs. Defaults to True.
+            timeout    -- The length of time (in seconds) to wait for a response
+                          before exiting the send call if blocking is used.
+                          Defaults to sleekxmpp.xmlstream.RESPONSE_TIMEOUT
+            callback   -- Optional reference to a stream handler function. Will
+                          be executed when a reply stanza is received.
+        """
+        iq = self.xmpp.Iq(sto=jid, stype='set')
         iq['pubsub']['unsubscribe']['node'] = node
-        if subscribee is None:
-            if bare:
-                iq['pubsub']['unsubscribe']['jid'] = self.xmpp.boundjid.bare
-            else:
-                iq['pubsub']['unsubscribe']['jid'] = self.xmpp.boundjid.full
-        else:
-            iq['pubsub']['unsubscribe']['jid'] = subscribee
-        if subid is not None:
-            iq['pubsub']['unsubscribe']['subid'] = subid
-        return iq.send()
+        if ifrom:
+            iq['from'] = ifrom
 
-    def get_node_config(self, jid, node=None): # if no node, then grab default
-        iq = self.xmpp.Iq(sto=jid, sfrom=self.xmpp.boundjid, stype='get')
+        if subscribee is None:
+            if ifrom:
+                if bare:
+                    subscribee = JID(ifrom).bare
+                else:
+                    subscribee = ifrom
+            else:
+                if bare:
+                    subscribee = self.xmpp.boundjid.bare
+                else:
+                    subscribee = self.xmpp.boundjid
+
+        iq['pubsub']['unsubscribe']['jid'] = subscribee
+        iq['pubsub']['unsubscribe']['subid'] = subid
+        return iq.send(block=block, callback=callback, timeout=timeout)
+
+    def get_node_config(self, jid, node=None, ifrom=None, block=None,
+                        callback=None, timeout=None):
+        """
+        Retrieve the configuration for a node, or the pubsub service's
+        default configuration for new nodes.
+
+        Arguments:
+            jid      -- The JID of the pubsub service.
+            node     -- The node to retrieve the configuration for. If None,
+                        the default configuration for new nodes will be
+                        requested. Defaults to None.
+            ifrom    -- Specify the sender's JID.
+            block    -- Specify if the send call will block until a response
+                        is received, or a timeout occurs. Defaults to True.
+            timeout  -- The length of time (in seconds) to wait for a response
+                        before exiting the send call if blocking is used.
+                        Defaults to sleekxmpp.xmlstream.RESPONSE_TIMEOUT
+            callback -- Optional reference to a stream handler function. Will
+                        be executed when a reply stanza is received.
+        """
+        iq = self.xmpp.Iq(sto=jid, stype='get')
+        if ifrom:
+            iq['from'] = ifrom
         if node is None:
             iq['pubsub_owner']['default']
         else:
             iq['pubsub_owner']['configure']['node'] = node
-        return iq.send()
+        return iq.send(block=block, callback=callback, timeout=timeout)
 
-    def get_node_subscriptions(self, jid, node):
-        iq = self.xmpp.Iq(sto=jid, sfrom=self.xmpp.boundjid, stype='get')
+    def get_node_subscriptions(self, jid, node, ifrom=None, block=True,
+                               callback=None, timeout=None):
+        """
+        Retrieve the subscriptions associated with a given node.
+
+        Arguments:
+            jid      -- The JID of the pubsub service.
+            node     -- The node to retrieve subscriptions from.
+            ifrom    -- Specify the sender's JID.
+            block    -- Specify if the send call will block until a response
+                        is received, or a timeout occurs. Defaults to True.
+            timeout  -- The length of time (in seconds) to wait for a response
+                        before exiting the send call if blocking is used.
+                        Defaults to sleekxmpp.xmlstream.RESPONSE_TIMEOUT
+            callback -- Optional reference to a stream handler function. Will
+                        be executed when a reply stanza is received.
+        """
+        iq = self.xmpp.Iq(sto=jid, stype='get')
+        if ifrom:
+            iq['from'] = ifrom
         iq['pubsub_owner']['subscriptions']['node'] = node
-        return iq.send()
+        return iq.send(block=block, callback=callback, timeout=timeout)
 
-    def get_node_affiliations(self, jid, node):
-        iq = self.xmpp.Iq(sto=jid, sfrom=self.xmpp.boundjid, stype='get')
+    def get_node_affiliations(self, jid, node, ifrom=None, block=True,
+                              callback=None, timeout=None):
+        """
+        Retrieve the affiliations associated with a given node.
+
+        Arguments:
+            jid      -- The JID of the pubsub service.
+            node     -- The node to retrieve affiliations from.
+            ifrom    -- Specify the sender's JID.
+            block    -- Specify if the send call will block until a response
+                        is received, or a timeout occurs. Defaults to True.
+            timeout  -- The length of time (in seconds) to wait for a response
+                        before exiting the send call if blocking is used.
+                        Defaults to sleekxmpp.xmlstream.RESPONSE_TIMEOUT
+            callback -- Optional reference to a stream handler function. Will
+                        be executed when a reply stanza is received.
+        """
+        iq = self.xmpp.Iq(sto=jid, stype='get')
+        if ifrom:
+            iq['from'] = ifrom
         iq['pubsub_owner']['affiliations']['node'] = node
-        return iq.send()
+        return iq.send(block=block, callback=callback, timeout=timeout)
 
-    def delete_node(self, jid, node):
-        iq = self.xmpp.Iq(sto=jid, sfrom=self.xmpp.boundjid, stype='get')
+    def delete_node(self, jid, node, ifrom=None, block=True,
+                    callback=None, timeout=None):
+        iq = self.xmpp.Iq(sto=jid, stype='get')
+        if ifrom:
+            iq['from'] = ifrom
         iq['pubsub_owner']['delete']['node'] = node
-        return iq.send()
+        return iq.send(block=block, callback=callback, timeout=timeout)
 
-    def set_node_config(self, jid, node, config):
-        iq = self.xmpp.Iq(sto=jid, sfrom=self.xmpp.boundjid, stype='set')
+    def set_node_config(self, jid, node, config, ifrom=None, block=True,
+                        callback=None, timeout=None):
+        iq = self.xmpp.Iq(sto=jid, stype='set')
+        if ifrom:
+            iq['from'] = ifrom
         iq['pubsub_owner']['configure']['node'] = node
         iq['pubsub_owner']['configure']['config'] = config
-        return iq.send()
+        return iq.send(block=block, callback=callback, timeout=timeout)
 
-    def publish(self, jid, node, items=[]):
-        iq = self.xmpp.Iq(sto=jid, sfrom=self.xmpp.boundjid, stype='set')
+    def publish(self, jid, node, items=[], ifrom=None, block=True,
+                callback=None, timeout=None):
+        iq = self.xmpp.Iq(sto=jid, stype='set')
+        if ifrom:
+            iq['from'] = ifrom
         iq['pubsub']['publish']['node'] = node
         for id, payload in items:
             item = stanza.pubsub.Item()
@@ -143,24 +278,42 @@ class xep_0060(base_plugin):
                 item['id'] = id
             item['payload'] = payload
             iq['pubsub']['publish'].append(item)
-        return iq.send()
+        return iq.send(block=block, callback=callback, timeout=timeout)
 
-    def retract(self, jid, node, item):
-        iq = self.xmpp.Iq(sto=jid, sfrom=self.xmpp.boundjid, stype='set')
+    def retract(self, jid, node, item, ifrom=None, block=True,
+                callback=None, timeout=None):
+        iq = self.xmpp.Iq(sto=jid, stype='set')
+        if ifrom:
+            iq['from'] = ifrom
         iq['pubsub']['retract']['node'] = node
         item = stanza.pubsub.Item()
         item['id'] = item
         iq['pubsub']['retract'].append(item)
-        return iq.send()
+        return iq.send(block=block, callback=callback, timeout=timeout)
 
-    def get_nodes(self, jid):
-        return self.xmpp.plugin['xep_0030'].get_items(jid)
+    def get_nodes(self, jid, ifrom=None, block=True,
+                  callback=None, timeout=None, iterator=False):
+        return self.xmpp.plugin['xep_0030'].get_items(jid, ifrom=ifrom,
+                                                      block=block,
+                                                      callback=callback,
+                                                      timeout=timeout,
+                                                      iterator=iterator)
 
-    def getItems(self, jid, node):
-        return self.xmpp.plugin['xep_0030'].get_items(jid, node)
+    def get_items(self, jid, node, ifrom=None, block=True,
+                  callback=None, timeout=None, iterator=False):
+        return self.xmpp.plugin['xep_0030'].get_items(jid, node,
+                                                      ifrom=ifrom,
+                                                      block=block,
+                                                      callback=callback,
+                                                      timeout=timeout,
+                                                      iterator=iterator)
 
-    def modify_affiliation(self, jid, node, affiliation, user_jid=None):
-        iq = self.xmpp.Iq(sto=jid, sfrom=self.xmpp.boundjid, stype='set')
+    def modify_affiliation(self, jid, node, affiliation, user_jid=None,
+                           ifrom=None, block=True, callback=None,
+                           timeout=None):
+        iq = self.xmpp.Iq(sto=jid, stype='set')
+        if ifrom:
+            iq['from'] = ifrom
         iq['pubsub_owner']['affiliations']
         aff = stanza.pubsub.Affiliation()
         aff['node'] = node
@@ -168,4 +321,4 @@ class xep_0060(base_plugin):
             aff['jid'] = user_jid
         aff['affiliation'] = affiliation
         iq['pubsub_owner']['affiliations'].append(aff)
-        return iq.send()
+        return iq.send(block=block, callback=callback, timeout=timeout)

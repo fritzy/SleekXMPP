@@ -336,7 +336,6 @@ class SleekTest(unittest.TestCase):
 
             # Simulate connecting for mock sockets.
             self.xmpp.auto_reconnect = False
-            self.xmpp.is_client = True
             self.xmpp.state._set_state('connected')
 
             # Must have the stream header ready for xmpp.process() to work.

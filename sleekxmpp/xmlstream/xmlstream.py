@@ -235,7 +235,6 @@ class XMLStream(object):
         self._id_lock = threading.Lock()
 
         self.auto_reconnect = True
-        self.is_client = False
         self.dns_answers = []
 
         self.add_event_handler('connected', self._handle_connected)
@@ -328,7 +327,6 @@ class XMLStream(object):
         except Socket.error:
             self.default_domain = self.address[0]
 
-        self.is_client = True
         # Respect previous SSL and TLS usage directives.
         if use_ssl is not None:
             self.use_ssl = use_ssl
@@ -1038,44 +1036,48 @@ class XMLStream(object):
         Processing will continue after any recoverable errors
         if reconnections are allowed.
         """
-        firstrun = True
 
         # The body of this loop will only execute once per connection.
         # Additional passes will be made only if an error occurs and
         # reconnecting is permitted.
-        while firstrun or (self.auto_reconnect and not self.stop.isSet()):
-            firstrun = False
+        while True:
             try:
-                if self.is_client:
-                    self.send_raw(self.stream_header, now=True)
                 # The call to self.__read_xml will block and prevent
                 # the body of the loop from running until a disconnect
                 # occurs. After any reconnection, the stream header will
                 # be resent and processing will resume.
-                while not self.stop.isSet() and self.__read_xml():
+                while not self.stop.is_set():
+                    # Only process the stream while connected to the server
+                    if not self.state.ensure('connected', wait=0.1,
+                                             block_on_transition=True):
+                        continue
                     # Ensure the stream header is sent for any
                     # new connections.
-                    if self.is_client:
+                    if not self.session_started_event.is_set():
                         self.send_raw(self.stream_header, now=True)
+                    self.__read_xml()
             except KeyboardInterrupt:
                 log.debug("Keyboard Escape Detected in _process")
                 self.stop.set()
             except SystemExit:
                 log.debug("SystemExit in _process")
                 self.stop.set()
+                self.scheduler.quit()
             except Socket.error as serr:
                 self.event('socket_error', serr)
                 log.exception('Socket Error')
             except:
-                if not self.stop.isSet():
+                if not self.stop.is_set():
                     log.exception('Connection error.')
-            if not self.stop.isSet() and self.auto_reconnect:
-                self.reconnect()
+
+            if not self.stop.is_set():
+                if self.auto_reconnect:
+                    self.reconnect()
+                else:
+                    continue
             else:
-                self.event('killed', direct=True)
                 self.disconnect()
-                self.event_queue.put(('quit', None, None))
-        self.scheduler.run = False
+                break
 
     def __read_xml(self):
         """

@@ -143,8 +143,7 @@ class xep_0199(base_plugin):
         iq = self.xmpp.Iq()
         iq['type'] = 'get'
         iq['to'] = jid
-        if ifrom:
-            iq['from'] = ifrom
+        iq['from'] = ifrom
         iq.enable('ping')
 
         start_time = time.clock()

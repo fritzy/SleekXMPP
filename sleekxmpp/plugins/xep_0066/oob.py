@@ -108,8 +108,7 @@ class xep_0066(base_plugin):
         iq = self.xmpp.Iq()
         iq['type'] = 'set'
         iq['to'] = to
-        if ifrom:
-            iq['from'] = ifrom
+        iq['from'] = ifrom
         iq['oob_transfer']['url'] = url
         iq['oob_transfer']['desc'] = desc
         return iq.send(**iqargs)

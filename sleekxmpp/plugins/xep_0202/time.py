@@ -85,8 +85,7 @@ class xep_0202(base_plugin):
         """
         iq = self.xmpp.Iq()
         iq['type'] = 'get'
-        iq['to'] = 'to'
-        if ifrom:
-            iq['from'] = 'ifrom'
+        iq['to'] = to
+        iq['from'] = ifrom
         iq.enable('entity_time')
         return iq.send(**iqargs)

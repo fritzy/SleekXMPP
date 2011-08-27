@@ -431,8 +431,7 @@ class xep_0050(base_plugin):
         iq = self.xmpp.Iq()
         iq['type'] = 'set'
         iq['to'] = jid
-        if ifrom:
-            iq['from'] = ifrom
+        iq['from'] = ifrom
         iq['command']['node'] = node
         iq['command']['action'] = action
         if sessionid is not None:
@@ -482,9 +481,8 @@ class xep_0050(base_plugin):
         iq = self.xmpp.Iq()
         iq['type'] = 'set'
         iq['to'] = jid
-        if ifrom:
-            iq['from'] = ifrom
-            session['from'] = ifrom
+        iq['from'] = ifrom
+        session['from'] = ifrom
         iq['command']['node'] = node
         iq['command']['action'] = 'execute'
         sessionid = 'client:pending_' + iq['id']

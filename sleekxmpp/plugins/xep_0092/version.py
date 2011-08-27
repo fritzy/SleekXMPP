@@ -76,8 +76,7 @@ class xep_0092(base_plugin):
         """
         iq = self.xmpp.Iq()
         iq['to'] = jid
-        if ifrom:
-            iq['from'] = ifrom
+        iq['from'] = ifrom
         iq['type'] = 'get'
         iq['query'] = Version.namespace
 

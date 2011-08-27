@@ -58,9 +58,7 @@ class xep_0060(base_plugin):
             callback -- Optional reference to a stream handler function. Will
                         be executed when a reply stanza is received.
         """
-        iq = self.xmpp.Iq(sto=jid, stype='set')
-        if ifrom:
-            iq['from'] = ifrom
+        iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='set')
         iq['pubsub']['create']['node'] = node
 
         if config is not None:
@@ -105,10 +103,8 @@ class xep_0060(base_plugin):
             callback   -- Optional reference to a stream handler function. Will
                           be executed when a reply stanza is received.
         """
-        iq = self.xmpp.Iq(sto=jid, stype='set')
+        iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='set')
         iq['pubsub']['subscribe']['node'] = node
-        if ifrom:
-            iq['from'] = ifrom
 
         if subscribee is None:
             if ifrom:
@@ -153,10 +149,8 @@ class xep_0060(base_plugin):
             callback   -- Optional reference to a stream handler function. Will
                           be executed when a reply stanza is received.
         """
-        iq = self.xmpp.Iq(sto=jid, stype='set')
+        iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='set')
         iq['pubsub']['unsubscribe']['node'] = node
-        if ifrom:
-            iq['from'] = ifrom
 
         if subscribee is None:
             if ifrom:
@@ -194,9 +188,8 @@ class xep_0060(base_plugin):
             callback -- Optional reference to a stream handler function. Will
                         be executed when a reply stanza is received.
         """
-        iq = self.xmpp.Iq(sto=jid, stype='get')
-        if ifrom:
-            iq['from'] = ifrom
+        iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='get')
+
         if node is None:
             iq['pubsub_owner']['default']
         else:
@@ -220,9 +213,7 @@ class xep_0060(base_plugin):
             callback -- Optional reference to a stream handler function. Will
                         be executed when a reply stanza is received.
         """
-        iq = self.xmpp.Iq(sto=jid, stype='get')
-        if ifrom:
-            iq['from'] = ifrom
+        iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='get')
         iq['pubsub_owner']['subscriptions']['node'] = node
         return iq.send(block=block, callback=callback, timeout=timeout)
 
@@ -243,34 +234,41 @@ class xep_0060(base_plugin):
             callback -- Optional reference to a stream handler function. Will
                         be executed when a reply stanza is received.
         """
-        iq = self.xmpp.Iq(sto=jid, stype='get')
-        if ifrom:
-            iq['from'] = ifrom
+        iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='get')
         iq['pubsub_owner']['affiliations']['node'] = node
         return iq.send(block=block, callback=callback, timeout=timeout)
 
     def delete_node(self, jid, node, ifrom=None, block=True,
                     callback=None, timeout=None):
-        iq = self.xmpp.Iq(sto=jid, stype='get')
-        if ifrom:
-            iq['from'] = ifrom
+        """
+        Delete a a pubsub node.
+
+        Arguments:
+            jid      -- The JID of the pubsub service.
+            node     -- The node to delete.
+            ifrom    -- Specify the sender's JID.
+            block    -- Specify if the send call will block until a response
+                        is received, or a timeout occurs. Defaults to True.
+            timeout  -- The length of time (in seconds) to wait for a response
+                        before exiting the send call if blocking is used.
+                        Defaults to sleekxmpp.xmlstream.RESPONSE_TIMEOUT
+            callback -- Optional reference to a stream handler function. Will
+                        be executed when a reply stanza is received.
+        """
+        iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='get')
         iq['pubsub_owner']['delete']['node'] = node
         return iq.send(block=block, callback=callback, timeout=timeout)
 
     def set_node_config(self, jid, node, config, ifrom=None, block=True,
                         callback=None, timeout=None):
-        iq = self.xmpp.Iq(sto=jid, stype='set')
-        if ifrom:
-            iq['from'] = ifrom
+        iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='set')
         iq['pubsub_owner']['configure']['node'] = node
         iq['pubsub_owner']['configure']['config'] = config
         return iq.send(block=block, callback=callback, timeout=timeout)
 
     def publish(self, jid, node, items=[], ifrom=None, block=True,
                 callback=None, timeout=None):
-        iq = self.xmpp.Iq(sto=jid, stype='set')
-        if ifrom:
-            iq['from'] = ifrom
+        iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='set')
         iq['pubsub']['publish']['node'] = node
         for id, payload in items:
             item = stanza.pubsub.Item()
@@ -282,9 +280,8 @@ class xep_0060(base_plugin):
 
     def retract(self, jid, node, item, ifrom=None, block=True,
                 callback=None, timeout=None):
-        iq = self.xmpp.Iq(sto=jid, stype='set')
-        if ifrom:
-            iq['from'] = ifrom
+        iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='set')
+
         iq['pubsub']['retract']['node'] = node
         item = stanza.pubsub.Item()
         item['id'] = item
@@ -311,9 +308,8 @@ class xep_0060(base_plugin):
     def modify_affiliation(self, jid, node, affiliation, user_jid=None,
                            ifrom=None, block=True, callback=None,
                            timeout=None):
-        iq = self.xmpp.Iq(sto=jid, stype='set')
-        if ifrom:
-            iq['from'] = ifrom
+        iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='set')
+
         iq['pubsub_owner']['affiliations']
         aff = stanza.pubsub.Affiliation()
         aff['node'] = node

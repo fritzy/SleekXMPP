@@ -26,7 +26,7 @@ class Affiliation(ElementBase):
     interfaces = set(('node', 'affiliation', 'jid'))
     plugin_attrib_map = {}
     plugin_tag_map = {}
-    
+
     def setJid(self, value):
         self._setAttr('jid', str(value))
 
@@ -107,7 +107,7 @@ class Items(ElementBase):
     namespace = 'http://jabber.org/protocol/pubsub'
     name = 'items'
     plugin_attrib = 'items'
-    interfaces = set(('node',))
+    interfaces = set(('node', 'max_items'))
     plugin_attrib_map = {}
     plugin_tag_map = {}
     subitem = (Item,)

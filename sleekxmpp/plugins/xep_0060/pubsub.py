@@ -273,10 +273,22 @@ class xep_0060(base_plugin):
         iq['pubsub_owner']['configure']['config'] = config
         return iq.send(block=block, callback=callback, timeout=timeout)
 
-    def publish(self, jid, node, items=[], ifrom=None, block=True,
-                callback=None, timeout=None):
+    def publish(self, jid, node, item_id=None, payload=None, items=None,
+                ifrom=None, block=True, callback=None, timeout=None):
+        """
+        Add or edit items in a node.
+
+        You may publish an individual item using the item_id and payload
+        parameters, or you may batch publish by using the items parameter
+        which accepts a list of id/payload tuples.
+        """
         iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='set')
         iq['pubsub']['publish']['node'] = node
+
+        if items is None:
+            items = []
+        if item_id is not None:
+            items.insert(0, (item_id, payload))
         for id, payload in items:
             item = stanza.pubsub.Item()
             if id is not None:
@@ -287,6 +299,9 @@ class xep_0060(base_plugin):
 
     def retract(self, jid, node, item, ifrom=None, block=True,
                 callback=None, timeout=None):
+        """
+        Delete a single item from a node.
+        """
         iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='set')
 
         iq['pubsub']['retract']['node'] = node
@@ -297,18 +312,60 @@ class xep_0060(base_plugin):
 
     def purge(self, jid, node, ifrom=None, block=True, callback=None,
               timeout=None):
+        """
+        Remove all items from a node.
+        """
         iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='set')
-        iq['pubsub']['purge']['node'] = node
+        iq['pubsub_owner']['purge']['node'] = node
         return iq.send(block=block, callback=callback, timeout=timeout)
 
     def get_nodes(self, *args, **kwargs):
-        return self.xmpp.plugin['xep_0040'].get_items(*args, **kwargs)
+        """
+        Discover the nodes provided by a Pubsub service, using disco.
+        """
+        return self.xmpp.plugin['xep_0030'].get_items(*args, **kwargs)
 
-    def get_item(self):
-        pass
+    def get_item(self, jid, node, item_id, ifrom=None, blockTrue,
+                 callback=None, timeout=None):
+        """
+        Retrieve the content of an individual item.
+        """
+        iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='get')
+        item = self.stanza.Item()
+        item['id'] = item_id
+        iq['pubsub']['items'].append(item)
+        return iq.send(block=block, callback=callback, timeout=timeout)
 
-    def get_items(self, jid, node, ifrom=None, block=True,
-                  callback=None, timeout=None, iterator=False):
+    def get_items(self, jid, node, item_ids=None, max_items=None,
+                  iterator=False, ifrom=None, block=False,
+                  callback=None, timeout=None):
+        """
+        Request the contents of a node's items.
+
+        The desired items can be specified, or a query for the last
+        few published items can be used.
+
+        Pubsub services may use result set management for nodes with
+        many items, so an iterator can be returned if needed.
+        """
+        iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='get')
+        iq['pubsub']['items']['max_items'] = max_items
+
+        for item_id in item_ids:
+            item = self.stanza.Item()
+            item['id'] = item_id
+            iq['pubsub']['items'].append(item)
+
+        if iterator:
+            return self.xmpp['xep_0059'].iterate(iq, 'pubsub')
+        else:
+            return iq.send(block=block, callback=callback, timeout=timeout)
+
+    def get_item_ids(self, jid, node, ifrom=None, block=True,
+                     callback=None, timeout=None, iterator=False):
+        """
+        Retrieve the ItemIDs hosted by a given node, using disco.
+        """
         return self.xmpp.plugin['xep_0030'].get_items(jid, node,
                                                       ifrom=ifrom,
                                                       block=block,
@@ -316,22 +373,34 @@ class xep_0060(base_plugin):
                                                       timeout=timeout,
                                                       iterator=iterator)
 
-    def modify_affiliation(self, jid, node, affiliation, user_jid=None,
-                           ifrom=None, block=True, callback=None,
-                           timeout=None):
+    def modify_affiliations(self, jid, node, affiliations=None, ifrom=None,
+                            block=True, callback=None, timeout=None):
         iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='set')
+        iq['pubsub_owner']['affiliations']['node'] = node
 
-        iq['pubsub_owner']['affiliations']
-        aff = stanza.pubsub.Affiliation()
-        aff['node'] = node
-        if user_jid is not None:
+        if affiliations is None:
+            affiliations = []
+
+        for jid, affiliation in affiliations:
+            aff = stanza.pubsub.Affiliation()
             aff['jid'] = user_jid
-        aff['affiliation'] = affiliation
-        iq['pubsub_owner']['affiliations'].append(aff)
+            aff['affiliation'] = affiliation
+            iq['pubsub_owner']['affiliations'].append(aff)
+
         return iq.send(block=block, callback=callback, timeout=timeout)
 
-    def modify_subscription(self):
-        pass
+    def modify_subscriptions(self, jid, node, subscriptions=None, ifrom=None,
+                             block=True, callback=None, timeout=None):
+        iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='set')
+        iq['pubsub_owner']['subscriptions']['node'] = node
 
-    def purge(self):
-        pass
+        if subscriptions is None:
+            subscriptions = []
+
+        for jid, subscription in subscriptions:
+            sub = self.stanza.Subscription()
+            sub['jid'] = user_jid
+            sub['subscription'] = subscription
+            iq['pubsub_owner']['subscriptions'].append(sub)
+
+        return iq.send(block=block, callback=callback, timeout=timeout)

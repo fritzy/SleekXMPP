@@ -78,8 +78,8 @@ class xep_0060(base_plugin):
 
         return iq.send(block=block, callback=callback, timeout=timeout)
 
-    def subscribe(self, jid, node, bare=True, subscribee=None, ifrom=None,
-                  block=True, callback=None, timeout=None):
+    def subscribe(self, jid, node, bare=True, subscribee=None, options=None,
+                  ifrom=None, block=True, callback=None, timeout=None):
         """
         Subscribe to updates from a pubsub node.
 
@@ -94,6 +94,7 @@ class xep_0060(base_plugin):
             bare       -- Indicates if the subscribee is a bare or full JID.
                           Defaults to True for a bare JID.
             subscribee -- The JID that is subscribing to the node.
+            options    --
             ifrom      -- Specify the sender's JID.
             block      -- Specify if the send call will block until a response
                           is received, or a timeout occurs. Defaults to True.
@@ -167,6 +168,12 @@ class xep_0060(base_plugin):
         iq['pubsub']['unsubscribe']['jid'] = subscribee
         iq['pubsub']['unsubscribe']['subid'] = subid
         return iq.send(block=block, callback=callback, timeout=timeout)
+
+    def get_subscription_options(self):
+        pass
+
+    def set_subscription_options(self):
+        pass
 
     def get_node_config(self, jid, node=None, ifrom=None, block=None,
                         callback=None, timeout=None):
@@ -288,13 +295,17 @@ class xep_0060(base_plugin):
         iq['pubsub']['retract'].append(item)
         return iq.send(block=block, callback=callback, timeout=timeout)
 
-    def get_nodes(self, jid, ifrom=None, block=True,
-                  callback=None, timeout=None, iterator=False):
-        return self.xmpp.plugin['xep_0030'].get_items(jid, ifrom=ifrom,
-                                                      block=block,
-                                                      callback=callback,
-                                                      timeout=timeout,
-                                                      iterator=iterator)
+    def purge(self, jid, node, ifrom=None, block=True, callback=None,
+              timeout=None):
+        iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='set')
+        iq['pubsub']['purge']['node'] = node
+        return iq.send(block=block, callback=callback, timeout=timeout)
+
+    def get_nodes(self, *args, **kwargs):
+        return self.xmpp.plugin['xep_0040'].get_items(*args, **kwargs)
+
+    def get_item(self):
+        pass
 
     def get_items(self, jid, node, ifrom=None, block=True,
                   callback=None, timeout=None, iterator=False):
@@ -318,3 +329,9 @@ class xep_0060(base_plugin):
         aff['affiliation'] = affiliation
         iq['pubsub_owner']['affiliations'].append(aff)
         return iq.send(block=block, callback=callback, timeout=timeout)
+
+    def modify_subscription(self):
+        pass
+
+    def purge(self):
+        pass

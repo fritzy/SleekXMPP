@@ -325,7 +325,7 @@ class xep_0060(base_plugin):
         """
         return self.xmpp.plugin['xep_0030'].get_items(*args, **kwargs)
 
-    def get_item(self, jid, node, item_id, ifrom=None, blockTrue,
+    def get_item(self, jid, node, item_id, ifrom=None, block=True,
                  callback=None, timeout=None):
         """
         Retrieve the content of an individual item.

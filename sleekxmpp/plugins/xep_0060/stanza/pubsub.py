@@ -243,6 +243,31 @@ class Options(ElementBase):
 registerStanzaPlugin(Pubsub, Options)
 registerStanzaPlugin(Subscribe, Options)
 
+class PublishOptions(ElementBase):
+    namespace = 'http://jabber.org/protocol/pubsub'
+    name = 'publish-options'
+    plugin_attrib = 'publish_options'
+    interfaces = set(('publish_options'))
+    plugin_attrib_map = {}
+    plugin_tag_map = {}
+
+    def get_publish_options(self):
+        config = self.xml.find('{jabber:x:data}x')
+        form = xep_0004.Form()
+        if config is not None:
+            form.fromXML(config)
+        return form
+
+    def set_publish_options(self, value):
+        self.xml.append(value.getXML())
+        return self
+
+    def del_publish_options(self):
+        config = self.xml.find('{jabber:x:data}x')
+        self.xml.remove(config)
+
+registerStanzaPlugin(Pubsub, PublishOptions)
+
 class PubsubState(ElementBase):
     namespace = 'http://jabber.org/protocol/psstate'
     name = 'state'

@@ -221,9 +221,7 @@ class Options(ElementBase):
 
     def getOptions(self):
         config = self.xml.find('{jabber:x:data}x')
-        form = xep_0004.Form()
-        if config is not None:
-            form.fromXML(config)
+        form = xep_0004.Form(xml=config)
         return form
 
     def setOptions(self, value):
@@ -254,9 +252,7 @@ class PublishOptions(ElementBase):
 
     def get_publish_options(self):
         config = self.xml.find('{jabber:x:data}x')
-        form = xep_0004.Form()
-        if config is not None:
-            form.fromXML(config)
+        form = xep_0004.Form(xml=config)
         return form
 
     def set_publish_options(self, value):

@@ -92,7 +92,8 @@ class Item(ElementBase):
     plugin_tag_map = {}
 
     def setPayload(self, value):
-        self.xml.append(value)
+        del self['payload']
+        self.append(value)
 
     def getPayload(self):
         childs = self.xml.getchildren()

@@ -3,6 +3,8 @@ import time
 import threading
 
 from sleekxmpp.test import *
+from sleekxmpp.stanza.atom import AtomEntry
+from sleekxmpp.xmlstream import register_stanza_plugin
 
 
 class TestStreamPubsub(SleekTest):
@@ -381,11 +383,42 @@ class TestStreamPubsub(SleekTest):
 
     def testPublishSingle(self):
         """Test publishing a single item."""
-        pass
+        payload = AtomEntry()
+        payload['title'] = 'Test'
+
+        register_stanza_plugin(self.xmpp['xep_0060'].stanza.Item, AtomEntry)
+
+        t = threading.Thread(name='publish_single',
+                             target=self.xmpp['xep_0060'].publish,
+                             args=('pubsub.example.com', 'somenode'),
+                             kwargs={'item_id': 'ID42',
+                                     'payload': payload})
+        t.start()
+
+        self.send("""
+          <iq type="set" id="1" to="pubsub.example.com">
+            <pubsub xmlns="http://jabber.org/protocol/pubsub">
+              <publish node="somenode">
+                <item id="ID42">
+                  <entry xmlns="http://www.w3.org/2005/Atom">
+                    <title>Test</title>
+                  </entry>
+                </item>
+              </publish>
+            </pubsub>
+          </iq>
+        """)
+
+        self.recv("""
+          <iq type="result" id="1"
+              to="tester@localhost" from="pubsub.example.com" />
+        """)
+
+        t.join()
+
 
     def testPublishSingleOptions(self):
         """Test publishing a single item, with options."""
-
 
     def testPublishMulti(self):
         """Test publishing multiple items."""

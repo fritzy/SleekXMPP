@@ -148,14 +148,13 @@ class TestPubsubStanzas(SleekTest):
         iq = self.Iq()
         iq['pubsub_owner']['default']
         iq['pubsub_owner']['default']['node'] = 'mynode'
-        iq['pubsub_owner']['default']['type'] = 'leaf'
         iq['pubsub_owner']['default']['form'].addField('pubsub#title',
                                                        ftype='text-single',
                                                        value='This thing is awesome')
         self.check(iq, """
 	      <iq id="0">
             <pubsub xmlns="http://jabber.org/protocol/pubsub#owner">
-              <default node="mynode" type="leaf">
+              <default node="mynode">
                 <x xmlns="jabber:x:data" type="form">
                   <field var="pubsub#title" type="text-single">
                     <value>This thing is awesome</value>

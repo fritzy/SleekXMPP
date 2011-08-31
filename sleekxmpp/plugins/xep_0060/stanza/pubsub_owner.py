@@ -22,17 +22,12 @@ class DefaultConfig(ElementBase):
     namespace = 'http://jabber.org/protocol/pubsub#owner'
     name = 'default'
     plugin_attrib = 'default'
-    interfaces = set(('node', 'type', 'config'))
+    interfaces = set(('node', 'config'))
     plugin_attrib_map = {}
     plugin_tag_map = {}
 
     def __init__(self, *args, **kwargs):
         ElementBase.__init__(self, *args, **kwargs)
-
-    def getType(self):
-        t = self._getAttr('type')
-        if not t: t = 'leaf'
-        return t
 
     def getConfig(self):
         return self['form']
@@ -71,7 +66,7 @@ class OwnerConfigure(Configure):
     interfaces = set(('node', 'config'))
     plugin_attrib_map = {}
     plugin_tag_map = {}
-    
+
     def getConfig(self):
         return self['form']
 

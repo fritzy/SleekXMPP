@@ -275,5 +275,49 @@ class TestStreamPubsub(SleekTest):
                   to="foo@comp.example.com/bar" from="pubsub.example.com" />
             """)
 
+    def testGetDefaultConfig(self):
+        """Test retrieving the default node configuration."""
+        t = threading.Thread(name='default_config',
+                             target=self.xmpp['xep_0060'].get_node_config,
+                             args=('pubsub.example.com',))
+        t.start()
+
+        self.send("""
+          <iq type="get" id="1" to="pubsub.example.com">
+            <pubsub xmlns="http://jabber.org/protocol/pubsub#owner">
+              <default />
+            </pubsub>
+          </iq>
+        """, use_values=False)
+
+        self.recv("""
+          <iq type="result" id="1"
+              to="foo@comp.example.com/bar" from="pubsub.example.com" />
+        """)
+
+        t.join()
+
+    def testGetDefaultNodeConfig(self):
+        """Tes t retrieving the default config for a given node."""
+        t = threading.Thread(name='default_config',
+                             target=self.xmpp['xep_0060'].get_node_config,
+                             args=('pubsub.example.com', 'somenode'))
+        t.start()
+
+        self.send("""
+          <iq type="get" id="1" to="pubsub.example.com">
+            <pubsub xmlns="http://jabber.org/protocol/pubsub#owner">
+              <default node="somenode" />
+            </pubsub>
+          </iq>
+        """, use_values=False)
+
+        self.recv("""
+          <iq type="result" id="1"
+              to="foo@comp.example.com/bar" from="pubsub.example.com" />
+        """)
+
+        t.join()
+
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestStreamPubsub)

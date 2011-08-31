@@ -206,11 +206,7 @@ class xep_0060(base_plugin):
                         be executed when a reply stanza is received.
         """
         iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='get')
-
-        if node is None:
-            iq['pubsub_owner']['default']
-        else:
-            iq['pubsub_owner']['configure']['node'] = node
+        iq['pubsub_owner']['default']['node'] = node
         return iq.send(block=block, callback=callback, timeout=timeout)
 
     def get_node_subscriptions(self, jid, node, ifrom=None, block=True,

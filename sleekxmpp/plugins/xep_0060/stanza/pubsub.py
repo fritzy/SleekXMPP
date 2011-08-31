@@ -247,7 +247,8 @@ class PublishOptions(ElementBase):
     namespace = 'http://jabber.org/protocol/pubsub'
     name = 'publish-options'
     plugin_attrib = 'publish_options'
-    interfaces = set(('publish_options'))
+    interfaces = set(('publish_options',))
+    is_extension = True
     plugin_attrib_map = {}
     plugin_tag_map = {}
 

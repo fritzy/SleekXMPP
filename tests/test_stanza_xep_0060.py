@@ -213,6 +213,9 @@ class TestPubsubStanzas(SleekTest):
         item2['payload'] = payload2
         iq['pubsub']['publish'].append(item)
         iq['pubsub']['publish'].append(item2)
+        form = xep_0004.Form()
+        form.addField('pubsub#description', ftype='text-single', value='this thing is awesome')
+        iq['pubsub']['publish_options'] = form
 
         self.check(iq, """
           <iq id="0">
@@ -231,6 +234,13 @@ class TestPubsubStanzas(SleekTest):
                   </thinger2>
                 </item>
               </publish>
+              <publish-options>
+                <x xmlns="jabber:x:data" type="submit">
+                  <field var="pubsub#description">
+                    <value>this thing is awesome</value>
+                  </field>
+                </x>
+              </publish-options>
             </pubsub>
           </iq>""")
 

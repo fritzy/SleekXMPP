@@ -262,7 +262,7 @@ class xep_0060(base_plugin):
             callback -- Optional reference to a stream handler function. Will
                         be executed when a reply stanza is received.
         """
-        iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='get')
+        iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='set')
         iq['pubsub_owner']['delete']['node'] = node
         return iq.send(block=block, callback=callback, timeout=timeout)
 

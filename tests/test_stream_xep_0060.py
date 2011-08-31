@@ -102,5 +102,27 @@ class TestStreamPubsub(SleekTest):
 
         t.join()
 
+    def testDeleteNode(self):
+        """Test deleting a node"""
+        t = threading.Thread(name='delete_node',
+                             target=self.xmpp['xep_0060'].delete_node,
+                             args=('pubsub.example.com', 'some_node'))
+        t.start()
+
+        self.send("""
+          <iq type="set" to="pubsub.example.com" id="1">
+            <pubsub xmlns="http://jabber.org/protocol/pubsub#owner">
+              <delete node="some_node" />
+            </pubsub>
+          </iq>
+        """)
+
+        self.recv("""
+          <iq type="result" id="1"
+              to="tester@localhost" from="pubsub.example.com" />
+        """)
+
+        t.join()
+
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestStreamPubsub)

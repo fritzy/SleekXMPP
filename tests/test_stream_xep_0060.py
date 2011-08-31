@@ -416,9 +416,58 @@ class TestStreamPubsub(SleekTest):
 
         t.join()
 
-
     def testPublishSingleOptions(self):
         """Test publishing a single item, with options."""
+        payload = AtomEntry()
+        payload['title'] = 'Test'
+
+        register_stanza_plugin(self.xmpp['xep_0060'].stanza.Item, AtomEntry)
+
+        options = self.xmpp['xep_0004'].make_form()
+        options.add_field(var='FORM_TYPE', ftype='hidden',
+              value='http://jabber.org/protocol/pubsub#publish-options')
+        options.add_field(var='pubsub#access_model', ftype='text-single',
+              value='presence')
+        options['type'] = 'submit'
+
+        t = threading.Thread(name='publish_single',
+                             target=self.xmpp['xep_0060'].publish,
+                             args=('pubsub.example.com', 'somenode'),
+                             kwargs={'item_id': 'ID42',
+                                     'payload': payload,
+                                     'options': options})
+        t.start()
+
+        self.send("""
+          <iq type="set" id="1" to="pubsub.example.com">
+            <pubsub xmlns="http://jabber.org/protocol/pubsub">
+              <publish node="somenode">
+                <item id="ID42">
+                  <entry xmlns="http://www.w3.org/2005/Atom">
+                    <title>Test</title>
+                  </entry>
+                </item>
+              </publish>
+              <publish-options>
+                <x xmlns="jabber:x:data" type="submit">
+                  <field var="FORM_TYPE">
+                    <value>http://jabber.org/protocol/pubsub#publish-options</value>
+                  </field>
+                  <field var="pubsub#access_model">
+                    <value>presence</value>
+                  </field>
+                </x>
+              </publish-options>
+            </pubsub>
+          </iq>
+        """, use_values=False)
+
+        self.recv("""
+          <iq type="result" id="1"
+              to="tester@localhost" from="pubsub.example.com" />
+        """)
+
+        t.join()
 
     def testPublishMulti(self):
         """Test publishing multiple items."""

@@ -283,7 +283,8 @@ class xep_0060(base_plugin):
         return iq.send(block=block, callback=callback, timeout=timeout)
 
     def publish(self, jid, node, item_id=None, payload=None, items=None,
-                ifrom=None, block=True, callback=None, timeout=None):
+                options=None, ifrom=None, block=True, callback=None,
+                timeout=None):
         """
         Add or edit items in a node.
 
@@ -304,6 +305,8 @@ class xep_0060(base_plugin):
                 item['id'] = id
             item['payload'] = payload
             iq['pubsub']['publish'].append(item)
+        if options is not None:
+            iq['pubsub']['publish_options'] = options
         return iq.send(block=block, callback=callback, timeout=timeout)
 
     def retract(self, jid, node, item, ifrom=None, block=True,

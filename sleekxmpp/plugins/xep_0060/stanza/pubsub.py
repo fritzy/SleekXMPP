@@ -257,12 +257,16 @@ class PublishOptions(ElementBase):
         return form
 
     def set_publish_options(self, value):
-        self.xml.append(value.getXML())
+        if value is None:
+            del self['publish_options']
+        else:
+            self.xml.append(value.getXML())
         return self
 
     def del_publish_options(self):
         config = self.xml.find('{jabber:x:data}x')
-        self.xml.remove(config)
+        if config is not None:
+            self.xml.remove(config)
 
 registerStanzaPlugin(Pubsub, PublishOptions)
 

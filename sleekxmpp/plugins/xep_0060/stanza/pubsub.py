@@ -151,7 +151,7 @@ class Publish(Items):
 
 registerStanzaPlugin(Pubsub, Publish)
 
-class Retract(Items):
+class Retract(ElementBase):
     namespace = 'http://jabber.org/protocol/pubsub'
     name = 'retract'
     plugin_attrib = name
@@ -160,6 +160,7 @@ class Retract(Items):
     plugin_tag_map = {}
 
 registerStanzaPlugin(Pubsub, Retract)
+registerStanzaPlugin(Retract, Item)
 
 class Unsubscribe(ElementBase):
     namespace = 'http://jabber.org/protocol/pubsub'
@@ -253,12 +254,14 @@ class PublishOptions(ElementBase):
 
     def get_publish_options(self):
         config = self.xml.find('{jabber:x:data}x')
+        if config is None:
+            return None
         form = xep_0004.Form(xml=config)
         return form
 
     def set_publish_options(self, value):
         if value is None:
-            del self['publish_options']
+            self.del_publish_options()
         else:
             self.xml.append(value.getXML())
         return self
@@ -267,6 +270,7 @@ class PublishOptions(ElementBase):
         config = self.xml.find('{jabber:x:data}x')
         if config is not None:
             self.xml.remove(config)
+        self.parent().xml.remove(self.xml)
 
 registerStanzaPlugin(Pubsub, PublishOptions)
 

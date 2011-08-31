@@ -430,7 +430,7 @@ class TestStreamPubsub(SleekTest):
               value='presence')
         options['type'] = 'submit'
 
-        t = threading.Thread(name='publish_single',
+        t = threading.Thread(name='publish_single_options',
                              target=self.xmpp['xep_0060'].publish,
                              args=('pubsub.example.com', 'somenode'),
                              kwargs={'item_id': 'ID42',
@@ -479,7 +479,7 @@ class TestStreamPubsub(SleekTest):
 
         register_stanza_plugin(self.xmpp['xep_0060'].stanza.Item, AtomEntry)
 
-        t = threading.Thread(name='publish_single',
+        t = threading.Thread(name='publish_multi',
                              target=self.xmpp['xep_0060'].publish,
                              args=('pubsub.example.com', 'somenode'),
                              kwargs={'items': [('ID1', payload1),
@@ -529,7 +529,7 @@ class TestStreamPubsub(SleekTest):
               value='presence')
         options['type'] = 'submit'
 
-        t = threading.Thread(name='publish_single',
+        t = threading.Thread(name='publish_multi_options',
                              target=self.xmpp['xep_0060'].publish,
                              args=('pubsub.example.com', 'somenode'),
                              kwargs={'items': [('ID1', payload1),
@@ -575,7 +575,27 @@ class TestStreamPubsub(SleekTest):
 
     def testRetract(self):
         """Test deleting an item."""
-        pass
+        t = threading.Thread(name='retract',
+                             target=self.xmpp['xep_0060'].retract,
+                             args=('pubsub.example.com', 'somenode', 'ID1'))
+        t.start()
+
+        self.send("""
+          <iq type="set" id="1" to="pubsub.example.com">
+            <pubsub xmlns="http://jabber.org/protocol/pubsub">
+              <retract node="somenode">
+                <item id="ID1" />
+              </retract>
+            </pubsub>
+          </iq>
+        """, use_values=False)
+
+        self.recv("""
+          <iq type="result" id="1"
+              to="tester@localhost" from="pubsub.example.com" />
+        """)
+
+        t.join()
 
     def testPurge(self):
         """Test removing all items from a node."""

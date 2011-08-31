@@ -305,11 +305,10 @@ class xep_0060(base_plugin):
                 item['id'] = id
             item['payload'] = payload
             iq['pubsub']['publish'].append(item)
-        if options is not None:
-            iq['pubsub']['publish_options'] = options
+        iq['pubsub']['publish_options'] = options
         return iq.send(block=block, callback=callback, timeout=timeout)
 
-    def retract(self, jid, node, item, ifrom=None, block=True,
+    def retract(self, jid, node, item_id, ifrom=None, block=True,
                 callback=None, timeout=None):
         """
         Delete a single item from a node.
@@ -317,9 +316,7 @@ class xep_0060(base_plugin):
         iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='set')
 
         iq['pubsub']['retract']['node'] = node
-        item = stanza.pubsub.Item()
-        item['id'] = item
-        iq['pubsub']['retract'].append(item)
+        iq['pubsub']['retract']['item']['id'] = item_id
         return iq.send(block=block, callback=callback, timeout=timeout)
 
     def purge(self, jid, node, ifrom=None, block=True, callback=None,

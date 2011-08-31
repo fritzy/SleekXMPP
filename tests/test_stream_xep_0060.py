@@ -124,5 +124,86 @@ class TestStreamPubsub(SleekTest):
 
         t.join()
 
+    def testSubscribe(self):
+        """Test subscribing to a node"""
+
+        def run_test(jid, bare, ifrom, send, recv):
+            t = threading.Thread(name='subscribe',
+                                 target=self.xmpp['xep_0060'].subscribe,
+                                 args=('pubsub.example.com', 'some_node'),
+                                 kwargs={'subscribee': jid,
+                                         'bare': bare,
+                                         'ifrom': ifrom})
+            t.start()
+            self.send(send)
+            self.recv(recv)
+            t.join()
+
+        # Case 1: No subscribee, default 'from' JID, bare JID
+        run_test(None, True, None,
+            """
+              <iq type="set" id="1" to="pubsub.example.com">
+                <pubsub xmlns="http://jabber.org/protocol/pubsub">
+                  <subscribe node="some_node" jid="tester@localhost" />
+                </pubsub>
+              </iq>
+            """,
+            """
+              <iq type="result" id="1"
+                  to="tester@localhost" from="pubsub.example.com" />
+            """)
+
+        # Case 2: No subscribee, given 'from' JID, bare JID
+        run_test(None, True, 'foo@comp.example.com/bar',
+            """
+              <iq type="set" id="2"
+                  to="pubsub.example.com" from="foo@comp.example.com/bar">
+                <pubsub xmlns="http://jabber.org/protocol/pubsub">
+                  <subscribe node="some_node" jid="foo@comp.example.com" />
+                </pubsub>
+              </iq>
+            """,
+            """
+              <iq type="result" id="2"
+                  to="foo@comp.example.com/bar" from="pubsub.example.com" />
+            """)
+
+        # Case 3: No subscribee, given 'from' JID, full JID
+        run_test(None, False, 'foo@comp.example.com/bar',
+            """
+              <iq type="set" id="3"
+                  to="pubsub.example.com" from="foo@comp.example.com/bar">
+                <pubsub xmlns="http://jabber.org/protocol/pubsub">
+                  <subscribe node="some_node" jid="foo@comp.example.com/bar" />
+                </pubsub>
+              </iq>
+            """,
+            """
+              <iq type="result" id="3"
+                  to="foo@comp.example.com/bar" from="pubsub.example.com" />
+            """)
+
+        # Case 4: Subscribee
+        run_test('user@example.com/foo', True, 'foo@comp.example.com/bar',
+            """
+              <iq type="set" id="4"
+                  to="pubsub.example.com" from="foo@comp.example.com/bar">
+                <pubsub xmlns="http://jabber.org/protocol/pubsub">
+                  <subscribe node="some_node" jid="user@example.com/foo" />
+                </pubsub>
+              </iq>
+            """,
+            """
+              <iq type="result" id="4"
+                  to="foo@comp.example.com/bar" from="pubsub.example.com" />
+            """)
+
+    def testSubscribeWithOptions(self):
+        pass
+
+    def testUnsubscribe(self):
+        pass
+
+
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestStreamPubsub)

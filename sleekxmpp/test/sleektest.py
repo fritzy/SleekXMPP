@@ -58,9 +58,6 @@ class SleekTest(unittest.TestCase):
         unittest.TestCase.__init__(self, *args, **kwargs)
         self.xmpp = None
 
-    def runTest(self):
-        pass
-
     def parse_xml(self, xml_string):
         try:
             xml = ET.fromstring(xml_string)

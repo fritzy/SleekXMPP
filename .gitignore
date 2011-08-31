@@ -4,3 +4,5 @@ dist/
 MANIFEST
 docs/_build/
 *.swp
+.tox/
+.coverage

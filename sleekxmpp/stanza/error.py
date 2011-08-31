@@ -53,6 +53,8 @@ class Error(ElementBase):
     plugin_attrib = 'error'
     interfaces = set(('code', 'condition', 'text', 'type'))
     sub_interfaces = set(('text',))
+    plugin_attrib_map = {}
+    plugin_tag_map = {}
     conditions = set(('bad-request', 'conflict', 'feature-not-implemented',
                       'forbidden', 'gone', 'internal-server-error',
                       'item-not-found', 'jid-malformed', 'not-acceptable',

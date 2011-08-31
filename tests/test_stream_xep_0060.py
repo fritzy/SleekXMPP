@@ -292,14 +292,36 @@ class TestStreamPubsub(SleekTest):
 
         self.recv("""
           <iq type="result" id="1"
-              to="foo@comp.example.com/bar" from="pubsub.example.com" />
+              to="tester@localhost" from="pubsub.example.com" />
         """)
 
         t.join()
 
     def testGetDefaultNodeConfig(self):
-        """Tes t retrieving the default config for a given node."""
+        """Test retrieving the default node config for a pubsub service."""
         t = threading.Thread(name='default_config',
+                             target=self.xmpp['xep_0060'].get_node_config,
+                             args=('pubsub.example.com', None))
+        t.start()
+
+        self.send("""
+          <iq type="get" id="1" to="pubsub.example.com">
+            <pubsub xmlns="http://jabber.org/protocol/pubsub#owner">
+              <default />
+            </pubsub>
+          </iq>
+        """, use_values=False)
+
+        self.recv("""
+          <iq type="result" id="1"
+              to="tester@localhost" from="pubsub.example.com" />
+        """)
+
+        t.join()
+
+    def testGetNodeConfig(self):
+        """Test getting the config for a given node."""
+        t = threading.Thread(name='node_config',
                              target=self.xmpp['xep_0060'].get_node_config,
                              args=('pubsub.example.com', 'somenode'))
         t.start()
@@ -307,17 +329,95 @@ class TestStreamPubsub(SleekTest):
         self.send("""
           <iq type="get" id="1" to="pubsub.example.com">
             <pubsub xmlns="http://jabber.org/protocol/pubsub#owner">
-              <default node="somenode" />
+              <configure node="somenode" />
             </pubsub>
           </iq>
         """, use_values=False)
 
         self.recv("""
           <iq type="result" id="1"
-              to="foo@comp.example.com/bar" from="pubsub.example.com" />
+              to="tester@localhost" from="pubsub.example.com" />
         """)
 
         t.join()
+
+    def testSetNodeConfig(self):
+        """Test setting the configuration for a node."""
+        form = self.xmpp['xep_0004'].make_form()
+        form.add_field(var='FORM_TYPE', ftype='hidden',
+                       value='http://jabber.org/protocol/pubsub#node_config')
+        form.add_field(var='pubsub#title', ftype='text-single',
+                       value='This is awesome!')
+        form['type'] = 'submit'
+
+        t = threading.Thread(name='set_config',
+                             target=self.xmpp['xep_0060'].set_node_config,
+                             args=('pubsub.example.com', 'somenode', form))
+        t.start()
+
+        self.send("""
+          <iq type="set" id="1" to="pubsub.example.com">
+            <pubsub xmlns="http://jabber.org/protocol/pubsub#owner">
+              <configure node="somenode">
+                <x xmlns="jabber:x:data" type="submit">
+                  <field var="FORM_TYPE">
+                    <value>http://jabber.org/protocol/pubsub#node_config</value>
+                  </field>
+                  <field var="pubsub#title">
+                    <value>This is awesome!</value>
+                  </field>
+                </x>
+              </configure>
+            </pubsub>
+          </iq>
+        """)
+
+        self.recv("""
+          <iq type="result" id="1"
+              to="tester@localhost" from="pubsub.example.com" />
+        """)
+
+        t.join()
+
+    def testPublishSingle(self):
+        """Test publishing a single item."""
+        pass
+
+    def testPublishSingleOptions(self):
+        """Test publishing a single item, with options."""
+
+
+    def testPublishMulti(self):
+        """Test publishing multiple items."""
+        pass
+
+    def testPublishMultiOptions(self):
+        """Test publishing multiple items, with options."""
+        pass
+
+    def testRetract(self):
+        """Test deleting an item."""
+        pass
+
+    def testPurge(self):
+        """Test removing all items from a node."""
+        pass
+
+    def testGetItem(self):
+        """Test retrieving a single item."""
+        pass
+
+    def testGetLatestItems(self):
+        """Test retrieving the most recent N items."""
+        pass
+
+    def testGetAllItems(self):
+        """Test retrieving all items."""
+        pass
+
+    def testGetSpecificItems(self):
+        """Test retrieving a specific set of items."""
+        pass
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestStreamPubsub)

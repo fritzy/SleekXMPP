@@ -355,12 +355,14 @@ class xep_0060(base_plugin):
         many items, so an iterator can be returned if needed.
         """
         iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='get')
+        iq['pubsub']['items']['node'] = node
         iq['pubsub']['items']['max_items'] = max_items
 
-        for item_id in item_ids:
-            item = self.stanza.Item()
-            item['id'] = item_id
-            iq['pubsub']['items'].append(item)
+        if item_ids is not None:
+            for item_id in item_ids:
+                item = self.stanza.Item()
+                item['id'] = item_id
+                iq['pubsub']['items'].append(item)
 
         if iterator:
             return self.xmpp['xep_0059'].iterate(iq, 'pubsub')

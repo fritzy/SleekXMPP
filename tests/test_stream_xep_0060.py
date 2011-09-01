@@ -626,7 +626,7 @@ class TestStreamPubsub(SleekTest):
         """)
 
     def testGetNodeSubscriptions(self):
-        """Test retrieving the subscriptions for a node."""
+        """Test retrieving all subscriptions for a node."""
         self.xmpp['xep_0060'].get_node_subscriptions(
             'pubsub.example.com',
             'somenode',
@@ -638,5 +638,33 @@ class TestStreamPubsub(SleekTest):
             </pubsub>
           </iq>
         """)
+
+    def testGetSubscriptions(self):
+        """Test retrieving a users's subscriptions."""
+        self.xmpp['xep_0060'].get_subscriptions(
+            'pubsub.example.com',
+            block=False)
+        self.send("""
+          <iq type="get" id="1" to="pubsub.example.com">
+            <pubsub xmlns="http://jabber.org/protocol/pubsub">
+              <subscriptions />
+            </pubsub>
+          </iq>
+        """)
+
+    def testGetSubscriptionsForNode(self):
+        """Test retrieving a users's subscriptions for a given node."""
+        self.xmpp['xep_0060'].get_subscriptions(
+            'pubsub.example.com',
+            node='somenode',
+            block=False)
+        self.send("""
+          <iq type="get" id="1" to="pubsub.example.com">
+            <pubsub xmlns="http://jabber.org/protocol/pubsub">
+              <subscriptions node="somenode" />
+            </pubsub>
+          </iq>
+        """)
+
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestStreamPubsub)

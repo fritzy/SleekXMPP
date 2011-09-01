@@ -478,19 +478,69 @@ class TestStreamPubsub(SleekTest):
 
     def testGetItem(self):
         """Test retrieving a single item."""
-        pass
+        self.xmpp['xep_0060'].get_item(
+            'pubsub.example.com',
+            'somenode',
+            'id42',
+            block=False)
+        self.send("""
+          <iq type="get" id="1" to="pubsub.example.com">
+            <pubsub xmlns="http://jabber.org/protocol/pubsub">
+              <items node="somenode">
+                <item id="id42" />
+              </items>
+            </pubsub>
+          </iq>
+        """)
 
     def testGetLatestItems(self):
         """Test retrieving the most recent N items."""
-        pass
+        self.xmpp['xep_0060'].get_items(
+            'pubsub.example.com',
+            'somenode',
+            max_items=3,
+            block=False)
+        self.send("""
+          <iq type="get" id="1" to="pubsub.example.com">
+            <pubsub xmlns="http://jabber.org/protocol/pubsub">
+              <items node="somenode" max_items="3" />
+            </pubsub>
+          </iq>
+        """)
 
     def testGetAllItems(self):
         """Test retrieving all items."""
-        pass
+        self.xmpp['xep_0060'].get_items(
+            'pubsub.example.com',
+            'somenode',
+            block=False)
+        self.send("""
+          <iq type="get" id="1" to="pubsub.example.com">
+            <pubsub xmlns="http://jabber.org/protocol/pubsub">
+              <items node="somenode" />
+            </pubsub>
+          </iq>
+        """)
 
     def testGetSpecificItems(self):
         """Test retrieving a specific set of items."""
-        pass
+        self.xmpp['xep_0060'].get_items(
+            'pubsub.example.com',
+            'somenode',
+            item_ids=['A', 'B', 'C'],
+            block=False)
+        self.send("""
+          <iq type="get" id="1" to="pubsub.example.com">
+            <pubsub xmlns="http://jabber.org/protocol/pubsub">
+              <items node="somenode">
+                <item id="A" />
+                <item id="B" />
+                <item id="C" />
+              </items>
+            </pubsub>
+          </iq>
+        """)
+
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestStreamPubsub)

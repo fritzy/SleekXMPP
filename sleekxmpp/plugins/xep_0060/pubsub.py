@@ -334,6 +334,7 @@ class xep_0060(base_plugin):
         iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='get')
         item = self.stanza.Item()
         item['id'] = item_id
+        iq['pubsub']['items']['node'] = node
         iq['pubsub']['items'].append(item)
         return iq.send(block=block, callback=callback, timeout=timeout)
 

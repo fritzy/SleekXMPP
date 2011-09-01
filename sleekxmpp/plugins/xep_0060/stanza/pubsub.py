@@ -113,6 +113,9 @@ class Items(ElementBase):
     plugin_tag_map = {}
     subitem = (Item,)
 
+    def set_max_items(self, value):
+        self._set_attr('max_items', str(value))
+
 registerStanzaPlugin(Pubsub, Items)
 
 class Create(ElementBase):

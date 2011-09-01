@@ -47,11 +47,10 @@ class TestStreamPubsub(SleekTest):
 
     def testCreateNodeNoConfig(self):
         """Test creating a node without a config"""
-        t = threading.Thread(name='create_node',
-                             target=self.xmpp['xep_0060'].create_node,
-                             args=('pubsub.example.com', 'princely_musings'))
-        t.start()
-
+        self.xmpp['xep_0060'].create_node(
+            'pubsub.example.com',
+            'princely_musings',
+            block=False)
         self.send("""
           <iq type="set" id="1" to="pubsub.example.com">
             <pubsub xmlns="http://jabber.org/protocol/pubsub">
@@ -60,24 +59,16 @@ class TestStreamPubsub(SleekTest):
           </iq>
         """)
 
-        self.recv("""
-          <iq type="result" id="1"
-              to="tester@localhost" from="pubsub.example.com" />
-        """)
-
-        t.join()
-
     def testCreateNodeConfig(self):
         """Test creating a node with a config"""
         form = self.xmpp['xep_0004'].stanza.Form()
         form['type'] = 'submit'
         form.add_field(var='pubsub#access_model', value='whitelist')
 
-        t = threading.Thread(name='create_node',
-                             target=self.xmpp['xep_0060'].create_node,
-                             args=('pubsub.example.com', 'princely_musings'),
-                             kwargs={'config': form})
-        t.start()
+        self.xmpp['xep_0060'].create_node(
+                'pubsub.example.com',
+                'princely_musings',
+                config=form, block=False)
 
         self.send("""
           <iq type="set" id="1" to="pubsub.example.com">
@@ -97,20 +88,12 @@ class TestStreamPubsub(SleekTest):
           </iq>
         """)
 
-        self.recv("""
-          <iq type="result" id="1"
-              to="tester@localhost" from="pubsub.example.com" />
-        """)
-
-        t.join()
-
     def testDeleteNode(self):
         """Test deleting a node"""
-        t = threading.Thread(name='delete_node',
-                             target=self.xmpp['xep_0060'].delete_node,
-                             args=('pubsub.example.com', 'some_node'))
-        t.start()
-
+        self.xmpp['xep_0060'].delete_node(
+            'pubsub.example.com',
+            'some_node',
+            block=False)
         self.send("""
           <iq type="set" to="pubsub.example.com" id="1">
             <pubsub xmlns="http://jabber.org/protocol/pubsub#owner">
@@ -119,193 +102,210 @@ class TestStreamPubsub(SleekTest):
           </iq>
         """)
 
-        self.recv("""
-          <iq type="result" id="1"
-              to="tester@localhost" from="pubsub.example.com" />
+    def testSubscribeCase1(self):
+        """
+        Test subscribing to a node: Case 1:
+        No subscribee, default 'from' JID, bare JID
+        """
+        self.xmpp['xep_0060'].subscribe(
+            'pubsub.example.com',
+            'somenode',
+            block=False)
+        self.send("""
+          <iq type="set" id="1" to="pubsub.example.com">
+            <pubsub xmlns="http://jabber.org/protocol/pubsub">
+              <subscribe node="somenode" jid="tester@localhost" />
+            </pubsub>
+          </iq>
         """)
 
-        t.join()
+    def testSubscribeCase2(self):
+        """
+        Test subscribing to a node: Case 2:
+        No subscribee, given 'from' JID, bare JID
+        """
+        self.xmpp['xep_0060'].subscribe(
+            'pubsub.example.com',
+            'somenode',
+            ifrom='foo@comp.example.com/bar',
+            block=False)
+        self.send("""
+          <iq type="set" id="1"
+              to="pubsub.example.com" from="foo@comp.example.com/bar">
+            <pubsub xmlns="http://jabber.org/protocol/pubsub">
+              <subscribe node="somenode" jid="foo@comp.example.com" />
+            </pubsub>
+          </iq>
+        """)
 
-    def testSubscribe(self):
-        """Test subscribing to a node"""
+    def testSubscribeCase3(self):
+        """
+        Test subscribing to a node: Case 3:
+        No subscribee, given 'from' JID, full JID
+        """
+        self.xmpp['xep_0060'].subscribe(
+            'pubsub.example.com',
+            'somenode',
+            ifrom='foo@comp.example.com/bar',
+            bare=False,
+            block=False)
+        self.send("""
+          <iq type="set" id="1"
+              to="pubsub.example.com" from="foo@comp.example.com/bar">
+            <pubsub xmlns="http://jabber.org/protocol/pubsub">
+              <subscribe node="somenode" jid="foo@comp.example.com/bar" />
+            </pubsub>
+          </iq>
+        """)
 
-        def run_test(jid, bare, ifrom, send, recv):
-            t = threading.Thread(name='subscribe',
-                                 target=self.xmpp['xep_0060'].subscribe,
-                                 args=('pubsub.example.com', 'some_node'),
-                                 kwargs={'subscribee': jid,
-                                         'bare': bare,
-                                         'ifrom': ifrom})
-            t.start()
-            self.send(send)
-            self.recv(recv)
-            t.join()
+    def testSubscribeCase4(self):
+        """
+        Test subscribing to a node: Case 4:
+        No subscribee, no 'from' JID, full JID
+        """
+        self.stream_close()
+        self.stream_start(jid='tester@localhost/full')
 
-        # Case 1: No subscribee, default 'from' JID, bare JID
-        run_test(None, True, None,
-            """
-              <iq type="set" id="1" to="pubsub.example.com">
-                <pubsub xmlns="http://jabber.org/protocol/pubsub">
-                  <subscribe node="some_node" jid="tester@localhost" />
-                </pubsub>
-              </iq>
-            """,
-            """
-              <iq type="result" id="1"
-                  to="tester@localhost" from="pubsub.example.com" />
-            """)
+        self.xmpp['xep_0060'].subscribe(
+            'pubsub.example.com',
+            'somenode',
+            bare=False,
+            block=False)
+        self.send("""
+          <iq type="set" id="1"
+              to="pubsub.example.com">
+            <pubsub xmlns="http://jabber.org/protocol/pubsub">
+              <subscribe node="somenode" jid="tester@localhost/full" />
+            </pubsub>
+          </iq>
+        """)
 
-        # Case 2: No subscribee, given 'from' JID, bare JID
-        run_test(None, True, 'foo@comp.example.com/bar',
-            """
-              <iq type="set" id="2"
-                  to="pubsub.example.com" from="foo@comp.example.com/bar">
-                <pubsub xmlns="http://jabber.org/protocol/pubsub">
-                  <subscribe node="some_node" jid="foo@comp.example.com" />
-                </pubsub>
-              </iq>
-            """,
-            """
-              <iq type="result" id="2"
-                  to="foo@comp.example.com/bar" from="pubsub.example.com" />
-            """)
-
-        # Case 3: No subscribee, given 'from' JID, full JID
-        run_test(None, False, 'foo@comp.example.com/bar',
-            """
-              <iq type="set" id="3"
-                  to="pubsub.example.com" from="foo@comp.example.com/bar">
-                <pubsub xmlns="http://jabber.org/protocol/pubsub">
-                  <subscribe node="some_node" jid="foo@comp.example.com/bar" />
-                </pubsub>
-              </iq>
-            """,
-            """
-              <iq type="result" id="3"
-                  to="foo@comp.example.com/bar" from="pubsub.example.com" />
-            """)
-
-        # Case 4: Subscribee
-        run_test('user@example.com/foo', True, 'foo@comp.example.com/bar',
-            """
-              <iq type="set" id="4"
-                  to="pubsub.example.com" from="foo@comp.example.com/bar">
-                <pubsub xmlns="http://jabber.org/protocol/pubsub">
-                  <subscribe node="some_node" jid="user@example.com/foo" />
-                </pubsub>
-              </iq>
-            """,
-            """
-              <iq type="result" id="4"
-                  to="foo@comp.example.com/bar" from="pubsub.example.com" />
-            """)
+    def testSubscribeCase5(self):
+        """
+        Test subscribing to a node: Case 5:
+        Subscribee given
+        """
+        self.xmpp['xep_0060'].subscribe(
+            'pubsub.example.com',
+            'somenode',
+            subscribee='user@example.com/foo',
+            ifrom='foo@comp.example.com/bar',
+            block=False)
+        self.send("""
+          <iq type="set" id="1"
+              to="pubsub.example.com" from="foo@comp.example.com/bar">
+            <pubsub xmlns="http://jabber.org/protocol/pubsub">
+              <subscribe node="somenode" jid="user@example.com/foo" />
+            </pubsub>
+          </iq>
+        """)
 
     def testSubscribeWithOptions(self):
         pass
 
-    def testUnubscribe(self):
-        """Test unsubscribing from a node"""
-
-        def run_test(jid, bare, ifrom, send, recv):
-            t = threading.Thread(name='unsubscribe',
-                                 target=self.xmpp['xep_0060'].unsubscribe,
-                                 args=('pubsub.example.com', 'some_node'),
-                                 kwargs={'subscribee': jid,
-                                         'bare': bare,
-                                         'ifrom': ifrom})
-            t.start()
-            self.send(send)
-            self.recv(recv)
-            t.join()
-
-        # Case 1: No subscribee, default 'from' JID, bare JID
-        run_test(None, True, None,
-            """
-              <iq type="set" id="1" to="pubsub.example.com">
-                <pubsub xmlns="http://jabber.org/protocol/pubsub">
-                  <unsubscribe node="some_node" jid="tester@localhost" />
-                </pubsub>
-              </iq>
-            """,
-            """
-              <iq type="result" id="1"
-                  to="tester@localhost" from="pubsub.example.com" />
-            """)
-
-        # Case 2: No subscribee, given 'from' JID, bare JID
-        run_test(None, True, 'foo@comp.example.com/bar',
-            """
-              <iq type="set" id="2"
-                  to="pubsub.example.com" from="foo@comp.example.com/bar">
-                <pubsub xmlns="http://jabber.org/protocol/pubsub">
-                  <unsubscribe node="some_node" jid="foo@comp.example.com" />
-                </pubsub>
-              </iq>
-            """,
-            """
-              <iq type="result" id="2"
-                  to="foo@comp.example.com/bar" from="pubsub.example.com" />
-            """)
-
-        # Case 3: No subscribee, given 'from' JID, full JID
-        run_test(None, False, 'foo@comp.example.com/bar',
-            """
-              <iq type="set" id="3"
-                  to="pubsub.example.com" from="foo@comp.example.com/bar">
-                <pubsub xmlns="http://jabber.org/protocol/pubsub">
-                  <unsubscribe node="some_node" jid="foo@comp.example.com/bar" />
-                </pubsub>
-              </iq>
-            """,
-            """
-              <iq type="result" id="3"
-                  to="foo@comp.example.com/bar" from="pubsub.example.com" />
-            """)
-
-        # Case 4: Subscribee
-        run_test('user@example.com/foo', True, 'foo@comp.example.com/bar',
-            """
-              <iq type="set" id="4"
-                  to="pubsub.example.com" from="foo@comp.example.com/bar">
-                <pubsub xmlns="http://jabber.org/protocol/pubsub">
-                  <unsubscribe node="some_node" jid="user@example.com/foo" />
-                </pubsub>
-              </iq>
-            """,
-            """
-              <iq type="result" id="4"
-                  to="foo@comp.example.com/bar" from="pubsub.example.com" />
-            """)
-
-    def testGetDefaultConfig(self):
-        """Test retrieving the default node configuration."""
-        t = threading.Thread(name='default_config',
-                             target=self.xmpp['xep_0060'].get_node_config,
-                             args=('pubsub.example.com',))
-        t.start()
-
+    def testUnsubscribeCase1(self):
+        """
+        Test unsubscribing from a node: Case 1:
+        No subscribee, default 'from' JID, bare JID
+        """
+        self.xmpp['xep_0060'].unsubscribe(
+            'pubsub.example.com',
+            'somenode',
+            block=False)
         self.send("""
-          <iq type="get" id="1" to="pubsub.example.com">
-            <pubsub xmlns="http://jabber.org/protocol/pubsub#owner">
-              <default />
+          <iq type="set" id="1" to="pubsub.example.com">
+            <pubsub xmlns="http://jabber.org/protocol/pubsub">
+              <unsubscribe node="somenode" jid="tester@localhost" />
             </pubsub>
           </iq>
-        """, use_values=False)
-
-        self.recv("""
-          <iq type="result" id="1"
-              to="tester@localhost" from="pubsub.example.com" />
         """)
 
-        t.join()
+    def testUnsubscribeCase2(self):
+        """
+        Test unsubscribing from a node: Case 2:
+        No subscribee, given 'from' JID, bare JID
+        """
+        self.xmpp['xep_0060'].unsubscribe(
+            'pubsub.example.com',
+            'somenode',
+            ifrom='foo@comp.example.com/bar',
+            block=False)
+        self.send("""
+          <iq type="set" id="1"
+              to="pubsub.example.com" from="foo@comp.example.com/bar">
+            <pubsub xmlns="http://jabber.org/protocol/pubsub">
+              <unsubscribe node="somenode" jid="foo@comp.example.com" />
+            </pubsub>
+          </iq>
+        """)
+
+    def testUnsubscribeCase3(self):
+        """
+        Test unsubscribing from a node: Case 3:
+        No subscribee, given 'from' JID, full JID
+        """
+        self.xmpp['xep_0060'].unsubscribe(
+            'pubsub.example.com',
+            'somenode',
+            ifrom='foo@comp.example.com/bar',
+            bare=False,
+            block=False)
+        self.send("""
+          <iq type="set" id="1"
+              to="pubsub.example.com" from="foo@comp.example.com/bar">
+            <pubsub xmlns="http://jabber.org/protocol/pubsub">
+              <unsubscribe node="somenode" jid="foo@comp.example.com/bar" />
+            </pubsub>
+          </iq>
+        """)
+
+    def testUnsubscribeCase4(self):
+        """
+        Test unsubscribing from a node: Case 4:
+        No subscribee, no 'from' JID, full JID
+        """
+        self.stream_close()
+        self.stream_start(jid='tester@localhost/full')
+
+        self.xmpp['xep_0060'].unsubscribe(
+            'pubsub.example.com',
+            'somenode',
+            bare=False,
+            block=False)
+        self.send("""
+          <iq type="set" id="1"
+              to="pubsub.example.com">
+            <pubsub xmlns="http://jabber.org/protocol/pubsub">
+              <unsubscribe node="somenode" jid="tester@localhost/full" />
+            </pubsub>
+          </iq>
+        """)
+
+    def testUnsubscribeCase5(self):
+        """
+        Test unsubscribing from a node: Case 5:
+        Subscribee given
+        """
+        self.xmpp['xep_0060'].unsubscribe(
+            'pubsub.example.com',
+            'somenode',
+            subscribee='user@example.com/foo',
+            ifrom='foo@comp.example.com/bar',
+            block=False)
+        self.send("""
+          <iq type="set" id="1"
+              to="pubsub.example.com" from="foo@comp.example.com/bar">
+            <pubsub xmlns="http://jabber.org/protocol/pubsub">
+              <unsubscribe node="somenode" jid="user@example.com/foo" />
+            </pubsub>
+          </iq>
+        """)
 
     def testGetDefaultNodeConfig(self):
         """Test retrieving the default node config for a pubsub service."""
-        t = threading.Thread(name='default_config',
-                             target=self.xmpp['xep_0060'].get_node_config,
-                             args=('pubsub.example.com', None))
-        t.start()
-
+        self.xmpp['xep_0060'].get_node_config(
+                'pubsub.example.com',
+                block=False)
         self.send("""
           <iq type="get" id="1" to="pubsub.example.com">
             <pubsub xmlns="http://jabber.org/protocol/pubsub#owner">
@@ -314,20 +314,12 @@ class TestStreamPubsub(SleekTest):
           </iq>
         """, use_values=False)
 
-        self.recv("""
-          <iq type="result" id="1"
-              to="tester@localhost" from="pubsub.example.com" />
-        """)
-
-        t.join()
-
     def testGetNodeConfig(self):
         """Test getting the config for a given node."""
-        t = threading.Thread(name='node_config',
-                             target=self.xmpp['xep_0060'].get_node_config,
-                             args=('pubsub.example.com', 'somenode'))
-        t.start()
-
+        self.xmpp['xep_0060'].get_node_config(
+            'pubsub.example.com',
+            'somenode',
+            block=False)
         self.send("""
           <iq type="get" id="1" to="pubsub.example.com">
             <pubsub xmlns="http://jabber.org/protocol/pubsub#owner">
@@ -335,13 +327,6 @@ class TestStreamPubsub(SleekTest):
             </pubsub>
           </iq>
         """, use_values=False)
-
-        self.recv("""
-          <iq type="result" id="1"
-              to="tester@localhost" from="pubsub.example.com" />
-        """)
-
-        t.join()
 
     def testSetNodeConfig(self):
         """Test setting the configuration for a node."""
@@ -352,11 +337,11 @@ class TestStreamPubsub(SleekTest):
                        value='This is awesome!')
         form['type'] = 'submit'
 
-        t = threading.Thread(name='set_config',
-                             target=self.xmpp['xep_0060'].set_node_config,
-                             args=('pubsub.example.com', 'somenode', form))
-        t.start()
-
+        self.xmpp['xep_0060'].set_node_config(
+            'pubsub.example.com',
+            'somenode',
+            form,
+            block=False)
         self.send("""
           <iq type="set" id="1" to="pubsub.example.com">
             <pubsub xmlns="http://jabber.org/protocol/pubsub#owner">
@@ -374,13 +359,6 @@ class TestStreamPubsub(SleekTest):
           </iq>
         """)
 
-        self.recv("""
-          <iq type="result" id="1"
-              to="tester@localhost" from="pubsub.example.com" />
-        """)
-
-        t.join()
-
     def testPublishSingle(self):
         """Test publishing a single item."""
         payload = AtomEntry()
@@ -388,13 +366,12 @@ class TestStreamPubsub(SleekTest):
 
         register_stanza_plugin(self.xmpp['xep_0060'].stanza.Item, AtomEntry)
 
-        t = threading.Thread(name='publish_single',
-                             target=self.xmpp['xep_0060'].publish,
-                             args=('pubsub.example.com', 'somenode'),
-                             kwargs={'item_id': 'ID42',
-                                     'payload': payload})
-        t.start()
-
+        self.xmpp['xep_0060'].publish(
+            'pubsub.example.com',
+            'somenode',
+            item_id='ID42',
+            payload=payload,
+            block=False)
         self.send("""
           <iq type="set" id="1" to="pubsub.example.com">
             <pubsub xmlns="http://jabber.org/protocol/pubsub">
@@ -408,13 +385,6 @@ class TestStreamPubsub(SleekTest):
             </pubsub>
           </iq>
         """)
-
-        self.recv("""
-          <iq type="result" id="1"
-              to="tester@localhost" from="pubsub.example.com" />
-        """)
-
-        t.join()
 
     def testPublishSingleOptions(self):
         """Test publishing a single item, with options."""
@@ -430,14 +400,13 @@ class TestStreamPubsub(SleekTest):
               value='presence')
         options['type'] = 'submit'
 
-        t = threading.Thread(name='publish_single_options',
-                             target=self.xmpp['xep_0060'].publish,
-                             args=('pubsub.example.com', 'somenode'),
-                             kwargs={'item_id': 'ID42',
-                                     'payload': payload,
-                                     'options': options})
-        t.start()
-
+        self.xmpp['xep_0060'].publish(
+            'pubsub.example.com',
+            'somenode',
+            item_id='ID42',
+            payload=payload,
+            options=options,
+            block=False)
         self.send("""
           <iq type="set" id="1" to="pubsub.example.com">
             <pubsub xmlns="http://jabber.org/protocol/pubsub">
@@ -462,13 +431,6 @@ class TestStreamPubsub(SleekTest):
           </iq>
         """, use_values=False)
 
-        self.recv("""
-          <iq type="result" id="1"
-              to="tester@localhost" from="pubsub.example.com" />
-        """)
-
-        t.join()
-
     def testPublishMulti(self):
         """Test publishing multiple items."""
         payload1 = AtomEntry()
@@ -479,13 +441,12 @@ class TestStreamPubsub(SleekTest):
 
         register_stanza_plugin(self.xmpp['xep_0060'].stanza.Item, AtomEntry)
 
-        t = threading.Thread(name='publish_multi',
-                             target=self.xmpp['xep_0060'].publish,
-                             args=('pubsub.example.com', 'somenode'),
-                             kwargs={'items': [('ID1', payload1),
-                                               ('ID2', payload2)]})
-        t.start()
-
+        self.xmpp['xep_0060'].publish(
+            'pubsub.example.com',
+            'somenode',
+            items=[('ID1', payload1),
+                   ('ID2', payload2)],
+            block=False)
         self.send("""
           <iq type="set" id="1" to="pubsub.example.com">
             <pubsub xmlns="http://jabber.org/protocol/pubsub">
@@ -504,13 +465,6 @@ class TestStreamPubsub(SleekTest):
             </pubsub>
           </iq>
         """, use_values=False)
-
-        self.recv("""
-          <iq type="result" id="1"
-              to="tester@localhost" from="pubsub.example.com" />
-        """)
-
-        t.join()
 
     def testPublishMultiOptions(self):
         """Test publishing multiple items, with options."""
@@ -529,14 +483,13 @@ class TestStreamPubsub(SleekTest):
               value='presence')
         options['type'] = 'submit'
 
-        t = threading.Thread(name='publish_multi_options',
-                             target=self.xmpp['xep_0060'].publish,
-                             args=('pubsub.example.com', 'somenode'),
-                             kwargs={'items': [('ID1', payload1),
-                                               ('ID2', payload2)],
-                                     'options': options})
-        t.start()
-
+        self.xmpp['xep_0060'].publish(
+            'pubsub.example.com',
+            'somenode',
+            items=[('ID1', payload1),
+                   ('ID2', payload2)],
+            options=options,
+            block=False)
         self.send("""
           <iq type="set" id="1" to="pubsub.example.com">
             <pubsub xmlns="http://jabber.org/protocol/pubsub">
@@ -566,20 +519,13 @@ class TestStreamPubsub(SleekTest):
           </iq>
         """, use_values=False)
 
-        self.recv("""
-          <iq type="result" id="1"
-              to="tester@localhost" from="pubsub.example.com" />
-        """)
-
-        t.join()
-
     def testRetract(self):
         """Test deleting an item."""
-        t = threading.Thread(name='retract',
-                             target=self.xmpp['xep_0060'].retract,
-                             args=('pubsub.example.com', 'somenode', 'ID1'))
-        t.start()
-
+        self.xmpp['xep_0060'].retract(
+            'pubsub.example.com',
+            'somenode',
+            'ID1',
+            block=False)
         self.send("""
           <iq type="set" id="1" to="pubsub.example.com">
             <pubsub xmlns="http://jabber.org/protocol/pubsub">
@@ -590,34 +536,19 @@ class TestStreamPubsub(SleekTest):
           </iq>
         """, use_values=False)
 
-        self.recv("""
-          <iq type="result" id="1"
-              to="tester@localhost" from="pubsub.example.com" />
-        """)
-
-        t.join()
-
     def testPurge(self):
         """Test removing all items from a node."""
-        t = threading.Thread(name='purge',
-                             target=self.xmpp['xep_0060'].purge,
-                             args=('pubsub.example.com', 'somenode'))
-        t.start()
-
+        self.xmpp['xep_0060'].purge(
+                'pubsub.example.com',
+                'somenode',
+                block=False)
         self.send("""
           <iq type="set" id="1" to="pubsub.example.com">
             <pubsub xmlns="http://jabber.org/protocol/pubsub#owner">
               <purge node="somenode" />
             </pubsub>
           </iq>
-        """, use_values=False)
-
-        self.recv("""
-          <iq type="result" id="1"
-              to="tester@localhost" from="pubsub.example.com" />
         """)
-
-        t.join()
 
     def testGetItem(self):
         """Test retrieving a single item."""

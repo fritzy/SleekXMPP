@@ -10,7 +10,8 @@ from sleekxmpp import Iq
 from sleekxmpp.xmlstream import register_stanza_plugin, ElementBase, ET, JID
 from sleekxmpp.plugins.xep_0004 import Form
 from sleekxmpp.plugins.xep_0060.stanza.base import OptionalSetting
-from sleekxmpp.plugins.xep_0060.stanza.pubsub import Affiliations, Affiliation, Configure, Subscriptions
+from sleekxmpp.plugins.xep_0060.stanza.pubsub import Affiliations, Affiliation
+from sleekxmpp.plugins.xep_0060.stanza.pubsub import Configure, Subscriptions
 
 
 class PubsubOwner(ElementBase):
@@ -23,7 +24,7 @@ class PubsubOwner(ElementBase):
 class DefaultConfig(ElementBase):
     namespace = 'http://jabber.org/protocol/pubsub#owner'
     name = 'default'
-    plugin_attrib = 'default'
+    plugin_attrib = name
     interfaces = set(('node', 'config'))
 
     def __init__(self, *args, **kwargs):
@@ -55,7 +56,7 @@ class OwnerAffiliation(Affiliation):
 class OwnerConfigure(Configure):
     namespace = 'http://jabber.org/protocol/pubsub#owner'
     name = 'configure'
-    plugin_attrib = 'configure'
+    plugin_attrib = name
     interfaces = set(('node',))
 
 
@@ -67,15 +68,15 @@ class OwnerDefault(OwnerConfigure):
 class OwnerDelete(ElementBase, OptionalSetting):
     namespace = 'http://jabber.org/protocol/pubsub#owner'
     name = 'delete'
-    plugin_attrib = 'delete'
+    plugin_attrib = name
     interfaces = set(('node',))
 
 
 class OwnerPurge(ElementBase, OptionalSetting):
     namespace = 'http://jabber.org/protocol/pubsub#owner'
     name = 'purge'
-    interfaces = set(('node',))
     plugin_attrib = name
+    interfaces = set(('node',))
 
 
 class OwnerRedirect(ElementBase):

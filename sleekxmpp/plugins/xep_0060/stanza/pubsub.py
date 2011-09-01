@@ -15,14 +15,14 @@ from sleekxmpp.plugins.xep_0060.stanza.base import OptionalSetting
 class Pubsub(ElementBase):
     namespace = 'http://jabber.org/protocol/pubsub'
     name = 'pubsub'
-    plugin_attrib = 'pubsub'
+    plugin_attrib = name
     interfaces = set(tuple())
 
 
 class Affiliations(ElementBase):
     namespace = 'http://jabber.org/protocol/pubsub'
     name = 'affiliations'
-    plugin_attrib = 'affiliations'
+    plugin_attrib = name
     interfaces = set(('node',))
 
 
@@ -55,7 +55,7 @@ class Subscription(ElementBase):
 class Subscriptions(ElementBase):
     namespace = 'http://jabber.org/protocol/pubsub'
     name = 'subscriptions'
-    plugin_attrib = 'subscriptions'
+    plugin_attrib = name
     interfaces = set(('node',))
 
 
@@ -89,7 +89,7 @@ class Item(ElementBase):
 class Items(ElementBase):
     namespace = 'http://jabber.org/protocol/pubsub'
     name = 'items'
-    plugin_attrib = 'items'
+    plugin_attrib = name
     interfaces = set(('node', 'max_items'))
 
     def set_max_items(self, value):
@@ -189,7 +189,7 @@ class Configure(ElementBase):
 class Options(ElementBase):
     namespace = 'http://jabber.org/protocol/pubsub'
     name = 'options'
-    plugin_attrib = 'options'
+    plugin_attrib = name
     interfaces = set(('jid', 'node', 'options'))
 
     def __init__(self, *args, **kwargs):

@@ -72,7 +72,7 @@ registerStanzaPlugin(OwnerConfigure, xep_0004.Form)
 
 class OwnerDefault(OwnerConfigure):
     namespace = 'http://jabber.org/protocol/pubsub#owner'
-    interfaces = set(('node', 'config'))
+    interfaces = set(('node',))
     plugin_attrib_map = {}
     plugin_tag_map = {}
 
@@ -93,6 +93,7 @@ registerStanzaPlugin(PubsubOwner, OwnerDelete)
 class OwnerPurge(ElementBase, OptionalSetting):
     namespace = 'http://jabber.org/protocol/pubsub#owner'
     name = 'purge'
+    interfaces = set(('node',))
     plugin_attrib = name
     plugin_attrib_map = {}
     plugin_tag_map = {}

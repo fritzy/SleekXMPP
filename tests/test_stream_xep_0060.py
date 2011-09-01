@@ -599,7 +599,25 @@ class TestStreamPubsub(SleekTest):
 
     def testPurge(self):
         """Test removing all items from a node."""
-        pass
+        t = threading.Thread(name='purge',
+                             target=self.xmpp['xep_0060'].purge,
+                             args=('pubsub.example.com', 'somenode'))
+        t.start()
+
+        self.send("""
+          <iq type="set" id="1" to="pubsub.example.com">
+            <pubsub xmlns="http://jabber.org/protocol/pubsub#owner">
+              <purge node="somenode" />
+            </pubsub>
+          </iq>
+        """, use_values=False)
+
+        self.recv("""
+          <iq type="result" id="1"
+              to="tester@localhost" from="pubsub.example.com" />
+        """)
+
+        t.join()
 
     def testGetItem(self):
         """Test retrieving a single item."""

@@ -85,6 +85,7 @@ class Item(ElementBase):
         for child in self.xml.getchildren():
             self.xml.remove(child)
 
+
 class Items(ElementBase):
     namespace = 'http://jabber.org/protocol/pubsub'
     name = 'items'
@@ -102,18 +103,18 @@ class Create(ElementBase):
     interfaces = set(('node',))
 
 
-#class Default(ElementBase):
-#    namespace = 'http://jabber.org/protocol/pubsub'
-#    name = 'default'
-#    plugin_attrib = name
-#    interfaces = set(('node', 'type'))
-#
-#    def getType(self):
-#        t = self._get_attr('type')
-#        if not t: t == 'leaf'
-#        return t
-#
-#register_stanza_plugin(Pubsub, Default)
+class Default(ElementBase):
+    namespace = 'http://jabber.org/protocol/pubsub'
+    name = 'default'
+    plugin_attrib = name
+    interfaces = set(('node', 'type'))
+
+    def get_type(self):
+        t = self._get_attr('type')
+        if not t:
+            return 'leaf'
+        return t
+
 
 class Publish(ElementBase):
     namespace = 'http://jabber.org/protocol/pubsub'
@@ -163,7 +164,8 @@ class Configure(ElementBase):
 
     def getType(self):
         t = self._get_attr('type')
-        if not t: t == 'leaf'
+        if not t:
+            t == 'leaf'
         return t
 
 
@@ -254,6 +256,7 @@ register_stanza_plugin(Iq, Pubsub)
 register_stanza_plugin(Pubsub, Affiliations)
 register_stanza_plugin(Pubsub, Configure)
 register_stanza_plugin(Pubsub, Create)
+register_stanza_plugin(Pubsub, Default)
 register_stanza_plugin(Pubsub, Items)
 register_stanza_plugin(Pubsub, Options)
 register_stanza_plugin(Pubsub, Publish)

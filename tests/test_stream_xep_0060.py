@@ -574,6 +574,33 @@ class TestStreamPubsub(SleekTest):
           </iq>
         """)
 
+    def testGetSubscriptionGlobalDefaultOptions(self):
+        """Test getting the subscription options for a node/JID."""
+        self.xmpp['xep_0060'].get_subscription_options(
+            'pubsub.example.com',
+            block=False)
+        self.send("""
+          <iq type="get" id="1" to="pubsub.example.com">
+            <pubsub xmlns="http://jabber.org/protocol/pubsub">
+              <default />
+            </pubsub>
+          </iq>
+        """, use_values=False)
+
+    def testGetSubscriptionNodeDefaultOptions(self):
+        """Test getting the subscription options for a node/JID."""
+        self.xmpp['xep_0060'].get_subscription_options(
+            'pubsub.example.com',
+            node='somenode',
+            block=False)
+        self.send("""
+          <iq type="get" id="1" to="pubsub.example.com">
+            <pubsub xmlns="http://jabber.org/protocol/pubsub">
+              <default node="somenode" />
+            </pubsub>
+          </iq>
+        """, use_values=False)
+
     def testGetSubscriptionOptions(self):
         """Test getting the subscription options for a node/JID."""
         self.xmpp['xep_0060'].get_subscription_options(

@@ -317,7 +317,7 @@ class xep_0060(base_plugin):
         iq['pubsub']['publish_options'] = options
         return iq.send(block=block, callback=callback, timeout=timeout)
 
-    def retract(self, jid, node, id, ifrom=None, block=True,
+    def retract(self, jid, node, id, notify=None, ifrom=None, block=True,
                 callback=None, timeout=None):
         """
         Delete a single item from a node.
@@ -325,6 +325,7 @@ class xep_0060(base_plugin):
         iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='set')
 
         iq['pubsub']['retract']['node'] = node
+        iq['pubsub']['retract']['notify'] = notify
         iq['pubsub']['retract']['item']['id'] = id
         return iq.send(block=block, callback=callback, timeout=timeout)
 

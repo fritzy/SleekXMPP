@@ -484,6 +484,24 @@ class TestStreamPubsub(SleekTest):
             'pubsub.example.com',
             'somenode',
             'ID1',
+            notify=True,
+            block=False)
+        self.send("""
+          <iq type="set" id="1" to="pubsub.example.com">
+            <pubsub xmlns="http://jabber.org/protocol/pubsub">
+              <retract node="somenode" notify="true">
+                <item id="ID1" />
+              </retract>
+            </pubsub>
+          </iq>
+        """)
+
+    def testRetract(self):
+        """Test deleting an item."""
+        self.xmpp['xep_0060'].retract(
+            'pubsub.example.com',
+            'somenode',
+            'ID1',
             block=False)
         self.send("""
           <iq type="set" id="1" to="pubsub.example.com">

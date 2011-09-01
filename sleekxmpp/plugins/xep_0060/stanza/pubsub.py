@@ -129,6 +129,23 @@ class Retract(ElementBase):
     plugin_attrib = name
     interfaces = set(('node', 'notify'))
 
+    def get_notify(self):
+        notify = self._get_attr('notify')
+        if notify in ('0', 'false'):
+            return False
+        elif notify in ('1', 'true'):
+            return True
+        return None
+
+    def set_notify(self, value):
+        del self['notify']
+        if value is None:
+            return
+        elif value in (True, '1', 'true', 'True'):
+            self._set_attr('notify', 'true')
+        else:
+            self._set_attr('notify', 'false')
+
 
 class Unsubscribe(ElementBase):
     namespace = 'http://jabber.org/protocol/pubsub'
@@ -252,6 +269,11 @@ class PubsubStateEvent(ElementBase):
     intefaces = set(tuple())
 
 
+register_stanza_plugin(Iq, PubsubState)
+register_stanza_plugin(Message, PubsubStateEvent)
+register_stanza_plugin(PubsubStateEvent, PubsubState)
+
+
 register_stanza_plugin(Iq, Pubsub)
 register_stanza_plugin(Pubsub, Affiliations)
 register_stanza_plugin(Pubsub, Configure)
@@ -274,7 +296,3 @@ register_stanza_plugin(Retract, Item)
 register_stanza_plugin(Subscribe, Options)
 register_stanza_plugin(Subscription, SubscribeOptions)
 register_stanza_plugin(Subscriptions, Subscription, iterable=True)
-
-register_stanza_plugin(Message, PubsubStateEvent)
-register_stanza_plugin(Iq, PubsubState)
-register_stanza_plugin(PubsubStateEvent, PubsubState)

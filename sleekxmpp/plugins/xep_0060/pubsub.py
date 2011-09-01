@@ -400,8 +400,8 @@ class xep_0060(base_plugin):
             affiliations = []
 
         for jid, affiliation in affiliations:
-            aff = stanza.pubsub.Affiliation()
-            aff['jid'] = user_jid
+            aff = self.stanza.OwnerAffiliation()
+            aff['jid'] = jid
             aff['affiliation'] = affiliation
             iq['pubsub_owner']['affiliations'].append(aff)
 
@@ -416,8 +416,8 @@ class xep_0060(base_plugin):
             subscriptions = []
 
         for jid, subscription in subscriptions:
-            sub = self.stanza.Subscription()
-            sub['jid'] = user_jid
+            sub = self.stanza.OwnerSubscription()
+            sub['jid'] = jid
             sub['subscription'] = subscription
             iq['pubsub_owner']['subscriptions'].append(sub)
 

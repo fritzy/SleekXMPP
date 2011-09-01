@@ -693,5 +693,57 @@ class TestStreamPubsub(SleekTest):
           </iq>
         """)
 
+    def testGetNodeAffiliations(self):
+        """Test getting the affiliations for a node."""
+        self.xmpp['xep_0060'].get_node_affiliations(
+            'pubsub.example.com',
+            'somenode',
+            block=False)
+        self.send("""
+          <iq type="get" id="1" to="pubsub.example.com">
+            <pubsub xmlns="http://jabber.org/protocol/pubsub#owner">
+              <affiliations node="somenode" />
+            </pubsub>
+          </iq>
+        """)
+
+    def testModifySubscriptions(self):
+        """Test owner modifying node subscriptions."""
+        self.xmpp['xep_0060'].modify_subscriptions(
+            'pubsub.example.com',
+            'somenode',
+            subscriptions=[('user@example.com', 'subscribed'),
+                           ('foo@example.net', 'none')],
+            block=False)
+        self.send("""
+          <iq type="set" id="1" to="pubsub.example.com">
+            <pubsub xmlns="http://jabber.org/protocol/pubsub#owner">
+              <subscriptions node="somenode">
+                <subscription jid="user@example.com" subscription="subscribed" />
+                <subscription jid="foo@example.net" subscription="none" />
+              </subscriptions>
+            </pubsub>
+          </iq>
+        """)
+
+    def testModifyAffiliations(self):
+        """Test owner modifying node affiliations."""
+        self.xmpp['xep_0060'].modify_affiliations(
+            'pubsub.example.com',
+            'somenode',
+            affiliations=[('user@example.com', 'publisher'),
+                          ('foo@example.net', 'none')],
+            block=False)
+        self.send("""
+          <iq type="set" id="1" to="pubsub.example.com">
+            <pubsub xmlns="http://jabber.org/protocol/pubsub#owner">
+              <affiliations node="somenode">
+                <affiliation jid="user@example.com" affiliation="publisher" />
+                <affiliation jid="foo@example.net" affiliation="none" />
+              </affiliations>
+            </pubsub>
+          </iq>
+        """)
+
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestStreamPubsub)

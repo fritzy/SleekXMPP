@@ -41,7 +41,7 @@ registerStanzaPlugin(DefaultConfig, xep_0004.Form)
 
 class OwnerAffiliations(Affiliations):
     namespace = 'http://jabber.org/protocol/pubsub#owner'
-    interfaces = set(('node'))
+    interfaces = set(('node',))
     plugin_attrib_map = {}
     plugin_tag_map = {}
 
@@ -49,7 +49,6 @@ class OwnerAffiliations(Affiliations):
         if not isinstance(affiliation, OwnerAffiliation):
             raise TypeError
         self.xml.append(affiliation.xml)
-        return self.affiliations.append(affiliation)
 
 registerStanzaPlugin(PubsubOwner, OwnerAffiliations)
 
@@ -58,6 +57,8 @@ class OwnerAffiliation(Affiliation):
     interfaces = set(('affiliation', 'jid'))
     plugin_attrib_map = {}
     plugin_tag_map = {}
+
+registerStanzaPlugin(OwnerAffiliations, OwnerAffiliation, iterable=True)
 
 class OwnerConfigure(Configure):
     name = 'configure'
@@ -126,7 +127,6 @@ class OwnerSubscriptions(Subscriptions):
         if not isinstance(subscription, OwnerSubscription):
             raise TypeError
         self.xml.append(subscription.xml)
-        return self.subscriptions.append(subscription)
 
 registerStanzaPlugin(PubsubOwner, OwnerSubscriptions)
 
@@ -142,4 +142,6 @@ class OwnerSubscription(ElementBase):
         self._setAttr('jid', str(value))
 
     def getJid(self):
-        return JID(self._getAttr('from'))
+        return JID(self._getAttr('jid'))
+
+registerStanzaPlugin(OwnerSubscriptions, OwnerSubscription, iterable=True)

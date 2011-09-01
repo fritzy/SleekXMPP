@@ -517,4 +517,59 @@ class TestPubsubStanzas(SleekTest):
             </event>
           </message>""")
 
+    def testPubsubError(self):
+        """Test getting a pubsub specific condition from an error stanza"""
+        iq = self.Iq()
+        iq['error']['type'] = 'cancel'
+        iq['error']['code'] = '501'
+        iq['error']['condition'] = 'feature-not-implemented'
+        iq['error']['pubsub']['condition'] = 'subid-required'
+        self.check(iq, """
+          <iq type="error">
+            <error type="cancel" code="501">
+              <feature-not-implemented xmlns="urn:ietf:params:xml:ns:xmpp-stanzas" />
+              <subid-required xmlns="http://jabber.org/protocol/pubsub#errors" />
+            </error>
+          </iq>
+        """, use_values=False)
+
+        del iq['error']['pubsub']['condition']
+        self.check(iq, """
+          <iq type="error">
+            <error type="cancel" code="501">
+              <feature-not-implemented xmlns="urn:ietf:params:xml:ns:xmpp-stanzas" />
+            </error>
+          </iq>
+        """, use_values=False)
+
+    def testPubsubUnsupportedError(self):
+        """Test getting the feature from an unsupported error"""
+        iq = self.Iq()
+        iq['error']['type'] = 'cancel'
+        iq['error']['code'] = '501'
+        iq['error']['condition'] = 'feature-not-implemented'
+        iq['error']['pubsub']['condition'] = 'unsupported'
+        iq['error']['pubsub']['unsupported'] = 'instant-node'
+        self.check(iq, """
+          <iq type="error">
+            <error type="cancel" code="501">
+              <feature-not-implemented xmlns="urn:ietf:params:xml:ns:xmpp-stanzas" />
+              <unsupported xmlns="http://jabber.org/protocol/pubsub#errors" feature="instant-node" />
+            </error>
+          </iq>
+        """, use_values=False)
+
+        self.assertEqual(iq['error']['pubsub']['condition'], 'unsupported')
+        self.assertEqual(iq['error']['pubsub']['unsupported'], 'instant-node')
+
+        del iq['error']['pubsub']['unsupported']
+        self.check(iq, """
+          <iq type="error">
+            <error type="cancel" code="501">
+              <feature-not-implemented xmlns="urn:ietf:params:xml:ns:xmpp-stanzas" />
+            </error>
+          </iq>
+        """, use_values=False)
+
+
 suite = unittest.TestLoader().loadTestsFromTestCase(TestPubsubStanzas)

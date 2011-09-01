@@ -244,6 +244,7 @@ class PublishOptions(ElementBase):
 
 
 class PubsubState(ElementBase):
+    """This is an experimental pubsub extension."""
     namespace = 'http://jabber.org/protocol/psstate'
     name = 'state'
     plugin_attrib = 'psstate'
@@ -263,6 +264,7 @@ class PubsubState(ElementBase):
 
 
 class PubsubStateEvent(ElementBase):
+    """This is an experimental pubsub extension."""
     namespace = 'http://jabber.org/protocol/psstate#event'
     name = 'event'
     plugin_attrib = 'psstate_event'

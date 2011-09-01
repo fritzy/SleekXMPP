@@ -666,5 +666,32 @@ class TestStreamPubsub(SleekTest):
           </iq>
         """)
 
+    def testGetAffiliations(self):
+        """Test retrieving a users's affiliations."""
+        self.xmpp['xep_0060'].get_affiliations(
+            'pubsub.example.com',
+            block=False)
+        self.send("""
+          <iq type="get" id="1" to="pubsub.example.com">
+            <pubsub xmlns="http://jabber.org/protocol/pubsub">
+              <affiliations />
+            </pubsub>
+          </iq>
+        """)
+
+    def testGetAffiliatinssForNode(self):
+        """Test retrieving a users's affiliations for a given node."""
+        self.xmpp['xep_0060'].get_affiliations(
+            'pubsub.example.com',
+            node='somenode',
+            block=False)
+        self.send("""
+          <iq type="get" id="1" to="pubsub.example.com">
+            <pubsub xmlns="http://jabber.org/protocol/pubsub">
+              <affiliations node="somenode" />
+            </pubsub>
+          </iq>
+        """)
+
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestStreamPubsub)

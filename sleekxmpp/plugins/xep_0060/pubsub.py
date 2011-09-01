@@ -177,6 +177,12 @@ class xep_0060(base_plugin):
         iq['pubsub']['subscriptions']['node'] = node
         return iq.send(block=block, callback=callback, timeout=timeout)
 
+    def get_affiliations(self, jid, node=None, ifrom=None, block=True,
+                         callback=None, timeout=None):
+        iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='get')
+        iq['pubsub']['affiliations']['node'] = node
+        return iq.send(block=block, callback=callback, timeout=timeout)
+
     def get_subscription_options(self, jid, node, user_jid, ifrom=None,
                                  block=True, callback=None, timeout=None):
         iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='get')

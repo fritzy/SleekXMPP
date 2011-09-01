@@ -37,7 +37,7 @@ class Affiliations(ElementBase):
     namespace = 'http://jabber.org/protocol/pubsub'
     name = 'affiliations'
     plugin_attrib = 'affiliations'
-    interfaces = set(tuple())
+    interfaces = set(('node',))
     plugin_attrib_map = {}
     plugin_tag_map = {}
     subitem = (Affiliation,)

@@ -212,6 +212,9 @@ class XMLStream(object):
         self.stream_header = "<stream>"
         self.stream_footer = "</stream>"
 
+        self.whitespace_keepalive = True
+        self.whitespace_keepalive_interval = 300
+
         self.stop = threading.Event()
         self.stream_end_event = threading.Event()
         self.stream_end_event.set()
@@ -238,6 +241,8 @@ class XMLStream(object):
         self.dns_answers = []
 
         self.add_event_handler('connected', self._handle_connected)
+        self.add_event_handler('session_start', self._start_keepalive)
+        self.add_event_handler('session_end', self._end_keepalive)
 
     def use_signals(self, signals=None):
         """
@@ -614,6 +619,30 @@ class XMLStream(object):
         else:
             log.warning("Tried to enable TLS, but ssl module not found.")
             return False
+
+    def _start_keepalive(self, event):
+        """
+        Begin sending whitespace periodically to keep the connection alive.
+
+        May be disabled by setting:
+            self.whitespace_keepalive = False
+
+        The keepalive interval can be set using:
+            self.whitespace_keepalive_interval = 300
+        """
+
+        def send_keepalive():
+            if self.send_queue.empty():
+                self.send_raw(' ')
+
+        self.schedule('Whitespace Keepalive',
+                      self.whitespace_keepalive_interval,
+                      send_keepalive,
+                      repeat=True)
+
+    def _end_keepalive(self, event):
+        """Stop sending whitespace keepalives"""
+        self.scheduler.remove('Whitespace Keepalive')
 
     def start_stream_handler(self, xml):
         """

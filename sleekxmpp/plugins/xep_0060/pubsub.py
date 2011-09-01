@@ -282,9 +282,8 @@ class xep_0060(base_plugin):
         iq['pubsub_owner']['configure']['form'].values = config.values
         return iq.send(block=block, callback=callback, timeout=timeout)
 
-    def publish(self, jid, node, item_id=None, payload=None, items=None,
-                options=None, ifrom=None, block=True, callback=None,
-                timeout=None):
+    def publish(self, jid, node, id=None, payload=None, options=None,
+                ifrom=None, block=True, callback=None, timeout=None):
         """
         Add or edit items in a node.
 
@@ -294,21 +293,14 @@ class xep_0060(base_plugin):
         """
         iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='set')
         iq['pubsub']['publish']['node'] = node
-
-        if items is None:
-            items = []
-        if item_id is not None:
-            items.insert(0, (item_id, payload))
-        for id, payload in items:
-            item = stanza.pubsub.Item()
-            if id is not None:
-                item['id'] = id
-            item['payload'] = payload
-            iq['pubsub']['publish'].append(item)
+        if id is not None:
+            iq['pubsub']['publish']['item']['id'] = id
+        if payload is not None:
+            iq['pubsub']['publish']['item']['payload'] = payload
         iq['pubsub']['publish_options'] = options
         return iq.send(block=block, callback=callback, timeout=timeout)
 
-    def retract(self, jid, node, item_id, ifrom=None, block=True,
+    def retract(self, jid, node, id, ifrom=None, block=True,
                 callback=None, timeout=None):
         """
         Delete a single item from a node.
@@ -316,7 +308,7 @@ class xep_0060(base_plugin):
         iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='set')
 
         iq['pubsub']['retract']['node'] = node
-        iq['pubsub']['retract']['item']['id'] = item_id
+        iq['pubsub']['retract']['item']['id'] = id
         return iq.send(block=block, callback=callback, timeout=timeout)
 
     def purge(self, jid, node, ifrom=None, block=True, callback=None,

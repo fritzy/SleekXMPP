@@ -140,7 +140,7 @@ registerStanzaPlugin(Pubsub, Create)
 #
 #registerStanzaPlugin(Pubsub, Default)
 
-class Publish(Items):
+class Publish(ElementBase):
     namespace = 'http://jabber.org/protocol/pubsub'
     name = 'publish'
     plugin_attrib = name
@@ -150,6 +150,7 @@ class Publish(Items):
     subitem = (Item,)
 
 registerStanzaPlugin(Pubsub, Publish)
+registerStanzaPlugin(Publish, Item)
 
 class Retract(ElementBase):
     namespace = 'http://jabber.org/protocol/pubsub'

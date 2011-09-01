@@ -201,7 +201,40 @@ class TestStreamPubsub(SleekTest):
         """)
 
     def testSubscribeWithOptions(self):
-        pass
+        """Test subscribing to a node, with options."""
+        opts = self.xmpp['xep_0004'].make_form()
+        opts.add_field(
+                var='FORM_TYPE',
+                value='http://jabber.org/protocol/pubsub#subscribe_options',
+                ftype='hidden')
+        opts.add_field(
+                var='pubsub#digest',
+                value=False,
+                ftype='boolean')
+        opts['type'] = 'submit'
+
+        self.xmpp['xep_0060'].subscribe(
+            'pubsub.example.com',
+            'somenode',
+            options=opts,
+            block=False)
+        self.send("""
+          <iq type="set" id="1" to="pubsub.example.com">
+            <pubsub xmlns="http://jabber.org/protocol/pubsub">
+              <subscribe node="somenode" jid="tester@localhost" />
+              <options>
+                <x xmlns="jabber:x:data" type="submit">
+                  <field var="FORM_TYPE">
+                    <value>http://jabber.org/protocol/pubsub#subscribe_options</value>
+                  </field>
+                  <field var="pubsub#digest">
+                    <value>0</value>
+                  </field>
+                </x>
+              </options>
+            </pubsub>
+          </iq>
+        """)
 
     def testUnsubscribeCase1(self):
         """
@@ -541,6 +574,69 @@ class TestStreamPubsub(SleekTest):
           </iq>
         """)
 
+    def testGetSubscriptionOptions(self):
+        """Test getting the subscription options for a node/JID."""
+        self.xmpp['xep_0060'].get_subscription_options(
+            'pubsub.example.com',
+            'somenode',
+            'tester@localhost',
+            block=False)
+        self.send("""
+          <iq type="get" id="1" to="pubsub.example.com">
+            <pubsub xmlns="http://jabber.org/protocol/pubsub">
+              <options node="somenode" jid="tester@localhost" />
+            </pubsub>
+          </iq>
+        """, use_values=False)
 
+    def testSetSubscriptionOptions(self):
+        """Test setting the subscription options for a node/JID."""
+        opts = self.xmpp['xep_0004'].make_form()
+        opts.add_field(
+                var='FORM_TYPE',
+                value='http://jabber.org/protocol/pubsub#subscribe_options',
+                ftype='hidden')
+        opts.add_field(
+                var='pubsub#digest',
+                value=False,
+                ftype='boolean')
+        opts['type'] = 'submit'
+
+        self.xmpp['xep_0060'].set_subscription_options(
+            'pubsub.example.com',
+            'somenode',
+            'tester@localhost',
+            opts,
+            block=False)
+        self.send("""
+          <iq type="get" id="1" to="pubsub.example.com">
+            <pubsub xmlns="http://jabber.org/protocol/pubsub">
+              <options node="somenode" jid="tester@localhost">
+                <x xmlns="jabber:x:data" type="submit">
+                  <field var="FORM_TYPE">
+                    <value>http://jabber.org/protocol/pubsub#subscribe_options</value>
+                  </field>
+                  <field var="pubsub#digest">
+                    <value>0</value>
+                  </field>
+                </x>
+              </options>
+            </pubsub>
+          </iq>
+        """)
+
+    def testGetNodeSubscriptions(self):
+        """Test retrieving the subscriptions for a node."""
+        self.xmpp['xep_0060'].get_node_subscriptions(
+            'pubsub.example.com',
+            'somenode',
+            block=False)
+        self.send("""
+          <iq type="get" id="1" to="pubsub.example.com">
+            <pubsub xmlns="http://jabber.org/protocol/pubsub#owner">
+              <subscriptions node="somenode" />
+            </pubsub>
+          </iq>
+        """)
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestStreamPubsub)

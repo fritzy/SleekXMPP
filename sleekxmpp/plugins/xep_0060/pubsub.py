@@ -120,6 +120,8 @@ class xep_0060(base_plugin):
                     subscribee = self.xmpp.boundjid
 
         iq['pubsub']['subscribe']['jid'] = subscribee
+        if options is not None:
+            iq['pubsub']['options'].append(options)
         return iq.send(block=block, callback=callback, timeout=timeout)
 
     def unsubscribe(self, jid, node, subid=None, bare=True, subscribee=None,

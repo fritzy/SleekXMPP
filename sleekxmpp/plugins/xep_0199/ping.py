@@ -70,6 +70,8 @@ class xep_0199(base_plugin):
             self.xmpp.add_event_handler('session_start',
                                         self._handle_keepalive,
                                         threaded=True)
+            self.xmpp.add_event_handler('session_end',
+                                        self._handle_session_end)
 
     def post_init(self):
         """Handle cross-plugin dependencies."""
@@ -105,6 +107,9 @@ class xep_0199(base_plugin):
                            self.frequency,
                            scheduled_ping,
                            repeat=True)
+
+    def _handle_session_end(self, event):
+        self.xmpp.scheduler.remove('Ping Keep Alive')
 
     def _handle_ping(self, iq):
         """

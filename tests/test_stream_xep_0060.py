@@ -460,7 +460,7 @@ class TestStreamPubsub(SleekTest):
               </retract>
             </pubsub>
           </iq>
-        """, use_values=False)
+        """)
 
     def testPurge(self):
         """Test removing all items from a node."""

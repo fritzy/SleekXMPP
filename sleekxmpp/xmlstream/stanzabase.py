@@ -39,15 +39,23 @@ def register_stanza_plugin(stanza, plugin, iterable=False, overrides=False):
                      the parent stanza.
     """
     tag = "{%s}%s" % (plugin.namespace, plugin.name)
+
+    # Prevent weird memory reference gotchas by ensuring
+    # that the parent stanza class has its own set of
+    # plugin info maps and is not using the mappings from
+    # an ancestor class (like ElementBase).
+    plugin_info = ('plugin_attrib_map', 'plugin_tag_map',
+                   'plugin_iterables', 'plugin_overrides')
+    for attr in plugin_info:
+        info = getattr(stanza, attr)
+        setattr(stanza, attr, info.copy())
+
     stanza.plugin_attrib_map[plugin.plugin_attrib] = plugin
     stanza.plugin_tag_map[tag] = plugin
+
     if iterable:
-        # Prevent weird memory reference gotchas.
-        stanza.plugin_iterables = stanza.plugin_iterables.copy()
         stanza.plugin_iterables.add(plugin)
     if overrides:
-        # Prevent weird memory reference gotchas.
-        stanza.plugin_overrides = stanza.plugin_overrides.copy()
         for interface in plugin.overrides:
             stanza.plugin_overrides[interface] = plugin.plugin_attrib
 

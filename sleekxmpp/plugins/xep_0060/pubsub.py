@@ -202,7 +202,7 @@ class xep_0060(base_plugin):
         iq['pubsub']['options'].append(options)
         return iq.send(block=block, callback=callback, timeout=timeout)
 
-    def get_node_config(self, jid, node=None, ifrom=None, block=None,
+    def get_node_config(self, jid, node=None, ifrom=None, block=True,
                         callback=None, timeout=None):
         """
         Retrieve the configuration for a node, or the pubsub service's

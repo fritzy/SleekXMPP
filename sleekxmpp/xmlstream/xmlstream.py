@@ -1148,6 +1148,7 @@ class XMLStream(object):
                             root.clear()
         except SyntaxError:
             log.error("Error reading from XML stream.")
+            self.disconnect(self.auto_reconnect)
         log.debug("Ending read XML loop")
 
     def _build_stanza(self, xml, default_ns=None):

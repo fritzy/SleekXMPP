@@ -840,8 +840,9 @@ class XMLStream(object):
         def filter_pointers(handler):
             return handler[0] != pointer
 
-        self.__event_handlers[name] = filter(filter_pointers,
-                                             self.__event_handlers[name])
+        self.__event_handlers[name] = list(filter(
+            filter_pointers,
+            self.__event_handlers[name]))
 
     def event_handled(self, name):
         """

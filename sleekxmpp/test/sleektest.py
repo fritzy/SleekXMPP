@@ -293,7 +293,7 @@ class SleekTest(unittest.TestCase):
     def stream_start(self, mode='client', skip=True, header=None,
                            socket='mock', jid='tester@localhost',
                            password='test', server='localhost',
-                           port=5222, plugins=None):
+                           port=5222, plugins=None, plugin_config={}):
         """
         Initialize an XMPP client or component using a dummy XML stream.
 
@@ -317,10 +317,11 @@ class SleekTest(unittest.TestCase):
                         are loaded.
         """
         if mode == 'client':
-            self.xmpp = ClientXMPP(jid, password)
+            self.xmpp = ClientXMPP(jid, password, plugin_config=plugin_config)
         elif mode == 'component':
             self.xmpp = ComponentXMPP(jid, password,
-                                      server, port)
+                                      server, port,
+                                      plugin_config=plugin_config)
         else:
             raise ValueError("Unknown XMPP connection mode.")
 
@@ -347,7 +348,10 @@ class SleekTest(unittest.TestCase):
                 skip_queue.put('started')
 
             self.xmpp.add_event_handler('session_start', wait_for_session)
-            self.xmpp.connect()
+            if server is not None:
+                self.xmpp.connect((server, port))
+            else:
+                self.xmpp.connect()
         else:
             raise ValueError("Unknown socket type.")
 

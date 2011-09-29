@@ -59,7 +59,7 @@ class ClientXMPP(BaseXMPP):
     """
 
     def __init__(self, jid, password, ssl=False, plugin_config={},
-                 plugin_whitelist=[], escape_quotes=True):
+                 plugin_whitelist=[], escape_quotes=True, sasl_mech=None):
         """
         Create a new SleekXMPP client.
 
@@ -114,9 +114,10 @@ class ClientXMPP(BaseXMPP):
 
         # Setup default stream features
         self.register_plugin('feature_starttls')
-        self.register_plugin('feature_mechanisms')
         self.register_plugin('feature_bind')
         self.register_plugin('feature_session')
+        self.register_plugin('feature_mechanisms',
+                pconfig={'use_mech': sasl_mech} if sasl_mech else None)
 
     def connect(self, address=tuple(), reattempt=True, use_tls=True):
         """

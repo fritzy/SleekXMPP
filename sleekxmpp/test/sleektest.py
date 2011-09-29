@@ -293,7 +293,8 @@ class SleekTest(unittest.TestCase):
     def stream_start(self, mode='client', skip=True, header=None,
                            socket='mock', jid='tester@localhost',
                            password='test', server='localhost',
-                           port=5222, plugins=None, plugin_config={}):
+                           port=5222, sasl_mech=None,
+                           plugins=None, plugin_config={}):
         """
         Initialize an XMPP client or component using a dummy XML stream.
 
@@ -317,7 +318,9 @@ class SleekTest(unittest.TestCase):
                         are loaded.
         """
         if mode == 'client':
-            self.xmpp = ClientXMPP(jid, password, plugin_config=plugin_config)
+            self.xmpp = ClientXMPP(jid, password,
+                                   sasl_mech=sasl_mech,
+                                   plugin_config=plugin_config)
         elif mode == 'component':
             self.xmpp = ComponentXMPP(jid, password,
                                       server, port,

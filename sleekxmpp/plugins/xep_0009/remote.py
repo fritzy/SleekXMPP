@@ -699,10 +699,10 @@ class Remote(object):
             with Remote._lock:
                 del cls._sessions[client.boundjid.bare]
         result = RemoteSession(client, _session_close_callback)
-        client.plugin['xep_0009'].xmpp.add_event_handler('jabber_rpc_method_call', result._on_jabber_rpc_method_call)
-        client.plugin['xep_0009'].xmpp.add_event_handler('jabber_rpc_method_response', result._on_jabber_rpc_method_response)
-        client.plugin['xep_0009'].xmpp.add_event_handler('jabber_rpc_method_fault', result._on_jabber_rpc_method_fault)
-        client.plugin['xep_0009'].xmpp.add_event_handler('jabber_rpc_error', result._on_jabber_rpc_error)
+        client.plugin['xep_0009'].xmpp.add_event_handler('jabber_rpc_method_call', result._on_jabber_rpc_method_call, threaded=True)
+        client.plugin['xep_0009'].xmpp.add_event_handler('jabber_rpc_method_response', result._on_jabber_rpc_method_response, threaded=True)
+        client.plugin['xep_0009'].xmpp.add_event_handler('jabber_rpc_method_fault', result._on_jabber_rpc_method_fault, threaded=True)
+        client.plugin['xep_0009'].xmpp.add_event_handler('jabber_rpc_error', result._on_jabber_rpc_error, threaded=True)
         if callback is None:
             start_event_handler = result._notify
         else:

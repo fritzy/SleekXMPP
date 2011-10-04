@@ -14,6 +14,7 @@ from .. stanza.presence import Presence
 from .. xmlstream.handler.callback import Callback
 from .. xmlstream.matcher.xpath import MatchXPath
 from .. xmlstream.matcher.xmlmask import MatchXMLMask
+from sleekxmpp.exceptions import IqError, IqTimeout
 
 
 log = logging.getLogger(__name__)

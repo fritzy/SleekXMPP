@@ -209,11 +209,11 @@ class RosterNode(object):
                             Implies block=False.
         """
         self[jid]['name'] = name
-        self[jid]['groups'] = group
+        self[jid]['groups'] = groups
         self[jid].save()
 
         if not self.xmpp.is_component:
-            iq = self.Iq()
+            iq = self.xmpp.Iq()
             iq['type'] = 'set'
             iq['roster']['items'] = {jid: {'name': name,
                                            'subscription': subscription,

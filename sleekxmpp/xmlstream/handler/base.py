@@ -6,6 +6,8 @@
     See the file LICENSE for copying permission.
 """
 
+import weakref
+
 
 class BaseHandler(object):
 
@@ -43,7 +45,10 @@ class BaseHandler(object):
             stream  -- The XMLStream instance the handler should monitor.
         """
         self.name = name
-        self.stream = stream
+        if stream is not None:
+            self.stream = weakref.ref(stream)
+        else:
+            self.stream = None
         self._destroy = False
         self._payload = None
         self._matcher = matcher

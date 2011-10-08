@@ -19,6 +19,7 @@ import threading
 import time
 import types
 import random
+import weakref
 try:
     import queue
 except ImportError:
@@ -719,7 +720,7 @@ class XMLStream(object):
         """
         if handler.stream is None:
             self.__handlers.append(handler)
-            handler.stream = self
+            handler.stream = weakref.ref(self)
 
     def remove_handler(self, name):
         """

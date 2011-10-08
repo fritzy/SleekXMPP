@@ -85,14 +85,14 @@ class Waiter(BaseHandler):
                        value sleekxmpp.xmlstream.RESPONSE_TIMEOUT.
         """
         if timeout is None:
-            timeout = self.stream.response_timeout
+            timeout = self.stream().response_timeout
 
         try:
             stanza = self._payload.get(True, timeout)
         except queue.Empty:
             stanza = False
             log.warning("Timed out waiting for %s" % self.name)
-        self.stream.removeHandler(self.name)
+        self.stream().remove_handler(self.name)
         return stanza
 
     def check_delete(self):

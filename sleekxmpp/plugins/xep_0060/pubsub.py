@@ -302,11 +302,33 @@ class xep_0060(base_plugin):
     def publish(self, jid, node, id=None, payload=None, options=None,
                 ifrom=None, block=True, callback=None, timeout=None):
         """
-        Add or edit items in a node.
+        Add a new item to a node, or edit an existing item.
 
-        You may publish an individual item using the item_id and payload
-        parameters, or you may batch publish by using the items parameter
-        which accepts a list of id/payload tuples.
+        For services that support it, you can use the publish command
+        as an event signal by not including an ID or payload.
+
+        When including a payload and you do not provide an ID then
+        the service will generally create an ID for you.
+
+        Publish options may be specified, and how those options
+        are processed is left to the service, such as treating
+        the options as preconditions that the node's settings
+        must match.
+
+        Arguments:
+            jid      -- The JID of the pubsub service.
+            node     -- The node to publish the item to.
+            id       -- Optionally specify the ID of the item.
+            payload  -- The item content to publish.
+            options  -- A form of publish options.
+            ifrom    -- Specify the sender's JID.
+            block    -- Specify if the send call will block until a response
+                        is received, or a timeout occurs. Defaults to True.
+            timeout  -- The length of time (in seconds) to wait for a response
+                        before exiting the send call if blocking is used.
+                        Defaults to sleekxmpp.xmlstream.RESPONSE_TIMEOUT
+            callback -- Optional reference to a stream handler function. Will
+                        be executed when a reply stanza is received.
         """
         iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='set')
         iq['pubsub']['publish']['node'] = node

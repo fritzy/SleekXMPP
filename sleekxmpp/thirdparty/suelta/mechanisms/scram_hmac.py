@@ -32,7 +32,7 @@ class SCRAM_HMAC(Mechanism):
             name = name[:-5]
             self._cb = True
 
-        self.hash = hash(self.name[6:])
+        self.hash = hash(name[6:])
         if self.hash is None:
             raise SASLCancelled(self.sasl, self)
         if not self.sasl.tls_active():

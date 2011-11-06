@@ -224,7 +224,7 @@ class RosterItem(object):
         if self['to']:
             p = self.xmpp.Presence()
             p['to'] = self.jid
-            p['type'] = ['unsubscribe']
+            p['type'] = 'unsubscribe'
             if self.xmpp.is_component:
                 p['from'] = self.owner
             p.send()

@@ -48,8 +48,8 @@ class Roster(object):
         """
         self.xmpp = xmpp
         self.db = db
-        self.auto_authorize = True
-        self.auto_subscribe = True
+        self._auto_authorize = True
+        self._auto_subscribe = True
         self._rosters = {}
 
         if self.db:
@@ -138,3 +138,47 @@ class Roster(object):
                                   ppriority=ppriority,
                                   pnick=pnick,
                                   pto=pto)
+
+    @property
+    def auto_authorize(self):
+        """
+        Auto accept or deny subscription requests.
+
+        If True, auto accept subscription requests.
+        If False, auto deny subscription requests.
+        If None, don't automatically respond.
+        """
+        return self._auto_authorize
+
+    @auto_authorize.setter
+    def auto_authorize(self, value):
+        """
+        Auto accept or deny subscription requests.
+
+        If True, auto accept subscription requests.
+        If False, auto deny subscription requests.
+        If None, don't automatically respond.
+        """
+        self._auto_authorize = value
+        for node in self._rosters:
+            self._rosters[node].auto_authorize = value
+
+    @property
+    def auto_subscribe(self):
+        """
+        Auto send requests for mutual subscriptions.
+
+        If True, auto send mutual subscription requests.
+        """
+        return self._auto_subscribe
+
+    @auto_subscribe.setter
+    def auto_subscribe(self, value):
+        """
+        Auto send requests for mutual subscriptions.
+
+        If True, auto send mutual subscription requests.
+        """
+        self._auto_subscribe = value
+        for node in self._rosters:
+            self._rosters[node].auto_subscribe = value

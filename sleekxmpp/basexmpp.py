@@ -106,9 +106,6 @@ class BaseXMPP(XMLStream):
         self.client_roster = self.roster[self.boundjid.bare]
 
         self.is_component = False
-        self.auto_authorize = True
-        self.auto_subscribe = True
-
         self.sentpresence = False
 
         self.stanza = sleekxmpp.stanza
@@ -639,6 +636,46 @@ class BaseXMPP(XMLStream):
     def server(self, value):
         log.warning("server property deprecated. Use boundjid.host")
         self.boundjid.server = value
+
+    @property
+    def auto_authorize(self):
+        """
+        Auto accept or deny subscription requests.
+
+        If True, auto accept subscription requests.
+        If False, auto deny subscription requests.
+        If None, don't automatically respond.
+        """
+        return self.roster.auto_authorize
+
+    @auto_authorize.setter
+    def auto_authorize(self, value):
+        """
+        Auto accept or deny subscription requests.
+
+        If True, auto accept subscription requests.
+        If False, auto deny subscription requests.
+        If None, don't automatically respond.
+        """
+        self.roster.auto_authorize = value
+
+    @property
+    def auto_subscribe(self):
+        """
+        Auto send requests for mutual subscriptions.
+
+        If True, auto send mutual subscription requests.
+        """
+        return self.roster.auto_subscribe
+
+    @auto_subscribe.setter
+    def auto_subscribe(self, value):
+        """
+        Auto send requests for mutual subscriptions.
+
+        If True, auto send mutual subscription requests.
+        """
+        self.roster.auto_subscribe = value
 
     def set_jid(self, jid):
         """Rip a JID apart and claim it as our own."""

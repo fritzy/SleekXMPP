@@ -530,12 +530,8 @@ class XMLStream(object):
         """
         Reset the stream's state and reconnect to the server.
         """
-        log.debug("reconnecting...")
-        self.state.transition('connected', 'disconnected', wait=2.0,
-                              func=self._disconnect, args=(True,))
-        log.debug("connecting...")
-        return self.state.transition('disconnected', 'connected',
-                                     wait=2.0, func=self._connect)
+        self.disconnect()
+        self.connect()
 
     def set_socket(self, socket, ignore=False):
         """

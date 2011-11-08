@@ -8,7 +8,10 @@
 # file, which you should have received as part of this distribution.
 
 import sys
-from distutils.core import setup, Command
+try:
+    from setuptools import setup, Command
+except ImportError:
+    from distutils.core import setup, Command
 # from ez_setup import use_setuptools
 
 from testall import TestCommand

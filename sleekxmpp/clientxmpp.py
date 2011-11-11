@@ -119,7 +119,8 @@ class ClientXMPP(BaseXMPP):
         self.register_plugin('feature_mechanisms',
                 pconfig={'use_mech': sasl_mech} if sasl_mech else None)
 
-    def connect(self, address=tuple(), reattempt=True, use_tls=True):
+    def connect(self, address=tuple(), reattempt=True,
+                use_tls=True, use_ssl=False):
         """
         Connect to the XMPP server.
 
@@ -133,13 +134,16 @@ class ClientXMPP(BaseXMPP):
                          error occurs. Defaults to True.
             use_tls   -- Indicates if TLS should be used for the
                          connection. Defaults to True.
+            use_ssl   -- Indicates if the older SSL connection method
+                         should be used. Defaults to False.
         """
         self.session_started_event.clear()
         if not address:
             address = (self.boundjid.host, 5222)
 
         return XMLStream.connect(self, address[0], address[1],
-                                 use_tls=use_tls, reattempt=reattempt)
+                                 use_tls=use_tls, use_ssl=use_ssl,
+                                 reattempt=reattempt)
 
     def get_dns_records(self, domain, port=None):
         """

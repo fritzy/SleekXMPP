@@ -1111,11 +1111,8 @@ class XMLStream(object):
                 if not self.stop.is_set():
                     log.exception('Connection error.')
 
-            if not self.stop.is_set():
-                if self.auto_reconnect:
-                    self.reconnect()
-                else:
-                    continue
+            if not self.stop.is_set() and self.auto_reconnect:
+                self.reconnect()
             else:
                 self.disconnect()
                 break

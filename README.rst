@@ -112,13 +112,21 @@ SleekXMPP projects::
         def __init__(self, jid, password):
             ClientXMPP.__init__(self, jid, password)
 
-            self.add_event_handler("session_start", self.start)
+            self.add_event_handler("session_start", self.session_start)
             self.add_event_handler("message", self.message)
 
-        def start(self, event):
+            self.register_plugin('xep_0030') # Service Discovery
+            self.register_plugin('xep_0199') # XMPP Ping
+
+            # If you are working with an OpenFire server, you will
+            # need to use a different SSL version:
+            # import ssl
+            # self.ssl_version = ssl.PROTOCOL_SSLv3
+
+        def session_start(self, event):
             self.send_presence()
 
-            # Most get_* methods from plugins use Iq stanzas, which
+            # Most get_*/set_* methods from plugins use Iq stanzas, which
             # can generate IqError and IqTimeout exceptions
             try:
                 self.get_roster()
@@ -143,19 +151,8 @@ SleekXMPP projects::
                             format='%(levelname)-8s %(message)s')
 
         xmpp = EchoBot('somejid@example.com', 'use_getpass')
-        xmpp.register_plugin('xep_0030') # Service Discovery
-        xmpp.register_plugin('xep_0199') # XMPP Ping
-
-        # If you are working with an OpenFire server, you will need
-        # to use a different SSL version:
-        #
-        # import ssl
-        # xmpp.ssl_version = ssl.PROTOCOL_SSLv3
-
-        if xmpp.connect():
-            xmpp.process(block=True)
-        else:
-            print("Unable to connect.")
+        xmpp.connect():
+        xmpp.process(block=True)
 
 
 Credits

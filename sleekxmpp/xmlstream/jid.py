@@ -135,3 +135,9 @@ class JID(object):
         """
         other = JID(other)
         return self.full == other.full
+
+    def __ne__(self, other):
+        """
+        Two JIDs are considered unequal if they are not equal.
+        """
+        return not self == other

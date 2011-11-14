@@ -124,5 +124,18 @@ class TestJIDClass(SleekTest):
                        'component.someserver',
                        'component.someserver')
 
+    def testJIDEquality(self):
+        """Test that JIDs with the same content are equal."""
+        jid1 = JID('user@domain/resource')
+        jid2 = JID('user@domain/resource')
+        self.assertTrue(jid1 == jid2, "Same JIDs are not considered equal")
+        self.assertFalse(jid1 != jid2, "Same JIDs are considered not equal")
+
+    def testJIDInequality(self):
+        jid1 = JID('user@domain/resource')
+        jid2 = JID('otheruser@domain/resource')
+        self.assertFalse(jid1 == jid2, "Same JIDs are not considered equal")
+        self.assertTrue(jid1 != jid2, "Same JIDs are considered not equal")
+
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestJIDClass)

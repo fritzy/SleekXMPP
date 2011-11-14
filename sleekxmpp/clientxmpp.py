@@ -215,7 +215,7 @@ class ClientXMPP(BaseXMPP):
                             Will be executed when the roster is received.
                             Implies block=False.
         """
-        return self.client_roster.updtae(jid, name, subscription, groups,
+        return self.client_roster.update(jid, name, subscription, groups,
                                          block, timeout, callback)
 
     def del_roster_item(self, jid):

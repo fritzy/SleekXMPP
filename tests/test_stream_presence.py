@@ -337,13 +337,44 @@ class TestStreamPresence(SleekTest):
           <presence from="user@example.com" to="tester@localhost" />
         """)
 
+        self.recv("""
+          <presence from="user@example.com" to="tester@localhost" />
+        """)
+
+        # Changed status text, so fire new event
+        self.recv("""
+          <presence from="user@example.com" to="tester@localhost">
+            <status>Testing!</status>
+          </presence>
+        """)
+
+        # No change in show/status values, no event
+        self.recv("""
+          <presence from="user@example.com" to="tester@localhost">
+            <status>Testing!</status>
+          </presence>
+        """)
+
+        self.recv("""
+          <presence from="user@example.com" to="tester@localhost">
+            <show>dnd</show>
+            <status>Testing!</status>
+          </presence>
+        """)
+
+        self.recv("""
+          <presence from="user@example.com" to="tester@localhost">
+            <show>dnd</show>
+            <status>Testing!</status>
+          </presence>
+        """)
 
         time.sleep(0.3)
 
         self.assertEqual(events, ['available', 'away', 'dnd', 'chat',
-                                  'xa', 'unavailable', 'available'],
+                                  'xa', 'unavailable', 'available',
+                                  'available', 'dnd'],
             "Changed status events incorrect: %s" % events)
-
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestStreamPresence)

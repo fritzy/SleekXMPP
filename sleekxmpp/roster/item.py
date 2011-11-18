@@ -345,9 +345,10 @@ class RosterItem(object):
             self.xmpp.event('got_online', presence)
         if resource not in self.resources:
             self.resources[resource] = {}
+        old_status = self.resources[resource].get('status', '')
         old_show = self.resources[resource].get('show', None)
         self.resources[resource].update(data)
-        if old_show != presence['show']:
+        if old_show != presence['show'] or old_status != presence['status']:
             self.xmpp.event('changed_status', presence)
 
     def handle_unavailable(self, presence):

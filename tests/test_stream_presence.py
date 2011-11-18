@@ -251,5 +251,99 @@ class TestStreamPresence(SleekTest):
         self.assertEqual(events, ptypes,
             "Not all events raised: %s" % events)
 
+    def test_changed_status(self):
+        """Test that the changed_status event is handled properly."""
+        events = []
+        self.stream_start()
+
+        def changed_status(presence):
+            events.append(presence['type'])
+
+        self.xmpp.add_event_handler('changed_status', changed_status)
+
+        self.recv("""
+          <presence from="user@example.com" to="tester@localhost" />
+        """)
+
+        self.recv("""
+          <presence from="user@example.com" to="tester@localhost" />
+        """)
+
+        self.recv("""
+          <presence from="user@example.com" to="tester@localhost">
+            <show>away</show>
+          </presence>
+        """)
+
+        self.recv("""
+          <presence from="user@example.com" to="tester@localhost">
+            <show>away</show>
+          </presence>
+        """)
+
+        self.recv("""
+          <presence from="user@example.com" to="tester@localhost">
+            <show>dnd</show>
+          </presence>
+        """)
+
+        self.recv("""
+          <presence from="user@example.com" to="tester@localhost">
+            <show>dnd</show>
+          </presence>
+        """)
+
+        self.recv("""
+          <presence from="user@example.com" to="tester@localhost">
+            <show>chat</show>
+          </presence>
+        """)
+
+        self.recv("""
+          <presence from="user@example.com" to="tester@localhost">
+            <show>chat</show>
+          </presence>
+        """)
+
+        self.recv("""
+          <presence from="user@example.com" to="tester@localhost">
+            <show>xa</show>
+          </presence>
+        """)
+
+        self.recv("""
+          <presence from="user@example.com" to="tester@localhost">
+            <show>xa</show>
+          </presence>
+        """)
+
+        self.recv("""
+          <presence from="user@example.com"
+                    to="tester@localhost"
+                    type="unavailable" />
+        """)
+
+        self.recv("""
+          <presence from="user@example.com"
+                    to="tester@localhost"
+                    type="unavailable" />
+        """)
+
+        self.recv("""
+          <presence from="user@example.com" to="tester@localhost" />
+        """)
+
+        self.recv("""
+          <presence from="user@example.com" to="tester@localhost" />
+        """)
+
+
+        time.sleep(0.3)
+
+        self.assertEqual(events, ['available', 'away', 'dnd', 'chat',
+                                  'xa', 'unavailable', 'available'],
+            "Changed status events incorrect: %s" % events)
+
+
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestStreamPresence)

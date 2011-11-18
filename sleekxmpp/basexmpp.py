@@ -778,8 +778,6 @@ class BaseXMPP(XMLStream):
              not presence['type'] in presence.showtypes:
             return
 
-        self.event("changed_status", presence)
-
     def exception(self, exception):
         """
         Process any uncaught exceptions, notably IqError and

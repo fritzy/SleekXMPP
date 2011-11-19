@@ -102,8 +102,7 @@ class MatchXMLMask(MatcherBase):
             try:
                 mask = ET.fromstring(mask)
             except ExpatError:
-                log.warning("Expat error: %s\nIn parsing: %s" % ('', mask))
-
+                log.warning("Expat error: %s\nIn parsing: %s" , '', mask)
         if not use_ns:
             # Compare the element without using namespaces.
             source_tag = source.tag.split('}', 1)[-1]

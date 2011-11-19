@@ -186,14 +186,14 @@ if __name__ == '__main__':
 	logging.basicConfig(level=opts.loglevel, format='%(levelname)-8s %(message)s')
 
 	#load xml config
-	logging.info("Loading config file: %s" % opts.configfile)
+	logging.info("Loading config file: %s" , opts.configfile)
 	config = configparser.RawConfigParser()
 	config.read(opts.configfile)
 	
 	#init
-	logging.info("Account 1 is %s" % config.get('account1', 'jid'))
+	logging.info("Account 1 is %s" , config.get('account1', 'jid'))
 	xmpp1 = TestClient(config.get('account1','jid'), config.get('account1','pass'))
-	logging.info("Account 2 is %s" % config.get('account2', 'jid'))
+	logging.info("Account 2 is %s" , config.get('account2', 'jid'))
 	xmpp2 = TestClient(config.get('account2','jid'), config.get('account2','pass'))
 	
 	xmpp1.registerPlugin('xep_0004')

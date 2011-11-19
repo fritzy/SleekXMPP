@@ -164,7 +164,7 @@ class ClientXMPP(BaseXMPP):
                     address = (answer.target.to_text()[:-1], answer.port)
                     answers.append((address, answer.priority, answer.weight))
             except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
-                log.warning("No SRV records for %s" % domain)
+                log.warning("No SRV records for %s" , domain)
                 answers = super(ClientXMPP, self).get_dns_records(domain, port)
             except dns.exception.Timeout:
                 log.warning("DNS resolution timed out " + \

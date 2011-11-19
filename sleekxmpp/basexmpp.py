@@ -246,7 +246,7 @@ class BaseXMPP(XMLStream):
                 spec = "(RFC-%s) " % self.plugin[plugin].rfc
 
             desc = (spec, self.plugin[plugin].description)
-            log.debug("Loaded Plugin %s%s" % desc)
+            log.debug("Loaded Plugin %s%s" , desc)
         except:
             log.exception("Unable to load plugin: %s", plugin)
 
@@ -282,7 +282,7 @@ class BaseXMPP(XMLStream):
         if key in self.plugin:
             return self.plugin[key]
         else:
-            log.warning("""Plugin "%s" is not loaded.""" % key)
+            log.warning("""Plugin "%s" is not loaded.""" , key)
             return False
 
     def get(self, key, default):
@@ -679,7 +679,7 @@ class BaseXMPP(XMLStream):
 
     def set_jid(self, jid):
         """Rip a JID apart and claim it as our own."""
-        log.debug("setting jid to %s" % jid)
+        log.debug("setting jid to %s" , jid)
         self.boundjid.full = jid
 
     def getjidresource(self, fulljid):
@@ -795,7 +795,7 @@ class BaseXMPP(XMLStream):
             log.warning('You should catch IqError exceptions')
         elif isinstance(exception, IqTimeout):
             iq = exception.iq
-            log.error('Request timed out: %s' % iq)
+            log.error('Request timed out: %s' , iq)
             log.warning('You should catch IqTimeout exceptions')
         else:
             log.exception(exception)

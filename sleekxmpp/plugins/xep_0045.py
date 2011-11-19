@@ -127,7 +127,7 @@ class xep_0045(base.base_plugin):
     def handle_groupchat_invite(self, inv):
         """ Handle an invite into a muc.
         """
-        logging.debug("MUC invite to %s from %s: %s" % (inv['from'], inv["from"], inv))
+        logging.debug("MUC invite to %s from %s: %s" , inv['from'], inv["from"], inv)
         if inv['from'] not in self.rooms.keys():
             self.xmpp.event("groupchat_invite", inv)
 
@@ -149,7 +149,7 @@ class xep_0045(base.base_plugin):
             if entry['nick'] not in self.rooms[entry['room']]:
                 got_online = True
             self.rooms[entry['room']][entry['nick']] = entry
-        log.debug("MUC presence from %s/%s : %s" % (entry['room'],entry['nick'], entry))
+        log.debug("MUC presence from %s/%s : %s" , entry['room'],entry['nick'], entry)
         self.xmpp.event("groupchat_presence", pr)
         self.xmpp.event("muc::%s::presence" % entry['room'], pr)
         if got_offline:

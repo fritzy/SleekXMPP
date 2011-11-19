@@ -60,12 +60,12 @@ class xep_0078(base_plugin):
         try:
             resp = iq.send(now=True)
         except IqError:
-            log.info("Authentication failed: %s" % resp['error']['condition'])
+            log.info("Authentication failed: %s" , resp['error']['condition'])
             self.xmpp.event('failed_auth', direct=True)
             self.xmpp.disconnect()
             return True
         except IqTimeout:
-            log.info("Authentication failed: %s" % 'timeout')
+            log.info("Authentication failed: %s" , 'timeout')
             self.xmpp.event('failed_auth', direct=True)
             self.xmpp.disconnect()
             return True

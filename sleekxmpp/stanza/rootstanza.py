@@ -80,8 +80,7 @@ class RootStanza(StanzaBase):
             self['error']['type'] = 'cancel'
             self.send()
             # log the error
-            log.exception('Error handling {%s}%s stanza' %
-                          (self.namespace, self.name))
+            log.exception('Error handling {%s}%s stanza' ,  self.namespace, self.name)
             # Finally raise the exception to a global exception handler
             self.stream.exception(e)
 

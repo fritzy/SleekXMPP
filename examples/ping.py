@@ -72,7 +72,7 @@ class PingTest(sleekxmpp.ClientXMPP):
             self.disconnect()
             sys.exit(1)
         else:
-            logging.info("Success! RTT: %s" % str(result))
+            logging.info("Success! RTT: %s" , str(result))
             self.disconnect()
 
 

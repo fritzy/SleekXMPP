@@ -329,11 +329,11 @@ if __name__ == '__main__':
 	logging.basicConfig(level=opts.loglevel, format='%(levelname)-8s %(message)s')
 
 	#load xml config
-	logging.info("Loading config file: %s" % opts.configfile)
+	logging.info("Loading config file: %s" , opts.configfile)
 	config = ET.parse(os.path.expanduser(opts.configfile)).find('auth')
 	
 	#init
-	logging.info("Logging in as %s" % config.attrib['jid'])
+	logging.info("Logging in as %s" , config.attrib['jid'])
 	
 	
 	plugin_config = {}

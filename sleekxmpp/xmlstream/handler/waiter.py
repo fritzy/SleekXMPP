@@ -91,7 +91,7 @@ class Waiter(BaseHandler):
             stanza = self._payload.get(True, timeout)
         except queue.Empty:
             stanza = False
-            log.warning("Timed out waiting for %s" % self.name)
+            log.warning("Timed out waiting for %s" , self.name)
         self.stream().remove_handler(self.name)
         return stanza
 

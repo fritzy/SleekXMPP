@@ -87,8 +87,8 @@ class ComponentXMPP(BaseXMPP):
 
         Overrides XMLStream.connect.
         """
-        log.debug("Connecting to %s:%s" % (self.server_host,
-                                               self.server_port))
+        log.debug("Connecting to %s:%s", self.server_host,
+                                         self.server_port)
         return XMLStream.connect(self, self.server_host,
                                        self.server_port)
 

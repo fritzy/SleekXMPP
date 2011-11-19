@@ -118,7 +118,7 @@ class xep_0199(base_plugin):
         Arguments:
             iq -- The ping request.
         """
-        log.debug("Pinged by %s" , iq['from'])
+        log.debug("Pinged by %s", iq['from'])
         iq.reply().send()
 
     def send_ping(self, jid, timeout=None, errorfalse=False,
@@ -141,7 +141,7 @@ class xep_0199(base_plugin):
                           is received. Useful in conjunction with
                           the option block=False.
         """
-        log.debug("Pinging %s" , jid)
+        log.debug("Pinging %s", jid)
         if timeout is None:
             timeout = self.timeout
 
@@ -167,7 +167,7 @@ class xep_0199(base_plugin):
         if not block:
             return None
 
-        log.debug("Pong: %s %f" , jid, delay)
+        log.debug("Pong: %s %f", jid, delay)
         return delay
 
 

@@ -68,5 +68,5 @@ class xep_0224(base_plugin):
         Arguments:
             msg -- A message stanza with an attention element.
         """
-        log.debug("Received attention request from: %s" , msg['from'])
+        log.debug("Received attention request from: %s", msg['from'])
         self.xmpp.event('attention', msg)

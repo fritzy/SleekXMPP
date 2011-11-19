@@ -268,7 +268,7 @@ class xep_0030(base_plugin):
         """
         if local or jid is None:
             log.debug("Looking up local disco#info data " + \
-                      "for %s, node %s." % (jid, node))
+                      "for %s, node %s.", jid, node)
             info = self._run_node_handler('get_info', jid, node, kwargs)
             return self._fix_default_info(info)
 
@@ -542,7 +542,7 @@ class xep_0030(base_plugin):
         """
         if iq['type'] == 'get':
             log.debug("Received disco info query from " + \
-                      "<%s> to <%s>." % (iq['from'], iq['to']))
+                      "<%s> to <%s>.", iq['from'], iq['to'])
             if self.xmpp.is_component:
                 jid = iq['to'].full
             else:
@@ -558,7 +558,7 @@ class xep_0030(base_plugin):
             iq.send()
         elif iq['type'] == 'result':
             log.debug("Received disco info result from" + \
-                      "%s to %s." % (iq['from'], iq['to']))
+                      "%s to %s.", iq['from'], iq['to'])
             self.xmpp.event('disco_info', iq)
 
     def _handle_disco_items(self, iq):
@@ -572,7 +572,7 @@ class xep_0030(base_plugin):
         """
         if iq['type'] == 'get':
             log.debug("Received disco items query from " + \
-                      "<%s> to <%s>." % (iq['from'], iq['to']))
+                      "<%s> to <%s>.", iq['from'], iq['to'])
             if self.xmpp.is_component:
                 jid = iq['to'].full
             else:
@@ -586,7 +586,7 @@ class xep_0030(base_plugin):
             iq.send()
         elif iq['type'] == 'result':
             log.debug("Received disco items result from" + \
-                      "%s to %s." % (iq['from'], iq['to']))
+                      "%s to %s.", iq['from'], iq['to'])
             self.xmpp.event('disco_items', iq)
 
     def _fix_default_info(self, info):

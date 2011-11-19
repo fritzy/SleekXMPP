@@ -20,7 +20,7 @@ log = logging.getLogger(__name__)
 
 def _intercept(method, name, public):
     def _resolver(instance, *args, **kwargs):
-        log.debug("Locally calling %s.%s with arguments %s." , instance.FQN(), method.__name__, args)
+        log.debug("Locally calling %s.%s with arguments %s.", instance.FQN(), method.__name__, args)
         try:
             value = method(instance, *args, **kwargs)
             if value == NotImplemented:
@@ -381,7 +381,7 @@ class Proxy(Endpoint):
                 try:
                     if attribute._rpc:
                         def _remote_call(*args, **kwargs):
-                            log.debug("Remotely calling '%s.%s' with arguments %s." , self._endpoint.FQN(), attribute._rpc_name, args)
+                            log.debug("Remotely calling '%s.%s' with arguments %s.", self._endpoint.FQN(), attribute._rpc_name, args)
                             return self._endpoint.session._call_remote(self._endpoint.target_jid, "%s.%s" % (self._endpoint.FQN(), attribute._rpc_name), self._callback, *args, **kwargs)
                         return _remote_call
                 except:
@@ -449,7 +449,7 @@ class RemoteSession(object):
         self._event.wait()
 
     def _notify(self, event):
-        log.debug("RPC Session as %s started." , self._client.boundjid.full)
+        log.debug("RPC Session as %s started.", self._client.boundjid.full)
         self._client.sendPresence()
         self._event.set()
         pass
@@ -461,7 +461,7 @@ class RemoteSession(object):
         if name is None:
             name = method.__name__
         key = "%s.%s" % (endpoint, name)
-        log.debug("Registering call handler for %s (%s)." , key, method)
+        log.debug("Registering call handler for %s (%s).", key, method)
         with self._lock:
             if key in self._entries:
                 raise KeyError("A handler for %s has already been regisered!" % endpoint)
@@ -469,7 +469,7 @@ class RemoteSession(object):
         return key
 
     def _register_acl(self, endpoint, acl):
-        log.debug("Registering ACL %s for endpoint %s." , repr(acl), endpoint)
+        log.debug("Registering ACL %s for endpoint %s.", repr(acl), endpoint)
         with self._lock:
             self._acls[endpoint] = acl
 
@@ -562,7 +562,7 @@ class RemoteSession(object):
             iq.send()
             return future.get_value(30)
         else:
-            log.debug("[RemoteSession] _call_remote %s" , callback)
+            log.debug("[RemoteSession] _call_remote %s", callback)
             self._register_callback(pid, callback)
             iq.send()
 
@@ -601,11 +601,11 @@ class RemoteSession(object):
             error.send()
         except Exception as e:
             if isinstance(e, KeyError):
-                log.error("No handler available for %s!" , pmethod)
+                log.error("No handler available for %s!", pmethod)
                 error = self._client.plugin['xep_0009']._item_not_found(iq)
             else:
                 traceback.print_exc(file=sys.stderr)
-                log.error("An unexpected problem occurred invoking method %s!" , pmethod)
+                log.error("An unexpected problem occurred invoking method %s!", pmethod)
                 error = self._client.plugin['xep_0009']._undefined_condition(iq)
             #! print "[REMOTE.PY] _handle_remote_procedure_call AN ERROR SHOULD BE SENT NOW %s " % e
             error.send()

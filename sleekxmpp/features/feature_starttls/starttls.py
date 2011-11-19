@@ -58,8 +58,8 @@ class feature_starttls(base_plugin):
             self.xmpp.send(features['starttls'], now=True)
             return True
         else:
-            log.warning("The module tlslite is required to log in" +\
-                            " to some servers, and has not been found.")
+            log.warning("The module tlslite is required to log in" + \
+                        " to some servers, and has not been found.")
             return False
 
     def _handle_starttls_proceed(self, proceed):

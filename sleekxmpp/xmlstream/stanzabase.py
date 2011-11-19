@@ -1261,8 +1261,8 @@ class StanzaBase(ElementBase):
 
         Meant to be overridden.
         """
-        log.exception('Error handling {%s}%s stanza' % (self.namespace,
-                                                            self.name))
+        log.exception('Error handling {%s}%s stanza', self.namespace,
+                                                      self.name)
 
     def send(self, now=False):
         """

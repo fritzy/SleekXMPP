@@ -42,7 +42,7 @@ class feature_bind(base_plugin):
         Arguments:
             features -- The stream features stanza.
         """
-        log.debug("Requesting resource: %s" , self.xmpp.boundjid.resource)
+        log.debug("Requesting resource: %s", self.xmpp.boundjid.resource)
         iq = self.xmpp.Iq()
         iq['type'] = 'set'
         iq.enable('bind')
@@ -55,7 +55,7 @@ class feature_bind(base_plugin):
 
         self.xmpp.features.add('bind')
 
-        log.info("Node set to: %s" , self.xmpp.boundjid.full)
+        log.info("Node set to: %s", self.xmpp.boundjid.full)
 
         if 'session' not in features['features']:
             log.debug("Established Session")

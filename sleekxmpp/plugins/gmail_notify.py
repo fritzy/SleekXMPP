@@ -121,7 +121,7 @@ class gmail_notify(base.base_plugin):
     def handle_gmail(self, iq):
         mailbox = iq['mailbox']
         approx = ' approximately' if mailbox['estimated'] else ''
-        log.info('Gmail: Received%s %s emails' , approx, mailbox['total-matched'])
+        log.info('Gmail: Received%s %s emails', approx, mailbox['total-matched'])
         self.last_result_time = mailbox['result-time']
         self.xmpp.event('gmail_messages', iq)
 
@@ -140,7 +140,7 @@ class gmail_notify(base.base_plugin):
         if query is None:
             log.info("Gmail: Checking for new emails")
         else:
-            log.info('Gmail: Searching for emails matching: "%s"' , query)
+            log.info('Gmail: Searching for emails matching: "%s"', query)
         iq = self.xmpp.Iq()
         iq['type'] = 'get'
         iq['to'] = self.xmpp.boundjid.bare

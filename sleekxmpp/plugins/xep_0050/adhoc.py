@@ -211,7 +211,7 @@ class xep_0050(base_plugin):
         key = (iq['to'].full, node)
         name, handler = self.commands.get(key, ('Not found', None))
         if not handler:
-            log.debug('Command not found: %s, %s' , key, self.commands)
+            log.debug('Command not found: %s, %s', key, self.commands)
         initial_session = {'id': sessionid,
                            'from': iq['from'],
                            'to': iq['to'],

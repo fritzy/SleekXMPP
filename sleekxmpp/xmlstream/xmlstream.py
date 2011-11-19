@@ -873,20 +873,25 @@ class XMLStream(object):
                         event queue. All event handlers will run in the
                         same thread.
         """
-        for handler in self.__event_handlers.get(name, []):
+        handlers = self.__event_handlers.get(name, [])
+        for handler in handlers:
+            #TODO:  Data should not be copied, but should be read only,
+            #       but this might break current code so it's left for future.
+
+            out_data = copy.copy(data) if len(handlers) > 1 else data
+            old_exception = getattr(data, 'exception', None)
             if direct:
                 try:
-                    handler[0](copy.copy(data))
+                    handler[0](out_data)
                 except Exception as e:
                     error_msg = 'Error processing event handler: %s'
                     log.exception(error_msg , str(handler[0]))
-                    if hasattr(data, 'exception'):
-                        data.exception(e)
+                    if old_exception:
+                        old_exception(e)
                     else:
                         self.exception(e)
             else:
-                self.event_queue.put(('event', handler, copy.copy(data)))
-
+                self.event_queue.put(('event', handler, out_data))
             if handler[2]:
                 # If the handler is disposable, we will go ahead and
                 # remove it now instead of waiting for it to be
@@ -1201,17 +1206,17 @@ class XMLStream(object):
         # to run "in stream" will be executed immediately; the rest will
         # be queued.
         unhandled = True
-        for handler in self.__handlers:
-            if handler.match(stanza):
-                stanza_copy = copy.copy(stanza)
-                handler.prerun(stanza_copy)
-                self.event_queue.put(('stanza', handler, stanza_copy))
-                try:
-                    if handler.check_delete():
-                        self.__handlers.remove(handler)
-                except:
-                    pass  # not thread safe
-                unhandled = False
+        matched_handlers = filter(lambda h: h.match(stanza), self.__handlers)
+        for handler in matched_handlers:
+            stanza_copy = copy.copy(stanza) if len(matched_handlers) > 1 else stanza
+            handler.prerun(stanza_copy)
+            self.event_queue.put(('stanza', handler, stanza_copy))
+            try:
+                if handler.check_delete():
+                    self.__handlers.remove(handler)
+            except:
+                pass  # not thread safe
+            unhandled = False
 
         # Some stanzas require responses, such as Iq queries. A default
         # handler will be executed immediately for this case.

@@ -246,7 +246,7 @@ class BaseXMPP(XMLStream):
                 spec = "(RFC-%s) " % self.plugin[plugin].rfc
 
             desc = (spec, self.plugin[plugin].description)
-            log.debug("Loaded Plugin %s%s" , desc)
+            log.debug("Loaded Plugin %s" , desc)
         except:
             log.exception("Unable to load plugin: %s", plugin)
 

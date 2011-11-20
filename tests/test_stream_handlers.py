@@ -1,5 +1,6 @@
 import time
 
+from sleekxmpp import Message
 from sleekxmpp.test import *
 from sleekxmpp.xmlstream.handler import *
 from sleekxmpp.xmlstream.matcher import *
@@ -151,6 +152,51 @@ class TestHandlers(SleekTest):
 
         self.failUnless(events == ['foo'],
                 "Iq callback was not executed: %s" % events)
+
+    def testMultipleHandlersForStanza(self):
+        """
+        Test that multiple handlers for a single stanza work
+        without clobbering each other.
+        """
+
+        def handler_1(msg):
+            msg.reply("Handler 1: %s" % msg['body']).send()
+
+        def handler_2(msg):
+            msg.reply("Handler 2: %s" % msg['body']).send()
+
+        def handler_3(msg):
+            msg.reply("Handler 3: %s" % msg['body']).send()
+
+        self.stream_start()
+        self.xmpp.add_event_handler('message', handler_1)
+        self.xmpp.add_event_handler('message', handler_2)
+        self.xmpp.add_event_handler('message', handler_3)
+
+        self.recv("""
+          <message to="tester@localhost" from="user@example.com">
+            <body>Testing</body>
+          </message>
+        """)
+
+
+        # This test is brittle, depending on the fact that handlers
+        # will be checked in the order they are registered.
+        self.send("""
+          <message to="user@example.com">
+            <body>Handler 1: Testing</body>
+          </message>
+        """)
+        self.send("""
+          <message to="user@example.com">
+            <body>Handler 2: Testing</body>
+          </message>
+        """)
+        self.send("""
+          <message to="user@example.com">
+            <body>Handler 3: Testing</body>
+          </message>
+        """)
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestHandlers)

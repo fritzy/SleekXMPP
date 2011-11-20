@@ -466,7 +466,7 @@ class XMLStream(object):
         """
 
         def _handle_session_timeout():
-            if not self.session_started_event.isSet():
+            if not self.session_started_event.is_set():
                 log.debug("Session start has taken more " + \
                           "than %d seconds", self.session_timeout)
                 self.disconnect(reconnect=self.auto_reconnect)
@@ -1055,7 +1055,6 @@ class XMLStream(object):
 
         def start_thread(name, target):
             self.__thread[name] = threading.Thread(name=name, target=target)
-            self.__thread[name].daemon = True
             self.__thread[name].start()
 
         for t in range(0, HANDLER_THREADS):
@@ -1255,7 +1254,7 @@ class XMLStream(object):
         """
         log.debug("Loading event runner")
         try:
-            while not self.stop.isSet():
+            while not self.stop.is_set():
                 try:
                     wait = self.wait_timeout
                     event = self.event_queue.get(True, timeout=wait)
@@ -1320,7 +1319,9 @@ class XMLStream(object):
         """
         try:
             while not self.stop.is_set():
-                self.session_started_event.wait()
+                while not self.stop.is_set and \
+                      not self.session_started_event.is_set():
+                    self.session_started_event.wait(timeout=1)
                 if self.__failed_send_stanza is not None:
                     data = self.__failed_send_stanza
                     self.__failed_send_stanza = None

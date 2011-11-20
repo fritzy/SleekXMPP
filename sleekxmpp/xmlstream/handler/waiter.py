@@ -87,11 +87,16 @@ class Waiter(BaseHandler):
         if timeout is None:
             timeout = self.stream().response_timeout
 
-        try:
-            stanza = self._payload.get(True, timeout)
-        except queue.Empty:
-            stanza = False
-            log.warning("Timed out waiting for %s", self.name)
+        elapsed_time = 0
+        stanza = False
+        while elapsed_time < timeout and not self.stream().stop.is_set():
+            try:
+                stanza = self._payload.get(True, 1)
+                break
+            except queue.Empty:
+                elapsed_time += 1
+                if elapsed_time >= timeout:
+                    log.warning("Timed out waiting for %s", self.name)
         self.stream().remove_handler(self.name)
         return stanza
 

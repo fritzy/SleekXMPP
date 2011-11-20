@@ -1285,7 +1285,6 @@ class XMLStream(object):
                         self.exception(e)
                 elif etype == 'event':
                     func, threaded, disposable = handler
-                    orig = copy.copy(args[0])
                     try:
                         if threaded:
                             x = threading.Thread(

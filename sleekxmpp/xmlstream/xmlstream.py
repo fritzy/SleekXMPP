@@ -1205,7 +1205,7 @@ class XMLStream(object):
         # to run "in stream" will be executed immediately; the rest will
         # be queued.
         unhandled = True
-        matched_handlers = filter(lambda h: h.match(stanza), self.__handlers)
+        matched_handlers = [h for h in self.__handlers if h.match(stanza)]
         for handler in matched_handlers:
             stanza_copy = copy.copy(stanza) if len(matched_handlers) > 1 else stanza
             handler.prerun(stanza_copy)

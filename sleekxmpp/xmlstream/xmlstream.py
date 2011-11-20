@@ -1232,7 +1232,8 @@ class XMLStream(object):
             func -- The event handler to execute.
             args -- Arguments to the event handler.
         """
-        orig = copy.copy(args[0])
+        # this is always already copied before this is invoked
+        orig = args[0]
         try:
             func(*args)
         except Exception as e:

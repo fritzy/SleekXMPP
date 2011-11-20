@@ -391,7 +391,7 @@ class XMLStream(object):
 
         try:
             if not self.use_proxy:
-                log.debug("Connecting to %s:%s", self.address)
+                log.debug("Connecting to %s:%s" % self.address)
                 self.socket.connect(self.address)
 
             self.set_socket(self.socket, ignore=True)
@@ -808,7 +808,7 @@ class XMLStream(object):
             if self.dns_answers[0] == address:
                 break
         self.dns_answers.pop(idx)
-        log.debug("Trying to connect to %s:%s", address)
+        log.debug("Trying to connect to %s:%s" % address)
         return address
 
     def add_event_handler(self, name, pointer,

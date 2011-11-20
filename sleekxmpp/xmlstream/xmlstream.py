@@ -1112,9 +1112,10 @@ class XMLStream(object):
             except Socket.error as serr:
                 self.event('socket_error', serr)
                 log.exception('Socket Error')
-            except:
+            except Exception as e:
                 if not self.stop.is_set():
                     log.exception('Connection error.')
+                self.exception(e)
 
             if not self.stop.is_set() and self.auto_reconnect:
                 self.reconnect()

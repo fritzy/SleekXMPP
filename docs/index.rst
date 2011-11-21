@@ -13,6 +13,9 @@ SleekXMPP
     ``develop`` branch.
 
     **Stable Releases**
+        - `1.0 RC3 <http://github.com/fritzy/SleekXMPP/zipball/1.0-RC3>`_  
+        - `1.0 RC2 <http://github.com/fritzy/SleekXMPP/zipball/1.0-RC2>`_ 
+        - `1.0 RC1 <http://github.com/fritzy/SleekXMPP/zipball/1.0-RC1>`_  
         - `1.0 Beta6.1 <http://github.com/fritzy/SleekXMPP/zipball/1.0-Beta6.1>`_  
         - `1.0 Beta5 <http://github.com/fritzy/SleekXMPP/zipball/1.0-Beta5>`_
         - `1.0 Beta4 <http://github.com/fritzy/SleekXMPP/zipball/1.0-Beta4>`_
@@ -115,6 +118,7 @@ API Reference
     api/clientxmpp
     api/basexmpp
     api/xmlstream
+    api/stanzabase
 
 Additional Info
 ---------------

@@ -1,9 +1,16 @@
+# -*- coding: utf-8 -*-
 """
-    SleekXMPP: The Sleek XMPP Library
-    Copyright (C) 2010  Nathanael C. Fritz
-    This file is part of SleekXMPP.
+    sleekxmpp.xmlstream.tostring
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    See the file LICENSE for copying permission.
+    This module converts XML objects into Unicode strings and
+    intelligently includes namespaces only when necessary to
+    keep the output readable.
+
+    Part of SleekXMPP: The Sleek XMPP Library
+
+    :copyright: (c) 2011 Nathanael C. Fritz
+    :license: MIT, see LICENSE for more details
 """
 
 import sys
@@ -14,26 +21,28 @@ if sys.version_info < (3, 0):
 
 def tostring(xml=None, xmlns='', stanza_ns='', stream=None,
              outbuffer='', top_level=False):
-    """
-    Serialize an XML object to a Unicode string.
+    """Serialize an XML object to a Unicode string.
 
-    If namespaces are provided using xmlns or stanza_ns, then elements
-    that use those namespaces will not include the xmlns attribute in
-    the output.
+    If namespaces are provided using ``xmlns`` or ``stanza_ns``, then
+    elements that use those namespaces will not include the xmlns attribute
+    in the output.
 
-    Arguments:
-        xml       -- The XML object to serialize. If the value is None,
-                     then the XML object contained in this stanza
-                     object will be used.
-        xmlns     -- Optional namespace of an element wrapping the XML
-                     object.
-        stanza_ns -- The namespace of the stanza object that contains
-                     the XML object.
-        stream    -- The XML stream that generated the XML object.
-        outbuffer -- Optional buffer for storing serializations during
-                     recursive calls.
-        top_level -- Indicates that the element is the outermost
-                     element.
+    :param XML xml: The XML object to serialize. If the value is ``None``,
+                    then the XML object contained in this stanza
+                    object will be used.
+    :param string xmlns: Optional namespace of an element wrapping the XML
+                         object.
+    :param string stanza_ns: The namespace of the stanza object that contains
+                             the XML object.
+    :param stream: The XML stream that generated the XML object.
+    :param string outbuffer: Optional buffer for storing serializations
+                             during recursive calls.
+    :param bool top_level: Indicates that the element is the outermost
+                           element.
+
+    :type stream: :class:`~sleekxmpp.xmlstream.xmlstream.XMLStream`
+
+    :rtype: Unicode string
     """
     # Add previous results to the start of the output.
     output = [outbuffer]
@@ -102,11 +111,9 @@ def tostring(xml=None, xmlns='', stanza_ns='', stream=None,
 
 
 def xml_escape(text):
-    """
-    Convert special characters in XML to escape sequences.
+    """Convert special characters in XML to escape sequences.
 
-    Arguments:
-        text -- The XML text to convert.
+    :param string text: The XML text to convert.
     """
     if sys.version_info < (3, 0):
         if type(text) != types.UnicodeType:

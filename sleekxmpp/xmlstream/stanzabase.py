@@ -1071,6 +1071,8 @@ class ElementBase(object):
     def __str__(self, top_level_ns=True):
         """Return a string serialization of the underlying XML object.
 
+        .. seealso:: :ref:`tostring`
+
         :param bool top_level_ns: Display the top-most namespace.
                                   Defaults to True.
         """

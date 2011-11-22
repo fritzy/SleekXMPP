@@ -1,3 +1,5 @@
+.. _stanzabase:
+
 ==========
 stanzabase
 ==========

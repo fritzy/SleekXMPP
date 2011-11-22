@@ -12,16 +12,8 @@ SleekXMPP
     ``master`` branch, while the latest development version is in the
     ``develop`` branch.
 
-    **Stable Releases**
+    **Latest Stable Release**
         - `1.0 RC3 <http://github.com/fritzy/SleekXMPP/zipball/1.0-RC3>`_  
-        - `1.0 RC2 <http://github.com/fritzy/SleekXMPP/zipball/1.0-RC2>`_ 
-        - `1.0 RC1 <http://github.com/fritzy/SleekXMPP/zipball/1.0-RC1>`_  
-        - `1.0 Beta6.1 <http://github.com/fritzy/SleekXMPP/zipball/1.0-Beta6.1>`_  
-        - `1.0 Beta5 <http://github.com/fritzy/SleekXMPP/zipball/1.0-Beta5>`_
-        - `1.0 Beta4 <http://github.com/fritzy/SleekXMPP/zipball/1.0-Beta4>`_
-        - `1.0 Beta3 <http://github.com/fritzy/SleekXMPP/zipball/1.0-Beta3>`_
-        - `1.0 Beta2 <http://github.com/fritzy/SleekXMPP/zipball/1.0-Beta2>`_
-        - `1.0 Beta1 <http://github.com/fritzy/SleekXMPP/zipball/1.0-Beta1>`_
 
     **Develop Releases**
         - `Latest Develop Version <http://github.com/fritzy/SleekXMPP/zipball/develop>`_
@@ -90,7 +82,7 @@ Tutorials, FAQs, and How To Guides
     faq
     xeps
     xmpp_tdg
-    create_stanzas
+    howto/stanzas
     create_plugin
     features
     sasl
@@ -119,7 +111,7 @@ API Reference
     event_index
     api/clientxmpp
     api/basexmpp
-    api/xmlstream
+    api/xmlstream/index
 
 Additional Info
 ---------------

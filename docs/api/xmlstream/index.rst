@@ -10,3 +10,4 @@ xmlstream
 .. toctree::
 
     stanzabase
+    tostring

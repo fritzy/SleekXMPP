@@ -6,3 +6,7 @@ xmlstream
 
 .. autoclass:: XMLStream
     :members:
+
+.. toctree::
+
+    stanzabase

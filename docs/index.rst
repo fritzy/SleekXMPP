@@ -87,8 +87,10 @@ Tutorials, FAQs, and How To Guides
 .. toctree::
     :maxdepth: 1
    
+    faq
     xeps
     xmpp_tdg
+    create_stanzas
     create_plugin
     features
     sasl
@@ -118,7 +120,6 @@ API Reference
     api/clientxmpp
     api/basexmpp
     api/xmlstream
-    api/stanzabase
 
 Additional Info
 ---------------

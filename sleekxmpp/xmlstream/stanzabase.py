@@ -140,7 +140,7 @@ class ElementBase(object):
         >>> message['custom']['custom'] # Must use all interfaces
         'bar'
 
-    If the plugin sets the value is_extension = True, then both setting
+    If the plugin sets :attr:`is_extension` to ``True``, then both setting
     and getting an interface value that is the same as the plugin's
     plugin_attrib value will work, as so::
 
@@ -1087,12 +1087,12 @@ class ElementBase(object):
 class StanzaBase(ElementBase):
 
     """
-    StanzaBase provides the foundation for all other stanza objects used by
-    SleekXMPP, and defines a basic set of interfaces common to nearly
-    all stanzas. These interfaces are the 'id', 'type', 'to', and 'from'
-    attributes. An additional interface, 'payload', is available to access
-    the XML contents of the stanza. Most stanza objects will provided more
-    specific interfaces, however.
+    StanzaBase provides the foundation for all other stanza objects used
+    by SleekXMPP, and defines a basic set of interfaces common to nearly
+    all stanzas. These interfaces are the ``'id'``, ``'type'``, ``'to'``,
+    and ``'from'`` attributes. An additional interface, ``'payload'``, is
+    available to access the XML contents of the stanza. Most stanza objects
+    will provided more specific interfaces, however.
 
     **Stanza Interfaces:**
 

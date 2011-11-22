@@ -168,7 +168,6 @@ class TestHandlers(SleekTest):
         def handler_3(msg):
             msg.reply("Handler 3: %s" % msg['body']).send()
 
-        self.stream_start()
         self.xmpp.add_event_handler('message', handler_1)
         self.xmpp.add_event_handler('message', handler_2)
         self.xmpp.add_event_handler('message', handler_3)

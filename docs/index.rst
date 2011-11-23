@@ -110,8 +110,10 @@ API Reference
     
     event_index
     api/clientxmpp
+    api/componentxmpp
     api/basexmpp
-    api/xmlstream/index
+    api/xmlstream/stanzabase
+    api/xmlstream/tostring
 
 Additional Info
 ---------------

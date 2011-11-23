@@ -1,5 +1,5 @@
 ========
-basexmpp
+BaseXMPP
 ========
 
 .. module:: sleekxmpp.basexmpp

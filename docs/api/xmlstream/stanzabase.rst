@@ -1,13 +1,13 @@
 .. _stanzabase:
 
-==========
-stanzabase
-==========
+==============
+Stanza Objects
+==============
 
 .. module:: sleekxmpp.xmlstream.stanzabase
 
-The :mod:`sleekmxpp.xmlstream.stanzabase` module provides a wrapper for the
-standard :mod:`xml.etree.cElementTree` module that makes working with XML
+The :mod:`~sleekmxpp.xmlstream.stanzabase` module provides a wrapper for the
+standard :mod:`~xml.etree.ElementTree` module that makes working with XML
 less painful. Instead of having to manually move up and down an element
 tree and insert subelements and attributes, you can interact with an object
 that behaves like a normal dictionary or JSON object, which silently maps
@@ -52,7 +52,7 @@ elements of the original XML chunk.
 .. seealso::
     :ref:`create-stanza-interfaces`.
 
-Because the :mod:`sleekxmpp.xmlstream.stanzabase` module was developed
+Because the :mod:`~sleekxmpp.xmlstream.stanzabase` module was developed
 as part of an `XMPP <http://xmpp.org>`_ library, these chunks of XML are
 referred to as :term:`stanzas <stanza>`, and in SleekXMPP we refer to a
 subclass of :class:`ElementBase` which defines the interfaces needed for

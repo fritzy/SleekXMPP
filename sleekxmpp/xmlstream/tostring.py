@@ -27,9 +27,7 @@ def tostring(xml=None, xmlns='', stanza_ns='', stream=None,
     elements that use those namespaces will not include the xmlns attribute
     in the output.
 
-    :param XML xml: The XML object to serialize. If the value is ``None``,
-                    then the XML object contained in this stanza
-                    object will be used.
+    :param XML xml: The XML object to serialize.
     :param string xmlns: Optional namespace of an element wrapping the XML
                          object.
     :param string stanza_ns: The namespace of the stanza object that contains
@@ -40,6 +38,8 @@ def tostring(xml=None, xmlns='', stanza_ns='', stream=None,
     :param bool top_level: Indicates that the element is the outermost
                            element.
 
+
+    :type xml: :py:class:`~xml.etree.ElementTree.Element`
     :type stream: :class:`~sleekxmpp.xmlstream.xmlstream.XMLStream`
 
     :rtype: Unicode string
@@ -114,6 +114,7 @@ def xml_escape(text):
     """Convert special characters in XML to escape sequences.
 
     :param string text: The XML text to convert.
+    :rtype: Unicode string
     """
     if sys.version_info < (3, 0):
         if type(text) != types.UnicodeType:

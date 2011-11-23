@@ -114,6 +114,7 @@ API Reference
     api/basexmpp
     api/xmlstream/stanzabase
     api/xmlstream/tostring
+    api/xmlstream/filesocket
 
 Additional Info
 ---------------

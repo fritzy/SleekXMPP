@@ -1366,7 +1366,7 @@ class XMLStream(object):
                 try:
                     while sent < total and not self.stop.is_set():
                         try:
-                            sent += self.socket.send(data[sent:])
+                            sent += self.socket.send(enc_data[sent:])
                             count += 1
                         except ssl.SSLError as serr:
                             if tries >= self.ssl_retry_max:

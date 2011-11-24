@@ -60,6 +60,14 @@ HANDLER_THREADS = 1
 # Flag indicating if the SSL library is available for use.
 SSL_SUPPORT = True
 
+# The time in seconds to delay between attempts to resend data
+# after an SSL error.
+SSL_RETRY_DELAY = 0.5
+
+# The maximum number of times to attempt resending data due to
+# an SSL error.
+SSL_RETRY_MAX = 10
+
 # Maximum time to delay between connection attempts is one hour.
 RECONNECT_MAX_DELAY = 600
 
@@ -187,6 +195,8 @@ class XMLStream(object):
         self.response_timeout = RESPONSE_TIMEOUT
         self.reconnect_delay = None
         self.reconnect_max_delay = RECONNECT_MAX_DELAY
+        self.ssl_retry_max = SSL_RETRY_MAX
+        self.ssl_retry_delay = SSL_RETRY_DELAY
 
         self.state = StateMachine(('disconnected', 'connected'))
         self.state._set_state('disconnected')
@@ -1006,9 +1016,22 @@ class XMLStream(object):
                 total = len(data)
                 sent = 0
                 count = 0
+                tries = 0
                 while sent < total and not self.stop.is_set():
-                    sent += self.socket.send(data[sent:])
-                    count += 1
+                    try:
+                        sent += self.socket.send(data[sent:])
+                        count += 1
+                    except ssl.SSLError as serr:
+                        if tries >= self.ssl_retry_max:
+                            log.debug('SSL error - max retries reached')
+                            self.exception(serr)
+                            log.warning("Failed to send %s", data)
+                            if reconnect is None:
+                                reconnect = self.auto_reconnect
+                            self.disconnect(reconnect)
+                        log.warning('SSL write error - reattempting')
+                        time.sleep(self.ssl_retry_delay)
+                        tries += 1
                 if count > 1:
                     log.debug('SENT: %d chunks', count)
             except Socket.error as serr:
@@ -1335,14 +1358,27 @@ class XMLStream(object):
                     except queue.Empty:
                         continue
                 log.debug("SEND: %s", data)
+                enc_data = data.encode('utf-8')
+                total = len(enc_data)
+                sent = 0
+                count = 0
+                tries = 0
                 try:
-                    enc_data = data.encode('utf-8')
-                    total = len(enc_data)
-                    sent = 0
-                    count = 0
                     while sent < total and not self.stop.is_set():
-                        sent += self.socket.send(enc_data[sent:])
-                        count += 1
+                        try:
+                            sent += self.socket.send(data[sent:])
+                            count += 1
+                        except ssl.SSLError as serr:
+                            if tries >= self.ssl_retry_max:
+                                log.debug('SSL error - max retries reached')
+                                self.exception(serr)
+                                log.warning("Failed to send %s", data)
+                                if reconnect is None:
+                                    reconnect = self.auto_reconnect
+                                self.disconnect(reconnect)
+                            log.warning('SSL write error - reattempting')
+                            time.sleep(self.ssl_retry_delay)
+                            tries += 1
                     if count > 1:
                         log.debug('SENT: %d chunks', count)
                     self.send_queue.task_done()

@@ -172,6 +172,7 @@ class RosterItem(object):
         Save the item's state information to an external datastore,
         if one has been provided.
         """
+        self['subscription'] = self._subscription()
         if self.db:
             self.db.save(self.owner, self.jid,
                          self._state, self._db_state)

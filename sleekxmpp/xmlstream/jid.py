@@ -1,15 +1,22 @@
+# -*- coding: utf-8 -*-
 """
-    SleekXMPP: The Sleek XMPP Library
-    Copyright (C) 2010  Nathanael C. Fritz
-    This file is part of SleekXMPP.
+    sleekxmpp.xmlstream.jid
+    ~~~~~~~~~~~~~~~~~~~~~~~
 
-    See the file LICENSE for copying permission.
+    This module allows for working with Jabber IDs (JIDs) by
+    providing accessors for the various components of a JID.
+
+    Part of SleekXMPP: The Sleek XMPP Library
+
+    :copyright: (c) 2011 Nathanael C. Fritz
+    :license: MIT, see LICENSE for more details
 """
 
 from __future__ import unicode_literals
 
 
 class JID(object):
+
     """
     A representation of a Jabber ID, or JID.
 
@@ -19,18 +26,16 @@ class JID(object):
     When a resource is not used, the JID is called a bare JID.
     The JID is a full JID otherwise.
 
-    Attributes:
-        jid      -- Alias for 'full'.
-        full     -- The value of the full JID.
-        bare     -- The value of the bare JID.
-        user     -- The username portion of the JID.
-        domain   -- The domain name portion of the JID.
-        server   -- Alias for 'domain'.
-        resource -- The resource portion of the JID.
+    **JID Properties:**
+        :jid: Alias for ``full``.
+        :full: The value of the full JID.
+        :bare: The value of the bare JID.
+        :user: The username portion of the JID.
+        :domain: The domain name portion of the JID.
+        :server: Alias for ``domain``.
+        :resource: The resource portion of the JID.
 
-    Methods:
-        reset      -- Use a new JID value.
-        regenerate -- Recreate the JID from its components.
+    :param string jid: A string of the form ``'[user@]domain[/resource]'``.
     """
 
     def __init__(self, jid):
@@ -38,11 +43,9 @@ class JID(object):
         self.reset(jid)
 
     def reset(self, jid):
-        """
-        Start fresh from a new JID string.
+        """Start fresh from a new JID string.
 
-        Arguments:
-            jid - The new JID value.
+        :param string jid: A string of the form ``'[user@]domain[/resource]'``.
         """
         if isinstance(jid, JID):
             jid = jid.full
@@ -53,12 +56,10 @@ class JID(object):
         self._bare = None
 
     def __getattr__(self, name):
-        """
-        Handle getting the JID values, using cache if available.
+        """Handle getting the JID values, using cache if available.
 
-        Arguments:
-            name -- One of: user, server, domain, resource,
-                    full, or bare.
+        :param name: One of: user, server, domain, resource,
+                     full, or bare.
         """
         if name == 'resource':
             if self._resource is None and '/' in self._jid:
@@ -83,8 +84,7 @@ class JID(object):
             return self._bare or ""
 
     def __setattr__(self, name, value):
-        """
-        Edit a JID by updating it's individual values, resetting the
+        """Edit a JID by updating it's individual values, resetting the
         generated JID in the end.
 
         Arguments:
@@ -137,7 +137,5 @@ class JID(object):
         return self.full == other.full
 
     def __ne__(self, other):
-        """
-        Two JIDs are considered unequal if they are not equal.
-        """
+        """Two JIDs are considered unequal if they are not equal."""
         return not self == other

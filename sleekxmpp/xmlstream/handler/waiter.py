@@ -1,9 +1,12 @@
+# -*- coding: utf-8 -*-
 """
-    SleekXMPP: The Sleek XMPP Library
-    Copyright (C) 2010  Nathanael C. Fritz
-    This file is part of SleekXMPP.
+    sleekxmpp.xmlstream.handler.waiter
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    See the file LICENSE for copying permission.
+    Part of SleekXMPP: The Sleek XMPP Library
+
+    :copyright: (c) 2011 Nathanael C. Fritz
+    :license: MIT, see LICENSE for more details
 """
 
 import logging
@@ -22,67 +25,46 @@ log = logging.getLogger(__name__)
 class Waiter(BaseHandler):
 
     """
-    The Waiter handler allows an event handler to block
-    until a particular stanza has been received. The handler
-    will either be given the matched stanza, or False if the
-    waiter has timed out.
+    The Waiter handler allows an event handler to block until a
+    particular stanza has been received. The handler will either be
+    given the matched stanza, or ``False`` if the waiter has timed out.
 
-    Methods:
-        check_delete -- Overrides BaseHandler.check_delete
-        prerun       -- Overrides BaseHandler.prerun
-        run          -- Overrides BaseHandler.run
-        wait         -- Wait for a stanza to arrive and return it to
-                        an event handler.
+    :param string name: The name of the handler.
+    :param matcher: A :class:`~sleekxmpp.xmlstream.matcher.base.MatcherBase`
+                    derived object for matching stanza objects.
+    :param stream: The :class:`~sleekxmpp.xmlstream.xmlstream.XMLStream`
+                   instance this handler should monitor.
     """
 
     def __init__(self, name, matcher, stream=None):
-        """
-        Create a new Waiter.
-
-        Arguments:
-            name    -- The name of the waiter.
-            matcher -- A matcher object to detect the desired stanza.
-            stream  -- Optional XMLStream instance to monitor.
-        """
         BaseHandler.__init__(self, name, matcher, stream=stream)
         self._payload = queue.Queue()
 
     def prerun(self, payload):
-        """
-        Store the matched stanza.
+        """Store the matched stanza when received during processing.
 
-        Overrides BaseHandler.prerun
-
-        Arguments:
-            payload -- The matched stanza object.
+        :param payload: The matched
+            :class:`~sleekxmpp.xmlstream.stanzabase.ElementBase` object.
         """
         self._payload.put(payload)
 
     def run(self, payload):
-        """
-        Do not process this handler during the main event loop.
-
-        Overrides BaseHandler.run
-
-        Arguments:
-            payload -- The matched stanza object.
-        """
+        """Do not process this handler during the main event loop."""
         pass
 
     def wait(self, timeout=None):
-        """
-        Block an event handler while waiting for a stanza to arrive.
+        """Block an event handler while waiting for a stanza to arrive.
 
         Be aware that this will impact performance if called from a
         non-threaded event handler.
 
-        Will return either the received stanza, or False if the waiter
-        timed out.
+        Will return either the received stanza, or ``False`` if the
+        waiter timed out.
 
-        Arguments:
-            timeout -- The number of seconds to wait for the stanza to
-                       arrive. Defaults to the global default timeout
-                       value sleekxmpp.xmlstream.RESPONSE_TIMEOUT.
+        :param int timeout: The number of seconds to wait for the stanza
+            to arrive. Defaults to the the stream's
+            :class:`~sleekxmpp.xmlstream.xmlstream.XMLStream.response_timeout`
+            value.
         """
         if timeout is None:
             timeout = self.stream().response_timeout
@@ -101,9 +83,5 @@ class Waiter(BaseHandler):
         return stanza
 
     def check_delete(self):
-        """
-        Always remove waiters after use.
-
-        Overrides BaseHandler.check_delete
-        """
+        """Always remove waiters after use."""
         return True

@@ -1,9 +1,12 @@
+# -*- coding: utf-8 -*-
 """
-    SleekXMPP: The Sleek XMPP Library
-    Copyright (C) 2010  Nathanael C. Fritz
-    This file is part of SleekXMPP.
+    sleekxmpp.xmlstream.matcher.id
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    See the file LICENSE for copying permission.
+    Part of SleekXMPP: The Sleek XMPP Library
+
+    :copyright: (c) 2011 Nathanael C. Fritz
+    :license: MIT, see LICENSE for more details
 """
 
 from sleekxmpp.xmlstream.matcher.base import MatcherBase
@@ -14,19 +17,13 @@ class MatcherId(MatcherBase):
     """
     The ID matcher selects stanzas that have the same stanza 'id'
     interface value as the desired ID.
-
-    Methods:
-        match -- Overrides MatcherBase.match.
     """
 
     def match(self, xml):
-        """
-        Compare the given stanza's 'id' attribute to the stored
-        id value.
+        """Compare the given stanza's ``'id'`` attribute to the stored
+        ``id`` value.
 
-        Overrides MatcherBase.match.
-
-        Arguments:
-            xml -- The stanza to compare against.
+        :param xml: The :class:`~sleekxmpp.xmlstream.stanzabase.ElementBase`
+                    stanza to compare against.
         """
         return xml['id'] == self._criteria

@@ -112,6 +112,7 @@ API Reference
     api/clientxmpp
     api/componentxmpp
     api/basexmpp
+    api/exceptions
     api/xmlstream/jid
     api/xmlstream/stanzabase
     api/xmlstream/handler

@@ -1,9 +1,12 @@
+# -*- coding: utf-8 -*-
 """
-    SleekXMPP: The Sleek XMPP Library
-    Copyright (C) 2010  Nathanael C. Fritz
-    This file is part of SleekXMPP.
+    sleekxmpp.exceptions
+    ~~~~~~~~~~~~~~~~~~~~
 
-    See the file LICENSE for copying permission.
+    Part of SleekXMPP: The Sleek XMPP Library
+
+    :copyright: (c) 2011 Nathanael C. Fritz
+    :license: MIT, see LICENSE for more details
 """
 
 
@@ -13,37 +16,35 @@ class XMPPError(Exception):
     A generic exception that may be raised while processing an XMPP stanza
     to indicate that an error response stanza should be sent.
 
-    The exception method for stanza objects extending RootStanza will create
-    an error stanza and initialize any additional substanzas using the
-    extension information included in the exception.
+    The exception method for stanza objects extending
+    :class:`~sleekxmpp.stanza.rootstanza.RootStanza` will create an error
+    stanza and initialize any additional substanzas using the extension
+    information included in the exception.
 
     Meant for use in SleekXMPP plugins and applications using SleekXMPP.
+
+    Extension information can be included to add additional XML elements
+    to the generated error stanza.
+
+    :param condition: The XMPP defined error condition.
+                      Defaults to ``'undefined-condition'``.
+    :param text: Human readable text describing the error.
+    :param etype: The XMPP error type, such as ``'cancel'`` or ``'modify'``.
+                  Defaults to ``'cancel'``.
+    :param extension: Tag name of the extension's XML content.
+    :param extension_ns: XML namespace of the extensions' XML content.
+    :param extension_args: Content and attributes for the extension
+                           element. Same as the additional arguments to
+                           the :class:`~xml.etree.ElementTree.Element`
+                           constructor.
+    :param clear: Indicates if the stanza's contents should be
+                  removed before replying with an error.
+                  Defaults to ``True``.
     """
 
     def __init__(self, condition='undefined-condition', text=None,
                 etype='cancel', extension=None, extension_ns=None,
                 extension_args=None, clear=True):
-        """
-        Create a new XMPPError exception.
-
-        Extension information can be included to add additional XML elements
-        to the generated error stanza.
-
-        Arguments:
-            condition      -- The XMPP defined error condition.
-                              Defaults to 'undefined-condition'.
-            text           -- Human readable text describing the error.
-            etype          -- The XMPP error type, such as cancel or modify.
-                              Defaults to 'cancel'.
-            extension      -- Tag name of the extension's XML content.
-            extension_ns   -- XML namespace of the extensions' XML content.
-            extension_args -- Content and attributes for the extension
-                              element. Same as the additional arguments to
-                              the ET.Element constructor.
-            clear          -- Indicates if the stanza's contents should be
-                              removed before replying with an error.
-                              Defaults to True.
-        """
         if extension_args is None:
             extension_args = {}
 
@@ -68,6 +69,8 @@ class IqTimeout(XMPPError):
                 condition='remote-server-timeout',
                 etype='cancel')
 
+        #: The :class:`~sleekxmpp.stanza.iq.Iq` stanza whose response 
+        #: did not arrive before the timeout expired.
         self.iq = iq
 
 class IqError(XMPPError):
@@ -83,4 +86,5 @@ class IqError(XMPPError):
                 text=iq['error']['text'],
                 etype=iq['error']['type'])
 
+        #: The :class:`~sleekxmpp.stanza.iq.Iq` error result stanza.
         self.iq = iq

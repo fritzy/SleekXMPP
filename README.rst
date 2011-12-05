@@ -151,7 +151,7 @@ SleekXMPP projects::
                             format='%(levelname)-8s %(message)s')
 
         xmpp = EchoBot('somejid@example.com', 'use_getpass')
-        xmpp.connect():
+        xmpp.connect()
         xmpp.process(block=True)
 
 

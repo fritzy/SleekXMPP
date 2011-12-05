@@ -116,9 +116,28 @@ API Reference
     api/xmlstream/stanzabase
     api/xmlstream/handler
     api/xmlstream/matcher
+    api/xmlstream/xmlstream
     api/xmlstream/scheduler
     api/xmlstream/tostring
     api/xmlstream/filesocket
+
+Core Stanzas
+~~~~~~~~~~~~
+.. toctree::
+    :maxdepth: 2
+
+    api/stanza/rootstanza
+    api/stanza/message
+    api/stanza/presence
+    api/stanza/iq
+    api/stanza/error
+    api/stanza/stream_error
+
+Plugins
+~~~~~~~
+.. toctree::
+    :maxdepth: 2
+
 
 Additional Info
 ---------------

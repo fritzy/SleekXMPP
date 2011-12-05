@@ -116,6 +116,7 @@ API Reference
     api/xmlstream/stanzabase
     api/xmlstream/handler
     api/xmlstream/matcher
+    api/xmlstream/scheduler
     api/xmlstream/tostring
     api/xmlstream/filesocket
 

@@ -1,9 +1,15 @@
+# -*- coding: utf-8 -*-
 """
-    SleekXMPP: The Sleek XMPP Library
-    Copyright (C) 2010  Nathanael C. Fritz
-    This file is part of SleekXMPP.
+    sleekxmpp.clientxmpp
+    ~~~~~~~~~~~~~~~~~~~~
 
-    See the file LICENSE for copying permission.
+    This module provides XMPP functionality that
+    is specific to external server component connections.
+
+    Part of SleekXMPP: The Sleek XMPP Library
+
+    :copyright: (c) 2011 Nathanael C. Fritz
+    :license: MIT, see LICENSE for more details
 """
 
 from __future__ import absolute_import
@@ -32,28 +38,22 @@ class ComponentXMPP(BaseXMPP):
 
     Use only for good, not for evil.
 
-    Methods:
-        connect              -- Overrides XMLStream.connect.
-        incoming_filter      -- Overrides XMLStream.incoming_filter.
-        start_stream_handler -- Overrides XMLStream.start_stream_handler.
+    :param jid: The JID of the component.
+    :param secret: The secret or password for the component.
+    :param host: The server accepting the component.
+    :param port: The port used to connect to the server.
+    :param plugin_config: A dictionary of plugin configurations.
+    :param plugin_whitelist: A list of approved plugins that 
+                    will be loaded when calling 
+                    :meth:`~sleekxmpp.basexmpp.BaseXMPP.register_plugins()`.
+    :param use_jc_ns: Indicates if the ``'jabber:client'`` namespace
+                      should be used instead of the standard
+                      ``'jabber:component:accept'`` namespace.
+                      Defaults to ``False``.
     """
 
-    def __init__(self, jid, secret, host, port,
+    def __init__(self, jid, secret, host=None, port=None,
                  plugin_config={}, plugin_whitelist=[], use_jc_ns=False):
-        """
-        Arguments:
-            jid              -- The JID of the component.
-            secret           -- The secret or password for the component.
-            host             -- The server accepting the component.
-            port             -- The port used to connect to the server.
-            plugin_config    -- A dictionary of plugin configurations.
-            plugin_whitelist -- A list of desired plugins to load
-                                when using register_plugins.
-            use_js_ns        -- Indicates if the 'jabber:client' namespace
-                                should be used instead of the standard
-                                'jabber:component:accept' namespace.
-                                Defaults to False.
-        """
         if use_jc_ns:
             default_ns = 'jabber:client'
         else:
@@ -81,26 +81,42 @@ class ComponentXMPP(BaseXMPP):
         self.add_event_handler('presence_probe',
                                self._handle_probe)
 
-    def connect(self):
-        """
-        Connect to the server.
+    def connect(self, host=None, port=None, use_ssl=False, 
+                      use_tls=True, reattempt=True):
+        """Connect to the server.
 
-        Overrides XMLStream.connect.
+        Setting ``reattempt`` to ``True`` will cause connection attempts to
+        be made every second until a successful connection is established.
+
+        :param host: The name of the desired server for the connection.
+                     Defaults to :attr:`server_host`.
+        :param port: Port to connect to on the server.
+                     Defauts to :attr:`server_port`.
+        :param use_ssl: Flag indicating if SSL should be used by connecting
+                        directly to a port using SSL.
+        :param use_tls: Flag indicating if TLS should be used, allowing for
+                        connecting to a port without using SSL immediately and
+                        later upgrading the connection.
+        :param reattempt: Flag indicating if the socket should reconnect
+                          after disconnections.
         """
-        log.debug("Connecting to %s:%s", self.server_host,
-                                         self.server_port)
-        return XMLStream.connect(self, self.server_host,
-                                       self.server_port)
+        if host is None:
+            host = self.server_host
+        if port is None:
+            port = self.server_port
+        log.debug("Connecting to %s:%s", host, port)
+        return XMLStream.connect(self, host=host, port=port,
+                                       use_ssl=use_ssl,
+                                       use_tls=use_tls,
+                                       reattempt=reattempt)
 
     def incoming_filter(self, xml):
         """
-        Pre-process incoming XML stanzas by converting any 'jabber:client'
-        namespaced elements to the component's default namespace.
+        Pre-process incoming XML stanzas by converting any
+        ``'jabber:client'`` namespaced elements to the component's
+        default namespace.
 
-        Overrides XMLStream.incoming_filter.
-
-        Arguments:
-            xml -- The XML stanza to pre-process.
+        :param xml: The XML stanza to pre-process.
         """
         if xml.tag.startswith('{jabber:client}'):
             xml.tag = xml.tag.replace('jabber:client', self.default_ns)
@@ -117,10 +133,7 @@ class ComponentXMPP(BaseXMPP):
         Once the streams are established, attempt to handshake
         with the server to be accepted as a component.
 
-        Overrides BaseXMPP.start_stream_handler.
-
-        Arguments:
-            xml -- The incoming stream's root element.
+        :param xml: The incoming stream's root element.
         """
         BaseXMPP.start_stream_handler(self, xml)
 
@@ -136,11 +149,9 @@ class ComponentXMPP(BaseXMPP):
         self.send_xml(handshake, now=True)
 
     def _handle_handshake(self, xml):
-        """
-        The handshake has been accepted.
+        """The handshake has been accepted.
 
-        Arguments:
-            xml -- The reply handshake stanza.
+        :param xml: The reply handshake stanza.
         """
         self.session_started_event.set()
         self.event("session_start")

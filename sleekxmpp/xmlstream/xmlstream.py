@@ -398,7 +398,16 @@ class XMLStream(object):
             delay = min(self.reconnect_delay * 2, self.reconnect_max_delay)
             delay = random.normalvariate(delay, delay * 0.1)
             log.debug('Waiting %s seconds before connecting.', delay)
-            time.sleep(delay)
+            elapsed = 0
+            try:
+                while elapsed < delay and not self.stop.is_set():
+                    time.sleep(0.1)
+            except KeyboardInterrupt:
+                self.stop.set()
+                return False
+            except SystemExit:
+                self.stop.set()
+                return False
 
         if self.use_proxy:
             connected = self._connect_proxy()

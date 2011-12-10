@@ -87,7 +87,7 @@ def date(year=None, month=None, day=None):
         month  -- Integer value of the month
         day    -- Integer value of the day of the month.
     """
-    today = dt.datetime.today()
+    today = dt.datetime.utcnow()
     if year is None:
         year = today.year
     if month is None:

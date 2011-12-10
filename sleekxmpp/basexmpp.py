@@ -227,14 +227,14 @@ class BaseXMPP(XMLStream):
             self.plugin[plugin] = getattr(module, plugin)(self, pconfig)
 
             # Let XEP/RFC implementing plugins have some extra logging info.
-            spec = '(CUSTOM) '
+            spec = '(CUSTOM) %s'
             if self.plugin[plugin].xep:
                 spec = "(XEP-%s) " % self.plugin[plugin].xep
             elif self.plugin[plugin].rfc:
                 spec = "(RFC-%s) " % self.plugin[plugin].rfc
 
             desc = (spec, self.plugin[plugin].description)
-            log.debug("Loaded Plugin %s", desc)
+            log.debug("Loaded Plugin %s %s" % desc)
         except:
             log.exception("Unable to load plugin: %s", plugin)
 

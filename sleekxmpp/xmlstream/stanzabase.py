@@ -290,12 +290,11 @@ class ElementBase(object):
         # Initialize values using provided XML
         for child in self.xml.getchildren():
             if child.tag in self.plugin_tag_map:
-                plugin = self.plugin_tag_map[child.tag]
-                self.plugins[plugin.plugin_attrib] = plugin(child, self)
-            for sub in self.plugin_iterables:
-                if child.tag == "{%s}%s" % (sub.namespace, sub.name):
-                    self.iterables.append(sub(child, self))
-                    break
+                plugin_class = self.plugin_tag_map[child.tag]
+                plugin = plugin_class(child, self)
+                self.plugins[plugin.plugin_attrib] = plugin
+                if plugin_class in self.plugin_iterables:
+                    self.iterables.append(plugin)
 
     def setup(self, xml=None):
         """Initialize the stanza's XML contents.
@@ -346,7 +345,10 @@ class ElementBase(object):
         """
         if attrib not in self.plugins:
             plugin_class = self.plugin_attrib_map[attrib]
-            self.plugins[attrib] = plugin_class(parent=self)
+            plugin = plugin_class(parent=self)
+            self.plugins[attrib] = plugin
+            if plugin_class in self.plugin_iterables:
+                self.iterables.append(plugin)
         return self
 
     def _get_stanza_values(self):

@@ -68,7 +68,10 @@ class TestElementBase(SleekTest):
                     'baz': '',
                     'foo2': {'bar': '',
                              'baz': 'b'},
-                    'substanzas': [{'__childtag__': '{foo}subfoo',
+                    'substanzas': [{'__childtag__': '{foo}foo2',
+                                    'bar': '',
+                                    'baz': 'b'},
+                                   {'__childtag__': '{foo}subfoo',
                                     'bar': 'c',
                                     'baz': ''}]}
         self.failUnless(values == expected,

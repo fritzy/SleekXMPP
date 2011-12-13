@@ -750,6 +750,16 @@ class XMLStream(object):
         These filters are applied before incoming stanzas are
         passed to any handlers, and before outgoing stanzas
         are put in the send queue.
+
+        Each filter must accept a single stanza, and return
+        either a stanza or ``None``. If the filter returns
+        ``None``, then the stanza will be dropped from being
+        processed for events or from being sent.
+
+        :param mode: One of ``'in'`` or ``'out'``.
+        :param handler: The filter function.
+        :param int order: The position to insert the filter in
+                          the list of active filters.
         """
         if order:
             self.__filters[mode].insert(order, handler)

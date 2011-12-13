@@ -96,11 +96,11 @@ class Form(ElementBase):
         self.xml.append(itemXML)
         reported_vars = self['reported'].keys()
         for var in reported_vars:
-            fieldXML = ET.Element('{%s}field' % FormField.namespace)
-            itemXML.append(fieldXML)
-            field = FormField(xml=fieldXML)
+            field = FormField()
+            field._type = self['reported'][var]['type']
             field['var'] = var
             field['value'] = values.get(var, None)
+            itemXML.append(field.xml)
 
     def add_reported(self, var, ftype=None, label='', desc='', **kwargs):
         kwtype = kwargs.get('type', None)
@@ -159,7 +159,7 @@ class Form(ElementBase):
         items = []
         itemsXML = self.xml.findall('{%s}item' % self.namespace)
         for itemXML in itemsXML:
-            item = {}
+            item = OrderedDict()
             fieldsXML = itemXML.findall('{%s}field' % FormField.namespace)
             for fieldXML in fieldsXML:
                 field = FormField(xml=fieldXML)
@@ -168,7 +168,7 @@ class Form(ElementBase):
         return items
 
     def get_reported(self):
-        fields = {}
+        fields = OrderedDict()
         xml = self.xml.findall('{%s}reported/{%s}field' % (self.namespace,
                                      FormField.namespace))
         for field in xml:
@@ -177,7 +177,7 @@ class Form(ElementBase):
         return fields
 
     def get_values(self):
-        values = {}
+        values = OrderedDict()
         fields = self['fields']
         for var in fields:
             values[var] = fields[var]['value']

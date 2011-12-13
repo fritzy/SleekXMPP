@@ -551,11 +551,14 @@ class xep_0030(base_plugin):
                                           jid,
                                           iq['disco_info']['node'],
                                           iq)
-            iq.reply()
-            if info:
-                info = self._fix_default_info(info)
-                iq.set_payload(info.xml)
-            iq.send()
+            if isinstance(info, Iq):
+                info.send()
+            else:
+                iq.reply()
+                if info:
+                    info = self._fix_default_info(info)
+                    iq.set_payload(info.xml)
+                iq.send()
         elif iq['type'] == 'result':
             log.debug("Received disco info result from" + \
                       "%s to %s.", iq['from'], iq['to'])
@@ -581,10 +584,13 @@ class xep_0030(base_plugin):
                                           jid,
                                           iq['disco_items']['node'],
                                           iq)
-            iq.reply()
-            if items:
-                iq.set_payload(items.xml)
-            iq.send()
+            if isinstance(items, Iq):
+                items.send()
+            else:
+                iq.reply()
+                if items:
+                    iq.set_payload(items.xml)
+                iq.send()
         elif iq['type'] == 'result':
             log.debug("Received disco items result from" + \
                       "%s to %s.", iq['from'], iq['to'])

@@ -96,11 +96,11 @@ class Form(ElementBase):
         self.xml.append(itemXML)
         reported_vars = self['reported'].keys()
         for var in reported_vars:
-            fieldXML = ET.Element('{%s}field' % FormField.namespace)
-            itemXML.append(fieldXML)
-            field = FormField(xml=fieldXML)
+            field = FormField()
+            field._type = self['reported'][var]['type']
             field['var'] = var
             field['value'] = values.get(var, None)
+            itemXML.append(field.xml)
 
     def add_reported(self, var, ftype=None, label='', desc='', **kwargs):
         kwtype = kwargs.get('type', None)

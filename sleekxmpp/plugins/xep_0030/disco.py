@@ -579,7 +579,8 @@ class xep_0030(base_plugin):
                 jid = iq['to'].bare
             items = self._run_node_handler('get_items',
                                           jid,
-                                          iq['disco_items']['node'])
+                                          iq['disco_items']['node'],
+                                          iq)
             iq.reply()
             if items:
                 iq.set_payload(items.xml)

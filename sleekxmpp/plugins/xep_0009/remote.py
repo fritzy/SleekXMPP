@@ -113,6 +113,9 @@ class ACL:
     def check(cls, rules, jid, resource):
         if rules is None:
             return cls.DENY                  # No rules means no access!
+        jid = str(jid)     # Check the string representation of the JID.
+        if not jid:
+            return cls.DENY                  # Can't check an empty JID.
         for rule in rules:
             policy = cls._check(rule, jid, resource)
             if policy is not None:

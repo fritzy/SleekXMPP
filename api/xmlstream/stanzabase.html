@@ -1,0 +1,1659 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Stanza Objects &mdash; SleekXMPP</title>
+    
+    <link rel="stylesheet" href="../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0RC3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="SleekXMPP" href="../../index.html" />
+    <link rel="next" title="Stanza Handlers" href="handler.html" />
+    <link rel="prev" title="Jabber IDs (JID)" href="jid.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="handler.html" title="Stanza Handlers"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="jid.html" title="Jabber IDs (JID)"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">1.0RC3 Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-sleekxmpp.xmlstream.stanzabase">
+<span id="stanza-objects"></span><span id="stanzabase"></span><h1>Stanza Objects<a class="headerlink" href="#module-sleekxmpp.xmlstream.stanzabase" title="Permalink to this headline">¶</a></h1>
+<p>The <tt class="xref py py-mod docutils literal"><span class="pre">stanzabase</span></tt> module provides a wrapper for the
+standard <a class="reference external" href="http://docs.python.org/3.2/library/xml.etree.elementtree.html#xml.etree.ElementTree" title="(in Python v3.2)"><tt class="xref py py-mod docutils literal"><span class="pre">ElementTree</span></tt></a> module that makes working with XML
+less painful. Instead of having to manually move up and down an element
+tree and insert subelements and attributes, you can interact with an object
+that behaves like a normal dictionary or JSON object, which silently maps
+keys to XML attributes and elements behind the scenes.</p>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>The usefulness of this layer grows as the XML you have to work with
+becomes nested. The base unit here, <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase" title="sleekxmpp.xmlstream.stanzabase.ElementBase"><tt class="xref py py-class docutils literal"><span class="pre">ElementBase</span></tt></a>, can map to a
+single XML element, or several depending on how advanced of a mapping
+is desired from interface keys to XML structures. For example, a single
+<a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase" title="sleekxmpp.xmlstream.stanzabase.ElementBase"><tt class="xref py py-class docutils literal"><span class="pre">ElementBase</span></tt></a> derived class could easily describe:</p>
+<div class="highlight-xml"><div class="highlight"><pre><span class="nt">&lt;message</span> <span class="na">to=</span><span class="s">&quot;user@example.com&quot;</span> <span class="na">from=</span><span class="s">&quot;friend@example.com&quot;</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;body&gt;</span>Hi!<span class="nt">&lt;/body&gt;</span>
+  <span class="nt">&lt;x:extra&gt;</span>
+    <span class="nt">&lt;x:item&gt;</span>Custom item 1<span class="nt">&lt;/x:item&gt;</span>
+    <span class="nt">&lt;x:item&gt;</span>Custom item 2<span class="nt">&lt;/x:item&gt;</span>
+    <span class="nt">&lt;x:item&gt;</span>Custom item 3<span class="nt">&lt;/x:item&gt;</span>
+  <span class="nt">&lt;/x:extra&gt;</span>
+<span class="nt">&lt;/message&gt;</span>
+</pre></div>
+</div>
+<p>If that chunk of XML were put in the <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase" title="sleekxmpp.xmlstream.stanzabase.ElementBase"><tt class="xref py py-class docutils literal"><span class="pre">ElementBase</span></tt></a> instance
+<tt class="docutils literal"><span class="pre">msg</span></tt>, we could extract the data from the XML using:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">msg</span><span class="p">[</span><span class="s">&#39;extra&#39;</span><span class="p">]</span>
+<span class="go">[&#39;Custom item 1&#39;, &#39;Custom item 2&#39;, &#39;Custom item 3&#39;]</span>
+</pre></div>
+</div>
+<p>Provided we set up the handler for the <tt class="docutils literal"><span class="pre">'extra'</span></tt> interface to load the
+<tt class="docutils literal"><span class="pre">&lt;x:item&gt;</span></tt> element content into a list.</p>
+<p>The key concept is that given an XML structure that will be repeatedly
+used, we can define a set of <em class="xref std std-term">interfaces</em> which when we read from,
+write to, or delete, will automatically manipulate the underlying XML
+as needed. In addition, some of these interfaces may in turn reference
+child objects which expose interfaces for particularly complex child
+elements of the original XML chunk.</p>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="../../howto/stanzas.html#create-stanza-interfaces"><em>Defining Stanza Interfaces</em></a>.</p>
+</div>
+<p>Because the <a class="reference internal" href="#module-sleekxmpp.xmlstream.stanzabase" title="sleekxmpp.xmlstream.stanzabase"><tt class="xref py py-mod docutils literal"><span class="pre">stanzabase</span></tt></a> module was developed
+as part of an <a class="reference external" href="http://xmpp.org">XMPP</a> library, these chunks of XML are
+referred to as <em class="xref std std-term">stanzas</em>, and in SleekXMPP we refer to a
+subclass of <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase" title="sleekxmpp.xmlstream.stanzabase.ElementBase"><tt class="xref py py-class docutils literal"><span class="pre">ElementBase</span></tt></a> which defines the interfaces needed for
+interacting with a given <em class="xref std std-term">stanza</em> a <a class="reference internal" href="../../glossary.html#term-stanza-object"><em class="xref std std-term">stanza object</em></a>.</p>
+<p>To make dealing with more complicated and nested <em class="xref std std-term">stanzas</em>
+or XML chunks easier, <a class="reference internal" href="../../glossary.html#term-stanza-object"><em class="xref std std-term">stanza objects</em></a> can be
+composed in two ways: as iterable child objects or as plugins. Iterable
+child stanzas, or <em class="xref std std-term">substanzas</em>, are accessible through a special
+<tt class="docutils literal"><span class="pre">'substanzas'</span></tt> interface. This option is useful for stanzas which
+may contain more than one of the same kind of element. When there is
+only one child element, the plugin method is more useful. For plugins,
+a parent stanza object delegates one of its XML child elements to the
+plugin stanza object. Here is an example:</p>
+<div class="highlight-xml"><div class="highlight"><pre><span class="nt">&lt;iq</span> <span class="na">type=</span><span class="s">&quot;result&quot;</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;query</span> <span class="na">xmlns=</span><span class="s">&quot;http://jabber.org/protocol/disco#info&quot;</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;identity</span> <span class="na">category=</span><span class="s">&quot;client&quot;</span> <span class="na">type=</span><span class="s">&quot;bot&quot;</span> <span class="na">name=</span><span class="s">&quot;SleekXMPP Bot&quot;</span> <span class="nt">/&gt;</span>
+  <span class="nt">&lt;/query&gt;</span>
+<span class="nt">&lt;/iq&gt;</span>
+</pre></div>
+</div>
+<p>We can can arrange this stanza into two objects: an outer, wrapper object for
+dealing with the <tt class="docutils literal"><span class="pre">&lt;iq</span> <span class="pre">/&gt;</span></tt> element and its attributes, and a plugin object to
+control the <tt class="docutils literal"><span class="pre">&lt;query</span> <span class="pre">/&gt;</span></tt> payload element. If we give the plugin object the
+name <tt class="docutils literal"><span class="pre">'disco_info'</span></tt> (using its <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib" title="sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib"><tt class="xref py py-attr docutils literal"><span class="pre">ElementBase.plugin_attrib</span></tt></a> value), then
+we can access the plugin as so:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">iq</span><span class="p">[</span><span class="s">&#39;disco_info&#39;</span><span class="p">]</span>
+<span class="go">&#39;&lt;query xmlns=&quot;http://jabber.org/protocol/disco#info&quot;&gt;</span>
+<span class="go">  &lt;identity category=&quot;client&quot; type=&quot;bot&quot; name=&quot;SleekXMPP Bot&quot; /&gt;</span>
+<span class="go">&lt;/query&gt;&#39;</span>
+</pre></div>
+</div>
+<p>We can then drill down through the plugin object&#8217;s interfaces as desired:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">iq</span><span class="p">[</span><span class="s">&#39;disco_info&#39;</span><span class="p">][</span><span class="s">&#39;identities&#39;</span><span class="p">]</span>
+<span class="go">[(&#39;client&#39;, &#39;bot&#39;, &#39;SleekXMPP Bot&#39;)]</span>
+</pre></div>
+</div>
+<p>Plugins may also add new interfaces to the parent stanza object as if they
+had been defined by the parent directly, and can also override the behaviour
+of an interface defined by the parent.</p>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<ul class="last simple">
+<li><a class="reference internal" href="../../howto/stanzas.html#create-stanza-plugins"><em>Creating Stanza Plugins</em></a></li>
+<li><a class="reference internal" href="../../howto/stanzas.html#create-extension-plugins"><em>Creating a Stanza Extension</em></a></li>
+<li><a class="reference internal" href="../../howto/stanzas.html#override-parent-interfaces"><em>Overriding a Parent Stanza</em></a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="registering-stanza-plugins">
+<h2>Registering Stanza Plugins<a class="headerlink" href="#registering-stanza-plugins" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="sleekxmpp.xmlstream.stanzabase.register_stanza_plugin">
+<tt class="descclassname">sleekxmpp.xmlstream.stanzabase.</tt><tt class="descname">register_stanza_plugin</tt><big>(</big><em>stanza</em>, <em>plugin</em>, <em>iterable=False</em>, <em>overrides=False</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#register_stanza_plugin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.register_stanza_plugin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Associate a stanza object as a plugin for another stanza.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sleekxmpp.xmlstream</span> <span class="kn">import</span> <span class="n">register_stanza_plugin</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">register_stanza_plugin</span><span class="p">(</span><span class="n">Iq</span><span class="p">,</span> <span class="n">CustomStanza</span><span class="p">)</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>stanza</strong> (<em>class</em>) &#8211; The class of the parent stanza.</li>
+<li><strong>plugin</strong> (<em>class</em>) &#8211; The class of the plugin stanza.</li>
+<li><strong>iterable</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/functions.html#bool" title="(in Python v3.2)"><em>bool</em></a>) &#8211; Indicates if the plugin stanza should be
+included in the parent stanza&#8217;s iterable
+<tt class="docutils literal"><span class="pre">'substanzas'</span></tt> interface results.</li>
+<li><strong>overrides</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/functions.html#bool" title="(in Python v3.2)"><em>bool</em></a>) &#8211; Indicates if the plugin should be allowed
+to override the interface handlers for
+the parent stanza, based on the plugin&#8217;s
+<tt class="docutils literal"><span class="pre">overrides</span></tt> field.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="versionadded">
+<span class="versionmodified">New in version 1.0-Beta1: </span>Made <tt class="docutils literal"><span class="pre">register_stanza_plugin</span></tt> the default name. The prior
+<tt class="docutils literal"><span class="pre">registerStanzaPlugin</span></tt> function name remains as an alias.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="elementbase">
+<h2>ElementBase<a class="headerlink" href="#elementbase" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase">
+<em class="property">class </em><tt class="descclassname">sleekxmpp.xmlstream.stanzabase.</tt><tt class="descname">ElementBase</tt><big>(</big><em>xml=None</em>, <em>parent=None</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#ElementBase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase" title="Permalink to this definition">¶</a></dt>
+<dd><p>The core of SleekXMPP&#8217;s stanza XML manipulation and handling is provided
+by ElementBase. ElementBase wraps XML cElementTree objects and enables
+access to the XML contents through dictionary syntax, similar in style
+to the Ruby XMPP library Blather&#8217;s stanza implementation.</p>
+<p>Stanzas are defined by their name, namespace, and interfaces. For
+example, a simplistic Message stanza could be defined as:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">Message</span><span class="p">(</span><span class="n">ElementBase</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">name</span> <span class="o">=</span> <span class="s">&quot;message&quot;</span>
+<span class="gp">... </span>    <span class="n">namespace</span> <span class="o">=</span> <span class="s">&quot;jabber:client&quot;</span>
+<span class="gp">... </span>    <span class="n">interfaces</span> <span class="o">=</span> <span class="nb">set</span><span class="p">((</span><span class="s">&#39;to&#39;</span><span class="p">,</span> <span class="s">&#39;from&#39;</span><span class="p">,</span> <span class="s">&#39;type&#39;</span><span class="p">,</span> <span class="s">&#39;body&#39;</span><span class="p">))</span>
+<span class="gp">... </span>    <span class="n">sub_interfaces</span> <span class="o">=</span> <span class="nb">set</span><span class="p">((</span><span class="s">&#39;body&#39;</span><span class="p">,))</span>
+</pre></div>
+</div>
+<p>The resulting Message stanza&#8217;s contents may be accessed as so:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">message</span><span class="p">[</span><span class="s">&#39;to&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;user@example.com&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">message</span><span class="p">[</span><span class="s">&#39;body&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;Hi!&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">message</span><span class="p">[</span><span class="s">&#39;body&#39;</span><span class="p">]</span>
+<span class="go">&quot;Hi!&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">message</span><span class="p">[</span><span class="s">&#39;body&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">message</span><span class="p">[</span><span class="s">&#39;body&#39;</span><span class="p">]</span>
+<span class="go">&quot;&quot;</span>
+</pre></div>
+</div>
+<p>The interface values map to either custom access methods, stanza
+XML attributes, or (if the interface is also in sub_interfaces) the
+text contents of a stanza&#8217;s subelement.</p>
+<p>Custom access methods may be created by adding methods of the
+form &#8220;getInterface&#8221;, &#8220;setInterface&#8221;, or &#8220;delInterface&#8221;, where
+&#8220;Interface&#8221; is the titlecase version of the interface name.</p>
+<p>Stanzas may be extended through the use of plugins. A plugin
+is simply a stanza that has a plugin_attrib value. For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">MessagePlugin</span><span class="p">(</span><span class="n">ElementBase</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">name</span> <span class="o">=</span> <span class="s">&quot;custom_plugin&quot;</span>
+<span class="gp">... </span>    <span class="n">namespace</span> <span class="o">=</span> <span class="s">&quot;custom&quot;</span>
+<span class="gp">... </span>    <span class="n">interfaces</span> <span class="o">=</span> <span class="nb">set</span><span class="p">((</span><span class="s">&#39;useful_thing&#39;</span><span class="p">,</span> <span class="s">&#39;custom&#39;</span><span class="p">))</span>
+<span class="gp">... </span>    <span class="n">plugin_attrib</span> <span class="o">=</span> <span class="s">&quot;custom&quot;</span>
+</pre></div>
+</div>
+<p>The plugin stanza class must be associated with its intended
+container stanza by using register_stanza_plugin as so:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">register_stanza_plugin</span><span class="p">(</span><span class="n">Message</span><span class="p">,</span> <span class="n">MessagePlugin</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The plugin may then be accessed as if it were built-in to the parent
+stanza:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">message</span><span class="p">[</span><span class="s">&#39;custom&#39;</span><span class="p">][</span><span class="s">&#39;useful_thing&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;foo&#39;</span>
+</pre></div>
+</div>
+<p>If a plugin provides an interface that is the same as the plugin&#8217;s
+plugin_attrib value, then the plugin&#8217;s interface may be assigned
+directly from the parent stanza, as shown below, but retrieving
+information will require all interfaces to be used, as so:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">message</span><span class="p">[</span><span class="s">&#39;custom&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;bar&#39;</span> <span class="c"># Same as using message[&#39;custom&#39;][&#39;custom&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">message</span><span class="p">[</span><span class="s">&#39;custom&#39;</span><span class="p">][</span><span class="s">&#39;custom&#39;</span><span class="p">]</span> <span class="c"># Must use all interfaces</span>
+<span class="go">&#39;bar&#39;</span>
+</pre></div>
+</div>
+<p>If the plugin sets <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.is_extension" title="sleekxmpp.xmlstream.stanzabase.ElementBase.is_extension"><tt class="xref py py-attr docutils literal"><span class="pre">is_extension</span></tt></a> to <tt class="docutils literal"><span class="pre">True</span></tt>, then both setting
+and getting an interface value that is the same as the plugin&#8217;s
+plugin_attrib value will work, as so:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">message</span><span class="p">[</span><span class="s">&#39;custom&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;bar&#39;</span>  <span class="c"># Using is_extension=True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">message</span><span class="p">[</span><span class="s">&#39;custom&#39;</span><span class="p">]</span>
+<span class="go">&#39;bar&#39;</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>xml</strong> &#8211; Initialize the stanza object with an existing XML object.</li>
+<li><strong>parent</strong> &#8211; Optionally specify a parent stanza object will will
+contain this substanza.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.__bool__">
+<tt class="descname">__bool__</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#ElementBase.__bool__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.__bool__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stanza objects should be treated as True in boolean contexts.</p>
+<p>Python 3.x version.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.__copy__">
+<tt class="descname">__copy__</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#ElementBase.__copy__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.__copy__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a copy of the stanza object that does not share the same
+underlying XML object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.__delitem__">
+<tt class="descname">__delitem__</tt><big>(</big><em>attrib</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#ElementBase.__delitem__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.__delitem__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete the value of a stanza interface using dict-like syntax.</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">msg</span><span class="p">[</span><span class="s">&#39;body&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;Hi!&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">msg</span><span class="p">[</span><span class="s">&#39;body&#39;</span><span class="p">]</span>
+<span class="go">&#39;Hi!&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">msg</span><span class="p">[</span><span class="s">&#39;body&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">msg</span><span class="p">[</span><span class="s">&#39;body&#39;</span><span class="p">]</span>
+<span class="go">&#39;&#39;</span>
+</pre></div>
+</div>
+<p>Stanza interfaces are typically mapped directly to the underlyig XML
+object, but can be overridden by the presence of a <tt class="docutils literal"><span class="pre">del_attrib</span></tt>
+method (or <tt class="docutils literal"><span class="pre">del_foo</span></tt> where the interface is named <tt class="docutils literal"><span class="pre">'foo'</span></tt>, etc).</p>
+<p>The effect of deleting a stanza interface value named <tt class="docutils literal"><span class="pre">foo</span></tt> will be
+one of:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>Call <tt class="docutils literal"><span class="pre">del_foo</span></tt> override handler, if it exists.</li>
+<li>Call <tt class="docutils literal"><span class="pre">del_foo</span></tt>, if it exists.</li>
+<li>Call <tt class="docutils literal"><span class="pre">delFoo</span></tt>, if it exists.</li>
+<li>Delete <tt class="docutils literal"><span class="pre">foo</span></tt> element, if <tt class="docutils literal"><span class="pre">'foo'</span></tt> is in
+<a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.sub_interfaces" title="sleekxmpp.xmlstream.stanzabase.ElementBase.sub_interfaces"><tt class="xref py py-attr docutils literal"><span class="pre">sub_interfaces</span></tt></a>.</li>
+<li>Delete top level XML attribute named <tt class="docutils literal"><span class="pre">foo</span></tt>.</li>
+<li>Remove the <tt class="docutils literal"><span class="pre">foo</span></tt> plugin, if it was loaded.</li>
+<li>Do nothing.</li>
+</ol>
+</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>attrib</strong> &#8211; The name of the affected stanza interface.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.__eq__">
+<tt class="descname">__eq__</tt><big>(</big><em>other</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#ElementBase.__eq__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.__eq__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compare the stanza object with another to test for equality.</p>
+<p>Stanzas are equal if their interfaces return the same values,
+and if they are both instances of ElementBase.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>other</strong> (<em>ElementBase</em>) &#8211; The stanza object to compare against.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.__getitem__">
+<tt class="descname">__getitem__</tt><big>(</big><em>attrib</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#ElementBase.__getitem__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.__getitem__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the value of a stanza interface using dict-like syntax.</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">msg</span><span class="p">[</span><span class="s">&#39;body&#39;</span><span class="p">]</span>
+<span class="go">&#39;Message contents&#39;</span>
+</pre></div>
+</div>
+<p>Stanza interfaces are typically mapped directly to the underlying XML
+object, but can be overridden by the presence of a <tt class="docutils literal"><span class="pre">get_attrib</span></tt>
+method (or <tt class="docutils literal"><span class="pre">get_foo</span></tt> where the interface is named <tt class="docutils literal"><span class="pre">'foo'</span></tt>, etc).</p>
+<p>The search order for interface value retrieval for an interface
+named <tt class="docutils literal"><span class="pre">'foo'</span></tt> is:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>The list of substanzas (<tt class="docutils literal"><span class="pre">'substanzas'</span></tt>)</li>
+<li>The result of calling the <tt class="docutils literal"><span class="pre">get_foo</span></tt> override handler.</li>
+<li>The result of calling <tt class="docutils literal"><span class="pre">get_foo</span></tt>.</li>
+<li>The result of calling <tt class="docutils literal"><span class="pre">getFoo</span></tt>.</li>
+<li>The contents of the <tt class="docutils literal"><span class="pre">foo</span></tt> subelement, if <tt class="docutils literal"><span class="pre">foo</span></tt> is listed
+in <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.sub_interfaces" title="sleekxmpp.xmlstream.stanzabase.ElementBase.sub_interfaces"><tt class="xref py py-attr docutils literal"><span class="pre">sub_interfaces</span></tt></a>.</li>
+<li>The value of the <tt class="docutils literal"><span class="pre">foo</span></tt> attribute of the XML object.</li>
+<li>The plugin named <tt class="docutils literal"><span class="pre">'foo'</span></tt></li>
+<li>An empty string.</li>
+</ol>
+</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>attrib</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/string.html#string" title="(in Python v3.2)"><em>string</em></a>) &#8211; The name of the requested stanza interface.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.__iter__">
+<tt class="descname">__iter__</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#ElementBase.__iter__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.__iter__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an iterator object for the stanza&#8217;s substanzas.</p>
+<p>The iterator is the stanza object itself. Attempting to use two
+iterators on the same stanza at the same time is discouraged.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.__len__">
+<tt class="descname">__len__</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#ElementBase.__len__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.__len__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the number of iterable substanzas in this stanza.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.__ne__">
+<tt class="descname">__ne__</tt><big>(</big><em>other</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#ElementBase.__ne__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.__ne__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compare the stanza object with another to test for inequality.</p>
+<p>Stanzas are not equal if their interfaces return different values,
+or if they are not both instances of ElementBase.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>other</strong> (<em>ElementBase</em>) &#8211; The stanza object to compare against.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.__next__">
+<tt class="descname">__next__</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#ElementBase.__next__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.__next__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the next iterable substanza.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.__nonzero__">
+<tt class="descname">__nonzero__</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#ElementBase.__nonzero__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.__nonzero__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stanza objects should be treated as True in boolean contexts.</p>
+<p>Python 2.x version.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.__repr__">
+<tt class="descname">__repr__</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#ElementBase.__repr__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.__repr__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use the stanza&#8217;s serialized XML as its representation.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.__setitem__">
+<tt class="descname">__setitem__</tt><big>(</big><em>attrib</em>, <em>value</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#ElementBase.__setitem__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.__setitem__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the value of a stanza interface using dictionary-like syntax.</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">msg</span><span class="p">[</span><span class="s">&#39;body&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;Hi!&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">msg</span><span class="p">[</span><span class="s">&#39;body&#39;</span><span class="p">]</span>
+<span class="go">&#39;Hi!&#39;</span>
+</pre></div>
+</div>
+<p>Stanza interfaces are typically mapped directly to the underlying XML
+object, but can be overridden by the presence of a <tt class="docutils literal"><span class="pre">set_attrib</span></tt>
+method (or <tt class="docutils literal"><span class="pre">set_foo</span></tt> where the interface is named <tt class="docutils literal"><span class="pre">'foo'</span></tt>, etc).</p>
+<p>The effect of interface value assignment for an interface
+named <tt class="docutils literal"><span class="pre">'foo'</span></tt> will be one of:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>Delete the interface&#8217;s contents if the value is None.</li>
+<li>Call the <tt class="docutils literal"><span class="pre">set_foo</span></tt> override handler, if it exists.</li>
+<li>Call <tt class="docutils literal"><span class="pre">set_foo</span></tt>, if it exists.</li>
+<li>Call <tt class="docutils literal"><span class="pre">setFoo</span></tt>, if it exists.</li>
+<li>Set the text of a <tt class="docutils literal"><span class="pre">foo</span></tt> element, if <tt class="docutils literal"><span class="pre">'foo'</span></tt> is
+in <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.sub_interfaces" title="sleekxmpp.xmlstream.stanzabase.ElementBase.sub_interfaces"><tt class="xref py py-attr docutils literal"><span class="pre">sub_interfaces</span></tt></a>.</li>
+<li>Set the value of a top level XML attribute named <tt class="docutils literal"><span class="pre">foo</span></tt>.</li>
+<li>Attempt to pass the value to a plugin named <tt class="docutils literal"><span class="pre">'foo'</span></tt> using
+the plugin&#8217;s <tt class="docutils literal"><span class="pre">'foo'</span></tt> interface.</li>
+<li>Do nothing.</li>
+</ol>
+</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>attrib</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/string.html#string" title="(in Python v3.2)"><em>string</em></a>) &#8211; The name of the stanza interface to modify.</li>
+<li><strong>value</strong> &#8211; The new value of the stanza interface.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.__str__">
+<tt class="descname">__str__</tt><big>(</big><em>top_level_ns=True</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#ElementBase.__str__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.__str__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a string serialization of the underlying XML object.</p>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="tostring.html#tostring"><em>XML Serialization</em></a></p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>top_level_ns</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/functions.html#bool" title="(in Python v3.2)"><em>bool</em></a>) &#8211; Display the top-most namespace.
+Defaults to True.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.__weakref__">
+<tt class="descname">__weakref__</tt><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase._delAttr">
+<tt class="descname">_delAttr</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase._delAttr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove a top level attribute of the XML object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> &#8211; The name of the attribute.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase._delSub">
+<tt class="descname">_delSub</tt><big>(</big><em>name</em>, <em>all=False</em><big>)</big><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase._delSub" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove sub elements that match the given name or XPath.</p>
+<p>If the element is in a path, then any parent elements that become
+empty after deleting the element may also be deleted if requested
+by setting all=True.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> &#8211; The name or XPath expression for the element(s) to remove.</li>
+<li><strong>all</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/functions.html#bool" title="(in Python v3.2)"><em>bool</em></a>) &#8211; If True, remove all empty elements in the path to the
+deleted element. Defaults to False.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase._del_attr">
+<tt class="descname">_del_attr</tt><big>(</big><em>name</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#ElementBase._del_attr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase._del_attr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove a top level attribute of the XML object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> &#8211; The name of the attribute.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase._del_sub">
+<tt class="descname">_del_sub</tt><big>(</big><em>name</em>, <em>all=False</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#ElementBase._del_sub"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase._del_sub" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove sub elements that match the given name or XPath.</p>
+<p>If the element is in a path, then any parent elements that become
+empty after deleting the element may also be deleted if requested
+by setting all=True.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> &#8211; The name or XPath expression for the element(s) to remove.</li>
+<li><strong>all</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/functions.html#bool" title="(in Python v3.2)"><em>bool</em></a>) &#8211; If True, remove all empty elements in the path to the
+deleted element. Defaults to False.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase._fix_ns">
+<tt class="descname">_fix_ns</tt><big>(</big><em>xpath</em>, <em>split=False</em>, <em>propagate_ns=True</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#ElementBase._fix_ns"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase._fix_ns" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply the stanza&#8217;s namespace to elements in an XPath expression.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>xpath</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/string.html#string" title="(in Python v3.2)"><em>string</em></a>) &#8211; The XPath expression to fix with namespaces.</li>
+<li><strong>split</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/functions.html#bool" title="(in Python v3.2)"><em>bool</em></a>) &#8211; Indicates if the fixed XPath should be left as a
+list of element names with namespaces. Defaults to
+False, which returns a flat string path.</li>
+<li><strong>propagate_ns</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/functions.html#bool" title="(in Python v3.2)"><em>bool</em></a>) &#8211; Overrides propagating parent element
+namespaces to child elements. Useful if
+you wish to simply split an XPath that has
+non-specified namespaces, and child and
+parent namespaces are known not to always
+match. Defaults to True.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase._getAttr">
+<tt class="descname">_getAttr</tt><big>(</big><em>name</em>, <em>default=''</em><big>)</big><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase._getAttr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the value of a top level attribute of the XML object.</p>
+<p>In case the attribute has not been set, a default value can be
+returned instead. An empty string is returned if no other default
+is supplied.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> &#8211; The name of the attribute.</li>
+<li><strong>default</strong> &#8211; Optional value to return if the attribute has not
+been set. An empty string is returned otherwise.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase._getSubText">
+<tt class="descname">_getSubText</tt><big>(</big><em>name</em>, <em>default=''</em><big>)</big><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase._getSubText" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the text contents of a sub element.</p>
+<p>In case the element does not exist, or it has no textual content,
+a default value can be returned instead. An empty string is returned
+if no other default is supplied.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> &#8211; The name or XPath expression of the element.</li>
+<li><strong>default</strong> &#8211; Optional default to return if the element does
+not exists. An empty string is returned otherwise.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase._get_attr">
+<tt class="descname">_get_attr</tt><big>(</big><em>name</em>, <em>default=''</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#ElementBase._get_attr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase._get_attr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the value of a top level attribute of the XML object.</p>
+<p>In case the attribute has not been set, a default value can be
+returned instead. An empty string is returned if no other default
+is supplied.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> &#8211; The name of the attribute.</li>
+<li><strong>default</strong> &#8211; Optional value to return if the attribute has not
+been set. An empty string is returned otherwise.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase._get_stanza_values">
+<tt class="descname">_get_stanza_values</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#ElementBase._get_stanza_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase._get_stanza_values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return A JSON/dictionary version of the XML content
+exposed through the stanza&#8217;s interfaces:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">msg</span> <span class="o">=</span> <span class="n">Message</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">msg</span><span class="o">.</span><span class="n">values</span>
+<span class="go">{&#39;body&#39;: &#39;&#39;, &#39;from&#39;: , &#39;mucnick&#39;: &#39;&#39;, &#39;mucroom&#39;: &#39;&#39;,</span>
+<span class="go">&#39;to&#39;: , &#39;type&#39;: &#39;normal&#39;, &#39;id&#39;: &#39;&#39;, &#39;subject&#39;: &#39;&#39;}</span>
+</pre></div>
+</div>
+<p>Likewise, assigning to <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.values" title="sleekxmpp.xmlstream.stanzabase.ElementBase.values"><tt class="xref py py-attr docutils literal"><span class="pre">values</span></tt></a> will change the XML
+content:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">msg</span> <span class="o">=</span> <span class="n">Message</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">msg</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;body&#39;</span><span class="p">:</span> <span class="s">&#39;Hi!&#39;</span><span class="p">,</span> <span class="s">&#39;to&#39;</span><span class="p">:</span> <span class="s">&#39;user@example.com&#39;</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">msg</span>
+<span class="go">&#39;&lt;message to=&quot;user@example.com&quot;&gt;&lt;body&gt;Hi!&lt;/body&gt;&lt;/message&gt;&#39;</span>
+</pre></div>
+</div>
+<p class="versionadded">
+<span class="versionmodified">New in version 1.0-Beta1.</span></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase._get_sub_text">
+<tt class="descname">_get_sub_text</tt><big>(</big><em>name</em>, <em>default=''</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#ElementBase._get_sub_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase._get_sub_text" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the text contents of a sub element.</p>
+<p>In case the element does not exist, or it has no textual content,
+a default value can be returned instead. An empty string is returned
+if no other default is supplied.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> &#8211; The name or XPath expression of the element.</li>
+<li><strong>default</strong> &#8211; Optional default to return if the element does
+not exists. An empty string is returned otherwise.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase._setAttr">
+<tt class="descname">_setAttr</tt><big>(</big><em>name</em>, <em>value</em><big>)</big><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase._setAttr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the value of a top level attribute of the XML object.</p>
+<p>If the new value is None or an empty string, then the attribute will
+be removed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> &#8211; The name of the attribute.</li>
+<li><strong>value</strong> &#8211; The new value of the attribute, or None or &#8216;&#8217; to
+remove it.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase._setSubText">
+<tt class="descname">_setSubText</tt><big>(</big><em>name</em>, <em>text=None</em>, <em>keep=False</em><big>)</big><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase._setSubText" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the text contents of a sub element.</p>
+<p>In case the element does not exist, a element will be created,
+and its text contents will be set.</p>
+<p>If the text is set to an empty string, or None, then the
+element will be removed, unless keep is set to True.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> &#8211; The name or XPath expression of the element.</li>
+<li><strong>text</strong> &#8211; The new textual content of the element. If the text
+is an empty string or None, the element will be removed
+unless the parameter keep is True.</li>
+<li><strong>keep</strong> &#8211; Indicates if the element should be kept if its text is
+removed. Defaults to False.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase._set_attr">
+<tt class="descname">_set_attr</tt><big>(</big><em>name</em>, <em>value</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#ElementBase._set_attr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase._set_attr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the value of a top level attribute of the XML object.</p>
+<p>If the new value is None or an empty string, then the attribute will
+be removed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> &#8211; The name of the attribute.</li>
+<li><strong>value</strong> &#8211; The new value of the attribute, or None or &#8216;&#8217; to
+remove it.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase._set_stanza_values">
+<tt class="descname">_set_stanza_values</tt><big>(</big><em>values</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#ElementBase._set_stanza_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase._set_stanza_values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set multiple stanza interface values using a dictionary.</p>
+<p>Stanza plugin values may be set using nested dictionaries.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>values</strong> &#8211; A dictionary mapping stanza interface with values.
+Plugin interfaces may accept a nested dictionary that
+will be used recursively.</td>
+</tr>
+</tbody>
+</table>
+<p class="versionadded">
+<span class="versionmodified">New in version 1.0-Beta1.</span></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase._set_sub_text">
+<tt class="descname">_set_sub_text</tt><big>(</big><em>name</em>, <em>text=None</em>, <em>keep=False</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#ElementBase._set_sub_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase._set_sub_text" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the text contents of a sub element.</p>
+<p>In case the element does not exist, a element will be created,
+and its text contents will be set.</p>
+<p>If the text is set to an empty string, or None, then the
+element will be removed, unless keep is set to True.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> &#8211; The name or XPath expression of the element.</li>
+<li><strong>text</strong> &#8211; The new textual content of the element. If the text
+is an empty string or None, the element will be removed
+unless the parameter keep is True.</li>
+<li><strong>keep</strong> &#8211; Indicates if the element should be kept if its text is
+removed. Defaults to False.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.append">
+<tt class="descname">append</tt><big>(</big><em>item</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#ElementBase.append"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.append" title="Permalink to this definition">¶</a></dt>
+<dd><p>Append either an XML object or a substanza to this stanza object.</p>
+<p>If a substanza object is appended, it will be added to the list
+of iterable stanzas.</p>
+<p>Allows stanza objects to be used like lists.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>item</strong> &#8211; Either an XML object or a stanza object to add to
+this stanza&#8217;s contents.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.appendxml">
+<tt class="descname">appendxml</tt><big>(</big><em>xml</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#ElementBase.appendxml"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.appendxml" title="Permalink to this definition">¶</a></dt>
+<dd><p>Append an XML object to the stanza&#8217;s XML.</p>
+<p>The added XML will not be included in the list of
+iterable substanzas.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>xml</strong> (<em>XML</em>) &#8211; The XML object to add to the stanza.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.attrib">
+<tt class="descname">attrib</tt><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#ElementBase.attrib"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.attrib" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the stanza object itself.</p>
+<p>Older implementations of stanza objects used XML objects directly,
+requiring the use of <tt class="docutils literal"><span class="pre">.attrib</span></tt> to access attribute values.</p>
+<p>Use of the dictionary syntax with the stanza object itself for
+accessing stanza interfaces is preferred.</p>
+<p class="deprecated">
+<span class="versionmodified">Deprecated since version 1.0.</span></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.clear">
+<tt class="descname">clear</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#ElementBase.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.clear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove all XML element contents and plugins.</p>
+<p>Any attribute values will be preserved.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.enable">
+<tt class="descname">enable</tt><big>(</big><em>attrib</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#ElementBase.enable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.enable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enable and initialize a stanza plugin.</p>
+<p>Alias for <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.init_plugin" title="sleekxmpp.xmlstream.stanzabase.ElementBase.init_plugin"><tt class="xref py py-meth docutils literal"><span class="pre">init_plugin()</span></tt></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>attrib</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/string.html#string" title="(in Python v3.2)"><em>string</em></a>) &#8211; The <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib" title="sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib"><tt class="xref py py-attr docutils literal"><span class="pre">plugin_attrib</span></tt></a> value of the
+plugin to enable.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.find">
+<tt class="descname">find</tt><big>(</big><em>xpath</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#ElementBase.find"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.find" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find an XML object in this stanza given an XPath expression.</p>
+<p>Exposes ElementTree interface for backwards compatibility.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Matching on attribute values is not supported in Python 2.6
+or Python 3.1</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>xpath</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/string.html#string" title="(in Python v3.2)"><em>string</em></a>) &#8211; An XPath expression matching a single
+desired element.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.findall">
+<tt class="descname">findall</tt><big>(</big><em>xpath</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#ElementBase.findall"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.findall" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find multiple XML objects in this stanza given an XPath expression.</p>
+<p>Exposes ElementTree interface for backwards compatibility.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Matching on attribute values is not supported in Python 2.6
+or Python 3.1.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>xpath</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/string.html#string" title="(in Python v3.2)"><em>string</em></a>) &#8211; An XPath expression matching multiple
+desired elements.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.get">
+<tt class="descname">get</tt><big>(</big><em>key</em>, <em>default=None</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#ElementBase.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the value of a stanza interface.</p>
+<p>If the found value is None or an empty string, return the supplied
+default value.</p>
+<p>Allows stanza objects to be used like dictionaries.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>key</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/string.html#string" title="(in Python v3.2)"><em>string</em></a>) &#8211; The name of the stanza interface to check.</li>
+<li><strong>default</strong> &#8211; Value to return if the stanza interface has a value
+of <tt class="docutils literal"><span class="pre">None</span></tt> or <tt class="docutils literal"><span class="pre">&quot;&quot;</span></tt>. Will default to returning None.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.getStanzaValues">
+<tt class="descname">getStanzaValues</tt><big>(</big><big>)</big><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.getStanzaValues" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return A JSON/dictionary version of the XML content
+exposed through the stanza&#8217;s interfaces:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">msg</span> <span class="o">=</span> <span class="n">Message</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">msg</span><span class="o">.</span><span class="n">values</span>
+<span class="go">{&#39;body&#39;: &#39;&#39;, &#39;from&#39;: , &#39;mucnick&#39;: &#39;&#39;, &#39;mucroom&#39;: &#39;&#39;,</span>
+<span class="go">&#39;to&#39;: , &#39;type&#39;: &#39;normal&#39;, &#39;id&#39;: &#39;&#39;, &#39;subject&#39;: &#39;&#39;}</span>
+</pre></div>
+</div>
+<p>Likewise, assigning to <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.values" title="sleekxmpp.xmlstream.stanzabase.ElementBase.values"><tt class="xref py py-attr docutils literal"><span class="pre">values</span></tt></a> will change the XML
+content:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">msg</span> <span class="o">=</span> <span class="n">Message</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">msg</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;body&#39;</span><span class="p">:</span> <span class="s">&#39;Hi!&#39;</span><span class="p">,</span> <span class="s">&#39;to&#39;</span><span class="p">:</span> <span class="s">&#39;user@example.com&#39;</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">msg</span>
+<span class="go">&#39;&lt;message to=&quot;user@example.com&quot;&gt;&lt;body&gt;Hi!&lt;/body&gt;&lt;/message&gt;&#39;</span>
+</pre></div>
+</div>
+<p class="versionadded">
+<span class="versionmodified">New in version 1.0-Beta1.</span></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.initPlugin">
+<tt class="descname">initPlugin</tt><big>(</big><em>attrib</em><big>)</big><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.initPlugin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enable and initialize a stanza plugin.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>attrib</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/string.html#string" title="(in Python v3.2)"><em>string</em></a>) &#8211; The <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib" title="sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib"><tt class="xref py py-attr docutils literal"><span class="pre">plugin_attrib</span></tt></a> value of the
+plugin to enable.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.init_plugin">
+<tt class="descname">init_plugin</tt><big>(</big><em>attrib</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#ElementBase.init_plugin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.init_plugin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enable and initialize a stanza plugin.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>attrib</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/string.html#string" title="(in Python v3.2)"><em>string</em></a>) &#8211; The <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib" title="sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib"><tt class="xref py py-attr docutils literal"><span class="pre">plugin_attrib</span></tt></a> value of the
+plugin to enable.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.interfaces">
+<tt class="descname">interfaces</tt><em class="property"> = set(['to', 'payload', 'type', 'id', 'from'])</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.interfaces" title="Permalink to this definition">¶</a></dt>
+<dd><p>The set of keys that the stanza provides for accessing and
+manipulating the underlying XML object. This set may be augmented
+with the <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib" title="sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib"><tt class="xref py py-attr docutils literal"><span class="pre">plugin_attrib</span></tt></a> value of any registered
+stanza plugins.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.is_extension">
+<tt class="descname">is_extension</tt><em class="property"> = False</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.is_extension" title="Permalink to this definition">¶</a></dt>
+<dd><p>If you need to add a new interface to an existing stanza, you
+can create a plugin and set <tt class="docutils literal"><span class="pre">is_extension</span> <span class="pre">=</span> <span class="pre">True</span></tt>. Be sure
+to set the <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib" title="sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib"><tt class="xref py py-attr docutils literal"><span class="pre">plugin_attrib</span></tt></a> value to the desired interface
+name, and that it is the only interface listed in
+<a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.interfaces" title="sleekxmpp.xmlstream.stanzabase.ElementBase.interfaces"><tt class="xref py py-attr docutils literal"><span class="pre">interfaces</span></tt></a>. Requests for the new interface from the
+parent stanza will be passed to the plugin directly.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 1.0-Beta5.</span></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.iterables">
+<tt class="descname">iterables</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.iterables" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of child stanzas whose class is included in
+<a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_iterables" title="sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_iterables"><tt class="xref py py-attr docutils literal"><span class="pre">plugin_iterables</span></tt></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.keys">
+<tt class="descname">keys</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#ElementBase.keys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.keys" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the names of all stanza interfaces provided by the
+stanza object.</p>
+<p>Allows stanza objects to be used like dictionaries.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.match">
+<tt class="descname">match</tt><big>(</big><em>xpath</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#ElementBase.match"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.match" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compare a stanza object with an XPath-like expression.</p>
+<p>If the XPath matches the contents of the stanza object, the match
+is successful.</p>
+<p>The XPath expression may include checks for stanza attributes.
+For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="s">&#39;presence@show=xa@priority=2/status&#39;</span>
+</pre></div>
+</div>
+<p>Would match a presence stanza whose show value is set to <tt class="docutils literal"><span class="pre">'xa'</span></tt>,
+has a priority value of <tt class="docutils literal"><span class="pre">'2'</span></tt>, and has a status element.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>xpath</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/string.html#string" title="(in Python v3.2)"><em>string</em></a>) &#8211; The XPath expression to check against. It
+may be either a string or a list of element
+names with attribute checks.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.name">
+<tt class="descname">name</tt><em class="property"> = 'stanza'</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>The XML tag name of the element, not including any namespace
+prefixes. For example, an <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase" title="sleekxmpp.xmlstream.stanzabase.ElementBase"><tt class="xref py py-class docutils literal"><span class="pre">ElementBase</span></tt></a> object for <tt class="docutils literal"><span class="pre">&lt;message</span> <span class="pre">/&gt;</span></tt>
+would use <tt class="docutils literal"><span class="pre">name</span> <span class="pre">=</span> <span class="pre">'message'</span></tt>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.namespace">
+<tt class="descname">namespace</tt><em class="property"> = 'jabber:client'</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.namespace" title="Permalink to this definition">¶</a></dt>
+<dd><p>The XML namespace for the element. Given <tt class="docutils literal"><span class="pre">&lt;foo</span> <span class="pre">xmlns=&quot;bar&quot;</span> <span class="pre">/&gt;</span></tt>,
+then <tt class="docutils literal"><span class="pre">namespace</span> <span class="pre">=</span> <span class="pre">&quot;bar&quot;</span></tt> should be used. The default namespace
+is <tt class="docutils literal"><span class="pre">jabber:client</span></tt> since this is being used in an XMPP library.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.next">
+<tt class="descname">next</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#ElementBase.next"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.next" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the next iterable substanza.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.overrides">
+<tt class="descname">overrides</tt><em class="property"> = []</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.overrides" title="Permalink to this definition">¶</a></dt>
+<dd><p>In some cases you may wish to override the behaviour of one of the
+parent stanza&#8217;s interfaces. The <tt class="docutils literal"><span class="pre">overrides</span></tt> list specifies the
+interface name and access method to be overridden. For example,
+to override setting the parent&#8217;s <tt class="docutils literal"><span class="pre">'condition'</span></tt> interface you
+would use:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">overrides</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;set_condition&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Getting and deleting the <tt class="docutils literal"><span class="pre">'condition'</span></tt> interface would not
+be affected.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 1.0-Beta5.</span></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.parent">
+<tt class="descname">parent</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.parent" title="Permalink to this definition">¶</a></dt>
+<dd><p>A <tt class="xref py py-class docutils literal"><span class="pre">weakref.weakref</span></tt> to the parent stanza, if there is one.
+If not, then <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.parent" title="sleekxmpp.xmlstream.stanzabase.ElementBase.parent"><tt class="xref py py-attr docutils literal"><span class="pre">parent</span></tt></a> is <tt class="docutils literal"><span class="pre">None</span></tt>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib">
+<tt class="descname">plugin_attrib</tt><em class="property"> = 'plugin'</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib" title="Permalink to this definition">¶</a></dt>
+<dd><p>For <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase" title="sleekxmpp.xmlstream.stanzabase.ElementBase"><tt class="xref py py-class docutils literal"><span class="pre">ElementBase</span></tt></a> subclasses which are intended to be used
+as plugins, the <tt class="docutils literal"><span class="pre">plugin_attrib</span></tt> value defines the plugin name.
+Plugins may be accessed by using the <tt class="docutils literal"><span class="pre">plugin_attrib</span></tt> value as
+the interface. An example using <tt class="docutils literal"><span class="pre">plugin_attrib</span> <span class="pre">=</span> <span class="pre">'foo'</span></tt>:</p>
+<blockquote>
+<div>register_stanza_plugin(Message, FooPlugin)
+msg = Message()
+msg[&#8216;foo&#8217;][&#8216;an_interface_from_the_foo_plugin&#8217;]</div></blockquote>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib_map">
+<tt class="descname">plugin_attrib_map</tt><em class="property"> = {}</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib_map" title="Permalink to this definition">¶</a></dt>
+<dd><p>A mapping of the <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib" title="sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib"><tt class="xref py py-attr docutils literal"><span class="pre">plugin_attrib</span></tt></a> values of registered
+plugins to their respective classes.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_iterables">
+<tt class="descname">plugin_iterables</tt><em class="property"> = set([])</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_iterables" title="Permalink to this definition">¶</a></dt>
+<dd><p>The set of stanza classes that can be iterated over using
+the &#8216;substanzas&#8217; interface. Classes are added to this set
+when registering a plugin with <tt class="docutils literal"><span class="pre">iterable=True</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">register_stanza_plugin</span><span class="p">(</span><span class="n">DiscoInfo</span><span class="p">,</span> <span class="n">DiscoItem</span><span class="p">,</span> <span class="n">iterable</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="versionadded">
+<span class="versionmodified">New in version 1.0-Beta5.</span></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_overrides">
+<tt class="descname">plugin_overrides</tt><em class="property"> = {}</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_overrides" title="Permalink to this definition">¶</a></dt>
+<dd><p>A map of interface operations to the overriding functions.
+For example, after overriding the <tt class="docutils literal"><span class="pre">set</span></tt> operation for
+the interface <tt class="docutils literal"><span class="pre">body</span></tt>, <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_overrides" title="sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_overrides"><tt class="xref py py-attr docutils literal"><span class="pre">plugin_overrides</span></tt></a> would be:</p>
+<div class="highlight-python"><pre>{'set_body': &lt;some function&gt;}</pre>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_tag_map">
+<tt class="descname">plugin_tag_map</tt><em class="property"> = {}</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_tag_map" title="Permalink to this definition">¶</a></dt>
+<dd><p>A mapping of root element tag names (in <tt class="docutils literal"><span class="pre">'{namespace}elementname'</span></tt>
+format) to the plugin classes responsible for them.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.plugins">
+<tt class="descname">plugins</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.plugins" title="Permalink to this definition">¶</a></dt>
+<dd><p>An ordered dictionary of plugin stanzas, mapped by their
+<a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib" title="sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib"><tt class="xref py py-attr docutils literal"><span class="pre">plugin_attrib</span></tt></a> value.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.pop">
+<tt class="descname">pop</tt><big>(</big><em>index=0</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#ElementBase.pop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.pop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove and return the last substanza in the list of
+iterable substanzas.</p>
+<p>Allows stanza objects to be used like lists.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>index</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/functions.html#int" title="(in Python v3.2)"><em>int</em></a>) &#8211; The index of the substanza to remove.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.setStanzaValues">
+<tt class="descname">setStanzaValues</tt><big>(</big><em>values</em><big>)</big><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.setStanzaValues" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set multiple stanza interface values using a dictionary.</p>
+<p>Stanza plugin values may be set using nested dictionaries.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>values</strong> &#8211; A dictionary mapping stanza interface with values.
+Plugin interfaces may accept a nested dictionary that
+will be used recursively.</td>
+</tr>
+</tbody>
+</table>
+<p class="versionadded">
+<span class="versionmodified">New in version 1.0-Beta1.</span></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.setup">
+<tt class="descname">setup</tt><big>(</big><em>xml=None</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#ElementBase.setup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.setup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the stanza&#8217;s XML contents.</p>
+<p>Will return <tt class="docutils literal"><span class="pre">True</span></tt> if XML was generated according to the stanza&#8217;s
+definition instead of building a stanza object from an existing
+XML object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>xml</strong> &#8211; An existing XML object to use for the stanza&#8217;s content
+instead of generating new XML.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.sub_interfaces">
+<tt class="descname">sub_interfaces</tt><em class="property"> = ()</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.sub_interfaces" title="Permalink to this definition">¶</a></dt>
+<dd><p>A subset of <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.interfaces" title="sleekxmpp.xmlstream.stanzabase.ElementBase.interfaces"><tt class="xref py py-attr docutils literal"><span class="pre">interfaces</span></tt></a> which maps interfaces to direct
+subelements of the underlying XML object. Using this set, the text
+of these subelements may be set, retrieved, or removed without
+needing to define custom methods.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.subitem">
+<tt class="descname">subitem</tt><em class="property"> = set([])</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.subitem" title="Permalink to this definition">¶</a></dt>
+<dd><p>A deprecated version of <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_iterables" title="sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_iterables"><tt class="xref py py-attr docutils literal"><span class="pre">plugin_iterables</span></tt></a> that remains
+for backward compatibility. It required a parent stanza to
+know beforehand what stanza classes would be iterable:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">DiscoItem</span><span class="p">(</span><span class="n">ElementBase</span><span class="p">):</span>
+    <span class="o">...</span>
+
+<span class="k">class</span> <span class="nc">DiscoInfo</span><span class="p">(</span><span class="n">ElementBase</span><span class="p">):</span>
+    <span class="n">subitem</span> <span class="o">=</span> <span class="p">(</span><span class="n">DiscoItem</span><span class="p">,</span> <span class="p">)</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p class="deprecated">
+<span class="versionmodified">Deprecated since version 1.0-Beta5.</span></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.tag">
+<tt class="descname">tag</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.tag" title="Permalink to this definition">¶</a></dt>
+<dd><p>The name of the tag for the stanza&#8217;s root element. It is the
+same as calling <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.tag_name" title="sleekxmpp.xmlstream.stanzabase.ElementBase.tag_name"><tt class="xref py py-meth docutils literal"><span class="pre">tag_name()</span></tt></a> and is formatted as
+<tt class="docutils literal"><span class="pre">'{namespace}elementname'</span></tt>.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.tag_name">
+<em class="property">classmethod </em><tt class="descname">tag_name</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#ElementBase.tag_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.tag_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the namespaced name of the stanza&#8217;s root element.</p>
+<p>The format for the tag name is:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="s">&#39;{namespace}elementname&#39;</span>
+</pre></div>
+</div>
+<p>For example, for the stanza <tt class="docutils literal"><span class="pre">&lt;foo</span> <span class="pre">xmlns=&quot;bar&quot;</span> <span class="pre">/&gt;</span></tt>,
+<tt class="docutils literal"><span class="pre">stanza.tag_name()</span></tt> would return <tt class="docutils literal"><span class="pre">&quot;{bar}foo&quot;</span></tt>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.values">
+<tt class="descname">values</tt><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return A JSON/dictionary version of the XML content
+exposed through the stanza&#8217;s interfaces:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">msg</span> <span class="o">=</span> <span class="n">Message</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">msg</span><span class="o">.</span><span class="n">values</span>
+<span class="go">{&#39;body&#39;: &#39;&#39;, &#39;from&#39;: , &#39;mucnick&#39;: &#39;&#39;, &#39;mucroom&#39;: &#39;&#39;,</span>
+<span class="go">&#39;to&#39;: , &#39;type&#39;: &#39;normal&#39;, &#39;id&#39;: &#39;&#39;, &#39;subject&#39;: &#39;&#39;}</span>
+</pre></div>
+</div>
+<p>Likewise, assigning to <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.values" title="sleekxmpp.xmlstream.stanzabase.ElementBase.values"><tt class="xref py py-attr docutils literal"><span class="pre">values</span></tt></a> will change the XML
+content:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">msg</span> <span class="o">=</span> <span class="n">Message</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">msg</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;body&#39;</span><span class="p">:</span> <span class="s">&#39;Hi!&#39;</span><span class="p">,</span> <span class="s">&#39;to&#39;</span><span class="p">:</span> <span class="s">&#39;user@example.com&#39;</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">msg</span>
+<span class="go">&#39;&lt;message to=&quot;user@example.com&quot;&gt;&lt;body&gt;Hi!&lt;/body&gt;&lt;/message&gt;&#39;</span>
+</pre></div>
+</div>
+<p class="versionadded">
+<span class="versionmodified">New in version 1.0-Beta1.</span></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.xml">
+<tt class="descname">xml</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.xml" title="Permalink to this definition">¶</a></dt>
+<dd><p>The underlying XML object for the stanza. It is a standard
+<tt class="xref py py-class docutils literal"><span class="pre">xml.etree.cElementTree</span></tt> object.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.xml_ns">
+<tt class="descname">xml_ns</tt><em class="property"> = 'http://www.w3.org/XML/1998/namespace'</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.xml_ns" title="Permalink to this definition">¶</a></dt>
+<dd><p>The default XML namespace: <tt class="docutils literal"><span class="pre">http://www.w3.org/XML/1998/namespace</span></tt>.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="id1">
+<h2>StanzaBase<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="sleekxmpp.xmlstream.stanzabase.StanzaBase">
+<em class="property">class </em><tt class="descclassname">sleekxmpp.xmlstream.stanzabase.</tt><tt class="descname">StanzaBase</tt><big>(</big><em>stream=None</em>, <em>xml=None</em>, <em>stype=None</em>, <em>sto=None</em>, <em>sfrom=None</em>, <em>sid=None</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#StanzaBase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.StanzaBase" title="Permalink to this definition">¶</a></dt>
+<dd><p>StanzaBase provides the foundation for all other stanza objects used
+by SleekXMPP, and defines a basic set of interfaces common to nearly
+all stanzas. These interfaces are the <tt class="docutils literal"><span class="pre">'id'</span></tt>, <tt class="docutils literal"><span class="pre">'type'</span></tt>, <tt class="docutils literal"><span class="pre">'to'</span></tt>,
+and <tt class="docutils literal"><span class="pre">'from'</span></tt> attributes. An additional interface, <tt class="docutils literal"><span class="pre">'payload'</span></tt>, is
+available to access the XML contents of the stanza. Most stanza objects
+will provided more specific interfaces, however.</p>
+<p><strong>Stanza Interfaces:</strong></p>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">id:</th><td class="field-body">An optional id value that can be used to associate stanzas</td>
+</tr>
+<tr class="field-even field"><th class="field-name">to:</th><td class="field-body">A JID object representing the recipient&#8217;s JID.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">from:</th><td class="field-body">A JID object representing the sender&#8217;s JID.
+with their replies.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">type:</th><td class="field-body">The type of stanza, typically will be <tt class="docutils literal"><span class="pre">'normal'</span></tt>,
+<tt class="docutils literal"><span class="pre">'error'</span></tt>, <tt class="docutils literal"><span class="pre">'get'</span></tt>, or <tt class="docutils literal"><span class="pre">'set'</span></tt>, etc.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">payload:</th><td class="field-body">The XML contents of the stanza.</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>stream</strong> (<em>XMLStream</em>) &#8211; Optional <tt class="xref py py-class docutils literal"><span class="pre">sleekxmpp.xmlstream.XMLStream</span></tt>
+object responsible for sending this stanza.</li>
+<li><strong>xml</strong> (<em>XML</em>) &#8211; Optional XML contents to initialize stanza values.</li>
+<li><strong>stype</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/string.html#string" title="(in Python v3.2)"><em>string</em></a>) &#8211; Optional stanza type value.</li>
+<li><strong>sto</strong> &#8211; Optional string or <tt class="xref py py-class docutils literal"><span class="pre">sleekxmpp.xmlstream.JID</span></tt>
+object of the recipient&#8217;s JID.</li>
+<li><strong>sfrom</strong> &#8211; Optional string or <tt class="xref py py-class docutils literal"><span class="pre">sleekxmpp.xmlstream.JID</span></tt>
+object of the sender&#8217;s JID.</li>
+<li><strong>sid</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/string.html#string" title="(in Python v3.2)"><em>string</em></a>) &#8211; Optional ID value for the stanza.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.StanzaBase.delPayload">
+<tt class="descname">delPayload</tt><big>(</big><big>)</big><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.StanzaBase.delPayload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove the XML contents of the stanza.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.StanzaBase.del_payload">
+<tt class="descname">del_payload</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#StanzaBase.del_payload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.StanzaBase.del_payload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove the XML contents of the stanza.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.StanzaBase.error">
+<tt class="descname">error</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#StanzaBase.error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.StanzaBase.error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the stanza&#8217;s type to <tt class="docutils literal"><span class="pre">'error'</span></tt>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.StanzaBase.exception">
+<tt class="descname">exception</tt><big>(</big><em>e</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#StanzaBase.exception"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.StanzaBase.exception" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handle exceptions raised during stanza processing.</p>
+<p>Meant to be overridden.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.StanzaBase.getFrom">
+<tt class="descname">getFrom</tt><big>(</big><big>)</big><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.StanzaBase.getFrom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the value of the stanza&#8217;s <tt class="docutils literal"><span class="pre">'from'</span></tt> attribute.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.StanzaBase.getPayload">
+<tt class="descname">getPayload</tt><big>(</big><big>)</big><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.StanzaBase.getPayload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of XML objects contained in the stanza.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.StanzaBase.getTo">
+<tt class="descname">getTo</tt><big>(</big><big>)</big><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.StanzaBase.getTo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the value of the stanza&#8217;s <tt class="docutils literal"><span class="pre">'to'</span></tt> attribute.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.StanzaBase.get_from">
+<tt class="descname">get_from</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#StanzaBase.get_from"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.StanzaBase.get_from" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the value of the stanza&#8217;s <tt class="docutils literal"><span class="pre">'from'</span></tt> attribute.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.StanzaBase.get_payload">
+<tt class="descname">get_payload</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#StanzaBase.get_payload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.StanzaBase.get_payload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of XML objects contained in the stanza.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.StanzaBase.get_to">
+<tt class="descname">get_to</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#StanzaBase.get_to"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.StanzaBase.get_to" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the value of the stanza&#8217;s <tt class="docutils literal"><span class="pre">'to'</span></tt> attribute.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.stanzabase.StanzaBase.interfaces">
+<tt class="descname">interfaces</tt><em class="property"> = set(['to', 'payload', 'type', 'id', 'from'])</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.StanzaBase.interfaces" title="Permalink to this definition">¶</a></dt>
+<dd><p>There is a small set of attributes which apply to all XMPP stanzas:
+the stanza type, the to and from JIDs, the stanza ID, and, especially
+in the case of an Iq stanza, a payload.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.stanzabase.StanzaBase.namespace">
+<tt class="descname">namespace</tt><em class="property"> = 'jabber:client'</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.StanzaBase.namespace" title="Permalink to this definition">¶</a></dt>
+<dd><p>The default XMPP client namespace</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.StanzaBase.reply">
+<tt class="descname">reply</tt><big>(</big><em>clear=True</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#StanzaBase.reply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.StanzaBase.reply" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepare the stanza for sending a reply.</p>
+<p>Swaps the <tt class="docutils literal"><span class="pre">'from'</span></tt> and <tt class="docutils literal"><span class="pre">'to'</span></tt> attributes.</p>
+<p>If <tt class="docutils literal"><span class="pre">clear=True</span></tt>, then also remove the stanza&#8217;s
+contents to make room for the reply content.</p>
+<p>For client streams, the <tt class="docutils literal"><span class="pre">'from'</span></tt> attribute is removed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>clear</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/functions.html#bool" title="(in Python v3.2)"><em>bool</em></a>) &#8211; Indicates if the stanza&#8217;s contents should be
+removed. Defaults to <tt class="docutils literal"><span class="pre">True</span></tt>.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.StanzaBase.send">
+<tt class="descname">send</tt><big>(</big><em>now=False</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#StanzaBase.send"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.StanzaBase.send" title="Permalink to this definition">¶</a></dt>
+<dd><p>Queue the stanza to be sent on the XML stream.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>now</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/functions.html#bool" title="(in Python v3.2)"><em>bool</em></a>) &#8211; Indicates if the queue should be skipped and the
+stanza sent immediately. Useful for stream
+initialization. Defaults to <tt class="docutils literal"><span class="pre">False</span></tt>.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.StanzaBase.setFrom">
+<tt class="descname">setFrom</tt><big>(</big><em>value</em><big>)</big><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.StanzaBase.setFrom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the &#8216;from&#8217; attribute of the stanza.</p>
+<dl class="docutils">
+<dt>Arguments:</dt>
+<dd>from &#8211; A string or JID object representing the sender&#8217;s JID.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.StanzaBase.setPayload">
+<tt class="descname">setPayload</tt><big>(</big><em>value</em><big>)</big><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.StanzaBase.setPayload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add XML content to the stanza.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> &#8211; Either an XML or a stanza object, or a list
+of XML or stanza objects.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.StanzaBase.setTo">
+<tt class="descname">setTo</tt><big>(</big><em>value</em><big>)</big><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.StanzaBase.setTo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the <tt class="docutils literal"><span class="pre">'to'</span></tt> attribute of the stanza.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> &#8211; A string or <tt class="xref py py-class docutils literal"><span class="pre">sleekxmpp.xmlstream.JID</span></tt> object
+representing the recipient&#8217;s JID.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.StanzaBase.setType">
+<tt class="descname">setType</tt><big>(</big><em>value</em><big>)</big><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.StanzaBase.setType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the stanza&#8217;s <tt class="docutils literal"><span class="pre">'type'</span></tt> attribute.</p>
+<p>Only type values contained in <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.StanzaBase.types" title="sleekxmpp.xmlstream.stanzabase.StanzaBase.types"><tt class="xref py py-attr docutils literal"><span class="pre">types</span></tt></a> are accepted.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/string.html#string" title="(in Python v3.2)"><em>string</em></a>) &#8211; One of the values contained in <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.StanzaBase.types" title="sleekxmpp.xmlstream.stanzabase.StanzaBase.types"><tt class="xref py py-attr docutils literal"><span class="pre">types</span></tt></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.StanzaBase.set_from">
+<tt class="descname">set_from</tt><big>(</big><em>value</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#StanzaBase.set_from"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.StanzaBase.set_from" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the &#8216;from&#8217; attribute of the stanza.</p>
+<dl class="docutils">
+<dt>Arguments:</dt>
+<dd>from &#8211; A string or JID object representing the sender&#8217;s JID.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.StanzaBase.set_payload">
+<tt class="descname">set_payload</tt><big>(</big><em>value</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#StanzaBase.set_payload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.StanzaBase.set_payload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add XML content to the stanza.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> &#8211; Either an XML or a stanza object, or a list
+of XML or stanza objects.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.StanzaBase.set_to">
+<tt class="descname">set_to</tt><big>(</big><em>value</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#StanzaBase.set_to"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.StanzaBase.set_to" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the <tt class="docutils literal"><span class="pre">'to'</span></tt> attribute of the stanza.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> &#8211; A string or <tt class="xref py py-class docutils literal"><span class="pre">sleekxmpp.xmlstream.JID</span></tt> object
+representing the recipient&#8217;s JID.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.StanzaBase.set_type">
+<tt class="descname">set_type</tt><big>(</big><em>value</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#StanzaBase.set_type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.StanzaBase.set_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the stanza&#8217;s <tt class="docutils literal"><span class="pre">'type'</span></tt> attribute.</p>
+<p>Only type values contained in <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.StanzaBase.types" title="sleekxmpp.xmlstream.stanzabase.StanzaBase.types"><tt class="xref py py-attr docutils literal"><span class="pre">types</span></tt></a> are accepted.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/string.html#string" title="(in Python v3.2)"><em>string</em></a>) &#8211; One of the values contained in <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.StanzaBase.types" title="sleekxmpp.xmlstream.stanzabase.StanzaBase.types"><tt class="xref py py-attr docutils literal"><span class="pre">types</span></tt></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.stanzabase.StanzaBase.types">
+<tt class="descname">types</tt><em class="property"> = set(['set', 'unavailable', 'normal', None, 'get', 'chat', 'error'])</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.StanzaBase.types" title="Permalink to this definition">¶</a></dt>
+<dd><p>A basic set of allowed values for the <tt class="docutils literal"><span class="pre">'type'</span></tt> interface.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.stanzabase.StanzaBase.unhandled">
+<tt class="descname">unhandled</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#StanzaBase.unhandled"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.StanzaBase.unhandled" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called if no handlers have been registered to process this stanza.</p>
+<p>Meant to be overridden.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Stanza Objects</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#registering-stanza-plugins">Registering Stanza Plugins</a></li>
+<li><a class="reference internal" href="#elementbase">ElementBase</a></li>
+<li><a class="reference internal" href="#id1">StanzaBase</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="jid.html"
+                        title="previous chapter">Jabber IDs (JID)</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="handler.html"
+                        title="next chapter">Stanza Handlers</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../../_sources/api/xmlstream/stanzabase.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="handler.html" title="Stanza Handlers"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="jid.html" title="Jabber IDs (JID)"
+             >previous</a> |</li>
+        <li><a href="../../index.html">1.0RC3 Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Nathan Fritz, Lance Stout.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

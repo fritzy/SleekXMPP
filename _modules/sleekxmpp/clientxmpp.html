@@ -1,0 +1,390 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>sleekxmpp.clientxmpp &mdash; SleekXMPP</title>
+    
+    <link rel="stylesheet" href="../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0RC3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="SleekXMPP" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">1.0RC3 Documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for sleekxmpp.clientxmpp</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    sleekxmpp.clientxmpp</span>
+<span class="sd">    ~~~~~~~~~~~~~~~~~~~~</span>
+
+<span class="sd">    This module provides XMPP functionality that</span>
+<span class="sd">    is specific to client connections.</span>
+
+<span class="sd">    Part of SleekXMPP: The Sleek XMPP Library</span>
+
+<span class="sd">    :copyright: (c) 2011 Nathanael C. Fritz</span>
+<span class="sd">    :license: MIT, see LICENSE for more details</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">unicode_literals</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">base64</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">hashlib</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">threading</span>
+
+<span class="kn">import</span> <span class="nn">sleekxmpp</span>
+<span class="kn">from</span> <span class="nn">sleekxmpp</span> <span class="kn">import</span> <span class="n">plugins</span>
+<span class="kn">from</span> <span class="nn">sleekxmpp</span> <span class="kn">import</span> <span class="n">stanza</span>
+<span class="kn">from</span> <span class="nn">sleekxmpp</span> <span class="kn">import</span> <span class="n">features</span>
+<span class="kn">from</span> <span class="nn">sleekxmpp.basexmpp</span> <span class="kn">import</span> <span class="n">BaseXMPP</span>
+<span class="kn">from</span> <span class="nn">sleekxmpp.stanza</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">sleekxmpp.xmlstream</span> <span class="kn">import</span> <span class="n">XMLStream</span><span class="p">,</span> <span class="n">RestartStream</span>
+<span class="kn">from</span> <span class="nn">sleekxmpp.xmlstream</span> <span class="kn">import</span> <span class="n">StanzaBase</span><span class="p">,</span> <span class="n">ET</span><span class="p">,</span> <span class="n">register_stanza_plugin</span>
+<span class="kn">from</span> <span class="nn">sleekxmpp.xmlstream.matcher</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">sleekxmpp.xmlstream.handler</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="c"># Flag indicating if DNS SRV records are available for use.</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">dns.resolver</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">DNSPYTHON</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">DNSPYTHON</span> <span class="o">=</span> <span class="bp">True</span>
+
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ClientXMPP"><a class="viewcode-back" href="../../api/clientxmpp.html#sleekxmpp.clientxmpp.ClientXMPP">[docs]</a><span class="k">class</span> <span class="nc">ClientXMPP</span><span class="p">(</span><span class="n">BaseXMPP</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    SleekXMPP&#39;s client class. (Use only for good, not for evil.)</span>
+
+<span class="sd">    Typical use pattern:</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        xmpp = ClientXMPP(&#39;user@server.tld/resource&#39;, &#39;password&#39;)</span>
+<span class="sd">        # ... Register plugins and event handlers ...</span>
+<span class="sd">        xmpp.connect()</span>
+<span class="sd">        xmpp.process(block=False) # block=True will block the current</span>
+<span class="sd">                                  # thread. By default, block=False</span>
+
+<span class="sd">    :param jid: The JID of the XMPP user account.</span>
+<span class="sd">    :param password: The password for the XMPP user account.</span>
+<span class="sd">    :param ssl: **Deprecated.**</span>
+<span class="sd">    :param plugin_config: A dictionary of plugin configurations.</span>
+<span class="sd">    :param plugin_whitelist: A list of approved plugins that </span>
+<span class="sd">                    will be loaded when calling </span>
+<span class="sd">                    :meth:`~sleekxmpp.basexmpp.BaseXMPP.register_plugins()`.</span>
+<span class="sd">    :param escape_quotes: **Deprecated.**</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jid</span><span class="p">,</span> <span class="n">password</span><span class="p">,</span> <span class="n">ssl</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">plugin_config</span><span class="o">=</span><span class="p">{},</span>
+                 <span class="n">plugin_whitelist</span><span class="o">=</span><span class="p">[],</span> <span class="n">escape_quotes</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">sasl_mech</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">BaseXMPP</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jid</span><span class="p">,</span> <span class="s">&#39;jabber:client&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_jid</span><span class="p">(</span><span class="n">jid</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">password</span> <span class="o">=</span> <span class="n">password</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">escape_quotes</span> <span class="o">=</span> <span class="n">escape_quotes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plugin_config</span> <span class="o">=</span> <span class="n">plugin_config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plugin_whitelist</span> <span class="o">=</span> <span class="n">plugin_whitelist</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">default_port</span> <span class="o">=</span> <span class="mi">5222</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">stream_header</span> <span class="o">=</span> <span class="s">&quot;&lt;stream:stream to=&#39;</span><span class="si">%s</span><span class="s">&#39; </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> version=&#39;1.0&#39;&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">boundjid</span><span class="o">.</span><span class="n">host</span><span class="p">,</span>
+                <span class="s">&quot;xmlns:stream=&#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream_ns</span><span class="p">,</span>
+                <span class="s">&quot;xmlns=&#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_ns</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stream_footer</span> <span class="o">=</span> <span class="s">&quot;&lt;/stream:stream&gt;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">features</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stream_feature_handlers</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stream_feature_order</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c">#TODO: Use stream state here</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">authenticated</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sessionstarted</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bound</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bindfail</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_event_handler</span><span class="p">(</span><span class="s">&#39;connected&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_handle_connected</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_stanza</span><span class="p">(</span><span class="n">StreamFeatures</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_handler</span><span class="p">(</span>
+                <span class="n">Callback</span><span class="p">(</span><span class="s">&#39;Stream Features&#39;</span><span class="p">,</span>
+                         <span class="n">MatchXPath</span><span class="p">(</span><span class="s">&#39;{</span><span class="si">%s</span><span class="s">}features&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream_ns</span><span class="p">),</span>
+                         <span class="bp">self</span><span class="o">.</span><span class="n">_handle_stream_features</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_handler</span><span class="p">(</span>
+                <span class="n">Callback</span><span class="p">(</span><span class="s">&#39;Roster Update&#39;</span><span class="p">,</span>
+                         <span class="n">MatchXPath</span><span class="p">(</span><span class="s">&#39;{</span><span class="si">%s</span><span class="s">}iq/{</span><span class="si">%s</span><span class="s">}query&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                             <span class="bp">self</span><span class="o">.</span><span class="n">default_ns</span><span class="p">,</span>
+                             <span class="s">&#39;jabber:iq:roster&#39;</span><span class="p">)),</span>
+                         <span class="bp">self</span><span class="o">.</span><span class="n">_handle_roster</span><span class="p">))</span>
+
+        <span class="c"># Setup default stream features</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_plugin</span><span class="p">(</span><span class="s">&#39;feature_starttls&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_plugin</span><span class="p">(</span><span class="s">&#39;feature_bind&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_plugin</span><span class="p">(</span><span class="s">&#39;feature_session&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_plugin</span><span class="p">(</span><span class="s">&#39;feature_mechanisms&#39;</span><span class="p">,</span>
+                <span class="n">pconfig</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;use_mech&#39;</span><span class="p">:</span> <span class="n">sasl_mech</span><span class="p">}</span> <span class="k">if</span> <span class="n">sasl_mech</span> <span class="k">else</span> <span class="bp">None</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ClientXMPP.connect"><a class="viewcode-back" href="../../api/clientxmpp.html#sleekxmpp.clientxmpp.ClientXMPP.connect">[docs]</a>    <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(),</span> <span class="n">reattempt</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                <span class="n">use_tls</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">use_ssl</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Connect to the XMPP server.</span>
+
+<span class="sd">        When no address is given, a SRV lookup for the server will</span>
+<span class="sd">        be attempted. If that fails, the server user in the JID</span>
+<span class="sd">        will be used.</span>
+
+<span class="sd">        :param address   -- A tuple containing the server&#39;s host and port.</span>
+<span class="sd">        :param reattempt: If ``True``, repeat attempting to connect if an</span>
+<span class="sd">                         error occurs. Defaults to ``True``.</span>
+<span class="sd">        :param use_tls: Indicates if TLS should be used for the</span>
+<span class="sd">                        connection. Defaults to ``True``.</span>
+<span class="sd">        :param use_ssl: Indicates if the older SSL connection method</span>
+<span class="sd">                        should be used. Defaults to ``False``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session_started_event</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">address</span><span class="p">:</span>
+            <span class="n">address</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">boundjid</span><span class="o">.</span><span class="n">host</span><span class="p">,</span> <span class="mi">5222</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">XMLStream</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">address</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">address</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                 <span class="n">use_tls</span><span class="o">=</span><span class="n">use_tls</span><span class="p">,</span> <span class="n">use_ssl</span><span class="o">=</span><span class="n">use_ssl</span><span class="p">,</span>
+                                 <span class="n">reattempt</span><span class="o">=</span><span class="n">reattempt</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ClientXMPP.get_dns_records"><a class="viewcode-back" href="../../api/clientxmpp.html#sleekxmpp.clientxmpp.ClientXMPP.get_dns_records">[docs]</a>    <span class="k">def</span> <span class="nf">get_dns_records</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">domain</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the DNS records for a domain, including SRV records.</span>
+
+<span class="sd">        :param domain: The domain in question.</span>
+<span class="sd">        :param port: If the results don&#39;t include a port, use this one.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">port</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">port</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_port</span>
+        <span class="k">if</span> <span class="n">DNSPYTHON</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">record</span> <span class="o">=</span> <span class="s">&quot;_xmpp-client._tcp.</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">domain</span>
+                <span class="n">answers</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">answer</span> <span class="ow">in</span> <span class="n">dns</span><span class="o">.</span><span class="n">resolver</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="n">dns</span><span class="o">.</span><span class="n">rdatatype</span><span class="o">.</span><span class="n">SRV</span><span class="p">):</span>
+                    <span class="n">address</span> <span class="o">=</span> <span class="p">(</span><span class="n">answer</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">to_text</span><span class="p">()[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">answer</span><span class="o">.</span><span class="n">port</span><span class="p">)</span>
+                    <span class="n">answers</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">address</span><span class="p">,</span> <span class="n">answer</span><span class="o">.</span><span class="n">priority</span><span class="p">,</span> <span class="n">answer</span><span class="o">.</span><span class="n">weight</span><span class="p">))</span>
+            <span class="k">except</span> <span class="p">(</span><span class="n">dns</span><span class="o">.</span><span class="n">resolver</span><span class="o">.</span><span class="n">NXDOMAIN</span><span class="p">,</span> <span class="n">dns</span><span class="o">.</span><span class="n">resolver</span><span class="o">.</span><span class="n">NoAnswer</span><span class="p">):</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;No SRV records for </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">domain</span><span class="p">)</span>
+                <span class="n">answers</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">ClientXMPP</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_dns_records</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">dns</span><span class="o">.</span><span class="n">exception</span><span class="o">.</span><span class="n">Timeout</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;DNS resolution timed out &quot;</span> <span class="o">+</span> \
+                            <span class="s">&quot;for SRV record of </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">domain</span><span class="p">)</span>
+                <span class="n">answers</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">ClientXMPP</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_dns_records</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">answers</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;dnspython is not installed -- &quot;</span> <span class="o">+</span> \
+                        <span class="s">&quot;relying on OS A record resolution&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">[((</span><span class="n">domain</span><span class="p">,</span> <span class="n">port</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)]</span>
+</div>
+<div class="viewcode-block" id="ClientXMPP.register_feature"><a class="viewcode-back" href="../../api/clientxmpp.html#sleekxmpp.clientxmpp.ClientXMPP.register_feature">[docs]</a>    <span class="k">def</span> <span class="nf">register_feature</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">handler</span><span class="p">,</span> <span class="n">restart</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">5000</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Register a stream feature handler.</span>
+
+<span class="sd">        :param name: The name of the stream feature.</span>
+<span class="sd">        :param handler: The function to execute if the feature is received.</span>
+<span class="sd">        :param restart: Indicates if feature processing should halt with</span>
+<span class="sd">                        this feature. Defaults to ``False``.</span>
+<span class="sd">        :param order: The relative ordering in which the feature should</span>
+<span class="sd">                      be negotiated. Lower values will be attempted</span>
+<span class="sd">                      earlier when available.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stream_feature_handlers</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">handler</span><span class="p">,</span> <span class="n">restart</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stream_feature_order</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">order</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stream_feature_order</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="ClientXMPP.update_roster"><a class="viewcode-back" href="../../api/clientxmpp.html#sleekxmpp.clientxmpp.ClientXMPP.update_roster">[docs]</a>    <span class="k">def</span> <span class="nf">update_roster</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jid</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">subscription</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">groups</span><span class="o">=</span><span class="p">[],</span>
+                            <span class="n">block</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add or change a roster item.</span>
+
+<span class="sd">        :param jid: The JID of the entry to modify.</span>
+<span class="sd">        :param name: The user&#39;s nickname for this JID.</span>
+<span class="sd">        :param subscription: The subscription status. May be one of</span>
+<span class="sd">                             ``&#39;to&#39;``, ``&#39;from&#39;``, ``&#39;both&#39;``, or</span>
+<span class="sd">                             ``&#39;none&#39;``. If set to ``&#39;remove&#39;``,</span>
+<span class="sd">                             the entry will be deleted.</span>
+<span class="sd">        :param groups: The roster groups that contain this item.</span>
+<span class="sd">        :param block: Specify if the roster request will block</span>
+<span class="sd">                      until a response is received, or a timeout</span>
+<span class="sd">                      occurs. Defaults to ``True``.</span>
+<span class="sd">        :param timeout: The length of time (in seconds) to wait</span>
+<span class="sd">                        for a response before continuing if blocking</span>
+<span class="sd">                        is used. Defaults to </span>
+<span class="sd">            :attr:`~sleekxmpp.xmlstream.xmlstream.XMLStream.response_timeout`.</span>
+<span class="sd">        :param callback: Optional reference to a stream handler function.</span>
+<span class="sd">                         Will be executed when the roster is received.</span>
+<span class="sd">                         Implies ``block=False``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client_roster</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">jid</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">subscription</span><span class="p">,</span> <span class="n">groups</span><span class="p">,</span>
+                                         <span class="n">block</span><span class="p">,</span> <span class="n">timeout</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ClientXMPP.del_roster_item"><a class="viewcode-back" href="../../api/clientxmpp.html#sleekxmpp.clientxmpp.ClientXMPP.del_roster_item">[docs]</a>    <span class="k">def</span> <span class="nf">del_roster_item</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jid</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Remove an item from the roster.</span>
+<span class="sd">        </span>
+<span class="sd">        This is done by setting its subscription status to ``&#39;remove&#39;``.</span>
+
+<span class="sd">        :param jid: The JID of the item to remove.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client_roster</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">jid</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ClientXMPP.get_roster"><a class="viewcode-back" href="../../api/clientxmpp.html#sleekxmpp.clientxmpp.ClientXMPP.get_roster">[docs]</a>    <span class="k">def</span> <span class="nf">get_roster</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">block</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Request the roster from the server.</span>
+
+<span class="sd">        :param block: Specify if the roster request will block until a</span>
+<span class="sd">                      response is received, or a timeout occurs.</span>
+<span class="sd">                      Defaults to ``True``.</span>
+<span class="sd">        :param timeout: The length of time (in seconds) to wait for a response</span>
+<span class="sd">                        before continuing if blocking is used.</span>
+<span class="sd">                        Defaults to </span>
+<span class="sd">            :attr:`~sleekxmpp.xmlstream.xmlstream.XMLStream.response_timeout`.</span>
+<span class="sd">        :param callback: Optional reference to a stream handler function. Will</span>
+<span class="sd">                         be executed when the roster is received.</span>
+<span class="sd">                         Implies ``block=False``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">iq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Iq</span><span class="p">()</span>
+        <span class="n">iq</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;get&#39;</span>
+        <span class="n">iq</span><span class="o">.</span><span class="n">enable</span><span class="p">(</span><span class="s">&#39;roster&#39;</span><span class="p">)</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">iq</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">block</span><span class="p">,</span> <span class="n">timeout</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">callback</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_handle_roster</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">request</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</div>
+    <span class="k">def</span> <span class="nf">_handle_connected</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="c">#TODO: Use stream state here</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">authenticated</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sessionstarted</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bound</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bindfail</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">features</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_handle_stream_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">features</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Process the received stream features.</span>
+
+<span class="sd">        :param features: The features stanza.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">order</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stream_feature_order</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">features</span><span class="p">[</span><span class="s">&#39;features&#39;</span><span class="p">]:</span>
+                <span class="n">handler</span><span class="p">,</span> <span class="n">restart</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stream_feature_handlers</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">handler</span><span class="p">(</span><span class="n">features</span><span class="p">)</span> <span class="ow">and</span> <span class="n">restart</span><span class="p">:</span>
+                    <span class="c"># Don&#39;t continue if the feature requires</span>
+                    <span class="c"># restarting the XML stream.</span>
+                    <span class="k">return</span> <span class="bp">True</span>
+
+    <span class="k">def</span> <span class="nf">_handle_roster</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iq</span><span class="p">,</span> <span class="n">request</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update the roster after receiving a roster stanza.</span>
+
+<span class="sd">        :param iq: The roster stanza.</span>
+<span class="sd">        :param request: Indicates if this stanza is a response</span>
+<span class="sd">                        to a request for the roster, and not an</span>
+<span class="sd">                        empty acknowledgement from the server.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">iq</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;set&#39;</span> <span class="ow">or</span> <span class="p">(</span><span class="n">iq</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;result&#39;</span> <span class="ow">and</span> <span class="n">request</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">jid</span> <span class="ow">in</span> <span class="n">iq</span><span class="p">[</span><span class="s">&#39;roster&#39;</span><span class="p">][</span><span class="s">&#39;items&#39;</span><span class="p">]:</span>
+                <span class="n">item</span> <span class="o">=</span> <span class="n">iq</span><span class="p">[</span><span class="s">&#39;roster&#39;</span><span class="p">][</span><span class="s">&#39;items&#39;</span><span class="p">][</span><span class="n">jid</span><span class="p">]</span>
+                <span class="n">roster</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">roster</span><span class="p">[</span><span class="n">iq</span><span class="p">[</span><span class="s">&#39;to&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">bare</span><span class="p">]</span>
+                <span class="n">roster</span><span class="p">[</span><span class="n">jid</span><span class="p">][</span><span class="s">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]</span>
+                <span class="n">roster</span><span class="p">[</span><span class="n">jid</span><span class="p">][</span><span class="s">&#39;groups&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s">&#39;groups&#39;</span><span class="p">]</span>
+                <span class="n">roster</span><span class="p">[</span><span class="n">jid</span><span class="p">][</span><span class="s">&#39;from&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s">&#39;subscription&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;from&#39;</span><span class="p">,</span> <span class="s">&#39;both&#39;</span><span class="p">]</span>
+                <span class="n">roster</span><span class="p">[</span><span class="n">jid</span><span class="p">][</span><span class="s">&#39;to&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s">&#39;subscription&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;to&#39;</span><span class="p">,</span> <span class="s">&#39;both&#39;</span><span class="p">]</span>
+                <span class="n">roster</span><span class="p">[</span><span class="n">jid</span><span class="p">][</span><span class="s">&#39;pending_out&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s">&#39;ask&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;subscribe&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">event</span><span class="p">(</span><span class="s">&#39;roster_received&#39;</span><span class="p">,</span> <span class="n">iq</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">event</span><span class="p">(</span><span class="s">&quot;roster_update&quot;</span><span class="p">,</span> <span class="n">iq</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">iq</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;set&#39;</span><span class="p">:</span>
+            <span class="n">iq</span><span class="o">.</span><span class="n">reply</span><span class="p">()</span>
+            <span class="n">iq</span><span class="o">.</span><span class="n">enable</span><span class="p">(</span><span class="s">&#39;roster&#39;</span><span class="p">)</span>
+            <span class="n">iq</span><span class="o">.</span><span class="n">send</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">True</span>
+
+
+<span class="c"># To comply with PEP8, method names now use underscores.</span>
+<span class="c"># Deprecated method names are re-mapped for backwards compatibility.</span></div>
+<span class="n">ClientXMPP</span><span class="o">.</span><span class="n">updateRoster</span> <span class="o">=</span> <span class="n">ClientXMPP</span><span class="o">.</span><span class="n">update_roster</span>
+<span class="n">ClientXMPP</span><span class="o">.</span><span class="n">delRosterItem</span> <span class="o">=</span> <span class="n">ClientXMPP</span><span class="o">.</span><span class="n">del_roster_item</span>
+<span class="n">ClientXMPP</span><span class="o">.</span><span class="n">getRoster</span> <span class="o">=</span> <span class="n">ClientXMPP</span><span class="o">.</span><span class="n">get_roster</span>
+<span class="n">ClientXMPP</span><span class="o">.</span><span class="n">registerFeature</span> <span class="o">=</span> <span class="n">ClientXMPP</span><span class="o">.</span><span class="n">register_feature</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">1.0RC3 Documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Nathan Fritz, Lance Stout.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

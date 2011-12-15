@@ -1,0 +1,797 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Creating a SleekXMPP Plugin &mdash; SleekXMPP</title>
+    
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.0RC3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="SleekXMPP" href="index.html" />
+    <link rel="next" title="How to Use Stream Features" href="features.html" />
+    <link rel="prev" title="How to Work with Stanza Objects" href="howto/stanzas.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="features.html" title="How to Use Stream Features"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="howto/stanzas.html" title="How to Work with Stanza Objects"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">1.0RC3 Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="creating-a-sleekxmpp-plugin">
+<h1>Creating a SleekXMPP Plugin<a class="headerlink" href="#creating-a-sleekxmpp-plugin" title="Permalink to this headline">¶</a></h1>
+<p>One of the goals of SleekXMPP is to provide support for every draft or final
+XMPP extension (<a class="reference external" href="http://xmpp.org/extensions/">XEP</a>). To do this, SleekXMPP has a
+plugin mechanism for adding the functionalities required by each XEP. But even
+though plugins were made to quickly implement and prototype the official XMPP
+extensions, there is no reason you can&#8217;t create your own plugin to implement
+your own custom XMPP-based protocol.</p>
+<p>This guide will help walk you through the steps to
+implement a rudimentary version of <a class="reference external" href="http://xmpp.org/extensions/xep-0077.html">XEP-0077 In-band
+Registration</a>. In-band registration
+was implemented in example 14-6 (page 223) of <a class="reference external" href="http://oreilly.com/catalog/9780596521271">XMPP: The Definitive
+Guide</a> because there was no SleekXMPP
+plugin for XEP-0077 at the time of writing. We will partially fix that issue
+here by turning the example implementation from <em>XMPP: The Definitive Guide</em>
+into a plugin. Again, note that this will not a complete implementation, and a
+different, more robust, official plugin for XEP-0077 may be added to SleekXMPP
+in the future.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The example plugin created in this guide is for the server side of the
+registration process only. It will <strong>NOT</strong> be able to register new accounts
+on an XMPP server.</p>
+</div>
+<div class="section" id="first-steps">
+<h2>First Steps<a class="headerlink" href="#first-steps" title="Permalink to this headline">¶</a></h2>
+<p>Every plugin inherits from the class <tt class="xref py py-mod docutils literal"><span class="pre">base_plugin</span></tt>,
+and must include a <tt class="docutils literal"><span class="pre">plugin_init</span></tt> method. While the
+plugins distributed with SleekXMPP must be placed in the plugins directory
+<tt class="docutils literal"><span class="pre">sleekxmpp/plugins</span></tt> to be loaded, custom plugins may be loaded from any
+module. To do so, use the following form when registering the plugin:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="bp">self</span><span class="o">.</span><span class="n">register_plugin</span><span class="p">(</span><span class="s">&#39;myplugin&#39;</span><span class="p">,</span> <span class="n">module</span><span class="o">=</span><span class="n">mod_containing_my_plugin</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The plugin name must be the same as the plugin&#8217;s class name.</p>
+<p>Now, we can open our favorite text editors and create <tt class="docutils literal"><span class="pre">xep_0077.py</span></tt> in
+<tt class="docutils literal"><span class="pre">SleekXMPP/sleekxmpp/plugins</span></tt>. We want to do some basic house-keeping and
+declare the name and description of the XEP we are implementing. If you
+are creating your own custom plugin, you don&#8217;t need to include the <tt class="docutils literal"><span class="pre">xep</span></tt>
+attribute.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Creating a SleekXMPP Plugin</span>
+
+<span class="sd">This is a minimal implementation of XEP-0077 to serve</span>
+<span class="sd">as a tutorial for creating SleekXMPP plugins.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">sleekxmpp.plugins.base</span> <span class="kn">import</span> <span class="n">base_plugin</span>
+
+<span class="k">class</span> <span class="nc">xep_0077</span><span class="p">(</span><span class="n">base_plugin</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    XEP-0077 In-Band Registration</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">plugin_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s">&quot;In-Band Registration&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xep</span> <span class="o">=</span> <span class="s">&quot;0077&quot;</span>
+</pre></div>
+</div>
+<p>Now that we have a basic plugin, we need to edit
+<tt class="docutils literal"><span class="pre">sleekxmpp/plugins/__init__.py</span></tt> to include our new plugin by adding
+<tt class="docutils literal"><span class="pre">'xep_0077'</span></tt> to the <tt class="docutils literal"><span class="pre">__all__</span></tt> declaration.</p>
+</div>
+<div class="section" id="interacting-with-other-plugins">
+<h2>Interacting with Other Plugins<a class="headerlink" href="#interacting-with-other-plugins" title="Permalink to this headline">¶</a></h2>
+<p>In-band registration is a feature that should be advertised through <a class="reference external" href="http://xmpp.org/extensions/xep-0030.html">Service
+Discovery</a>. To do that, we tell the
+<tt class="docutils literal"><span class="pre">xep_0030</span></tt> plugin to add the <tt class="docutils literal"><span class="pre">&quot;jabber:iq:register&quot;</span></tt> feature. We put this
+call in a method named <tt class="docutils literal"><span class="pre">post_init</span></tt> which will be called once the plugin has
+been loaded; by doing so we advertise that we can do registrations only after we
+finish activating the plugin.</p>
+<p>The <tt class="docutils literal"><span class="pre">post_init</span></tt> method needs to call <tt class="docutils literal"><span class="pre">base_plugin.post_init(self)</span></tt>
+which will mark that <tt class="docutils literal"><span class="pre">post_init</span></tt> has been called for the plugin. Once the
+SleekXMPP object begins processing, <tt class="docutils literal"><span class="pre">post_init</span></tt> will be called on any plugins
+that have not already run <tt class="docutils literal"><span class="pre">post_init</span></tt>. This allows you to register plugins and
+their dependencies without needing to worry about the order in which you do so.</p>
+<p><strong>Note:</strong> by adding this call we have introduced a dependency on the XEP-0030
+plugin. Be sure to register <tt class="docutils literal"><span class="pre">'xep_0030'</span></tt> as well as <tt class="docutils literal"><span class="pre">'xep_0077'</span></tt>. SleekXMPP
+does not automatically load plugin dependencies for you.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">post_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">base_plugin</span><span class="o">.</span><span class="n">post_init</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">xmpp</span><span class="p">[</span><span class="s">&#39;xep_0030&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">add_feature</span><span class="p">(</span><span class="s">&quot;jabber:iq:register&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="creating-custom-stanza-objects">
+<h2>Creating Custom Stanza Objects<a class="headerlink" href="#creating-custom-stanza-objects" title="Permalink to this headline">¶</a></h2>
+<p>Now, the IQ stanzas needed to implement our version of XEP-0077 are not very
+complex, and we could just interact with the XML objects directly just like
+in the <em>XMPP: The Definitive Guide</em> example. However, creating custom stanza
+objects is good practice.</p>
+<p>We will create a new <tt class="docutils literal"><span class="pre">Registration</span></tt> stanza. Following the <em>XMPP: The
+Definitive Guide</em> example, we will add support for a username and password
+field. We also need two flags: <tt class="docutils literal"><span class="pre">registered</span></tt> and <tt class="docutils literal"><span class="pre">remove</span></tt>. The <tt class="docutils literal"><span class="pre">registered</span></tt>
+flag is sent when an already registered user attempts to register, along with
+their registration data. The <tt class="docutils literal"><span class="pre">remove</span></tt> flag is a request to unregister a user&#8217;s
+account.</p>
+<p>Adding additional <a class="reference external" href="http://xmpp.org/extensions/xep-0077.html#registrar-formtypes-register">fields specified in
+XEP-0077</a>
+will not be difficult and is left as an exercise for the reader.</p>
+<p>Our <tt class="docutils literal"><span class="pre">Registration</span></tt> class needs to start with a few descriptions of its
+behaviour:</p>
+<ul>
+<li><dl class="first docutils">
+<dt><tt class="docutils literal"><span class="pre">namespace</span></tt></dt>
+<dd><p class="first last">The namespace our stanza object lives in. In this case,
+<tt class="docutils literal"><span class="pre">&quot;jabber:iq:register&quot;</span></tt>.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><tt class="docutils literal"><span class="pre">name</span></tt></dt>
+<dd><p class="first last">The name of the root XML element. In this case, the <tt class="docutils literal"><span class="pre">query</span></tt> element.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><tt class="docutils literal"><span class="pre">plugin_attrib</span></tt></dt>
+<dd><p class="first last">The name to access this type of stanza. In particular, given a
+registration stanza, the <tt class="docutils literal"><span class="pre">Registration</span></tt> object can be found using:
+<tt class="docutils literal"><span class="pre">iq_object['register']</span></tt>.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><tt class="docutils literal"><span class="pre">interfaces</span></tt></dt>
+<dd><p class="first">A list of dictionary-like keys that can be used with the stanza object.
+When using <tt class="docutils literal"><span class="pre">&quot;key&quot;</span></tt>, if there exists a method of the form <tt class="docutils literal"><span class="pre">getKey</span></tt>,
+<tt class="docutils literal"><span class="pre">setKey</span></tt>, or``delKey`` (depending on context) then the result of calling
+that method will be returned. Otherwise, the value of the attribute <tt class="docutils literal"><span class="pre">key</span></tt>
+of the main stanza element is returned if one exists.</p>
+<p class="last"><strong>Note:</strong> The accessor methods currently use title case, and not camel case.
+Thus if you need to access an item named <tt class="docutils literal"><span class="pre">&quot;methodName&quot;</span></tt> you will need to
+use <tt class="docutils literal"><span class="pre">getMethodname</span></tt>. This naming convention might change to full camel
+case in a future version of SleekXMPP.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><tt class="docutils literal"><span class="pre">sub_interfaces</span></tt></dt>
+<dd><p class="first">A subset of <tt class="docutils literal"><span class="pre">interfaces</span></tt>, but these keys map to the text of any
+subelements that are direct children of the main stanza element. Thus,
+referencing <tt class="docutils literal"><span class="pre">iq_object['register']['username']</span></tt> will either execute
+<tt class="docutils literal"><span class="pre">getUsername</span></tt> or return the value in the <tt class="docutils literal"><span class="pre">username</span></tt> element of the
+query.</p>
+<p class="last">If you need to access an element, say <tt class="docutils literal"><span class="pre">elem</span></tt>, that is not a direct child
+of the main stanza element, you will need to add <tt class="docutils literal"><span class="pre">getElem</span></tt>, <tt class="docutils literal"><span class="pre">setElem</span></tt>,
+and <tt class="docutils literal"><span class="pre">delElem</span></tt>. See the note above about naming conventions.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sleekxmpp.xmlstream</span> <span class="kn">import</span> <span class="n">ElementBase</span><span class="p">,</span> <span class="n">ET</span><span class="p">,</span> <span class="n">JID</span><span class="p">,</span> <span class="n">register_stanza_plugin</span>
+<span class="kn">from</span> <span class="nn">sleekxmpp</span> <span class="kn">import</span> <span class="n">Iq</span>
+
+<span class="k">class</span> <span class="nc">Registration</span><span class="p">(</span><span class="n">ElementBase</span><span class="p">):</span>
+    <span class="n">namespace</span> <span class="o">=</span> <span class="s">&#39;jabber:iq:register&#39;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s">&#39;query&#39;</span>
+    <span class="n">plugin_attrib</span> <span class="o">=</span> <span class="s">&#39;register&#39;</span>
+    <span class="n">interfaces</span> <span class="o">=</span> <span class="nb">set</span><span class="p">((</span><span class="s">&#39;username&#39;</span><span class="p">,</span> <span class="s">&#39;password&#39;</span><span class="p">,</span> <span class="s">&#39;registered&#39;</span><span class="p">,</span> <span class="s">&#39;remove&#39;</span><span class="p">))</span>
+    <span class="n">sub_interfaces</span> <span class="o">=</span> <span class="n">interfaces</span>
+
+    <span class="k">def</span> <span class="nf">getRegistered</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">present</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;{</span><span class="si">%s</span><span class="s">}registered&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">namespace</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">present</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">getRemove</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">present</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;{</span><span class="si">%s</span><span class="s">}remove&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">namespace</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">present</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">setRegistered</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">registered</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">registered</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">addField</span><span class="p">(</span><span class="s">&#39;registered&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="p">[</span><span class="s">&#39;registered&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">setRemove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">remove</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">remove</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">addField</span><span class="p">(</span><span class="s">&#39;remove&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="p">[</span><span class="s">&#39;remove&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">addField</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="n">itemXML</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s">&#39;{</span><span class="si">%s</span><span class="s">}</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">namespace</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">itemXML</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Setting a <tt class="docutils literal"><span class="pre">sub_interface</span></tt> attribute to <tt class="docutils literal"><span class="pre">&quot;&quot;</span></tt> will remove that subelement.
+Since we want to include empty registration fields in our form, we need the
+<tt class="docutils literal"><span class="pre">addField</span></tt> method to add the empty elements.</p>
+<p>Since the <tt class="docutils literal"><span class="pre">registered</span></tt> and <tt class="docutils literal"><span class="pre">remove</span></tt> elements are just flags, we need to add
+custom logic to enforce the binary behavior.</p>
+</div>
+<div class="section" id="extracting-stanzas-from-the-xml-stream">
+<h2>Extracting Stanzas from the XML Stream<a class="headerlink" href="#extracting-stanzas-from-the-xml-stream" title="Permalink to this headline">¶</a></h2>
+<p>Now that we have a custom stanza object, we need to be able to detect when we
+receive one. To do this, we register a stream handler that will pattern match
+stanzas off of the XML stream against our stanza object&#8217;s element name and
+namespace. To do so, we need to create a <tt class="docutils literal"><span class="pre">Callback</span></tt> object which contains
+an XML fragment that can identify our stanza type. We can add this handler
+registration to our <tt class="docutils literal"><span class="pre">plugin_init</span></tt> method.</p>
+<p>Also, we need to associate our <tt class="docutils literal"><span class="pre">Registration</span></tt> class with IQ stanzas;
+that requires the use of the <tt class="docutils literal"><span class="pre">register_stanza_plugin</span></tt> function (in
+<tt class="docutils literal"><span class="pre">sleekxmpp.xmlstream.stanzabase</span></tt>) which takes the class of a parent stanza
+type followed by the substanza type. In our case, the parent stanza is an IQ
+stanza, and the substanza is our registration query.</p>
+<p>The <tt class="docutils literal"><span class="pre">__handleRegistration</span></tt> method referenced in the callback will be our
+handler function to process registration requests.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">plugin_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s">&quot;In-Band Registration&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">xep</span> <span class="o">=</span> <span class="s">&quot;0077&quot;</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">xmpp</span><span class="o">.</span><span class="n">registerHandler</span><span class="p">(</span>
+      <span class="n">Callback</span><span class="p">(</span><span class="s">&#39;In-Band Registration&#39;</span><span class="p">,</span>
+        <span class="n">MatchXPath</span><span class="p">(</span><span class="s">&#39;{</span><span class="si">%s</span><span class="s">}iq/{jabber:iq:register}query&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">xmpp</span><span class="o">.</span><span class="n">default_ns</span><span class="p">),</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__handleRegistration</span><span class="p">))</span>
+    <span class="n">register_stanza_plugin</span><span class="p">(</span><span class="n">Iq</span><span class="p">,</span> <span class="n">Registration</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="handling-incoming-stanzas-and-triggering-events">
+<h2>Handling Incoming Stanzas and Triggering Events<a class="headerlink" href="#handling-incoming-stanzas-and-triggering-events" title="Permalink to this headline">¶</a></h2>
+<p>There are six situations that we need to handle to finish our implementation of
+XEP-0077.</p>
+<p><strong>Registration Form Request from a New User:</strong></p>
+<blockquote>
+<div><div class="highlight-xml"><div class="highlight"><pre><span class="nt">&lt;iq</span> <span class="na">type=</span><span class="s">&quot;result&quot;</span><span class="nt">&gt;</span>
+ <span class="nt">&lt;query</span> <span class="na">xmlns=</span><span class="s">&quot;jabber:iq:register&quot;</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;username</span> <span class="nt">/&gt;</span>
+  <span class="nt">&lt;password</span> <span class="nt">/&gt;</span>
+ <span class="nt">&lt;/query&gt;</span>
+<span class="nt">&lt;/iq&gt;</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p><strong>Registration Form Request from an Existing User:</strong></p>
+<blockquote>
+<div><div class="highlight-xml"><div class="highlight"><pre><span class="nt">&lt;iq</span> <span class="na">type=</span><span class="s">&quot;result&quot;</span><span class="nt">&gt;</span>
+ <span class="nt">&lt;query</span> <span class="na">xmlns=</span><span class="s">&quot;jabber:iq:register&quot;</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;registered</span> <span class="nt">/&gt;</span>
+  <span class="nt">&lt;username&gt;</span>Foo<span class="nt">&lt;/username&gt;</span>
+  <span class="nt">&lt;password&gt;</span>hunter2<span class="nt">&lt;/password&gt;</span>
+ <span class="nt">&lt;/query&gt;</span>
+<span class="nt">&lt;/iq&gt;</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p><strong>Unregister Account:</strong></p>
+<blockquote>
+<div><div class="highlight-xml"><div class="highlight"><pre><span class="nt">&lt;iq</span> <span class="na">type=</span><span class="s">&quot;result&quot;</span><span class="nt">&gt;</span>
+ <span class="nt">&lt;query</span> <span class="na">xmlns=</span><span class="s">&quot;jabber:iq:register&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/iq&gt;</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p><strong>Incomplete Registration:</strong></p>
+<blockquote>
+<div><div class="highlight-xml"><div class="highlight"><pre><span class="nt">&lt;iq</span> <span class="na">type=</span><span class="s">&quot;error&quot;</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;query</span> <span class="na">xmlns=</span><span class="s">&quot;jabber:iq:register&quot;</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;username&gt;</span>Foo<span class="nt">&lt;/username&gt;</span>
+  <span class="nt">&lt;/query&gt;</span>
+ <span class="nt">&lt;error</span> <span class="na">code=</span><span class="s">&quot;406&quot;</span> <span class="na">type=</span><span class="s">&quot;modify&quot;</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;not-acceptable</span> <span class="na">xmlns=</span><span class="s">&quot;urn:ietf:params:xml:ns:xmpp-stanzas&quot;</span> <span class="nt">/&gt;</span>
+ <span class="nt">&lt;/error&gt;</span>
+<span class="nt">&lt;/iq&gt;</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p><strong>Conflicting Registrations:</strong></p>
+<blockquote>
+<div><div class="highlight-xml"><div class="highlight"><pre><span class="nt">&lt;iq</span> <span class="na">type=</span><span class="s">&quot;error&quot;</span><span class="nt">&gt;</span>
+ <span class="nt">&lt;query</span> <span class="na">xmlns=</span><span class="s">&quot;jabber:iq:register&quot;</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;username&gt;</span>Foo<span class="nt">&lt;/username&gt;</span>
+  <span class="nt">&lt;password&gt;</span>hunter2<span class="nt">&lt;/password&gt;</span>
+ <span class="nt">&lt;/query&gt;</span>
+ <span class="nt">&lt;error</span> <span class="na">code=</span><span class="s">&quot;409&quot;</span> <span class="na">type=</span><span class="s">&quot;cancel&quot;</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;conflict</span> <span class="na">xmlns=</span><span class="s">&quot;urn:ietf:params:xml:ns:xmpp-stanzas&quot;</span> <span class="nt">/&gt;</span>
+ <span class="nt">&lt;/error&gt;</span>
+<span class="nt">&lt;/iq&gt;</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p><strong>Successful Registration:</strong></p>
+<blockquote>
+<div><div class="highlight-xml"><div class="highlight"><pre><span class="nt">&lt;iq</span> <span class="na">type=</span><span class="s">&quot;result&quot;</span><span class="nt">&gt;</span>
+ <span class="nt">&lt;query</span> <span class="na">xmlns=</span><span class="s">&quot;jabber:iq:register&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/iq&gt;</span>
+</pre></div>
+</div>
+</div></blockquote>
+<div class="section" id="cases-1-and-2-registration-requests">
+<h3>Cases 1 and 2: Registration Requests<a class="headerlink" href="#cases-1-and-2-registration-requests" title="Permalink to this headline">¶</a></h3>
+<p>Responding to registration requests depends on if the requesting user already
+has an account. If there is an account, the response should include the
+<tt class="docutils literal"><span class="pre">registered</span></tt> flag and the user&#8217;s current registration information. Otherwise,
+we just send the fields for our registration form.</p>
+<p>We will handle both cases by creating a <tt class="docutils literal"><span class="pre">sendRegistrationForm</span></tt> method that
+will create either an empty of full form depending on if we provide it with
+user data. Since we need to know which form fields to include (especially if we
+add support for the other fields specified in XEP-0077), we will also create a
+method <tt class="docutils literal"><span class="pre">setForm</span></tt> which will take the names of the fields we wish to include.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">plugin_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s">&quot;In-Band Registration&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">xep</span> <span class="o">=</span> <span class="s">&quot;0077&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">form_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;username&#39;</span><span class="p">,</span> <span class="s">&#39;password&#39;</span><span class="p">)</span>
+    <span class="o">...</span> <span class="n">remainder</span> <span class="n">of</span> <span class="n">plugin_init</span>
+
+<span class="o">...</span>
+
+<span class="k">def</span> <span class="nf">__handleRegistration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iq</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">iq</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;get&#39;</span><span class="p">:</span>
+        <span class="c"># Registration form requested</span>
+        <span class="n">userData</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">[</span><span class="n">iq</span><span class="p">[</span><span class="s">&#39;from&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">bare</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sendRegistrationForm</span><span class="p">(</span><span class="n">iq</span><span class="p">,</span> <span class="n">userData</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">setForm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">fields</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">form_fields</span> <span class="o">=</span> <span class="n">fields</span>
+
+<span class="k">def</span> <span class="nf">sendRegistrationForm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iq</span><span class="p">,</span> <span class="n">userData</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="n">reg</span> <span class="o">=</span> <span class="n">iq</span><span class="p">[</span><span class="s">&#39;register&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">userData</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">userData</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">reg</span><span class="p">[</span><span class="s">&#39;registered&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">form_fields</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">userData</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">data</span><span class="p">:</span>
+            <span class="c"># Add field with existing data</span>
+            <span class="n">reg</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># Add a blank field</span>
+            <span class="n">reg</span><span class="o">.</span><span class="n">addField</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+
+    <span class="n">iq</span><span class="o">.</span><span class="n">reply</span><span class="p">()</span><span class="o">.</span><span class="n">setPayload</span><span class="p">(</span><span class="n">reg</span><span class="o">.</span><span class="n">xml</span><span class="p">)</span>
+    <span class="n">iq</span><span class="o">.</span><span class="n">send</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Note how we are able to access our <tt class="docutils literal"><span class="pre">Registration</span></tt> stanza object with
+<tt class="docutils literal"><span class="pre">iq['register']</span></tt>.</p>
+<div class="section" id="a-user-backend">
+<h4>A User Backend<a class="headerlink" href="#a-user-backend" title="Permalink to this headline">¶</a></h4>
+<p>You might have noticed the reference to <tt class="docutils literal"><span class="pre">self.backend</span></tt>, which is an object
+that abstracts away storing and retrieving user information. Since it is not
+much more than a dictionary, we will leave the implementation details to the
+final, full source code example.</p>
+</div>
+</div>
+<div class="section" id="case-3-unregister-an-account">
+<h3>Case 3: Unregister an Account<a class="headerlink" href="#case-3-unregister-an-account" title="Permalink to this headline">¶</a></h3>
+<p>The next simplest case to consider is responding to a request to remove
+an account. If we receive a <tt class="docutils literal"><span class="pre">remove</span></tt> flag, we instruct the backend to
+remove the user&#8217;s account. Since your application may need to know about
+when users are registered or unregistered, we trigger an event using
+<tt class="docutils literal"><span class="pre">self.xmpp.event('unregister_user',</span> <span class="pre">iq)</span></tt>. See the component examples below for
+how to respond to that event.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">__handleRegistration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iq</span><span class="p">):</span>
+   <span class="k">if</span> <span class="n">iq</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;get&#39;</span><span class="p">:</span>
+       <span class="c"># Registration form requested</span>
+       <span class="n">userData</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">[</span><span class="n">iq</span><span class="p">[</span><span class="s">&#39;from&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">bare</span><span class="p">]</span>
+       <span class="bp">self</span><span class="o">.</span><span class="n">sendRegistrationForm</span><span class="p">(</span><span class="n">iq</span><span class="p">,</span> <span class="n">userData</span><span class="p">)</span>
+   <span class="k">elif</span> <span class="n">iq</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;set&#39;</span><span class="p">:</span>
+       <span class="c"># Remove an account</span>
+       <span class="k">if</span> <span class="n">iq</span><span class="p">[</span><span class="s">&#39;register&#39;</span><span class="p">][</span><span class="s">&#39;remove&#39;</span><span class="p">]:</span>
+           <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">unregister</span><span class="p">(</span><span class="n">iq</span><span class="p">[</span><span class="s">&#39;from&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">bare</span><span class="p">)</span>
+           <span class="bp">self</span><span class="o">.</span><span class="n">xmpp</span><span class="o">.</span><span class="n">event</span><span class="p">(</span><span class="s">&#39;unregistered_user&#39;</span><span class="p">,</span> <span class="n">iq</span><span class="p">)</span>
+           <span class="n">iq</span><span class="o">.</span><span class="n">reply</span><span class="p">()</span><span class="o">.</span><span class="n">send</span><span class="p">()</span>
+           <span class="k">return</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="case-4-incomplete-registration">
+<h3>Case 4: Incomplete Registration<a class="headerlink" href="#case-4-incomplete-registration" title="Permalink to this headline">¶</a></h3>
+<p>For the next case we need to check the user&#8217;s registration to ensure it has all
+of the fields we wanted. The simple option that we will use is to loop over the
+field names and check each one; however, this means that all fields we send to
+the user are required. Adding optional fields is left to the reader.</p>
+<p>Since we have received an incomplete form, we need to send an error message back
+to the user. We have to send a few different types of errors, so we will also
+create a <tt class="docutils literal"><span class="pre">_sendError</span></tt> method that will add the appropriate <tt class="docutils literal"><span class="pre">error</span></tt> element
+to the IQ reply.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">__handleRegistration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iq</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">iq</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;get&#39;</span><span class="p">:</span>
+        <span class="c"># Registration form requested</span>
+        <span class="n">userData</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">[</span><span class="n">iq</span><span class="p">[</span><span class="s">&#39;from&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">bare</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sendRegistrationForm</span><span class="p">(</span><span class="n">iq</span><span class="p">,</span> <span class="n">userData</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">iq</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;set&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">iq</span><span class="p">[</span><span class="s">&#39;register&#39;</span><span class="p">][</span><span class="s">&#39;remove&#39;</span><span class="p">]:</span>
+            <span class="c"># Remove an account</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">unregister</span><span class="p">(</span><span class="n">iq</span><span class="p">[</span><span class="s">&#39;from&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">bare</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">xmpp</span><span class="o">.</span><span class="n">event</span><span class="p">(</span><span class="s">&#39;unregistered_user&#39;</span><span class="p">,</span> <span class="n">iq</span><span class="p">)</span>
+            <span class="n">iq</span><span class="o">.</span><span class="n">reply</span><span class="p">()</span><span class="o">.</span><span class="n">send</span><span class="p">()</span>
+            <span class="k">return</span>
+
+        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">form_fields</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">iq</span><span class="p">[</span><span class="s">&#39;register&#39;</span><span class="p">][</span><span class="n">field</span><span class="p">]:</span>
+                <span class="c"># Incomplete Registration</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_sendError</span><span class="p">(</span><span class="n">iq</span><span class="p">,</span> <span class="s">&#39;406&#39;</span><span class="p">,</span> <span class="s">&#39;modify&#39;</span><span class="p">,</span> <span class="s">&#39;not-acceptable&#39;</span>
+                                <span class="s">&quot;Please fill in all fields.&quot;</span><span class="p">)</span>
+                <span class="k">return</span>
+
+<span class="o">...</span>
+
+<span class="k">def</span> <span class="nf">_sendError</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iq</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">error_type</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+    <span class="n">iq</span><span class="o">.</span><span class="n">reply</span><span class="p">()</span><span class="o">.</span><span class="n">setPayload</span><span class="p">(</span><span class="n">iq</span><span class="p">[</span><span class="s">&#39;register&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">xml</span><span class="p">)</span>
+    <span class="n">iq</span><span class="o">.</span><span class="n">error</span><span class="p">()</span>
+    <span class="n">iq</span><span class="p">[</span><span class="s">&#39;error&#39;</span><span class="p">][</span><span class="s">&#39;code&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">code</span>
+    <span class="n">iq</span><span class="p">[</span><span class="s">&#39;error&#39;</span><span class="p">][</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">error_type</span>
+    <span class="n">iq</span><span class="p">[</span><span class="s">&#39;error&#39;</span><span class="p">][</span><span class="s">&#39;condition&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span>
+    <span class="n">iq</span><span class="p">[</span><span class="s">&#39;error&#39;</span><span class="p">][</span><span class="s">&#39;text&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">text</span>
+    <span class="n">iq</span><span class="o">.</span><span class="n">send</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="cases-5-and-6-conflicting-and-successful-registration">
+<h3>Cases 5 and 6: Conflicting and Successful Registration<a class="headerlink" href="#cases-5-and-6-conflicting-and-successful-registration" title="Permalink to this headline">¶</a></h3>
+<p>We are down to the final decision on if we have a successful registration. We
+send the user&#8217;s data to the backend with the <tt class="docutils literal"><span class="pre">self.backend.register</span></tt> method.
+If it returns <tt class="docutils literal"><span class="pre">True</span></tt>, then registration has been successful. Otherwise,
+there has been a conflict with usernames and registration has failed. Like
+with unregistering an account, we trigger an event indicating that a user has
+been registered by using <tt class="docutils literal"><span class="pre">self.xmpp.event('registered_user',</span> <span class="pre">iq)</span></tt>. See the
+component examples below for how to respond to this event.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">__handleRegistration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iq</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">iq</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;get&#39;</span><span class="p">:</span>
+        <span class="c"># Registration form requested</span>
+        <span class="n">userData</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">[</span><span class="n">iq</span><span class="p">[</span><span class="s">&#39;from&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">bare</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sendRegistrationForm</span><span class="p">(</span><span class="n">iq</span><span class="p">,</span> <span class="n">userData</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">iq</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;set&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">iq</span><span class="p">[</span><span class="s">&#39;register&#39;</span><span class="p">][</span><span class="s">&#39;remove&#39;</span><span class="p">]:</span>
+            <span class="c"># Remove an account</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">unregister</span><span class="p">(</span><span class="n">iq</span><span class="p">[</span><span class="s">&#39;from&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">bare</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">xmpp</span><span class="o">.</span><span class="n">event</span><span class="p">(</span><span class="s">&#39;unregistered_user&#39;</span><span class="p">,</span> <span class="n">iq</span><span class="p">)</span>
+            <span class="n">iq</span><span class="o">.</span><span class="n">reply</span><span class="p">()</span><span class="o">.</span><span class="n">send</span><span class="p">()</span>
+            <span class="k">return</span>
+
+        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">form_fields</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">iq</span><span class="p">[</span><span class="s">&#39;register&#39;</span><span class="p">][</span><span class="n">field</span><span class="p">]:</span>
+                <span class="c"># Incomplete Registration</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_sendError</span><span class="p">(</span><span class="n">iq</span><span class="p">,</span> <span class="s">&#39;406&#39;</span><span class="p">,</span> <span class="s">&#39;modify&#39;</span><span class="p">,</span> <span class="s">&#39;not-acceptable&#39;</span><span class="p">,</span>
+                                <span class="s">&quot;Please fill in all fields.&quot;</span><span class="p">)</span>
+                <span class="k">return</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">iq</span><span class="p">[</span><span class="s">&#39;from&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">bare</span><span class="p">,</span> <span class="n">iq</span><span class="p">[</span><span class="s">&#39;register&#39;</span><span class="p">]):</span>
+            <span class="c"># Successful registration</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">xmpp</span><span class="o">.</span><span class="n">event</span><span class="p">(</span><span class="s">&#39;registered_user&#39;</span><span class="p">,</span> <span class="n">iq</span><span class="p">)</span>
+            <span class="n">iq</span><span class="o">.</span><span class="n">reply</span><span class="p">()</span><span class="o">.</span><span class="n">setPayload</span><span class="p">(</span><span class="n">iq</span><span class="p">[</span><span class="s">&#39;register&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">xml</span><span class="p">)</span>
+            <span class="n">iq</span><span class="o">.</span><span class="n">send</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># Conflicting registration</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sendError</span><span class="p">(</span><span class="n">iq</span><span class="p">,</span> <span class="s">&#39;409&#39;</span><span class="p">,</span> <span class="s">&#39;cancel&#39;</span><span class="p">,</span> <span class="s">&#39;conflict&#39;</span><span class="p">,</span>
+                            <span class="s">&quot;That username is already taken.&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="example-component-using-the-xep-0077-plugin">
+<h2>Example Component Using the XEP-0077 Plugin<a class="headerlink" href="#example-component-using-the-xep-0077-plugin" title="Permalink to this headline">¶</a></h2>
+<p>Alright, the moment we&#8217;ve been working towards - actually using our plugin to
+simplify our other applications. Here is a basic component that simply manages
+user registrations and sends the user a welcoming message when they register,
+and a farewell message when they delete their account.</p>
+<p>Note that we have to register the <tt class="docutils literal"><span class="pre">'xep_0030'</span></tt> plugin first,
+and that we specified the form fields we wish to use with
+<tt class="docutils literal"><span class="pre">self.xmpp.plugin['xep_0077'].setForm('username',</span> <span class="pre">'password')</span></tt>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">sleekxmpp.componentxmpp</span>
+
+<span class="k">class</span> <span class="nc">Example</span><span class="p">(</span><span class="n">sleekxmpp</span><span class="o">.</span><span class="n">componentxmpp</span><span class="o">.</span><span class="n">ComponentXMPP</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jid</span><span class="p">,</span> <span class="n">password</span><span class="p">):</span>
+        <span class="n">sleekxmpp</span><span class="o">.</span><span class="n">componentxmpp</span><span class="o">.</span><span class="n">ComponentXMPP</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jid</span><span class="p">,</span> <span class="n">password</span><span class="p">,</span> <span class="s">&#39;localhost&#39;</span><span class="p">,</span> <span class="mi">8888</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">registerPlugin</span><span class="p">(</span><span class="s">&#39;xep_0030&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">registerPlugin</span><span class="p">(</span><span class="s">&#39;xep_0077&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plugin</span><span class="p">[</span><span class="s">&#39;xep_0077&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">setForm</span><span class="p">(</span><span class="s">&#39;username&#39;</span><span class="p">,</span> <span class="s">&#39;password&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_event_handler</span><span class="p">(</span><span class="s">&quot;registered_user&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reg</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_event_handler</span><span class="p">(</span><span class="s">&quot;unregistered_user&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">unreg</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">reg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iq</span><span class="p">):</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s">&quot;Welcome! </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">iq</span><span class="p">[</span><span class="s">&#39;register&#39;</span><span class="p">][</span><span class="s">&#39;username&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sendMessage</span><span class="p">(</span><span class="n">iq</span><span class="p">[</span><span class="s">&#39;from&#39;</span><span class="p">],</span> <span class="n">msg</span><span class="p">,</span> <span class="n">mfrom</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fulljid</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">unreg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iq</span><span class="p">):</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s">&quot;Bye! </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">iq</span><span class="p">[</span><span class="s">&#39;register&#39;</span><span class="p">][</span><span class="s">&#39;username&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sendMessage</span><span class="p">(</span><span class="n">iq</span><span class="p">[</span><span class="s">&#39;from&#39;</span><span class="p">],</span> <span class="n">msg</span><span class="p">,</span> <span class="n">mfrom</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fulljid</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Congratulations!</strong> We now have a basic, functioning implementation of
+XEP-0077.</p>
+</div>
+<div class="section" id="complete-source-code-for-xep-0077-plugin">
+<h2>Complete Source Code for XEP-0077 Plugin<a class="headerlink" href="#complete-source-code-for-xep-0077-plugin" title="Permalink to this headline">¶</a></h2>
+<p>Here is a copy of a more complete implementation of the plugin we created, but
+with some additional registration fields implemented.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Creating a SleekXMPP Plugin</span>
+
+<span class="sd">This is a minimal implementation of XEP-0077 to serve</span>
+<span class="sd">as a tutorial for creating SleekXMPP plugins.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">sleekxmpp.plugins.base</span> <span class="kn">import</span> <span class="n">base_plugin</span>
+<span class="kn">from</span> <span class="nn">sleekxmpp.xmlstream.handler.callback</span> <span class="kn">import</span> <span class="n">Callback</span>
+<span class="kn">from</span> <span class="nn">sleekxmpp.xmlstream.matcher.xpath</span> <span class="kn">import</span> <span class="n">MatchXPath</span>
+<span class="kn">from</span> <span class="nn">sleekxmpp.xmlstream</span> <span class="kn">import</span> <span class="n">ElementBase</span><span class="p">,</span> <span class="n">ET</span><span class="p">,</span> <span class="n">JID</span><span class="p">,</span> <span class="n">register_stanza_plugin</span>
+<span class="kn">from</span> <span class="nn">sleekxmpp</span> <span class="kn">import</span> <span class="n">Iq</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+
+
+<span class="k">class</span> <span class="nc">Registration</span><span class="p">(</span><span class="n">ElementBase</span><span class="p">):</span>
+    <span class="n">namespace</span> <span class="o">=</span> <span class="s">&#39;jabber:iq:register&#39;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s">&#39;query&#39;</span>
+    <span class="n">plugin_attrib</span> <span class="o">=</span> <span class="s">&#39;register&#39;</span>
+    <span class="n">interfaces</span> <span class="o">=</span> <span class="nb">set</span><span class="p">((</span><span class="s">&#39;username&#39;</span><span class="p">,</span> <span class="s">&#39;password&#39;</span><span class="p">,</span> <span class="s">&#39;email&#39;</span><span class="p">,</span> <span class="s">&#39;nick&#39;</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;first&#39;</span><span class="p">,</span> <span class="s">&#39;last&#39;</span><span class="p">,</span> <span class="s">&#39;address&#39;</span><span class="p">,</span> <span class="s">&#39;city&#39;</span><span class="p">,</span> <span class="s">&#39;state&#39;</span><span class="p">,</span> <span class="s">&#39;zip&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;phone&#39;</span><span class="p">,</span> <span class="s">&#39;url&#39;</span><span class="p">,</span> <span class="s">&#39;date&#39;</span><span class="p">,</span> <span class="s">&#39;misc&#39;</span><span class="p">,</span> <span class="s">&#39;text&#39;</span><span class="p">,</span> <span class="s">&#39;key&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;registered&#39;</span><span class="p">,</span> <span class="s">&#39;remove&#39;</span><span class="p">,</span> <span class="s">&#39;instructions&#39;</span><span class="p">))</span>
+    <span class="n">sub_interfaces</span> <span class="o">=</span> <span class="n">interfaces</span>
+
+    <span class="k">def</span> <span class="nf">getRegistered</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">present</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;{</span><span class="si">%s</span><span class="s">}registered&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">namespace</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">present</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">getRemove</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">present</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;{</span><span class="si">%s</span><span class="s">}remove&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">namespace</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">present</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">setRegistered</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">registered</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">registered</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">addField</span><span class="p">(</span><span class="s">&#39;registered&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="p">[</span><span class="s">&#39;registered&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">setRemove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">remove</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">remove</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">addField</span><span class="p">(</span><span class="s">&#39;remove&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="p">[</span><span class="s">&#39;remove&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">addField</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="n">itemXML</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s">&#39;{</span><span class="si">%s</span><span class="s">}</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">namespace</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">itemXML</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">UserStore</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">users</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jid</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">users</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">jid</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">register</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jid</span><span class="p">,</span> <span class="n">registration</span><span class="p">):</span>
+        <span class="n">username</span> <span class="o">=</span> <span class="n">registration</span><span class="p">[</span><span class="s">&#39;username&#39;</span><span class="p">]</span>
+
+        <span class="k">def</span> <span class="nf">filter_usernames</span><span class="p">(</span><span class="n">user</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">user</span> <span class="o">!=</span> <span class="n">jid</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">users</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s">&#39;username&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">username</span>
+
+        <span class="n">conflicts</span> <span class="o">=</span> <span class="nb">filter</span><span class="p">(</span><span class="n">filter_usernames</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">users</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">conflicts</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">users</span><span class="p">[</span><span class="n">jid</span><span class="p">]</span> <span class="o">=</span> <span class="n">registration</span>
+        <span class="k">return</span> <span class="bp">True</span>
+
+    <span class="k">def</span> <span class="nf">unregister</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jid</span><span class="p">):</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">users</span><span class="p">[</span><span class="n">jid</span><span class="p">]</span>
+
+<span class="k">class</span> <span class="nc">xep_0077</span><span class="p">(</span><span class="n">base_plugin</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    XEP-0077 In-Band Registration</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">plugin_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s">&quot;In-Band Registration&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xep</span> <span class="o">=</span> <span class="s">&quot;0077&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">form_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;username&#39;</span><span class="p">,</span> <span class="s">&#39;password&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">form_instructions</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backend</span> <span class="o">=</span> <span class="n">UserStore</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">xmpp</span><span class="o">.</span><span class="n">registerHandler</span><span class="p">(</span>
+            <span class="n">Callback</span><span class="p">(</span><span class="s">&#39;In-Band Registration&#39;</span><span class="p">,</span>
+                     <span class="n">MatchXPath</span><span class="p">(</span><span class="s">&#39;{</span><span class="si">%s</span><span class="s">}iq/{jabber:iq:register}query&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">xmpp</span><span class="o">.</span><span class="n">default_ns</span><span class="p">),</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">__handleRegistration</span><span class="p">))</span>
+        <span class="n">register_stanza_plugin</span><span class="p">(</span><span class="n">Iq</span><span class="p">,</span> <span class="n">Registration</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">post_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">base_plugin</span><span class="o">.</span><span class="n">post_init</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xmpp</span><span class="p">[</span><span class="s">&#39;xep_0030&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">add_feature</span><span class="p">(</span><span class="s">&quot;jabber:iq:register&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__handleRegistration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iq</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">iq</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;get&#39;</span><span class="p">:</span>
+            <span class="c"># Registration form requested</span>
+            <span class="n">userData</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">[</span><span class="n">iq</span><span class="p">[</span><span class="s">&#39;from&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">bare</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sendRegistrationForm</span><span class="p">(</span><span class="n">iq</span><span class="p">,</span> <span class="n">userData</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">iq</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;set&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">iq</span><span class="p">[</span><span class="s">&#39;register&#39;</span><span class="p">][</span><span class="s">&#39;remove&#39;</span><span class="p">]:</span>
+                <span class="c"># Remove an account</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">unregister</span><span class="p">(</span><span class="n">iq</span><span class="p">[</span><span class="s">&#39;from&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">bare</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">xmpp</span><span class="o">.</span><span class="n">event</span><span class="p">(</span><span class="s">&#39;unregistered_user&#39;</span><span class="p">,</span> <span class="n">iq</span><span class="p">)</span>
+                <span class="n">iq</span><span class="o">.</span><span class="n">reply</span><span class="p">()</span><span class="o">.</span><span class="n">send</span><span class="p">()</span>
+                <span class="k">return</span>
+
+            <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">form_fields</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">iq</span><span class="p">[</span><span class="s">&#39;register&#39;</span><span class="p">][</span><span class="n">field</span><span class="p">]:</span>
+                    <span class="c"># Incomplete Registration</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_sendError</span><span class="p">(</span><span class="n">iq</span><span class="p">,</span> <span class="s">&#39;406&#39;</span><span class="p">,</span> <span class="s">&#39;modify&#39;</span><span class="p">,</span> <span class="s">&#39;not-acceptable&#39;</span><span class="p">,</span>
+                                    <span class="s">&quot;Please fill in all fields.&quot;</span><span class="p">)</span>
+                    <span class="k">return</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">iq</span><span class="p">[</span><span class="s">&#39;from&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">bare</span><span class="p">,</span> <span class="n">iq</span><span class="p">[</span><span class="s">&#39;register&#39;</span><span class="p">]):</span>
+                <span class="c"># Successful registration</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">xmpp</span><span class="o">.</span><span class="n">event</span><span class="p">(</span><span class="s">&#39;registered_user&#39;</span><span class="p">,</span> <span class="n">iq</span><span class="p">)</span>
+                <span class="n">iq</span><span class="o">.</span><span class="n">reply</span><span class="p">()</span><span class="o">.</span><span class="n">setPayload</span><span class="p">(</span><span class="n">iq</span><span class="p">[</span><span class="s">&#39;register&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">xml</span><span class="p">)</span>
+                <span class="n">iq</span><span class="o">.</span><span class="n">send</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c"># Conflicting registration</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_sendError</span><span class="p">(</span><span class="n">iq</span><span class="p">,</span> <span class="s">&#39;409&#39;</span><span class="p">,</span> <span class="s">&#39;cancel&#39;</span><span class="p">,</span> <span class="s">&#39;conflict&#39;</span><span class="p">,</span>
+                                <span class="s">&quot;That username is already taken.&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">setForm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">fields</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">form_fields</span> <span class="o">=</span> <span class="n">fields</span>
+
+    <span class="k">def</span> <span class="nf">setInstructions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instructions</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">form_instructions</span> <span class="o">=</span> <span class="n">instructions</span>
+
+    <span class="k">def</span> <span class="nf">sendRegistrationForm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iq</span><span class="p">,</span> <span class="n">userData</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">reg</span> <span class="o">=</span> <span class="n">iq</span><span class="p">[</span><span class="s">&#39;register&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">userData</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">userData</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">reg</span><span class="p">[</span><span class="s">&#39;registered&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">form_instructions</span><span class="p">:</span>
+            <span class="n">reg</span><span class="p">[</span><span class="s">&#39;instructions&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">form_instructions</span>
+
+        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">form_fields</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">userData</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">data</span><span class="p">:</span>
+                <span class="c"># Add field with existing data</span>
+                <span class="n">reg</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c"># Add a blank field</span>
+                <span class="n">reg</span><span class="o">.</span><span class="n">addField</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+
+        <span class="n">iq</span><span class="o">.</span><span class="n">reply</span><span class="p">()</span><span class="o">.</span><span class="n">setPayload</span><span class="p">(</span><span class="n">reg</span><span class="o">.</span><span class="n">xml</span><span class="p">)</span>
+        <span class="n">iq</span><span class="o">.</span><span class="n">send</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_sendError</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iq</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">error_type</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+        <span class="n">iq</span><span class="o">.</span><span class="n">reply</span><span class="p">()</span><span class="o">.</span><span class="n">setPayload</span><span class="p">(</span><span class="n">iq</span><span class="p">[</span><span class="s">&#39;register&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">xml</span><span class="p">)</span>
+        <span class="n">iq</span><span class="o">.</span><span class="n">error</span><span class="p">()</span>
+        <span class="n">iq</span><span class="p">[</span><span class="s">&#39;error&#39;</span><span class="p">][</span><span class="s">&#39;code&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">code</span>
+        <span class="n">iq</span><span class="p">[</span><span class="s">&#39;error&#39;</span><span class="p">][</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">error_type</span>
+        <span class="n">iq</span><span class="p">[</span><span class="s">&#39;error&#39;</span><span class="p">][</span><span class="s">&#39;condition&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="n">iq</span><span class="p">[</span><span class="s">&#39;error&#39;</span><span class="p">][</span><span class="s">&#39;text&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">text</span>
+        <span class="n">iq</span><span class="o">.</span><span class="n">send</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Creating a SleekXMPP Plugin</a><ul>
+<li><a class="reference internal" href="#first-steps">First Steps</a></li>
+<li><a class="reference internal" href="#interacting-with-other-plugins">Interacting with Other Plugins</a></li>
+<li><a class="reference internal" href="#creating-custom-stanza-objects">Creating Custom Stanza Objects</a></li>
+<li><a class="reference internal" href="#extracting-stanzas-from-the-xml-stream">Extracting Stanzas from the XML Stream</a></li>
+<li><a class="reference internal" href="#handling-incoming-stanzas-and-triggering-events">Handling Incoming Stanzas and Triggering Events</a><ul>
+<li><a class="reference internal" href="#cases-1-and-2-registration-requests">Cases 1 and 2: Registration Requests</a><ul>
+<li><a class="reference internal" href="#a-user-backend">A User Backend</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#case-3-unregister-an-account">Case 3: Unregister an Account</a></li>
+<li><a class="reference internal" href="#case-4-incomplete-registration">Case 4: Incomplete Registration</a></li>
+<li><a class="reference internal" href="#cases-5-and-6-conflicting-and-successful-registration">Cases 5 and 6: Conflicting and Successful Registration</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#example-component-using-the-xep-0077-plugin">Example Component Using the XEP-0077 Plugin</a></li>
+<li><a class="reference internal" href="#complete-source-code-for-xep-0077-plugin">Complete Source Code for XEP-0077 Plugin</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="howto/stanzas.html"
+                        title="previous chapter">How to Work with Stanza Objects</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="features.html"
+                        title="next chapter">How to Use Stream Features</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/create_plugin.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="features.html" title="How to Use Stream Features"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="howto/stanzas.html" title="How to Work with Stanza Objects"
+             >previous</a> |</li>
+        <li><a href="index.html">1.0RC3 Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Nathan Fritz, Lance Stout.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

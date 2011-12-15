@@ -1,0 +1,367 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Following XMPP: The Definitive Guide &mdash; SleekXMPP</title>
+    
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.0RC3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="SleekXMPP" href="index.html" />
+    <link rel="next" title="How to Work with Stanza Objects" href="howto/stanzas.html" />
+    <link rel="prev" title="Supported XEPS" href="xeps.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="howto/stanzas.html" title="How to Work with Stanza Objects"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="xeps.html" title="Supported XEPS"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">1.0RC3 Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="following-xmpp-the-definitive-guide">
+<h1>Following <em>XMPP: The Definitive Guide</em><a class="headerlink" href="#following-xmpp-the-definitive-guide" title="Permalink to this headline">¶</a></h1>
+<p>SleekXMPP was featured in the first edition of the O&#8217;Reilly book
+<a class="reference external" href="http://oreilly.com/catalog/9780596521271/">XMPP: The Definitive Guide</a>
+by Peter Saint-Andre, Kevin Smith, and Remko Tronçon. The original source code
+for the book&#8217;s examples can be found at <a class="reference external" href="http://github.com/remko/xmpp-tdg">http://github.com/remko/xmpp-tdg</a>. An
+updated version of the source code, maintained to stay current with the latest
+SleekXMPP release, is available at <a class="reference external" href="http://github.com/legastero/xmpp-tdg">http://github.com/legastero/xmpp-tdg</a>.</p>
+<p>However, since publication, SleekXMPP has advanced from version 0.2.1 to version
+1.0 and there have been several major API changes. The most notable is the
+introduction of <a class="reference internal" href="glossary.html#term-stanza-object"><em class="xref std std-term">stanza objects</em></a> which have simplified and
+standardized interactions with the XMPP XML stream.</p>
+<p>What follows is a walk-through of <em>The Definitive Guide</em> highlighting the
+changes needed to make the code examples work with version 1.0 of SleekXMPP.
+These changes have been kept to a minimum to preserve the correlation with
+the book&#8217;s explanations, so be aware that some code may not use current best
+practices.</p>
+<div class="section" id="example-2-2-page-26">
+<h2>Example 2-2. (Page 26)<a class="headerlink" href="#example-2-2-page-26" title="Permalink to this headline">¶</a></h2>
+<p><strong>Implementation of a basic bot that echoes all incoming messages back to its sender.</strong></p>
+<p>The echo bot example requires a change to the <tt class="docutils literal"><span class="pre">handleIncomingMessage</span></tt> method
+to reflect the use of the <tt class="docutils literal"><span class="pre">Message</span></tt> <a class="reference internal" href="glossary.html#term-stanza-object"><em class="xref std std-term">stanza object</em></a>. The
+<tt class="docutils literal"><span class="pre">&quot;jid&quot;</span></tt> field of the message object should now be <tt class="docutils literal"><span class="pre">&quot;from&quot;</span></tt> to match the
+<tt class="docutils literal"><span class="pre">from</span></tt> attribute of the actual XML message stanza. Likewise, <tt class="docutils literal"><span class="pre">&quot;message&quot;</span></tt>
+changes to <tt class="docutils literal"><span class="pre">&quot;body&quot;</span></tt> to match the <tt class="docutils literal"><span class="pre">body</span></tt> element of the message stanza.</p>
+<div class="section" id="updated-code">
+<h3>Updated Code<a class="headerlink" href="#updated-code" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">handleIncomingMessage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">xmpp</span><span class="o">.</span><span class="n">sendMessage</span><span class="p">(</span><span class="n">message</span><span class="p">[</span><span class="s">&quot;from&quot;</span><span class="p">],</span> <span class="n">message</span><span class="p">[</span><span class="s">&quot;body&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p><a class="reference external" href="http://github.com/legastero/xmpp-tdg/blob/master/code/EchoBot/EchoBot.py">View full source</a> |
+<a class="reference external" href="http://github.com/remko/xmpp-tdg/blob/master/code/EchoBot/EchoBot.py">View original code</a></p>
+</div>
+</div>
+<div class="section" id="example-14-1-page-215">
+<h2>Example 14-1. (Page 215)<a class="headerlink" href="#example-14-1-page-215" title="Permalink to this headline">¶</a></h2>
+<p><strong>CheshiR IM bot implementation.</strong></p>
+<p>The main event handling method in the Bot class is meant to process both message
+events and presence update events. With the new changes in SleekXMPP 1.0,
+extracting a CheshiR status &#8220;message&#8221; from both types of stanzas
+requires accessing different attributes. In the case of a message stanza, the
+<tt class="docutils literal"><span class="pre">&quot;body&quot;</span></tt> attribute would contain the CheshiR message. For a presence event,
+the information is stored in the <tt class="docutils literal"><span class="pre">&quot;status&quot;</span></tt> attribute. To handle both cases,
+we can test the type of the given event object and look up the proper attribute
+based on the type.</p>
+<p>Like in the EchoBot example, the expression <tt class="docutils literal"><span class="pre">event[&quot;jid&quot;]</span></tt> needs to change
+to <tt class="docutils literal"><span class="pre">event[&quot;from&quot;]</span></tt> in order to get a JID object for the stanza&#8217;s sender.
+Because other functions in CheshiR assume that the JID is a string, the <tt class="docutils literal"><span class="pre">jid</span></tt>
+attribute is used to access the string version of the JID. A check is also added
+in case <tt class="docutils literal"><span class="pre">user</span></tt> is <tt class="docutils literal"><span class="pre">None</span></tt>, but the check could (and probably should) be
+placed in <tt class="docutils literal"><span class="pre">addMessageFromUser</span></tt>.</p>
+<p>Another change is needed in <tt class="docutils literal"><span class="pre">handleMessageAddedToBackend</span></tt> where
+an HTML-IM response is created. The HTML content should be enclosed in a single
+element, such as a <tt class="docutils literal"><span class="pre">&lt;p&gt;</span></tt> tag.</p>
+<div class="section" id="id1">
+<h3>Updated Code<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">handleIncomingXMPPEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+  <span class="n">msgLocations</span> <span class="o">=</span> <span class="p">{</span><span class="n">sleekxmpp</span><span class="o">.</span><span class="n">stanza</span><span class="o">.</span><span class="n">presence</span><span class="o">.</span><span class="n">Presence</span><span class="p">:</span> <span class="s">&quot;status&quot;</span><span class="p">,</span>
+                  <span class="n">sleekxmpp</span><span class="o">.</span><span class="n">stanza</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">Message</span><span class="p">:</span> <span class="s">&quot;body&quot;</span><span class="p">}</span>
+
+  <span class="n">message</span> <span class="o">=</span> <span class="n">event</span><span class="p">[</span><span class="n">msgLocations</span><span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="n">event</span><span class="p">)]]</span>
+  <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">getUserFromJID</span><span class="p">(</span><span class="n">event</span><span class="p">[</span><span class="s">&quot;from&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">jid</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">user</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">addMessageFromUser</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">user</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">handleMessageAddedToBackend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span> <span class="p">:</span>
+  <span class="n">body</span> <span class="o">=</span> <span class="n">message</span><span class="o">.</span><span class="n">user</span> <span class="o">+</span> <span class="s">&quot;: &quot;</span> <span class="o">+</span> <span class="n">message</span><span class="o">.</span><span class="n">text</span>
+  <span class="n">htmlBody</span> <span class="o">=</span> <span class="s">&quot;&lt;p&gt;&lt;a href=&#39;</span><span class="si">%(uri)s</span><span class="s">&#39;&gt;</span><span class="si">%(user)s</span><span class="s">&lt;/a&gt;: </span><span class="si">%(message)s</span><span class="s">&lt;/p&gt;&quot;</span> <span class="o">%</span> <span class="p">{</span>
+    <span class="s">&quot;uri&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">url</span> <span class="o">+</span> <span class="s">&quot;/&quot;</span> <span class="o">+</span> <span class="n">message</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
+    <span class="s">&quot;user&quot;</span> <span class="p">:</span> <span class="n">message</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="s">&quot;message&quot;</span> <span class="p">:</span> <span class="n">message</span><span class="o">.</span><span class="n">text</span> <span class="p">}</span>
+  <span class="k">for</span> <span class="n">subscriberJID</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">getSubscriberJIDs</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">user</span><span class="p">)</span> <span class="p">:</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">xmpp</span><span class="o">.</span><span class="n">sendMessage</span><span class="p">(</span><span class="n">subscriberJID</span><span class="p">,</span> <span class="n">body</span><span class="p">,</span> <span class="n">mhtml</span><span class="o">=</span><span class="n">htmlBody</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><a class="reference external" href="http://github.com/legastero/xmpp-tdg/blob/master/code/CheshiR/Bot.py">View full source</a> |
+<a class="reference external" href="http://github.com/remko/xmpp-tdg/blob/master/code/CheshiR/Bot.py">View original code</a></p>
+</div>
+</div>
+<div class="section" id="example-14-3-page-217">
+<h2>Example 14-3. (Page 217)<a class="headerlink" href="#example-14-3-page-217" title="Permalink to this headline">¶</a></h2>
+<p><strong>Configurable CheshiR IM bot implementation.</strong></p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Since the CheshiR examples build on each other, see previous sections for
+corrections to code that is not marked as new in the book example.</p>
+</div>
+<p>The main difference for the configurable IM bot is the handling for the
+data form in <tt class="docutils literal"><span class="pre">handleConfigurationCommand</span></tt>. The test for equality
+with the string <tt class="docutils literal"><span class="pre">&quot;1&quot;</span></tt> is no longer required; SleekXMPP converts
+boolean data form fields to the values <tt class="docutils literal"><span class="pre">True</span></tt> and <tt class="docutils literal"><span class="pre">False</span></tt>
+automatically.</p>
+<p>For the method <tt class="docutils literal"><span class="pre">handleIncomingXMPPPresence</span></tt>, the attribute
+<tt class="docutils literal"><span class="pre">&quot;jid&quot;</span></tt> is again converted to <tt class="docutils literal"><span class="pre">&quot;from&quot;</span></tt> to get a JID
+object for the presence stanza&#8217;s sender, and the <tt class="docutils literal"><span class="pre">jid</span></tt> attribute is
+used to access the string version of that JID object. A check is also added in
+case <tt class="docutils literal"><span class="pre">user</span></tt> is <tt class="docutils literal"><span class="pre">None</span></tt>, but the check could (and probably
+should) be placed in <tt class="docutils literal"><span class="pre">getShouldMonitorPresenceFromUser</span></tt>.</p>
+<div class="section" id="id4">
+<h3>Updated Code<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">handleConfigurationCommand</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">,</span> <span class="n">sessionId</span><span class="p">):</span>
+  <span class="n">values</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">getValues</span><span class="p">()</span>
+  <span class="n">monitorPresence</span> <span class="o">=</span><span class="n">values</span><span class="p">[</span><span class="s">&quot;monitorPresence&quot;</span><span class="p">]</span>
+  <span class="n">jid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xmpp</span><span class="o">.</span><span class="n">plugin</span><span class="p">[</span><span class="s">&quot;xep_0050&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sessions</span><span class="p">[</span><span class="n">sessionId</span><span class="p">][</span><span class="s">&quot;jid&quot;</span><span class="p">]</span>
+  <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">getUserFromJID</span><span class="p">(</span><span class="n">jid</span><span class="p">)</span>
+  <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">setShouldMonitorPresenceFromUser</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">monitorPresence</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">handleIncomingXMPPPresence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+  <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">getUserFromJID</span><span class="p">(</span><span class="n">event</span><span class="p">[</span><span class="s">&quot;from&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">jid</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">user</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">getShouldMonitorPresenceFromUser</span><span class="p">(</span><span class="n">user</span><span class="p">):</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">handleIncomingXMPPEvent</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><a class="reference external" href="http://github.com/legastero/xmpp-tdg/blob/master/code/CheshiR/ConfigurableBot.py">View full source</a> |
+<a class="reference external" href="http://github.com/remko/xmpp-tdg/blob/master/code/CheshiR/ConfigurableBot.py">View original code</a></p>
+</div>
+</div>
+<div class="section" id="example-14-4-page-220">
+<h2>Example 14-4. (Page 220)<a class="headerlink" href="#example-14-4-page-220" title="Permalink to this headline">¶</a></h2>
+<p><strong>CheshiR IM server component implementation.</strong></p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Since the CheshiR examples build on each other, see previous sections for
+corrections to code that is not marked as new in the book example.</p>
+</div>
+<p>Like several previous examples, a needed change is to replace
+<tt class="docutils literal"><span class="pre">subscription[&quot;from&quot;]</span></tt> with <tt class="docutils literal"><span class="pre">subscription[&quot;from&quot;].jid</span></tt> because the
+<tt class="docutils literal"><span class="pre">BaseXMPP</span></tt> method <tt class="docutils literal"><span class="pre">makePresence</span></tt> requires the JID to be a string.</p>
+<p>A correction needs to be made in <tt class="docutils literal"><span class="pre">handleXMPPPresenceProbe</span></tt> because a line was
+left out of the original implementation; the variable <tt class="docutils literal"><span class="pre">user</span></tt> is undefined. The
+JID of the user can be extracted from the presence stanza&#8217;s <tt class="docutils literal"><span class="pre">from</span></tt> attribute.</p>
+<p>Since this implementation of CheshiR uses an XMPP component, it must
+include a <tt class="docutils literal"><span class="pre">from</span></tt> attribute in all messages that it sends. Adding the
+<tt class="docutils literal"><span class="pre">from</span></tt> attribute is done by including <tt class="docutils literal"><span class="pre">mfrom=self.xmpp.jid</span></tt> in calls to
+<tt class="docutils literal"><span class="pre">self.xmpp.sendMessage</span></tt>.</p>
+<div class="section" id="id7">
+<h3>Updated Code<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">handleXMPPPresenceProbe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">)</span> <span class="p">:</span>
+  <span class="bp">self</span><span class="o">.</span><span class="n">xmpp</span><span class="o">.</span><span class="n">sendPresence</span><span class="p">(</span><span class="n">pto</span> <span class="o">=</span> <span class="n">event</span><span class="p">[</span><span class="s">&quot;from&quot;</span><span class="p">])</span>
+
+<span class="k">def</span> <span class="nf">handleXMPPPresenceSubscription</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subscription</span><span class="p">)</span> <span class="p">:</span>
+  <span class="k">if</span> <span class="n">subscription</span><span class="p">[</span><span class="s">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;subscribe&quot;</span> <span class="p">:</span>
+    <span class="n">userJID</span> <span class="o">=</span> <span class="n">subscription</span><span class="p">[</span><span class="s">&quot;from&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">jid</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">xmpp</span><span class="o">.</span><span class="n">sendPresenceSubscription</span><span class="p">(</span><span class="n">pto</span><span class="o">=</span><span class="n">userJID</span><span class="p">,</span> <span class="n">ptype</span><span class="o">=</span><span class="s">&quot;subscribed&quot;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">xmpp</span><span class="o">.</span><span class="n">sendPresence</span><span class="p">(</span><span class="n">pto</span> <span class="o">=</span> <span class="n">userJID</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">xmpp</span><span class="o">.</span><span class="n">sendPresenceSubscription</span><span class="p">(</span><span class="n">pto</span><span class="o">=</span><span class="n">userJID</span><span class="p">,</span> <span class="n">ptype</span><span class="o">=</span><span class="s">&quot;subscribe&quot;</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">handleMessageAddedToBackend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span> <span class="p">:</span>
+  <span class="n">body</span> <span class="o">=</span> <span class="n">message</span><span class="o">.</span><span class="n">user</span> <span class="o">+</span> <span class="s">&quot;: &quot;</span> <span class="o">+</span> <span class="n">message</span><span class="o">.</span><span class="n">text</span>
+  <span class="k">for</span> <span class="n">subscriberJID</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">getSubscriberJIDs</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">user</span><span class="p">)</span> <span class="p">:</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">xmpp</span><span class="o">.</span><span class="n">sendMessage</span><span class="p">(</span><span class="n">subscriberJID</span><span class="p">,</span> <span class="n">body</span><span class="p">,</span> <span class="n">mfrom</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">xmpp</span><span class="o">.</span><span class="n">jid</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><a class="reference external" href="http://github.com/legastero/xmpp-tdg/blob/master/code/CheshiR/SimpleComponent.py">View full source</a> |
+<a class="reference external" href="http://github.com/remko/xmpp-tdg/blob/master/code/CheshiR/SimpleComponent.py">View original code</a></p>
+</div>
+</div>
+<div class="section" id="example-14-6-page-223">
+<h2>Example 14-6. (Page 223)<a class="headerlink" href="#example-14-6-page-223" title="Permalink to this headline">¶</a></h2>
+<p><strong>CheshiR IM server component with in-band registration support.</strong></p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Since the CheshiR examples build on each other, see previous sections for
+corrections to code that is not marked as new in the book example.</p>
+</div>
+<p>After applying the changes from Example 14-4 above, the registrable component
+implementation should work correctly.</p>
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p class="last">To see how to implement in-band registration as a SleekXMPP plugin,
+see the tutorial <em class="xref std std-ref">tutorial-create-plugin</em>.</p>
+</div>
+<p><a class="reference external" href="http://github.com/legastero/xmpp-tdg/blob/master/code/CheshiR/RegistrableComponent.py">View full source</a> |
+<a class="reference external" href="http://github.com/remko/xmpp-tdg/blob/master/code/CheshiR/RegistrableComponent.py">View original code</a></p>
+</div>
+<div class="section" id="example-14-7-page-225">
+<h2>Example 14-7. (Page 225)<a class="headerlink" href="#example-14-7-page-225" title="Permalink to this headline">¶</a></h2>
+<p><strong>Extended CheshiR IM server component implementation.</strong></p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Since the CheshiR examples build on each other, see previous
+sections for corrections to code that is not marked as new in the book
+example.</p>
+</div>
+<p>While the final code example can look daunting with all of the changes
+made, it requires very few modifications to work with the latest version of
+SleekXMPP. Most differences are the result of CheshiR&#8217;s backend functions
+expecting JIDs to be strings so that they can be stripped to bare JIDs. To
+resolve these, use the <tt class="docutils literal"><span class="pre">jid</span></tt> attribute of the JID objects. Also,
+references to <tt class="docutils literal"><span class="pre">&quot;message&quot;</span></tt> and <tt class="docutils literal"><span class="pre">&quot;jid&quot;</span></tt> attributes need to
+be changed to either <tt class="docutils literal"><span class="pre">&quot;body&quot;</span></tt> or <tt class="docutils literal"><span class="pre">&quot;status&quot;</span></tt>, and either
+<tt class="docutils literal"><span class="pre">&quot;from&quot;</span></tt> or <tt class="docutils literal"><span class="pre">&quot;to&quot;</span></tt> depending on if the object is a message
+or presence stanza and which of the JIDs from the stanza is needed.</p>
+<div class="section" id="id12">
+<h3>Updated Code<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">handleIncomingXMPPMessage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">)</span> <span class="p">:</span>
+  <span class="n">message</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">addRecipientToMessage</span><span class="p">(</span><span class="n">event</span><span class="p">[</span><span class="s">&quot;body&quot;</span><span class="p">],</span> <span class="n">event</span><span class="p">[</span><span class="s">&quot;to&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">jid</span><span class="p">)</span>
+  <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">getUserFromJID</span><span class="p">(</span><span class="n">event</span><span class="p">[</span><span class="s">&quot;from&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">jid</span><span class="p">)</span>
+  <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">addMessageFromUser</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">user</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">handleIncomingXMPPPresence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">)</span> <span class="p">:</span>
+  <span class="k">if</span> <span class="n">event</span><span class="p">[</span><span class="s">&quot;to&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">jid</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">componentDomain</span> <span class="p">:</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">getUserFromJID</span><span class="p">(</span><span class="n">event</span><span class="p">[</span><span class="s">&quot;from&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">jid</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">addMessageFromUser</span><span class="p">(</span><span class="n">event</span><span class="p">[</span><span class="s">&quot;status&quot;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span>
+
+<span class="o">...</span>
+
+<span class="k">def</span> <span class="nf">handleXMPPPresenceSubscription</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subscription</span><span class="p">)</span> <span class="p">:</span>
+  <span class="k">if</span> <span class="n">subscription</span><span class="p">[</span><span class="s">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;subscribe&quot;</span> <span class="p">:</span>
+    <span class="n">userJID</span> <span class="o">=</span> <span class="n">subscription</span><span class="p">[</span><span class="s">&quot;from&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">jid</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">getUserFromJID</span><span class="p">(</span><span class="n">userJID</span><span class="p">)</span>
+    <span class="n">contactJID</span> <span class="o">=</span> <span class="n">subscription</span><span class="p">[</span><span class="s">&quot;to&quot;</span><span class="p">]</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">xmpp</span><span class="o">.</span><span class="n">sendPresenceSubscription</span><span class="p">(</span>
+        <span class="n">pfrom</span><span class="o">=</span><span class="n">contactJID</span><span class="p">,</span> <span class="n">pto</span><span class="o">=</span><span class="n">userJID</span><span class="p">,</span> <span class="n">ptype</span><span class="o">=</span><span class="s">&quot;subscribed&quot;</span><span class="p">,</span> <span class="n">pnick</span><span class="o">=</span><span class="n">user</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">sendPresenceOfContactToUser</span><span class="p">(</span><span class="n">contactJID</span><span class="o">=</span><span class="n">contactJID</span><span class="p">,</span> <span class="n">userJID</span><span class="o">=</span><span class="n">userJID</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">contactJID</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">componentDomain</span> <span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">sendAllContactSubscriptionRequestsToUser</span><span class="p">(</span><span class="n">userJID</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><a class="reference external" href="http://github.com/legastero/xmpp-tdg/blob/master/code/CheshiR/Component.py">View full source</a> |
+<a class="reference external" href="http://github.com/remko/xmpp-tdg/blob/master/code/CheshiR/Component.py">View original code</a></p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Following <em>XMPP: The Definitive Guide</em></a><ul>
+<li><a class="reference internal" href="#example-2-2-page-26">Example 2-2. (Page 26)</a><ul>
+<li><a class="reference internal" href="#updated-code">Updated Code</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#example-14-1-page-215">Example 14-1. (Page 215)</a><ul>
+<li><a class="reference internal" href="#id1">Updated Code</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#example-14-3-page-217">Example 14-3. (Page 217)</a><ul>
+<li><a class="reference internal" href="#id4">Updated Code</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#example-14-4-page-220">Example 14-4. (Page 220)</a><ul>
+<li><a class="reference internal" href="#id7">Updated Code</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#example-14-6-page-223">Example 14-6. (Page 223)</a></li>
+<li><a class="reference internal" href="#example-14-7-page-225">Example 14-7. (Page 225)</a><ul>
+<li><a class="reference internal" href="#id12">Updated Code</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="xeps.html"
+                        title="previous chapter">Supported XEPS</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="howto/stanzas.html"
+                        title="next chapter">How to Work with Stanza Objects</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/xmpp_tdg.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="howto/stanzas.html" title="How to Work with Stanza Objects"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="xeps.html" title="Supported XEPS"
+             >previous</a> |</li>
+        <li><a href="index.html">1.0RC3 Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Nathan Fritz, Lance Stout.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

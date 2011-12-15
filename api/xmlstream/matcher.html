@@ -1,0 +1,314 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Stanza Matchers &mdash; SleekXMPP</title>
+    
+    <link rel="stylesheet" href="../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0RC3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="SleekXMPP" href="../../index.html" />
+    <link rel="next" title="XML Stream" href="xmlstream.html" />
+    <link rel="prev" title="Stanza Handlers" href="handler.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="xmlstream.html" title="XML Stream"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="handler.html" title="Stanza Handlers"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">1.0RC3 Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="stanza-matchers">
+<h1>Stanza Matchers<a class="headerlink" href="#stanza-matchers" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-sleekxmpp.xmlstream.matcher.base">
+<span id="the-basic-matcher"></span><h2>The Basic Matcher<a class="headerlink" href="#module-sleekxmpp.xmlstream.matcher.base" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="sleekxmpp.xmlstream.matcher.base.MatcherBase">
+<em class="property">class </em><tt class="descclassname">sleekxmpp.xmlstream.matcher.base.</tt><tt class="descname">MatcherBase</tt><big>(</big><em>criteria</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/matcher/base.html#MatcherBase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.matcher.base.MatcherBase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class for stanza matchers. Stanza matchers are used to pick
+stanzas out of the XML stream and pass them to the appropriate
+stream handlers.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>criteria</strong> &#8211; Object to compare some aspect of a stanza against.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.matcher.base.MatcherBase.match">
+<tt class="descname">match</tt><big>(</big><em>xml</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/matcher/base.html#MatcherBase.match"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.matcher.base.MatcherBase.match" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if a stanza matches the stored criteria.</p>
+<p>Meant to be overridden.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-sleekxmpp.xmlstream.matcher.id">
+<span id="id-matching"></span><h2>ID Matching<a class="headerlink" href="#module-sleekxmpp.xmlstream.matcher.id" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="sleekxmpp.xmlstream.matcher.id.MatcherId">
+<em class="property">class </em><tt class="descclassname">sleekxmpp.xmlstream.matcher.id.</tt><tt class="descname">MatcherId</tt><big>(</big><em>criteria</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/matcher/id.html#MatcherId"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.matcher.id.MatcherId" title="Permalink to this definition">¶</a></dt>
+<dd><p>The ID matcher selects stanzas that have the same stanza &#8216;id&#8217;
+interface value as the desired ID.</p>
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.matcher.id.MatcherId.match">
+<tt class="descname">match</tt><big>(</big><em>xml</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/matcher/id.html#MatcherId.match"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.matcher.id.MatcherId.match" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compare the given stanza&#8217;s <tt class="docutils literal"><span class="pre">'id'</span></tt> attribute to the stored
+<tt class="docutils literal"><span class="pre">id</span></tt> value.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>xml</strong> &#8211; The <a class="reference internal" href="stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase" title="sleekxmpp.xmlstream.stanzabase.ElementBase"><tt class="xref py py-class docutils literal"><span class="pre">ElementBase</span></tt></a>
+stanza to compare against.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-sleekxmpp.xmlstream.matcher.stanzapath">
+<span id="stanza-path-matching"></span><h2>Stanza Path Matching<a class="headerlink" href="#module-sleekxmpp.xmlstream.matcher.stanzapath" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="sleekxmpp.xmlstream.matcher.stanzapath.StanzaPath">
+<em class="property">class </em><tt class="descclassname">sleekxmpp.xmlstream.matcher.stanzapath.</tt><tt class="descname">StanzaPath</tt><big>(</big><em>criteria</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/matcher/stanzapath.html#StanzaPath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.matcher.stanzapath.StanzaPath" title="Permalink to this definition">¶</a></dt>
+<dd><p>The StanzaPath matcher selects stanzas that match a given &#8220;stanza path&#8221;,
+which is similar to a normal XPath except that it uses the interfaces and
+plugins of the stanza instead of the actual, underlying XML.</p>
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.matcher.stanzapath.StanzaPath.match">
+<tt class="descname">match</tt><big>(</big><em>stanza</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/matcher/stanzapath.html#StanzaPath.match"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.matcher.stanzapath.StanzaPath.match" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compare a stanza against a &#8220;stanza path&#8221;. A stanza path is similar to
+an XPath expression, but uses the stanza&#8217;s interfaces and plugins
+instead of the underlying XML. See the documentation for the stanza
+<a class="reference internal" href="stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase.match" title="sleekxmpp.xmlstream.stanzabase.ElementBase.match"><tt class="xref py py-meth docutils literal"><span class="pre">match()</span></tt></a> method
+for more information.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>stanza</strong> &#8211; The <a class="reference internal" href="stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase" title="sleekxmpp.xmlstream.stanzabase.ElementBase"><tt class="xref py py-class docutils literal"><span class="pre">ElementBase</span></tt></a>
+stanza to compare against.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-sleekxmpp.xmlstream.matcher.xpath">
+<span id="xpath"></span><h2>XPath<a class="headerlink" href="#module-sleekxmpp.xmlstream.matcher.xpath" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="sleekxmpp.xmlstream.matcher.xpath.MatchXPath">
+<em class="property">class </em><tt class="descclassname">sleekxmpp.xmlstream.matcher.xpath.</tt><tt class="descname">MatchXPath</tt><big>(</big><em>criteria</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/matcher/xpath.html#MatchXPath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.matcher.xpath.MatchXPath" title="Permalink to this definition">¶</a></dt>
+<dd><p>The XPath matcher selects stanzas whose XML contents matches a given
+XPath expression.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Using this matcher may not produce expected behavior when using
+attribute selectors. For Python 2.6 and 3.1, the ElementTree
+<a class="reference external" href="http://docs.python.org/3.2/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element.find" title="(in Python v3.2)"><tt class="xref py py-meth docutils literal"><span class="pre">find()</span></tt></a> method does
+not support the use of attribute selectors. If you need to
+support Python 2.6 or 3.1, it might be more useful to use a
+<a class="reference internal" href="#sleekxmpp.xmlstream.matcher.stanzapath.StanzaPath" title="sleekxmpp.xmlstream.matcher.stanzapath.StanzaPath"><tt class="xref py py-class docutils literal"><span class="pre">StanzaPath</span></tt></a> matcher.</p>
+</div>
+<p>If the value of <tt class="xref py py-data docutils literal"><span class="pre">IGNORE_NS</span></tt> is set to <tt class="docutils literal"><span class="pre">True</span></tt>, then XPath
+expressions will be matched without using namespaces.</p>
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.matcher.xpath.MatchXPath.match">
+<tt class="descname">match</tt><big>(</big><em>xml</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/matcher/xpath.html#MatchXPath.match"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.matcher.xpath.MatchXPath.match" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compare a stanza&#8217;s XML contents to an XPath expression.</p>
+<p>If the value of <tt class="xref py py-data docutils literal"><span class="pre">IGNORE_NS</span></tt> is set to <tt class="docutils literal"><span class="pre">True</span></tt>, then XPath
+expressions will be matched without using namespaces.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">In Python 2.6 and 3.1 the ElementTree
+<a class="reference external" href="http://docs.python.org/3.2/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element.find" title="(in Python v3.2)"><tt class="xref py py-meth docutils literal"><span class="pre">find()</span></tt></a> method does not
+support attribute selectors in the XPath expression.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>xml</strong> &#8211; The <a class="reference internal" href="stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase" title="sleekxmpp.xmlstream.stanzabase.ElementBase"><tt class="xref py py-class docutils literal"><span class="pre">ElementBase</span></tt></a>
+stanza to compare against.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-sleekxmpp.xmlstream.matcher.xmlmask">
+<span id="xmlmask"></span><h2>XMLMask<a class="headerlink" href="#module-sleekxmpp.xmlstream.matcher.xmlmask" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="sleekxmpp.xmlstream.matcher.xmlmask.MatchXMLMask">
+<em class="property">class </em><tt class="descclassname">sleekxmpp.xmlstream.matcher.xmlmask.</tt><tt class="descname">MatchXMLMask</tt><big>(</big><em>criteria</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/matcher/xmlmask.html#MatchXMLMask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.matcher.xmlmask.MatchXMLMask" title="Permalink to this definition">¶</a></dt>
+<dd><p>The XMLMask matcher selects stanzas whose XML matches a given
+XML pattern, or mask. For example, message stanzas with body elements
+could be matched using the mask:</p>
+<div class="highlight-xml"><div class="highlight"><pre><span class="nt">&lt;message</span> <span class="na">xmlns=</span><span class="s">&quot;jabber:client&quot;</span><span class="nt">&gt;&lt;body</span> <span class="nt">/&gt;&lt;/message&gt;</span>
+</pre></div>
+</div>
+<p>Use of XMLMask is discouraged, and 
+<a class="reference internal" href="#sleekxmpp.xmlstream.matcher.xpath.MatchXPath" title="sleekxmpp.xmlstream.matcher.xpath.MatchXPath"><tt class="xref py py-class docutils literal"><span class="pre">MatchXPath</span></tt></a> or 
+<a class="reference internal" href="#sleekxmpp.xmlstream.matcher.stanzapath.StanzaPath" title="sleekxmpp.xmlstream.matcher.stanzapath.StanzaPath"><tt class="xref py py-class docutils literal"><span class="pre">StanzaPath</span></tt></a> 
+should be used instead.</p>
+<p>The use of namespaces in the mask comparison is controlled by
+<tt class="docutils literal"><span class="pre">IGNORE_NS</span></tt>. Setting <tt class="docutils literal"><span class="pre">IGNORE_NS</span></tt> to <tt class="docutils literal"><span class="pre">True</span></tt> will disable namespace
+based matching for ALL XMLMask matchers.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>criteria</strong> &#8211; Either an <a class="reference external" href="http://docs.python.org/3.2/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element" title="(in Python v3.2)"><tt class="xref py py-class docutils literal"><span class="pre">Element</span></tt></a> XML
+object or XML string to use as a mask.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.matcher.xmlmask.MatchXMLMask.match">
+<tt class="descname">match</tt><big>(</big><em>xml</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/matcher/xmlmask.html#MatchXMLMask.match"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.matcher.xmlmask.MatchXMLMask.match" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compare a stanza object or XML object against the stored XML mask.</p>
+<p>Overrides MatcherBase.match.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>xml</strong> &#8211; The stanza object or XML object to compare against.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.matcher.xmlmask.MatchXMLMask.setDefaultNS">
+<tt class="descname">setDefaultNS</tt><big>(</big><em>ns</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/matcher/xmlmask.html#MatchXMLMask.setDefaultNS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.matcher.xmlmask.MatchXMLMask.setDefaultNS" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the default namespace to use during comparisons.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ns</strong> &#8211; The new namespace to use as the default.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Stanza Matchers</a><ul>
+<li><a class="reference internal" href="#module-sleekxmpp.xmlstream.matcher.base">The Basic Matcher</a></li>
+<li><a class="reference internal" href="#module-sleekxmpp.xmlstream.matcher.id">ID Matching</a></li>
+<li><a class="reference internal" href="#module-sleekxmpp.xmlstream.matcher.stanzapath">Stanza Path Matching</a></li>
+<li><a class="reference internal" href="#module-sleekxmpp.xmlstream.matcher.xpath">XPath</a></li>
+<li><a class="reference internal" href="#module-sleekxmpp.xmlstream.matcher.xmlmask">XMLMask</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="handler.html"
+                        title="previous chapter">Stanza Handlers</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="xmlstream.html"
+                        title="next chapter">XML Stream</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../../_sources/api/xmlstream/matcher.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="xmlstream.html" title="XML Stream"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="handler.html" title="Stanza Handlers"
+             >previous</a> |</li>
+        <li><a href="../../index.html">1.0RC3 Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Nathan Fritz, Lance Stout.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

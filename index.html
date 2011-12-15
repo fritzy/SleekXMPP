@@ -1,0 +1,342 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>SleekXMPP &mdash; SleekXMPP</title>
+    
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.0RC3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="SleekXMPP" href="#" />
+    <link rel="next" title="SleekXMPP Quickstart - Echo Bot" href="getting_started/echobot.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="getting_started/echobot.html" title="SleekXMPP Quickstart - Echo Bot"
+             accesskey="N">next</a> |</li>
+        <li><a href="#">1.0RC3 Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="sleekxmpp">
+<h1>SleekXMPP<a class="headerlink" href="#sleekxmpp" title="Permalink to this headline">¶</a></h1>
+<div class="sidebar">
+<p class="first sidebar-title">Get the Code</p>
+<div class="highlight-sh"><div class="highlight"><pre>pip install sleekxmpp
+</pre></div>
+</div>
+<p>The latest source code for SleekXMPP may be found on <a class="reference external" href="http://github.com/fritzy/SleekXMPP">Github</a>. Releases can be found in the
+<tt class="docutils literal"><span class="pre">master</span></tt> branch, while the latest development version is in the
+<tt class="docutils literal"><span class="pre">develop</span></tt> branch.</p>
+<dl class="docutils">
+<dt><strong>Latest Stable Release</strong></dt>
+<dd><ul class="first last simple">
+<li><a class="reference external" href="http://github.com/fritzy/SleekXMPP/zipball/1.0-RC3">1.0 RC3</a></li>
+</ul>
+</dd>
+<dt><strong>Develop Releases</strong></dt>
+<dd><ul class="first last simple">
+<li><a class="reference external" href="http://github.com/fritzy/SleekXMPP/zipball/develop">Latest Develop Version</a></li>
+</ul>
+</dd>
+</dl>
+<p>A mailing list and XMPP chat room are available for discussing and getting
+help with SleekXMPP.</p>
+<dl class="last docutils">
+<dt><strong>Mailing List</strong></dt>
+<dd><a class="reference external" href="http://groups.google.com/group/sleekxmpp-discussion">SleekXMPP Discussion on Google Groups</a></dd>
+<dt><strong>Chat</strong></dt>
+<dd><a class="reference external" href="xmpp:sleek&#64;conference.jabber.org?join">sleek&#64;conference.jabber.org</a></dd>
+</dl>
+</div>
+<p>SleekXMPP is an <a class="reference internal" href="license.html#license"><em>MIT licensed</em></a> XMPP library for Python 2.6/3.1+,
+and is featured in examples in
+<a class="reference external" href="http://oreilly.com/catalog/9780596521271">XMPP: The Definitive Guide</a>
+by Kevin Smith, Remko Tronçon, and Peter Saint-Andre. If you&#8217;ve arrived
+here from reading the Definitive Guide, please see the notes on updating
+the examples to the latest version of SleekXMPP.</p>
+<p>SleekXMPP&#8217;s design goals and philosphy are:</p>
+<dl class="docutils">
+<dt><strong>Low number of dependencies</strong></dt>
+<dd><p class="first">Installing and using SleekXMPP should be as simple as possible, without
+having to deal with long dependency chains.</p>
+<p class="last">As part of reducing the number of dependencies, some third party
+modules are included with SleekXMPP in the <tt class="docutils literal"><span class="pre">thirdparty</span></tt> directory.
+Imports from this module first try to import an existing installed
+version before loading the packaged version, when possible.</p>
+</dd>
+<dt><strong>Every XEP as a plugin</strong></dt>
+<dd>Following Python&#8217;s &#8220;batteries included&#8221; approach, the goal is to
+provide support for all currently active XEPs (final and draft). Since
+adding XEP support is done through easy to create plugins, the hope is
+to also provide a solid base for implementing and creating experimental
+XEPs.</dd>
+<dt><strong>Rewarding to work with</strong></dt>
+<dd>As much as possible, SleekXMPP should allow things to &#8220;just work&#8221; using
+sensible defaults and appropriate abstractions. XML can be ugly to work
+with, but it doesn&#8217;t have to be that way.</dd>
+</dl>
+<div class="section" id="getting-started-with-examples">
+<h2>Getting Started (with Examples)<a class="headerlink" href="#getting-started-with-examples" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="getting_started/echobot.html">SleekXMPP Quickstart - Echo Bot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started/sendlogout.html">Sign in, Send a Message, and Disconnect</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started/component.html">Create and Run a Server Component</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started/presence.html">Manage Presence Subscriptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started/muc.html">Mulit-User Chat (MUC) Bot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started/proxy.html">Enable HTTP Proxy Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started/scheduler.html">Send a Message Every 5 Minutes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started/iq.html">Send/Receive IQ Stanzas</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="tutorials-faqs-and-how-to-guides">
+<h2>Tutorials, FAQs, and How To Guides<a class="headerlink" href="#tutorials-faqs-and-how-to-guides" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="xeps.html">Supported XEPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="xmpp_tdg.html">Following <em>XMPP: The Definitive Guide</em></a></li>
+<li class="toctree-l1"><a class="reference internal" href="howto/stanzas.html">How to Work with Stanza Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="create_plugin.html">Creating a SleekXMPP Plugin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="features.html">How to Use Stream Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sasl.html">How SASL Authentication Works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="handlersmatchers.html">Using Stream Handlers and Matchers</a></li>
+</ul>
+</div>
+<div class="section" id="plugin-guides">
+<h3>Plugin Guides<a class="headerlink" href="#plugin-guides" title="Permalink to this headline">¶</a></h3>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="guide_xep_0030.html">XEP-0030: Working with Service Discovery</a></li>
+</ul>
+</div>
+</div>
+</div>
+<div class="section" id="sleekxmpp-architecture-and-design">
+<h2>SleekXMPP Architecture and Design<a class="headerlink" href="#sleekxmpp-architecture-and-design" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">SleekXMPP Architecture</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#the-foundation-xmlstream">The Foundation: XMLStream</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="architecture.html#the-main-threads">The Main Threads</a></li>
+<li class="toctree-l3"><a class="reference internal" href="architecture.html#how-xml-text-is-turned-into-action">How XML Text is Turned into Action</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#raising-xmpp-awareness-basexmpp">Raising XMPP Awareness: BaseXMPP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#clientxmpp">ClientXMPP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#componentxmpp">ComponentXMPP</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="plugin_arch.html">Plugin Architecture</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="api-reference">
+<h2>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="event_index.html">Event Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/clientxmpp.html">ClientXMPP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/componentxmpp.html">ComponentXMPP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/basexmpp.html">BaseXMPP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/xmlstream/jid.html">Jabber IDs (JID)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/xmlstream/stanzabase.html">Stanza Objects</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/xmlstream/stanzabase.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/xmlstream/stanzabase.html#registering-stanza-plugins">Registering Stanza Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/xmlstream/stanzabase.html#elementbase">ElementBase</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/xmlstream/stanzabase.html#id1">StanzaBase</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/xmlstream/handler.html">Stanza Handlers</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/xmlstream/handler.html#module-sleekxmpp.xmlstream.handler.base">The Basic Handler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/xmlstream/handler.html#module-sleekxmpp.xmlstream.handler.callback">Callback</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/xmlstream/handler.html#module-sleekxmpp.xmlstream.handler.waiter">Waiter</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/xmlstream/matcher.html">Stanza Matchers</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/xmlstream/matcher.html#module-sleekxmpp.xmlstream.matcher.base">The Basic Matcher</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/xmlstream/matcher.html#module-sleekxmpp.xmlstream.matcher.id">ID Matching</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/xmlstream/matcher.html#module-sleekxmpp.xmlstream.matcher.stanzapath">Stanza Path Matching</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/xmlstream/matcher.html#module-sleekxmpp.xmlstream.matcher.xpath">XPath</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/xmlstream/matcher.html#module-sleekxmpp.xmlstream.matcher.xmlmask">XMLMask</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/xmlstream/xmlstream.html">XML Stream</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/xmlstream/scheduler.html">Scheduler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/xmlstream/tostring.html">XML Serialization</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/xmlstream/tostring.html#escaping-special-characters">Escaping Special Characters</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/xmlstream/filesocket.html">Python 2.6 File Socket Shims</a></li>
+</ul>
+</div>
+<div class="section" id="core-stanzas">
+<h3>Core Stanzas<a class="headerlink" href="#core-stanzas" title="Permalink to this headline">¶</a></h3>
+<div class="toctree-wrapper compound">
+<ul class="simple">
+</ul>
+</div>
+</div>
+<div class="section" id="plugins">
+<h3>Plugins<a class="headerlink" href="#plugins" title="Permalink to this headline">¶</a></h3>
+<div class="toctree-wrapper compound">
+<ul class="simple">
+</ul>
+</div>
+</div>
+</div>
+<div class="section" id="additional-info">
+<h2>Additional Info<a class="headerlink" href="#additional-info" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+</div>
+<ul class="simple">
+<li><a class="reference internal" href="license.html#license"><em>License (MIT)</em></a></li>
+<li><a class="reference internal" href="glossary.html#glossary"><em>Glossary</em></a></li>
+<li><a class="reference internal" href="genindex.html"><em>Index</em></a></li>
+<li><a class="reference internal" href="py-modindex.html"><em>Module Index</em></a></li>
+<li><a class="reference internal" href="search.html"><em>Search Page</em></a></li>
+</ul>
+</div>
+<div class="section" id="credits">
+<h2>Credits<a class="headerlink" href="#credits" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt><strong>Main Author:</strong> Nathan Fritz</dt>
+<dd><p class="first"><a class="reference external" href="xmpp:fritzy&#64;netflint.net?message">fritzy&#64;netflint.net</a>,
+<a class="reference external" href="http://twitter.com/fritzy">&#64;fritzy</a></p>
+<p class="last">Nathan is also the author of XMPPHP and <a class="reference external" href="http://code.google.com/p/seesmic-as3-xmpp/">Seesmic-AS3-XMPP</a>, and a member of the XMPP
+Council.</p>
+</dd>
+<dt><strong>Co-Author:</strong> Lance Stout</dt>
+<dd><a class="reference external" href="xmpp:lancestout&#64;gmail.com?message">lancestout&#64;gmail.com</a>,
+<a class="reference external" href="http://twitter.com/lancestout">&#64;lancestout</a></dd>
+<dt><strong>Contributors:</strong></dt>
+<dd><ul class="first last simple">
+<li>Brian Beggs (<a class="reference external" href="http://github.com/macdiesel">macdiesel</a>)</li>
+<li>Dann Martens (<a class="reference external" href="http://github.com/dannmartens">dannmartens</a>)</li>
+<li>Florent Le Coz (<a class="reference external" href="http://github.com/louiz">louiz</a>)</li>
+<li>Kevin Smith (<a class="reference external" href="http://github.com/Kev">Kev</a>, <a class="reference external" href="http://kismith.co.uk">http://kismith.co.uk</a>)</li>
+<li>Remko Tronçon (<a class="reference external" href="http://github.com/remko">remko</a>, <a class="reference external" href="http://el-tramo.be">http://el-tramo.be</a>)</li>
+<li>Te-jé Rogers (<a class="reference external" href="http://github.com/te-je">te-je</a>)</li>
+<li>Thom Nichols (<a class="reference external" href="http://github.com/tomstrummer">tomstrummer</a>)</li>
+</ul>
+</dd>
+</dl>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">SleekXMPP</a><ul>
+<li><a class="reference internal" href="#getting-started-with-examples">Getting Started (with Examples)</a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#tutorials-faqs-and-how-to-guides">Tutorials, FAQs, and How To Guides</a><ul>
+<li><a class="reference internal" href="#plugin-guides">Plugin Guides</a><ul>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#sleekxmpp-architecture-and-design">SleekXMPP Architecture and Design</a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#api-reference">API Reference</a><ul>
+<li><a class="reference internal" href="#core-stanzas">Core Stanzas</a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#plugins">Plugins</a><ul>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#additional-info">Additional Info</a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#credits">Credits</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Next topic</h4>
+  <p class="topless"><a href="getting_started/echobot.html"
+                        title="next chapter">SleekXMPP Quickstart - Echo Bot</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/index.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="getting_started/echobot.html" title="SleekXMPP Quickstart - Echo Bot"
+             >next</a> |</li>
+        <li><a href="#">1.0RC3 Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Nathan Fritz, Lance Stout.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

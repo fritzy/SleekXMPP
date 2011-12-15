@@ -1,0 +1,206 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>XML Serialization &mdash; SleekXMPP</title>
+    
+    <link rel="stylesheet" href="../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0RC3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="SleekXMPP" href="../../index.html" />
+    <link rel="next" title="Python 2.6 File Socket Shims" href="filesocket.html" />
+    <link rel="prev" title="Scheduler" href="scheduler.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="filesocket.html" title="Python 2.6 File Socket Shims"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="scheduler.html" title="Scheduler"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">1.0RC3 Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <span class="target" id="module-sleekxmpp.xmlstream.tostring"></span><div class="section" id="xml-serialization">
+<span id="tostring"></span><h1>XML Serialization<a class="headerlink" href="#xml-serialization" title="Permalink to this headline">¶</a></h1>
+<p>Since the XML layer of SleekXMPP is based on <a class="reference external" href="http://docs.python.org/3.2/library/xml.etree.elementtree.html#xml.etree.ElementTree" title="(in Python v3.2)"><tt class="xref py py-mod docutils literal"><span class="pre">ElementTree</span></tt></a>,
+why not just use the built-in <a class="reference external" href="http://docs.python.org/3.2/library/xml.etree.elementtree.html#xml.etree.ElementTree.tostring" title="(in Python v3.2)"><tt class="xref py py-func docutils literal"><span class="pre">tostring()</span></tt></a>
+method? The answer is that using that method produces ugly results when
+using namespaces. The <a class="reference internal" href="#sleekxmpp.xmlstream.tostring.tostring" title="sleekxmpp.xmlstream.tostring.tostring"><tt class="xref py py-func docutils literal"><span class="pre">tostring()</span></tt></a> method used here intelligently
+hides namespaces when able and does not introduce excessive namespace
+prefixes:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sleekxmpp.xmlstream.tostring</span> <span class="kn">import</span> <span class="n">tostring</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">xml.etree</span> <span class="kn">import</span> <span class="n">cElementTree</span> <span class="k">as</span> <span class="n">ET</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">xml</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="s">&#39;&lt;foo xmlns=&quot;bar&quot;&gt;&lt;baz /&gt;&lt;/foo&gt;&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ET</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
+<span class="go">&#39;&lt;ns0:foo xmlns:ns0=&quot;bar&quot;&gt;&lt;ns0:baz /&gt;&lt;/foo&gt;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tostring</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
+<span class="go">&#39;&lt;foo xmlns=&quot;bar&quot;&gt;&lt;baz /&gt;&lt;/foo&gt;&#39;</span>
+</pre></div>
+</div>
+<p>As a side effect of this namespace hiding, using <a class="reference internal" href="#sleekxmpp.xmlstream.tostring.tostring" title="sleekxmpp.xmlstream.tostring.tostring"><tt class="xref py py-func docutils literal"><span class="pre">tostring()</span></tt></a> may
+produce unexpected results depending on how the <a class="reference internal" href="#sleekxmpp.xmlstream.tostring.tostring" title="sleekxmpp.xmlstream.tostring.tostring"><tt class="xref py py-func docutils literal"><span class="pre">tostring()</span></tt></a> method
+is invoked. For example, when sending XML on the wire, the main XMPP
+stanzas with their namespace of <tt class="docutils literal"><span class="pre">jabber:client</span></tt> will not include the
+namespace because that is already declared by the stream header. But, if
+you create a <tt class="xref py py-class docutils literal"><span class="pre">Message</span></tt> instance and dump
+it to the terminal, the <tt class="docutils literal"><span class="pre">jabber:client</span></tt> namespace will appear.</p>
+<dl class="function">
+<dt id="sleekxmpp.xmlstream.tostring.tostring">
+<tt class="descclassname">sleekxmpp.xmlstream.tostring.</tt><tt class="descname">tostring</tt><big>(</big><em>xml=None</em>, <em>xmlns=''</em>, <em>stanza_ns=''</em>, <em>stream=None</em>, <em>outbuffer=''</em>, <em>top_level=False</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/tostring.html#tostring"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.tostring.tostring" title="Permalink to this definition">¶</a></dt>
+<dd><p>Serialize an XML object to a Unicode string.</p>
+<p>If namespaces are provided using <tt class="docutils literal"><span class="pre">xmlns</span></tt> or <tt class="docutils literal"><span class="pre">stanza_ns</span></tt>, then
+elements that use those namespaces will not include the xmlns attribute
+in the output.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>xml</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element" title="(in Python v3.2)"><tt class="xref py py-class docutils literal"><span class="pre">Element</span></tt></a>) &#8211; The XML object to serialize.</li>
+<li><strong>xmlns</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/string.html#string" title="(in Python v3.2)"><em>string</em></a>) &#8211; Optional namespace of an element wrapping the XML
+object.</li>
+<li><strong>stanza_ns</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/string.html#string" title="(in Python v3.2)"><em>string</em></a>) &#8211; The namespace of the stanza object that contains
+the XML object.</li>
+<li><strong>stream</strong> (<a class="reference internal" href="xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream" title="sleekxmpp.xmlstream.xmlstream.XMLStream"><tt class="xref py py-class docutils literal"><span class="pre">XMLStream</span></tt></a>) &#8211; The XML stream that generated the XML object.</li>
+<li><strong>outbuffer</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/string.html#string" title="(in Python v3.2)"><em>string</em></a>) &#8211; Optional buffer for storing serializations
+during recursive calls.</li>
+<li><strong>top_level</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/functions.html#bool" title="(in Python v3.2)"><em>bool</em></a>) &#8211; Indicates that the element is the outermost
+element.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Unicode string</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<div class="section" id="escaping-special-characters">
+<h2>Escaping Special Characters<a class="headerlink" href="#escaping-special-characters" title="Permalink to this headline">¶</a></h2>
+<p>In order to prevent errors when sending arbitrary text as the textual
+content of an XML element, certain characters must be escaped. These
+are: <tt class="docutils literal"><span class="pre">&amp;</span></tt>, <tt class="docutils literal"><span class="pre">&lt;</span></tt>, <tt class="docutils literal"><span class="pre">&gt;</span></tt>, <tt class="docutils literal"><span class="pre">&quot;</span></tt>, and <tt class="docutils literal"><span class="pre">'</span></tt>. The default escaping
+mechanism is to replace those characters with their equivalent escape
+entities: <tt class="docutils literal"><span class="pre">&amp;amp;</span></tt>, <tt class="docutils literal"><span class="pre">&amp;lt;</span></tt>, <tt class="docutils literal"><span class="pre">&amp;gt;</span></tt>, <tt class="docutils literal"><span class="pre">&amp;apos;</span></tt>, and <tt class="docutils literal"><span class="pre">&amp;quot;</span></tt>.</p>
+<p>In the future, the use of CDATA sections may be allowed to reduce the
+size of escaped text or for when other XMPP processing agents do not
+undertand these entities.</p>
+<dl class="function">
+<dt id="sleekxmpp.xmlstream.tostring.xml_escape">
+<tt class="descclassname">sleekxmpp.xmlstream.tostring.</tt><tt class="descname">xml_escape</tt><big>(</big><em>text</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/tostring.html#xml_escape"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.tostring.xml_escape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert special characters in XML to escape sequences.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>text</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/string.html#string" title="(in Python v3.2)"><em>string</em></a>) &#8211; The XML text to convert.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">Unicode string</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">XML Serialization</a><ul>
+<li><a class="reference internal" href="#escaping-special-characters">Escaping Special Characters</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="scheduler.html"
+                        title="previous chapter">Scheduler</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="filesocket.html"
+                        title="next chapter">Python 2.6 File Socket Shims</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../../_sources/api/xmlstream/tostring.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="filesocket.html" title="Python 2.6 File Socket Shims"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="scheduler.html" title="Scheduler"
+             >previous</a> |</li>
+        <li><a href="../../index.html">1.0RC3 Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Nathan Fritz, Lance Stout.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

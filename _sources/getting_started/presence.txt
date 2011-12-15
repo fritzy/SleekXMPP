@@ -1,0 +1,2 @@
+Manage Presence Subscriptions
+=============================

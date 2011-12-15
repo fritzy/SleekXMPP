@@ -1,0 +1,282 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>SleekXMPP Architecture &mdash; SleekXMPP</title>
+    
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.0RC3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="SleekXMPP" href="index.html" />
+    <link rel="next" title="Plugin Architecture" href="plugin_arch.html" />
+    <link rel="prev" title="XEP-0030: Working with Service Discovery" href="guide_xep_0030.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="plugin_arch.html" title="Plugin Architecture"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="guide_xep_0030.html" title="XEP-0030: Working with Service Discovery"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">1.0RC3 Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="sleekxmpp-architecture">
+<span id="index-0"></span><h1>SleekXMPP Architecture<a class="headerlink" href="#sleekxmpp-architecture" title="Permalink to this headline">¶</a></h1>
+<p>The core of SleekXMPP is contained in four classes: <tt class="docutils literal"><span class="pre">XMLStream</span></tt>,
+<tt class="docutils literal"><span class="pre">BaseXMPP</span></tt>, <tt class="docutils literal"><span class="pre">ClientXMPP</span></tt>, and <tt class="docutils literal"><span class="pre">ComponentXMPP</span></tt>. Along side this
+stack is a library for working with XML objects that eliminates most
+of the tedium of creating/manipulating XML.</p>
+<img alt="_images/arch_layers.png" class="align-center" src="_images/arch_layers.png" style="height: 300px;" />
+<div class="section" id="the-foundation-xmlstream">
+<span id="index-1"></span><h2>The Foundation: XMLStream<a class="headerlink" href="#the-foundation-xmlstream" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="api/xmlstream/xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream" title="sleekxmpp.xmlstream.xmlstream.XMLStream"><tt class="xref py py-class docutils literal"><span class="pre">XMLStream</span></tt></a> is a mostly XMPP-agnostic
+class whose purpose is to read and write from a bi-directional XML stream.
+It also allows for callback functions to execute when XML matching given
+patterns is received; these callbacks are also referred to as <a class="reference internal" href="glossary.html#term-stream-handler"><em class="xref std std-term">stream
+handlers</em></a>. The class also provides a basic eventing system
+which can be triggered either manually or on a timed schedule.</p>
+<div class="section" id="the-main-threads">
+<h3>The Main Threads<a class="headerlink" href="#the-main-threads" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference internal" href="api/xmlstream/xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream" title="sleekxmpp.xmlstream.xmlstream.XMLStream"><tt class="xref py py-class docutils literal"><span class="pre">XMLStream</span></tt></a> instances run using at
+least three background threads: the send thread, the read thread, and the
+scheduler thread. The send thread is in charge of monitoring the send queue
+and writing text to the outgoing XML stream. The read thread pulls text off
+of the incoming XML stream and stores the results in an event queue. The
+scheduler thread is used to emit events after a given period of time.</p>
+<p>Additionally, the main event processing loop may be executed in its
+own thread if SleekXMPP is being used in the background for another
+application.</p>
+<p>Short-lived threads may also be spawned as requested for threaded
+<a class="reference internal" href="glossary.html#term-event-handler"><em class="xref std std-term">event handlers</em></a>.</p>
+</div>
+<div class="section" id="how-xml-text-is-turned-into-action">
+<h3>How XML Text is Turned into Action<a class="headerlink" href="#how-xml-text-is-turned-into-action" title="Permalink to this headline">¶</a></h3>
+<p>To demonstrate the flow of information, let&#8217;s consider what happens
+when this bit of XML is received (with an assumed namespace of
+<tt class="docutils literal"><span class="pre">jabber:client</span></tt>):</p>
+<div class="highlight-xml"><div class="highlight"><pre><span class="nt">&lt;message</span> <span class="na">to=</span><span class="s">&quot;user@example.com&quot;</span> <span class="na">from=</span><span class="s">&quot;friend@example.net&quot;</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;body&gt;</span>Hej!<span class="nt">&lt;/body&gt;</span>
+<span class="nt">&lt;/message&gt;</span>
+</pre></div>
+</div>
+<ol class="arabic">
+<li><p class="first"><strong>Convert XML strings into objects.</strong></p>
+<p>Incoming text is parsed and converted into XML objects (using
+ElementTree) which are then wrapped into what are referred to as
+<a class="reference internal" href="glossary.html#term-stanza-object"><em class="xref std std-term">Stanza objects</em></a>. The appropriate class for the
+new object is determined using a map of namespaced element names to
+classes.</p>
+<p>Our incoming XML is thus turned into a <tt class="xref py py-class docutils literal"><span class="pre">Message</span></tt>
+<a class="reference internal" href="glossary.html#term-stanza-object"><em class="xref std std-term">stanza object</em></a> because the namespaced element name
+<tt class="docutils literal"><span class="pre">{jabber:client}message</span></tt> is associated with the class
+<tt class="xref py py-class docutils literal"><span class="pre">Message</span></tt>.</p>
+</li>
+<li><p class="first"><strong>Match stanza objects to callbacks.</strong></p>
+<p>These objects are then compared against the stored patterns associated
+with the registered callback handlers. For each match, a copy of the
+<a class="reference internal" href="glossary.html#term-stanza-object"><em class="xref std std-term">stanza object</em></a> is paired with a reference to the handler and
+placed into the event queue.</p>
+<p>Our <tt class="xref py py-class docutils literal"><span class="pre">Message</span></tt> object is thus paired with the message stanza handler
+<tt class="xref py py-meth docutils literal"><span class="pre">BaseXMPP._handle_message()</span></tt> to create the tuple:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">(</span><span class="s">&#39;stanza&#39;</span><span class="p">,</span> <span class="n">stanza_obj</span><span class="p">,</span> <span class="n">handler</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first"><strong>Process the event queue.</strong></p>
+<p>The event queue is the heart of SleekXMPP. Nearly every action that
+takes place is first inserted into this queue, whether that be received
+stanzas, custom events, or scheduled events.</p>
+<p>When the stanza is pulled out of the event queue with an associated
+callback, the callback function is executed with the stanza as its only
+parameter.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The callback, aka <a class="reference internal" href="glossary.html#term-stream-handler"><em class="xref std std-term">stream handler</em></a>, is executed in the main event
+processing thread. If the handler blocks, event processing will also
+block.</p>
+</div>
+</li>
+<li><p class="first"><strong>Raise Custom Events</strong></p>
+<p>Since a <a class="reference internal" href="glossary.html#term-stream-handler"><em class="xref std std-term">stream handler</em></a> shouldn&#8217;t block, if extensive processing
+for a stanza is required (such as needing to send and receive an
+<tt class="xref py py-class docutils literal"><span class="pre">Iq</span></tt> stanza), then custom events must be used.
+These events are not explicitly tied to the incoming XML stream and may
+be raised at any time. Importantly, these events may be handled in their
+own thread.</p>
+<p>When the event is raised, a copy of the stanza is created for each
+handler registered for the event. In contrast to <a class="reference internal" href="glossary.html#term-stream-handler"><em class="xref std std-term">stream handlers</em></a>, these functions are referred to as <a class="reference internal" href="glossary.html#term-event-handler"><em class="xref std std-term">event
+handlers</em></a>. Each stanza/handler pair is then put into the
+event queue.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">It is possible to skip the event queue and process an event immediately
+by using <tt class="docutils literal"><span class="pre">direct=True</span></tt> when raising the event.</p>
+</div>
+<p>The code for <tt class="xref py py-meth docutils literal"><span class="pre">BaseXMPP._handle_message()</span></tt> follows this pattern, and
+raises a <tt class="docutils literal"><span class="pre">'message'</span></tt> event:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="bp">self</span><span class="o">.</span><span class="n">event</span><span class="p">(</span><span class="s">&#39;message&#39;</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The event call then places the message object back into the event queue
+paired with an <a class="reference internal" href="glossary.html#term-event-handler"><em class="xref std std-term">event handler</em></a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">(</span><span class="s">&#39;event&#39;</span><span class="p">,</span> <span class="s">&#39;message&#39;</span><span class="p">,</span> <span class="n">msg_copy1</span><span class="p">,</span> <span class="n">custom_event_handler_1</span><span class="p">)</span>
+<span class="p">(</span><span class="s">&#39;event&#39;</span><span class="p">,</span> <span class="s">&#39;message&#39;</span><span class="p">,</span> <span class="n">msg_copy2</span><span class="p">,</span> <span class="n">custom_evetn_handler_2</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first"><strong>Process Custom Events</strong></p>
+<p>The stanza and <a class="reference internal" href="glossary.html#term-event-handler"><em class="xref std std-term">event handler</em></a> are then pulled from the event
+queue, and the handler is executed, passing the stanza as its only
+argument. If the handler was registered as threaded, then a new thread
+will be spawned for it.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Events may be raised without needing <a class="reference internal" href="glossary.html#term-stanza-object"><em class="xref std std-term">stanza objects</em></a>.
+For example, you could use <tt class="docutils literal"><span class="pre">self.event('custom',</span> <span class="pre">{'a':</span> <span class="pre">'b'})</span></tt>.
+You don&#8217;t even need any arguments: <tt class="docutils literal"><span class="pre">self.event('no_parameters')</span></tt>.
+However, every event handler MUST accept at least one argument.</p>
+</div>
+<p>Finally, after a long trek, our message is handed off to the user&#8217;s
+custom handler in order to do awesome stuff:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">msg</span><span class="o">.</span><span class="n">reply</span><span class="p">()</span>
+<span class="n">msg</span><span class="p">[</span><span class="s">&#39;body&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;Hey! This is awesome!&quot;</span>
+<span class="n">msg</span><span class="o">.</span><span class="n">send</span><span class="p">()</span>
+</pre></div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+<div class="section" id="raising-xmpp-awareness-basexmpp">
+<span id="index-2"></span><h2>Raising XMPP Awareness: BaseXMPP<a class="headerlink" href="#raising-xmpp-awareness-basexmpp" title="Permalink to this headline">¶</a></h2>
+<p>While <a class="reference internal" href="api/xmlstream/xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream" title="sleekxmpp.xmlstream.xmlstream.XMLStream"><tt class="xref py py-class docutils literal"><span class="pre">XMLStream</span></tt></a> attempts to shy away
+from anything too XMPP specific, <a class="reference internal" href="api/basexmpp.html#sleekxmpp.basexmpp.BaseXMPP" title="sleekxmpp.basexmpp.BaseXMPP"><tt class="xref py py-class docutils literal"><span class="pre">BaseXMPP</span></tt></a>&#8216;s
+sole purpose is to provide foundational support for sending and receiving
+XMPP stanzas. This support includes registering the basic message,
+presence, and iq stanzas, methods for creating and sending stanzas, and
+default handlers for incoming messages and keeping track of presence
+notifications.</p>
+<p>The plugin system for adding new XEP support is also maintained by
+<a class="reference internal" href="api/basexmpp.html#sleekxmpp.basexmpp.BaseXMPP" title="sleekxmpp.basexmpp.BaseXMPP"><tt class="xref py py-class docutils literal"><span class="pre">BaseXMPP</span></tt></a>.</p>
+</div>
+<div class="section" id="clientxmpp">
+<span id="index-3"></span><h2>ClientXMPP<a class="headerlink" href="#clientxmpp" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="api/clientxmpp.html#sleekxmpp.clientxmpp.ClientXMPP" title="sleekxmpp.clientxmpp.ClientXMPP"><tt class="xref py py-class docutils literal"><span class="pre">ClientXMPP</span></tt></a> extends
+<tt class="xref py py-class docutils literal"><span class="pre">BaseXMPP</span></tt> with additional logic for connecting
+to an XMPP server by performing DNS lookups. It also adds support for stream
+features such as STARTTLS and SASL.</p>
+</div>
+<div class="section" id="componentxmpp">
+<span id="index-4"></span><h2>ComponentXMPP<a class="headerlink" href="#componentxmpp" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="api/componentxmpp.html#sleekxmpp.componentxmpp.ComponentXMPP" title="sleekxmpp.componentxmpp.ComponentXMPP"><tt class="xref py py-class docutils literal"><span class="pre">ComponentXMPP</span></tt></a> is only a thin layer on top of
+<a class="reference internal" href="api/basexmpp.html#sleekxmpp.basexmpp.BaseXMPP" title="sleekxmpp.basexmpp.BaseXMPP"><tt class="xref py py-class docutils literal"><span class="pre">BaseXMPP</span></tt></a> that implements the component handshake
+protocol.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">SleekXMPP Architecture</a><ul>
+<li><a class="reference internal" href="#the-foundation-xmlstream">The Foundation: XMLStream</a><ul>
+<li><a class="reference internal" href="#the-main-threads">The Main Threads</a></li>
+<li><a class="reference internal" href="#how-xml-text-is-turned-into-action">How XML Text is Turned into Action</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#raising-xmpp-awareness-basexmpp">Raising XMPP Awareness: BaseXMPP</a></li>
+<li><a class="reference internal" href="#clientxmpp">ClientXMPP</a></li>
+<li><a class="reference internal" href="#componentxmpp">ComponentXMPP</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="guide_xep_0030.html"
+                        title="previous chapter">XEP-0030: Working with Service Discovery</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="plugin_arch.html"
+                        title="next chapter">Plugin Architecture</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/architecture.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="plugin_arch.html" title="Plugin Architecture"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="guide_xep_0030.html" title="XEP-0030: Working with Service Discovery"
+             >previous</a> |</li>
+        <li><a href="index.html">1.0RC3 Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Nathan Fritz, Lance Stout.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

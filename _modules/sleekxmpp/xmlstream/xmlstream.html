@@ -1,0 +1,1534 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>sleekxmpp.xmlstream.xmlstream &mdash; SleekXMPP</title>
+    
+    <link rel="stylesheet" href="../../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0RC3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="SleekXMPP" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">1.0RC3 Documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for sleekxmpp.xmlstream.xmlstream</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    sleekxmpp.xmlstream.xmlstream</span>
+<span class="sd">    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+
+<span class="sd">    This module provides the module for creating and</span>
+<span class="sd">    interacting with generic XML streams, along with</span>
+<span class="sd">    the necessary eventing infrastructure.</span>
+
+<span class="sd">    Part of SleekXMPP: The Sleek XMPP Library</span>
+
+<span class="sd">    :copyright: (c) 2011 Nathanael C. Fritz</span>
+<span class="sd">    :license: MIT, see LICENSE for more details</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">with_statement</span><span class="p">,</span> <span class="n">unicode_literals</span>
+
+<span class="kn">import</span> <span class="nn">base64</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">signal</span>
+<span class="kn">import</span> <span class="nn">socket</span> <span class="kn">as</span> <span class="nn">Socket</span>
+<span class="kn">import</span> <span class="nn">ssl</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">threading</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">types</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">weakref</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">queue</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">Queue</span> <span class="kn">as</span> <span class="nn">queue</span>
+
+<span class="kn">import</span> <span class="nn">sleekxmpp</span>
+<span class="kn">from</span> <span class="nn">sleekxmpp.thirdparty.statemachine</span> <span class="kn">import</span> <span class="n">StateMachine</span>
+<span class="kn">from</span> <span class="nn">sleekxmpp.xmlstream</span> <span class="kn">import</span> <span class="n">Scheduler</span><span class="p">,</span> <span class="n">tostring</span>
+<span class="kn">from</span> <span class="nn">sleekxmpp.xmlstream.stanzabase</span> <span class="kn">import</span> <span class="n">StanzaBase</span><span class="p">,</span> <span class="n">ET</span>
+<span class="kn">from</span> <span class="nn">sleekxmpp.xmlstream.handler</span> <span class="kn">import</span> <span class="n">Waiter</span><span class="p">,</span> <span class="n">XMLCallback</span>
+<span class="kn">from</span> <span class="nn">sleekxmpp.xmlstream.matcher</span> <span class="kn">import</span> <span class="n">MatchXMLMask</span>
+
+<span class="c"># In Python 2.x, file socket objects are broken. A patched socket</span>
+<span class="c"># wrapper is provided for this case in filesocket.py.</span>
+<span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&lt;</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">sleekxmpp.xmlstream.filesocket</span> <span class="kn">import</span> <span class="n">FileSocket</span><span class="p">,</span> <span class="n">Socket26</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">dns.resolver</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">DNSPYTHON</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">DNSPYTHON</span> <span class="o">=</span> <span class="bp">True</span>
+
+
+<span class="c">#: The time in seconds to wait before timing out waiting for response stanzas.</span>
+<span class="n">RESPONSE_TIMEOUT</span> <span class="o">=</span> <span class="mi">30</span>
+
+<span class="c">#: The time in seconds to wait for events from the event queue, and also the</span>
+<span class="c">#: time between checks for the process stop signal.</span>
+<span class="n">WAIT_TIMEOUT</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="c">#: The number of threads to use to handle XML stream events. This is not the</span>
+<span class="c">#: same as the number of custom event handling threads. </span>
+<span class="c">#: :data:`HANDLER_THREADS` must be at least 1. For Python implementations</span>
+<span class="c">#: with a GIL, this should be left at 1, but for implemetnations without</span>
+<span class="c">#: a GIL increasing this value can provide better performance.</span>
+<span class="n">HANDLER_THREADS</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="c">#: Flag indicating if the SSL library is available for use.</span>
+<span class="n">SSL_SUPPORT</span> <span class="o">=</span> <span class="bp">True</span>
+
+<span class="c">#: The time in seconds to delay between attempts to resend data</span>
+<span class="c">#: after an SSL error.</span>
+<span class="n">SSL_RETRY_DELAY</span> <span class="o">=</span> <span class="mf">0.5</span>
+
+<span class="c">#: The maximum number of times to attempt resending data due to</span>
+<span class="c">#: an SSL error.</span>
+<span class="n">SSL_RETRY_MAX</span> <span class="o">=</span> <span class="mi">10</span>
+
+<span class="c">#: Maximum time to delay between connection attempts is one hour.</span>
+<span class="n">RECONNECT_MAX_DELAY</span> <span class="o">=</span> <span class="mi">600</span>
+
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="RestartStream"><a class="viewcode-back" href="../../../api/xmlstream/xmlstream.html#sleekxmpp.xmlstream.xmlstream.RestartStream">[docs]</a><span class="k">class</span> <span class="nc">RestartStream</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Exception to restart stream processing, including</span>
+<span class="sd">    resending the stream header.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+</div>
+<div class="viewcode-block" id="XMLStream"><a class="viewcode-back" href="../../../api/xmlstream/xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream">[docs]</a><span class="k">class</span> <span class="nc">XMLStream</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An XML stream connection manager and event dispatcher.</span>
+
+<span class="sd">    The XMLStream class abstracts away the issues of establishing a</span>
+<span class="sd">    connection with a server and sending and receiving XML &quot;stanzas&quot;.</span>
+<span class="sd">    A stanza is a complete XML element that is a direct child of a root</span>
+<span class="sd">    document element. Two streams are used, one for each communication</span>
+<span class="sd">    direction, over the same socket. Once the connection is closed, both</span>
+<span class="sd">    streams should be complete and valid XML documents.</span>
+
+<span class="sd">    Three types of events are provided to manage the stream:</span>
+<span class="sd">        :Stream: Triggered based on received stanzas, similar in concept</span>
+<span class="sd">                 to events in a SAX XML parser.</span>
+<span class="sd">        :Custom: Triggered manually.</span>
+<span class="sd">        :Scheduled: Triggered based on time delays.</span>
+
+<span class="sd">    Typically, stanzas are first processed by a stream event handler which</span>
+<span class="sd">    will then trigger custom events to continue further processing,</span>
+<span class="sd">    especially since custom event handlers may run in individual threads.</span>
+
+<span class="sd">    :param socket: Use an existing socket for the stream. Defaults to</span>
+<span class="sd">                   ``None`` to generate a new socket.</span>
+<span class="sd">    :param string host: The name of the target server.</span>
+<span class="sd">    :param int port: The port to use for the connection. Defaults to 0.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">socket</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="c">#: Flag indicating if the SSL library is available for use.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ssl_support</span> <span class="o">=</span> <span class="n">SSL_SUPPORT</span>
+
+        <span class="c">#: Most XMPP servers support TLSv1, but OpenFire in particular</span>
+        <span class="c">#: does not work well with it. For OpenFire, set </span>
+        <span class="c">#: :attr:`ssl_version` to use ``SSLv23``::</span>
+        <span class="c">#:</span>
+        <span class="c">#:     import ssl</span>
+        <span class="c">#:     xmpp.ssl_version = ssl.PROTOCOL_SSLv23</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ssl_version</span> <span class="o">=</span> <span class="n">ssl</span><span class="o">.</span><span class="n">PROTOCOL_TLSv1</span>
+
+        <span class="c">#: Path to a file containing certificates for verifying the</span>
+        <span class="c">#: server SSL certificate. A non-``None`` value will trigger</span>
+        <span class="c">#: certificate checking.</span>
+        <span class="c">#: </span>
+        <span class="c">#: .. note::</span>
+        <span class="c">#:</span>
+        <span class="c">#:     On Mac OS X, certificates in the system keyring will</span>
+        <span class="c">#:     be consulted, even if they are not in the provided file.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ca_certs</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="c">#: The time in seconds to wait for events from the event queue, </span>
+        <span class="c">#: and also the time between checks for the process stop signal.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wait_timeout</span> <span class="o">=</span> <span class="n">WAIT_TIMEOUT</span>
+
+        <span class="c">#: The time in seconds to wait before timing out waiting </span>
+        <span class="c">#: for response stanzas.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">response_timeout</span> <span class="o">=</span> <span class="n">RESPONSE_TIMEOUT</span>
+
+        <span class="c">#: The current amount to time to delay attempting to reconnect. </span>
+        <span class="c">#: This value doubles (with some jitter) with each failed</span>
+        <span class="c">#: connection attempt up to :attr:`reconnect_max_delay` seconds.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reconnect_delay</span> <span class="o">=</span> <span class="bp">None</span>
+            
+        <span class="c">#: Maximum time to delay between connection attempts is one hour.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reconnect_max_delay</span> <span class="o">=</span> <span class="n">RECONNECT_MAX_DELAY</span>
+
+        <span class="c">#: The time in seconds to delay between attempts to resend data</span>
+        <span class="c">#: after an SSL error.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ssl_retry_max</span> <span class="o">=</span> <span class="n">SSL_RETRY_MAX</span>
+
+        <span class="c">#: The maximum number of times to attempt resending data due to</span>
+        <span class="c">#: an SSL error.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ssl_retry_delay</span> <span class="o">=</span> <span class="n">SSL_RETRY_DELAY</span>
+
+        <span class="c">#: The connection state machine tracks if the stream is</span>
+        <span class="c">#: ``&#39;connected&#39;`` or ``&#39;disconnected&#39;``.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">StateMachine</span><span class="p">((</span><span class="s">&#39;disconnected&#39;</span><span class="p">,</span> <span class="s">&#39;connected&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">_set_state</span><span class="p">(</span><span class="s">&#39;disconnected&#39;</span><span class="p">)</span>
+
+        <span class="c">#: The default port to return when querying DNS records.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">default_port</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">port</span><span class="p">)</span>
+        
+        <span class="c">#: The domain to try when querying DNS records. </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">default_domain</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+    
+        <span class="c">#: The desired, or actual, address of the connected server.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">address</span> <span class="o">=</span> <span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">port</span><span class="p">))</span>
+        
+        <span class="c">#: A file-like wrapper for the socket for use with the</span>
+        <span class="c">#: :mod:`~xml.etree.ElementTree` module.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filesocket</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_socket</span><span class="p">(</span><span class="n">socket</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&lt;</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">socket_class</span> <span class="o">=</span> <span class="n">Socket26</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">socket_class</span> <span class="o">=</span> <span class="n">Socket</span><span class="o">.</span><span class="n">socket</span>
+
+        <span class="c">#: Enable connecting to the server directly over SSL, in</span>
+        <span class="c">#: particular when the service provides two ports: one for</span>
+        <span class="c">#: non-SSL traffic and another for SSL traffic.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_ssl</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="c">#: Enable connecting to the service without using SSL</span>
+        <span class="c">#: immediately, but allow upgrading the connection later</span>
+        <span class="c">#: to use SSL.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_tls</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="c">#: If set to ``True``, attempt to connect through an HTTP</span>
+        <span class="c">#: proxy based on the settings in :attr:`proxy_config`.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_proxy</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="c">#: An optional dictionary of proxy settings. It may provide:</span>
+        <span class="c">#: :host: The host offering proxy services.</span>
+        <span class="c">#: :port: The port for the proxy service.</span>
+        <span class="c">#: :username: Optional username for accessing the proxy.</span>
+        <span class="c">#: :password: Optional password for accessing the proxy.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">proxy_config</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c">#: The default namespace of the stream content, not of the</span>
+        <span class="c">#: stream wrapper itself.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">default_ns</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+
+        <span class="c">#: The namespace of the enveloping stream element.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stream_ns</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+
+        <span class="c">#: The default opening tag for the stream element.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stream_header</span> <span class="o">=</span> <span class="s">&quot;&lt;stream&gt;&quot;</span>
+
+        <span class="c">#: The default closing tag for the stream element.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stream_footer</span> <span class="o">=</span> <span class="s">&quot;&lt;/stream&gt;&quot;</span>
+
+        <span class="c">#: If ``True``, periodically send a whitespace character over the</span>
+        <span class="c">#: wire to keep the connection alive. Mainly useful for connections</span>
+        <span class="c">#: traversing NAT.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">whitespace_keepalive</span> <span class="o">=</span> <span class="bp">True</span>
+
+        <span class="c">#: The default interval between keepalive signals when</span>
+        <span class="c">#: :attr:`whitespace_keepalive` is enabled.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">whitespace_keepalive_interval</span> <span class="o">=</span> <span class="mi">300</span>
+
+        <span class="c">#: An :class:`~threading.Event` to signal that the application</span>
+        <span class="c">#: is stopping, and that all threads should shutdown.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stop</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Event</span><span class="p">()</span>
+
+        <span class="c">#: An :class:`~threading.Event` to signal receiving a closing</span>
+        <span class="c">#: stream tag from the server.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stream_end_event</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Event</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stream_end_event</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>
+
+        <span class="c">#: An :class:`~threading.Event` to signal the start of a stream</span>
+        <span class="c">#: session. Until this event fires, the send queue is not used</span>
+        <span class="c">#: and data is sent immediately over the wire.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session_started_event</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Event</span><span class="p">()</span>
+
+        <span class="c">#: The default time in seconds to wait for a session to start </span>
+        <span class="c">#: after connecting before reconnecting and trying again.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session_timeout</span> <span class="o">=</span> <span class="mi">45</span>
+
+        <span class="c">#: A queue of stream, custom, and scheduled events to be processed.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">event_queue</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
+
+        <span class="c">#: A queue of string data to be sent over the stream.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">send_queue</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
+
+        <span class="c">#: A :class:`~sleekxmpp.xmlstream.scheduler.Scheduler` instance for</span>
+        <span class="c">#: executing callbacks in the future based on time delays.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scheduler</span> <span class="o">=</span> <span class="n">Scheduler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__failed_send_stanza</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="c">#: A mapping of XML namespaces to well-known prefixes.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">namespace_map</span> <span class="o">=</span> <span class="p">{</span><span class="n">StanzaBase</span><span class="o">.</span><span class="n">xml_ns</span><span class="p">:</span> <span class="s">&#39;xml&#39;</span><span class="p">}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__thread</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__root_stanza</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__handlers</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__event_handlers</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__event_handlers_lock</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_id_lock</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
+
+        <span class="c">#: The :attr:`auto_reconnnect` setting controls whether or not</span>
+        <span class="c">#: the stream will be restarted in the event of an error.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">auto_reconnect</span> <span class="o">=</span> <span class="bp">True</span>
+
+        <span class="c">#: The :attr:`disconnect_wait` setting is the default value</span>
+        <span class="c">#: for controlling if the system waits for the send queue to</span>
+        <span class="c">#: empty before ending the stream. This may be overridden by</span>
+        <span class="c">#: passing ``wait=True`` or ``wait=False`` to :meth:`disconnect`.</span>
+        <span class="c">#: The default :attr:`disconnect_wait` value is ``False``.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">disconnect_wait</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="c">#: A list of DNS results that have not yet been tried.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dns_answers</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_event_handler</span><span class="p">(</span><span class="s">&#39;connected&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_handle_connected</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_event_handler</span><span class="p">(</span><span class="s">&#39;session_start&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start_keepalive</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_event_handler</span><span class="p">(</span><span class="s">&#39;session_end&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_end_keepalive</span><span class="p">)</span>
+
+<div class="viewcode-block" id="XMLStream.use_signals"><a class="viewcode-back" href="../../../api/xmlstream/xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream.use_signals">[docs]</a>    <span class="k">def</span> <span class="nf">use_signals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">signals</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Register signal handlers for ``SIGHUP`` and ``SIGTERM``.</span>
+
+<span class="sd">        By using signals, a ``&#39;killed&#39;`` event will be raised when the</span>
+<span class="sd">        application is terminated.</span>
+
+<span class="sd">        If a signal handler already existed, it will be executed first,</span>
+<span class="sd">        before the ``&#39;killed&#39;`` event is raised.</span>
+
+<span class="sd">        :param list signals: A list of signal names to be monitored.</span>
+<span class="sd">                             Defaults to ``[&#39;SIGHUP&#39;, &#39;SIGTERM&#39;]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">signals</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">signals</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;SIGHUP&#39;</span><span class="p">,</span> <span class="s">&#39;SIGTERM&#39;</span><span class="p">]</span>
+
+        <span class="n">existing_handlers</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">sig_name</span> <span class="ow">in</span> <span class="n">signals</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="n">sig_name</span><span class="p">):</span>
+                <span class="n">sig</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="n">sig_name</span><span class="p">)</span>
+                <span class="n">handler</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">getsignal</span><span class="p">(</span><span class="n">sig</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">handler</span><span class="p">:</span>
+                    <span class="n">existing_handlers</span><span class="p">[</span><span class="n">sig</span><span class="p">]</span> <span class="o">=</span> <span class="n">handler</span>
+
+        <span class="k">def</span> <span class="nf">handle_kill</span><span class="p">(</span><span class="n">signum</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Capture kill event and disconnect cleanly after first</span>
+<span class="sd">            spawning the ``&#39;killed&#39;`` event.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+
+            <span class="k">if</span> <span class="n">signum</span> <span class="ow">in</span> <span class="n">existing_handlers</span> <span class="ow">and</span> \
+                   <span class="n">existing_handlers</span><span class="p">[</span><span class="n">signum</span><span class="p">]</span> <span class="o">!=</span> <span class="n">handle_kill</span><span class="p">:</span>
+                <span class="n">existing_handlers</span><span class="p">[</span><span class="n">signum</span><span class="p">](</span><span class="n">signum</span><span class="p">,</span> <span class="n">frame</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">event</span><span class="p">(</span><span class="s">&quot;killed&quot;</span><span class="p">,</span> <span class="n">direct</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">disconnect</span><span class="p">()</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">sig_name</span> <span class="ow">in</span> <span class="n">signals</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="n">sig_name</span><span class="p">):</span>
+                    <span class="n">sig</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="n">sig_name</span><span class="p">)</span>
+                    <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">sig</span><span class="p">,</span> <span class="n">handle_kill</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__signals_installed</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Can not set interrupt signal handlers. &quot;</span> <span class="o">+</span> \
+                      <span class="s">&quot;SleekXMPP is not running from a main thread.&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="XMLStream.new_id"><a class="viewcode-back" href="../../../api/xmlstream/xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream.new_id">[docs]</a>    <span class="k">def</span> <span class="nf">new_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Generate and return a new stream ID in hexadecimal form.</span>
+
+<span class="sd">        Many stanzas, handlers, or matchers may require unique</span>
+<span class="sd">        ID values. Using this method ensures that all new ID values</span>
+<span class="sd">        are unique in this stream.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id_lock</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="XMLStream.get_id"><a class="viewcode-back" href="../../../api/xmlstream/xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream.get_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the current unique stream ID in hexadecimal form.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s">&quot;</span><span class="si">%X</span><span class="s">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span>
+</div>
+<div class="viewcode-block" id="XMLStream.connect"><a class="viewcode-back" href="../../../api/xmlstream/xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream.connect">[docs]</a>    <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">use_ssl</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                <span class="n">use_tls</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">reattempt</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a new socket and connect to the server.</span>
+
+<span class="sd">        Setting ``reattempt`` to ``True`` will cause connection attempts to</span>
+<span class="sd">        be made every second until a successful connection is established.</span>
+
+<span class="sd">        :param host: The name of the desired server for the connection.</span>
+<span class="sd">        :param port: Port to connect to on the server.</span>
+<span class="sd">        :param use_ssl: Flag indicating if SSL should be used by connecting</span>
+<span class="sd">                        directly to a port using SSL.</span>
+<span class="sd">        :param use_tls: Flag indicating if TLS should be used, allowing for</span>
+<span class="sd">                        connecting to a port without using SSL immediately and</span>
+<span class="sd">                        later upgrading the connection.</span>
+<span class="sd">        :param reattempt: Flag indicating if the socket should reconnect</span>
+<span class="sd">                          after disconnections.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">host</span> <span class="ow">and</span> <span class="n">port</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">address</span> <span class="o">=</span> <span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">port</span><span class="p">))</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">Socket</span><span class="o">.</span><span class="n">inet_aton</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">address</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">except</span> <span class="n">Socket</span><span class="o">.</span><span class="n">error</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">default_domain</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">address</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c"># Respect previous SSL and TLS usage directives.</span>
+        <span class="k">if</span> <span class="n">use_ssl</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">use_ssl</span> <span class="o">=</span> <span class="n">use_ssl</span>
+        <span class="k">if</span> <span class="n">use_tls</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">use_tls</span> <span class="o">=</span> <span class="n">use_tls</span>
+
+        <span class="c"># Repeatedly attempt to connect until a successful connection</span>
+        <span class="c"># is established.</span>
+        <span class="n">connected</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">transition</span><span class="p">(</span><span class="s">&#39;disconnected&#39;</span><span class="p">,</span> <span class="s">&#39;connected&#39;</span><span class="p">,</span>
+                                          <span class="n">func</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_connect</span><span class="p">)</span>
+        <span class="k">while</span> <span class="n">reattempt</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">connected</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="o">.</span><span class="n">is_set</span><span class="p">():</span>
+            <span class="n">connected</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">transition</span><span class="p">(</span><span class="s">&#39;disconnected&#39;</span><span class="p">,</span> <span class="s">&#39;connected&#39;</span><span class="p">,</span>
+                                              <span class="n">func</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_connect</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">connected</span>
+</div>
+    <span class="k">def</span> <span class="nf">_connect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scheduler</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s">&#39;Session timeout check&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_domain</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">address</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pick_dns_answer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">default_domain</span><span class="p">,</span>
+                                                <span class="bp">self</span><span class="o">.</span><span class="n">address</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">socket</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">socket_class</span><span class="p">(</span><span class="n">Socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">Socket</span><span class="o">.</span><span class="n">SOCK_STREAM</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">configure_socket</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">reconnect_delay</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">delay</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">delay</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reconnect_delay</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reconnect_max_delay</span><span class="p">)</span>
+            <span class="n">delay</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">normalvariate</span><span class="p">(</span><span class="n">delay</span><span class="p">,</span> <span class="n">delay</span> <span class="o">*</span> <span class="mf">0.1</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Waiting </span><span class="si">%s</span><span class="s"> seconds before connecting.&#39;</span><span class="p">,</span> <span class="n">delay</span><span class="p">)</span>
+            <span class="n">elapsed</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">while</span> <span class="n">elapsed</span> <span class="o">&lt;</span> <span class="n">delay</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="o">.</span><span class="n">is_set</span><span class="p">():</span>
+                    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+                    <span class="n">elapsed</span> <span class="o">+=</span> <span class="mf">0.1</span>
+            <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>
+                <span class="k">return</span> <span class="bp">False</span>
+            <span class="k">except</span> <span class="ne">SystemExit</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>
+                <span class="k">return</span> <span class="bp">False</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_proxy</span><span class="p">:</span>
+            <span class="n">connected</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_connect_proxy</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">connected</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">reconnect_delay</span> <span class="o">=</span> <span class="n">delay</span>
+                <span class="k">return</span> <span class="bp">False</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_ssl</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssl_support</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Socket Wrapped for SSL&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ca_certs</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">cert_policy</span> <span class="o">=</span> <span class="n">ssl</span><span class="o">.</span><span class="n">CERT_NONE</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cert_policy</span> <span class="o">=</span> <span class="n">ssl</span><span class="o">.</span><span class="n">CERT_REQUIRED</span>
+
+            <span class="n">ssl_socket</span> <span class="o">=</span> <span class="n">ssl</span><span class="o">.</span><span class="n">wrap_socket</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">socket</span><span class="p">,</span>
+                                         <span class="n">ca_certs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ca_certs</span><span class="p">,</span>
+                                         <span class="n">cert_reqs</span><span class="o">=</span><span class="n">cert_policy</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">socket</span><span class="p">,</span> <span class="s">&#39;socket&#39;</span><span class="p">):</span>
+                <span class="c"># We are using a testing socket, so preserve the top</span>
+                <span class="c"># layer of wrapping.</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">socket</span><span class="o">.</span><span class="n">socket</span> <span class="o">=</span> <span class="n">ssl_socket</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">socket</span> <span class="o">=</span> <span class="n">ssl_socket</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_proxy</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Connecting to </span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">address</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">socket</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">address</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_socket</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">socket</span><span class="p">,</span> <span class="n">ignore</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="c">#this event is where you should set your application state</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">event</span><span class="p">(</span><span class="s">&quot;connected&quot;</span><span class="p">,</span> <span class="n">direct</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">reconnect_delay</span> <span class="o">=</span> <span class="mf">1.0</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">except</span> <span class="n">Socket</span><span class="o">.</span><span class="n">error</span> <span class="k">as</span> <span class="n">serr</span><span class="p">:</span>
+            <span class="n">error_msg</span> <span class="o">=</span> <span class="s">&quot;Could not connect to </span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">. Socket Error #</span><span class="si">%s</span><span class="s">: </span><span class="si">%s</span><span class="s">&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">event</span><span class="p">(</span><span class="s">&#39;socket_error&#39;</span><span class="p">,</span> <span class="n">serr</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">error_msg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">address</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">address</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                 <span class="n">serr</span><span class="o">.</span><span class="n">errno</span><span class="p">,</span> <span class="n">serr</span><span class="o">.</span><span class="n">strerror</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">reconnect_delay</span> <span class="o">=</span> <span class="n">delay</span>
+            <span class="k">return</span> <span class="bp">False</span>
+
+    <span class="k">def</span> <span class="nf">_connect_proxy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Attempt to connect using an HTTP Proxy.&quot;&quot;&quot;</span>
+
+        <span class="c"># Extract the proxy address, and optional credentials</span>
+        <span class="n">address</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">proxy_config</span><span class="p">[</span><span class="s">&#39;host&#39;</span><span class="p">],</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">proxy_config</span><span class="p">[</span><span class="s">&#39;port&#39;</span><span class="p">]))</span>
+        <span class="n">cred</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">proxy_config</span><span class="p">[</span><span class="s">&#39;username&#39;</span><span class="p">]:</span>
+            <span class="n">username</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">proxy_config</span><span class="p">[</span><span class="s">&#39;username&#39;</span><span class="p">]</span>
+            <span class="n">password</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">proxy_config</span><span class="p">[</span><span class="s">&#39;password&#39;</span><span class="p">]</span>
+
+            <span class="n">cred</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&lt;</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="n">cred</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">cred</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cred</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">cred</span><span class="p">,</span> <span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
+            <span class="n">cred</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">cred</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
+
+        <span class="c"># Build the HTTP headers for connecting to the XMPP server</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;CONNECT </span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s"> HTTP/1.0&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">address</span><span class="p">,</span>
+                   <span class="s">&#39;Host: </span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">address</span><span class="p">,</span>
+                   <span class="s">&#39;Proxy-Connection: Keep-Alive&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;Pragma: no-cache&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;User-Agent: SleekXMPP/</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">sleekxmpp</span><span class="o">.</span><span class="n">__version__</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">cred</span><span class="p">:</span>
+            <span class="n">headers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;Proxy-Authorization: Basic </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">cred</span><span class="p">)</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\r\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">headers</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\r\n\r\n</span><span class="s">&#39;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Connecting to proxy: </span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">address</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">socket</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">address</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">send_raw</span><span class="p">(</span><span class="n">headers</span><span class="p">,</span> <span class="n">now</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="n">resp</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+            <span class="k">while</span> <span class="s">&#39;</span><span class="se">\r\n\r\n</span><span class="s">&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">resp</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="o">.</span><span class="n">is_set</span><span class="p">():</span>
+                <span class="n">resp</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">socket</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;RECV: </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">resp</span><span class="p">)</span>
+
+            <span class="n">lines</span> <span class="o">=</span> <span class="n">resp</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\r\n</span><span class="s">&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s">&#39;200&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">event</span><span class="p">(</span><span class="s">&#39;proxy_error&#39;</span><span class="p">,</span> <span class="n">resp</span><span class="p">)</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&#39;Proxy Error: </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="k">return</span> <span class="bp">False</span>
+
+            <span class="c"># Proxy connection established, continue connecting</span>
+            <span class="c"># with the XMPP server.</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">except</span> <span class="n">Socket</span><span class="o">.</span><span class="n">error</span> <span class="k">as</span> <span class="n">serr</span><span class="p">:</span>
+            <span class="n">error_msg</span> <span class="o">=</span> <span class="s">&quot;Could not connect to </span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">. Socket Error #</span><span class="si">%s</span><span class="s">: </span><span class="si">%s</span><span class="s">&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">event</span><span class="p">(</span><span class="s">&#39;socket_error&#39;</span><span class="p">,</span> <span class="n">serr</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">error_msg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">address</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">address</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                 <span class="n">serr</span><span class="o">.</span><span class="n">errno</span><span class="p">,</span> <span class="n">serr</span><span class="o">.</span><span class="n">strerror</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+
+    <span class="k">def</span> <span class="nf">_handle_connected</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add check to ensure that a session is established within</span>
+<span class="sd">        a reasonable amount of time.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">_handle_session_timeout</span><span class="p">():</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">session_started_event</span><span class="o">.</span><span class="n">is_set</span><span class="p">():</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Session start has taken more &quot;</span> <span class="o">+</span> \
+                          <span class="s">&quot;than </span><span class="si">%d</span><span class="s"> seconds&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">session_timeout</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">disconnect</span><span class="p">(</span><span class="n">reconnect</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">auto_reconnect</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">schedule</span><span class="p">(</span><span class="s">&quot;Session timeout check&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">session_timeout</span><span class="p">,</span>
+                <span class="n">_handle_session_timeout</span><span class="p">)</span>
+
+<div class="viewcode-block" id="XMLStream.disconnect"><a class="viewcode-back" href="../../../api/xmlstream/xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream.disconnect">[docs]</a>    <span class="k">def</span> <span class="nf">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reconnect</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Terminate processing and close the XML streams.</span>
+
+<span class="sd">        Optionally, the connection may be reconnected and</span>
+<span class="sd">        resume processing afterwards.</span>
+
+<span class="sd">        If the disconnect should take place after all items</span>
+<span class="sd">        in the send queue have been sent, use ``wait=True``.</span>
+<span class="sd">        </span>
+<span class="sd">        .. warning::</span>
+
+<span class="sd">            If you are constantly adding items to the queue</span>
+<span class="sd">            such that it is never empty, then the disconnect will</span>
+<span class="sd">            not occur and the call will continue to block.</span>
+
+<span class="sd">        :param reconnect: Flag indicating if the connection</span>
+<span class="sd">                          and processing should be restarted.</span>
+<span class="sd">                          Defaults to ``False``.</span>
+<span class="sd">        :param wait: Flag indicating if the send queue should</span>
+<span class="sd">                     be emptied before disconnecting, overriding</span>
+<span class="sd">                     :attr:`disconnect_wait`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">transition</span><span class="p">(</span><span class="s">&#39;connected&#39;</span><span class="p">,</span> <span class="s">&#39;disconnected&#39;</span><span class="p">,</span>
+                              <span class="n">func</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_disconnect</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">reconnect</span><span class="p">,</span> <span class="n">wait</span><span class="p">))</span>
+</div>
+    <span class="k">def</span> <span class="nf">_disconnect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reconnect</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">event</span><span class="p">(</span><span class="s">&#39;session_end&#39;</span><span class="p">,</span> <span class="n">direct</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="c"># Wait for the send queue to empty.</span>
+        <span class="k">if</span> <span class="n">wait</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">wait</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">send_queue</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">disconnect_wait</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">send_queue</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+
+        <span class="c"># Send the end of stream marker.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">send_raw</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stream_footer</span><span class="p">,</span> <span class="n">now</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session_started_event</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="c"># Wait for confirmation that the stream was</span>
+        <span class="c"># closed in the other direction.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">auto_reconnect</span> <span class="o">=</span> <span class="n">reconnect</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Waiting for </span><span class="si">%s</span><span class="s"> from server&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream_footer</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stream_end_event</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">auto_reconnect</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">socket</span><span class="o">.</span><span class="n">shutdown</span><span class="p">(</span><span class="n">Socket</span><span class="o">.</span><span class="n">SHUT_RDWR</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">socket</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">filesocket</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">except</span> <span class="n">Socket</span><span class="o">.</span><span class="n">error</span> <span class="k">as</span> <span class="n">serr</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">event</span><span class="p">(</span><span class="s">&#39;socket_error&#39;</span><span class="p">,</span> <span class="n">serr</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="c">#clear your application state</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">event</span><span class="p">(</span><span class="s">&quot;disconnected&quot;</span><span class="p">,</span> <span class="n">direct</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">True</span>
+
+<div class="viewcode-block" id="XMLStream.reconnect"><a class="viewcode-back" href="../../../api/xmlstream/xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream.reconnect">[docs]</a>    <span class="k">def</span> <span class="nf">reconnect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reattempt</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Reset the stream&#39;s state and reconnect to the server.&quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;reconnecting...&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">ensure</span><span class="p">(</span><span class="s">&#39;connected&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">transition</span><span class="p">(</span><span class="s">&#39;connected&#39;</span><span class="p">,</span> <span class="s">&#39;disconnected&#39;</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span>
+                                  <span class="n">func</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_disconnect</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="bp">True</span><span class="p">,))</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;connecting...&quot;</span><span class="p">)</span>
+        <span class="n">connected</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">transition</span><span class="p">(</span><span class="s">&#39;disconnected&#39;</span><span class="p">,</span> <span class="s">&#39;connected&#39;</span><span class="p">,</span>
+                                          <span class="n">wait</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_connect</span><span class="p">)</span>
+        <span class="k">while</span> <span class="n">reattempt</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">connected</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="o">.</span><span class="n">is_set</span><span class="p">():</span>
+            <span class="n">connected</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">transition</span><span class="p">(</span><span class="s">&#39;disconnected&#39;</span><span class="p">,</span> <span class="s">&#39;connected&#39;</span><span class="p">,</span>
+                                              <span class="n">wait</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_connect</span><span class="p">)</span>
+            <span class="n">connected</span> <span class="o">=</span> <span class="n">connected</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">ensure</span><span class="p">(</span><span class="s">&#39;connected&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">connected</span>
+</div>
+<div class="viewcode-block" id="XMLStream.set_socket"><a class="viewcode-back" href="../../../api/xmlstream/xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream.set_socket">[docs]</a>    <span class="k">def</span> <span class="nf">set_socket</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">socket</span><span class="p">,</span> <span class="n">ignore</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the socket to use for the stream.</span>
+
+<span class="sd">        The filesocket will be recreated as well.</span>
+
+<span class="sd">        :param socket: The new socket object to use.</span>
+<span class="sd">        :param bool ignore: If ``True``, don&#39;t set the connection</span>
+<span class="sd">                            state to ``&#39;connected&#39;``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">socket</span> <span class="o">=</span> <span class="n">socket</span>
+        <span class="k">if</span> <span class="n">socket</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c"># ElementTree.iterparse requires a file.</span>
+            <span class="c"># 0 buffer files have to be binary.</span>
+
+            <span class="c"># Use the correct fileobject type based on the Python</span>
+            <span class="c"># version to work around a broken implementation in</span>
+            <span class="c"># Python 2.x.</span>
+            <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&lt;</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">filesocket</span> <span class="o">=</span> <span class="n">FileSocket</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">socket</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">filesocket</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">socket</span><span class="o">.</span><span class="n">makefile</span><span class="p">(</span><span class="s">&#39;rb&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">ignore</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">_set_state</span><span class="p">(</span><span class="s">&#39;connected&#39;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="XMLStream.configure_socket"><a class="viewcode-back" href="../../../api/xmlstream/xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream.configure_socket">[docs]</a>    <span class="k">def</span> <span class="nf">configure_socket</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set timeout and other options for self.socket.</span>
+
+<span class="sd">        Meant to be overridden.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">socket</span><span class="o">.</span><span class="n">settimeout</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="XMLStream.configure_dns"><a class="viewcode-back" href="../../../api/xmlstream/xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream.configure_dns">[docs]</a>    <span class="k">def</span> <span class="nf">configure_dns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">resolver</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Configure and set options for a :class:`~dns.resolver.Resolver`</span>
+<span class="sd">        instance, and other DNS related tasks. For example, you</span>
+<span class="sd">        can also check :meth:`~socket.socket.getaddrinfo` to see </span>
+<span class="sd">        if you need to call out to ``libresolv.so.2`` to </span>
+<span class="sd">        run ``res_init()``.</span>
+
+<span class="sd">        Meant to be overridden.</span>
+
+<span class="sd">        :param resolver: A :class:`~dns.resolver.Resolver` instance</span>
+<span class="sd">                         or ``None`` if ``dnspython`` is not installed.</span>
+<span class="sd">        :param domain: The initial domain under consideration.</span>
+<span class="sd">        :param port: The initial port under consideration.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="XMLStream.start_tls"><a class="viewcode-back" href="../../../api/xmlstream/xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream.start_tls">[docs]</a>    <span class="k">def</span> <span class="nf">start_tls</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Perform handshakes for TLS.</span>
+
+<span class="sd">        If the handshake is successful, the XML stream will need</span>
+<span class="sd">        to be restarted.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssl_support</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Negotiating TLS&quot;</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Using SSL version: </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ssl_version</span><span class="p">))</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ca_certs</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">cert_policy</span> <span class="o">=</span> <span class="n">ssl</span><span class="o">.</span><span class="n">CERT_NONE</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cert_policy</span> <span class="o">=</span> <span class="n">ssl</span><span class="o">.</span><span class="n">CERT_REQUIRED</span>
+
+            <span class="n">ssl_socket</span> <span class="o">=</span> <span class="n">ssl</span><span class="o">.</span><span class="n">wrap_socket</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">socket</span><span class="p">,</span>
+                                         <span class="n">ssl_version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ssl_version</span><span class="p">,</span>
+                                         <span class="n">do_handshake_on_connect</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                         <span class="n">ca_certs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ca_certs</span><span class="p">,</span>
+                                         <span class="n">cert_reqs</span><span class="o">=</span><span class="n">cert_policy</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">socket</span><span class="p">,</span> <span class="s">&#39;socket&#39;</span><span class="p">):</span>
+                <span class="c"># We are using a testing socket, so preserve the top</span>
+                <span class="c"># layer of wrapping.</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">socket</span><span class="o">.</span><span class="n">socket</span> <span class="o">=</span> <span class="n">ssl_socket</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">socket</span> <span class="o">=</span> <span class="n">ssl_socket</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">socket</span><span class="o">.</span><span class="n">do_handshake</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_socket</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">socket</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;Tried to enable TLS, but ssl module not found.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+</div>
+    <span class="k">def</span> <span class="nf">_start_keepalive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Begin sending whitespace periodically to keep the connection alive.</span>
+
+<span class="sd">        May be disabled by setting::</span>
+
+<span class="sd">            self.whitespace_keepalive = False</span>
+
+<span class="sd">        The keepalive interval can be set using::</span>
+
+<span class="sd">            self.whitespace_keepalive_interval = 300</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">send_keepalive</span><span class="p">():</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">send_queue</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">send_raw</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">schedule</span><span class="p">(</span><span class="s">&#39;Whitespace Keepalive&#39;</span><span class="p">,</span>
+                      <span class="bp">self</span><span class="o">.</span><span class="n">whitespace_keepalive_interval</span><span class="p">,</span>
+                      <span class="n">send_keepalive</span><span class="p">,</span>
+                      <span class="n">repeat</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_end_keepalive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Stop sending whitespace keepalives&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scheduler</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s">&#39;Whitespace Keepalive&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="XMLStream.start_stream_handler"><a class="viewcode-back" href="../../../api/xmlstream/xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream.start_stream_handler">[docs]</a>    <span class="k">def</span> <span class="nf">start_stream_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Perform any initialization actions, such as handshakes, </span>
+<span class="sd">        once the stream header has been sent.</span>
+
+<span class="sd">        Meant to be overridden.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="XMLStream.register_stanza"><a class="viewcode-back" href="../../../api/xmlstream/xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream.register_stanza">[docs]</a>    <span class="k">def</span> <span class="nf">register_stanza</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stanza_class</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a stanza object class as a known root stanza. </span>
+<span class="sd">        </span>
+<span class="sd">        A root stanza is one that appears as a direct child of the stream&#39;s</span>
+<span class="sd">        root element.</span>
+
+<span class="sd">        Stanzas that appear as substanzas of a root stanza do not need to</span>
+<span class="sd">        be registered here. That is done using register_stanza_plugin() from</span>
+<span class="sd">        sleekxmpp.xmlstream.stanzabase.</span>
+
+<span class="sd">        Stanzas that are not registered will not be converted into</span>
+<span class="sd">        stanza objects, but may still be processed using handlers and</span>
+<span class="sd">        matchers.</span>
+
+<span class="sd">        :param stanza_class: The top-level stanza object&#39;s class.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__root_stanza</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">stanza_class</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="XMLStream.remove_stanza"><a class="viewcode-back" href="../../../api/xmlstream/xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream.remove_stanza">[docs]</a>    <span class="k">def</span> <span class="nf">remove_stanza</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stanza_class</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Remove a stanza from being a known root stanza. </span>
+<span class="sd">        </span>
+<span class="sd">        A root stanza is one that appears as a direct child of the stream&#39;s</span>
+<span class="sd">        root element.</span>
+
+<span class="sd">        Stanzas that are not registered will not be converted into</span>
+<span class="sd">        stanza objects, but may still be processed using handlers and</span>
+<span class="sd">        matchers.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">__root_stanza</span><span class="p">[</span><span class="n">stanza_class</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="XMLStream.add_handler"><a class="viewcode-back" href="../../../api/xmlstream/xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream.add_handler">[docs]</a>    <span class="k">def</span> <span class="nf">add_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="n">pointer</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">disposable</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                    <span class="n">threaded</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="nb">filter</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">instream</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A shortcut method for registering a handler using XML masks.</span>
+
+<span class="sd">        The use of :meth:`register_handler()` is preferred.</span>
+
+<span class="sd">        :param mask: An XML snippet matching the structure of the</span>
+<span class="sd">                     stanzas that will be passed to this handler.</span>
+<span class="sd">        :param pointer: The handler function itself.</span>
+<span class="sd">        :parm name: A unique name for the handler. A name will</span>
+<span class="sd">                    be generated if one is not provided.</span>
+<span class="sd">        :param disposable: Indicates if the handler should be discarded</span>
+<span class="sd">                           after one use.</span>
+<span class="sd">        :param threaded: **DEPRECATED**.</span>
+<span class="sd">                       Remains for backwards compatibility.</span>
+<span class="sd">        :param filter: **DEPRECATED**.</span>
+<span class="sd">                       Remains for backwards compatibility.</span>
+<span class="sd">        :param instream: Indicates if the handler should execute during</span>
+<span class="sd">                         stream processing and not during normal event</span>
+<span class="sd">                         processing.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># To prevent circular dependencies, we must load the matcher</span>
+        <span class="c"># and handler classes here.</span>
+
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="s">&#39;add_handler_</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">getNewId</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">registerHandler</span><span class="p">(</span><span class="n">XMLCallback</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">MatchXMLMask</span><span class="p">(</span><span class="n">mask</span><span class="p">),</span> <span class="n">pointer</span><span class="p">,</span>
+                                         <span class="n">once</span><span class="o">=</span><span class="n">disposable</span><span class="p">,</span> <span class="n">instream</span><span class="o">=</span><span class="n">instream</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="XMLStream.register_handler"><a class="viewcode-back" href="../../../api/xmlstream/xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream.register_handler">[docs]</a>    <span class="k">def</span> <span class="nf">register_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handler</span><span class="p">,</span> <span class="n">before</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">after</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a stream event handler that will be executed when a matching</span>
+<span class="sd">        stanza is received.</span>
+
+<span class="sd">        :param handler: The :class:`~sleekxmpp.xmlstream.handler.base.BaseHandler`</span>
+<span class="sd">                        derived object to execute.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">handler</span><span class="o">.</span><span class="n">stream</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__handlers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
+            <span class="n">handler</span><span class="o">.</span><span class="n">stream</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="XMLStream.remove_handler"><a class="viewcode-back" href="../../../api/xmlstream/xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream.remove_handler">[docs]</a>    <span class="k">def</span> <span class="nf">remove_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Remove any stream event handlers with the given name.</span>
+
+<span class="sd">        :param name: The name of the handler.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">handler</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__handlers</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">handler</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__handlers</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">True</span>
+            <span class="n">idx</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="bp">False</span>
+</div>
+<div class="viewcode-block" id="XMLStream.get_dns_records"><a class="viewcode-back" href="../../../api/xmlstream/xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream.get_dns_records">[docs]</a>    <span class="k">def</span> <span class="nf">get_dns_records</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">domain</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the DNS records for a domain.</span>
+
+<span class="sd">        :param domain: The domain in question.</span>
+<span class="sd">        :param port: If the results don&#39;t include a port, use this one.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">port</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">port</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_port</span>
+        <span class="k">if</span> <span class="n">DNSPYTHON</span><span class="p">:</span>
+            <span class="n">resolver</span> <span class="o">=</span> <span class="n">dns</span><span class="o">.</span><span class="n">resolver</span><span class="o">.</span><span class="n">get_default_resolver</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">configure_dns</span><span class="p">(</span><span class="n">resolver</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="n">domain</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">port</span><span class="p">)</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">answers</span> <span class="o">=</span> <span class="n">resolver</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">dns</span><span class="o">.</span><span class="n">rdatatype</span><span class="o">.</span><span class="n">A</span><span class="p">)</span>
+            <span class="k">except</span> <span class="p">(</span><span class="n">dns</span><span class="o">.</span><span class="n">resolver</span><span class="o">.</span><span class="n">NXDOMAIN</span><span class="p">,</span> <span class="n">dns</span><span class="o">.</span><span class="n">resolver</span><span class="o">.</span><span class="n">NoAnswer</span><span class="p">):</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;No A records for </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">domain</span><span class="p">)</span>
+                <span class="k">return</span> <span class="p">[((</span><span class="n">domain</span><span class="p">,</span> <span class="n">port</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)]</span>
+            <span class="k">except</span> <span class="n">dns</span><span class="o">.</span><span class="n">exception</span><span class="o">.</span><span class="n">Timeout</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;DNS resolution timed out &quot;</span> <span class="o">+</span> \
+                            <span class="s">&quot;for A record of </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">domain</span><span class="p">)</span>
+                <span class="k">return</span> <span class="p">[((</span><span class="n">domain</span><span class="p">,</span> <span class="n">port</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">[((</span><span class="n">ans</span><span class="o">.</span><span class="n">address</span><span class="p">,</span> <span class="n">port</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">ans</span> <span class="ow">in</span> <span class="n">answers</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;dnspython is not installed -- &quot;</span> <span class="o">+</span> \
+                        <span class="s">&quot;relying on OS A record resolution&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">configure_dns</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="n">domain</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">port</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">[((</span><span class="n">domain</span><span class="p">,</span> <span class="n">port</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)]</span>
+</div>
+<div class="viewcode-block" id="XMLStream.pick_dns_answer"><a class="viewcode-back" href="../../../api/xmlstream/xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream.pick_dns_answer">[docs]</a>    <span class="k">def</span> <span class="nf">pick_dns_answer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">domain</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Pick a server and port from DNS answers.</span>
+
+<span class="sd">        Gets DNS answers if none available.</span>
+<span class="sd">        Removes used answer from available answers.</span>
+
+<span class="sd">        :param domain: The domain in question.</span>
+<span class="sd">        :param port: If the results don&#39;t include a port, use this one.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">dns_answers</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dns_answers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dns_records</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
+        <span class="n">addresses</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">intmax</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">topprio</span> <span class="o">=</span> <span class="mi">65535</span>
+        <span class="k">for</span> <span class="n">answer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dns_answers</span><span class="p">:</span>
+            <span class="n">topprio</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">topprio</span><span class="p">,</span> <span class="n">answer</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">answer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dns_answers</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">answer</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">topprio</span><span class="p">:</span>
+                <span class="n">intmax</span> <span class="o">+=</span> <span class="n">answer</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                <span class="n">addresses</span><span class="p">[</span><span class="n">intmax</span><span class="p">]</span> <span class="o">=</span> <span class="n">answer</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c">#python3 returns a generator for dictionary keys</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">addresses</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span>
+        <span class="n">items</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+
+        <span class="n">picked</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">intmax</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">picked</span> <span class="o">&lt;=</span> <span class="n">item</span><span class="p">:</span>
+                <span class="n">address</span> <span class="o">=</span> <span class="n">addresses</span><span class="p">[</span><span class="n">item</span><span class="p">]</span>
+                <span class="k">break</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">answer</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dns_answers</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dns_answers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">address</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dns_answers</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Trying to connect to </span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">address</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">address</span>
+</div>
+<div class="viewcode-block" id="XMLStream.add_event_handler"><a class="viewcode-back" href="../../../api/xmlstream/xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream.add_event_handler">[docs]</a>    <span class="k">def</span> <span class="nf">add_event_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">pointer</span><span class="p">,</span>
+                          <span class="n">threaded</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">disposable</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a custom event handler that will be executed whenever</span>
+<span class="sd">        its event is manually triggered.</span>
+
+<span class="sd">        :param name: The name of the event that will trigger</span>
+<span class="sd">                     this handler.</span>
+<span class="sd">        :param pointer: The function to execute.</span>
+<span class="sd">        :param threaded: If set to ``True``, the handler will execute</span>
+<span class="sd">                         in its own thread. Defaults to ``False``.</span>
+<span class="sd">        :param disposable: If set to ``True``, the handler will be</span>
+<span class="sd">                           discarded after one use. Defaults to ``False``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__event_handlers</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__event_handlers</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__event_handlers</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">pointer</span><span class="p">,</span> <span class="n">threaded</span><span class="p">,</span> <span class="n">disposable</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="XMLStream.del_event_handler"><a class="viewcode-back" href="../../../api/xmlstream/xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream.del_event_handler">[docs]</a>    <span class="k">def</span> <span class="nf">del_event_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">pointer</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Remove a function as a handler for an event.</span>
+
+<span class="sd">        :param name: The name of the event.</span>
+<span class="sd">        :param pointer: The function to remove as a handler.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__event_handlers</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="c"># Need to keep handlers that do not use</span>
+        <span class="c"># the given function pointer</span>
+        <span class="k">def</span> <span class="nf">filter_pointers</span><span class="p">(</span><span class="n">handler</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">handler</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">pointer</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__event_handlers</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span>
+            <span class="n">filter_pointers</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__event_handlers</span><span class="p">[</span><span class="n">name</span><span class="p">]))</span>
+</div>
+<div class="viewcode-block" id="XMLStream.event_handled"><a class="viewcode-back" href="../../../api/xmlstream/xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream.event_handled">[docs]</a>    <span class="k">def</span> <span class="nf">event_handled</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the number of registered handlers for an event.</span>
+
+<span class="sd">        :param name: The name of the event to check.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__event_handlers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="p">[]))</span>
+</div>
+<div class="viewcode-block" id="XMLStream.event"><a class="viewcode-back" href="../../../api/xmlstream/xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream.event">[docs]</a>    <span class="k">def</span> <span class="nf">event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="p">{},</span> <span class="n">direct</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Manually trigger a custom event.</span>
+
+<span class="sd">        :param name: The name of the event to trigger.</span>
+<span class="sd">        :param data: Data that will be passed to each event handler.</span>
+<span class="sd">                     Defaults to an empty dictionary, but is usually</span>
+<span class="sd">                     a stanza object.</span>
+<span class="sd">        :param direct: Runs the event directly if True, skipping the</span>
+<span class="sd">                       event queue. All event handlers will run in the</span>
+<span class="sd">                       same thread.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">handlers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__event_handlers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="k">for</span> <span class="n">handler</span> <span class="ow">in</span> <span class="n">handlers</span><span class="p">:</span>
+            <span class="c">#TODO:  Data should not be copied, but should be read only,</span>
+            <span class="c">#       but this might break current code so it&#39;s left for future.</span>
+
+            <span class="n">out_data</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">handlers</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">data</span>
+            <span class="n">old_exception</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s">&#39;exception&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">direct</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">handler</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">out_data</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">error_msg</span> <span class="o">=</span> <span class="s">&#39;Error processing event handler: </span><span class="si">%s</span><span class="s">&#39;</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">error_msg</span><span class="p">,</span>  <span class="nb">str</span><span class="p">(</span><span class="n">handler</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+                    <span class="k">if</span> <span class="n">old_exception</span><span class="p">:</span>
+                        <span class="n">old_exception</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">event_queue</span><span class="o">.</span><span class="n">put</span><span class="p">((</span><span class="s">&#39;event&#39;</span><span class="p">,</span> <span class="n">handler</span><span class="p">,</span> <span class="n">out_data</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">handler</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span>
+                <span class="c"># If the handler is disposable, we will go ahead and</span>
+                <span class="c"># remove it now instead of waiting for it to be</span>
+                <span class="c"># processed in the queue.</span>
+                <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">__event_handlers_lock</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">h_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__event_handlers</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">__event_handlers</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">h_index</span><span class="p">)</span>
+                    <span class="k">except</span><span class="p">:</span>
+                        <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="XMLStream.schedule"><a class="viewcode-back" href="../../../api/xmlstream/xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream.schedule">[docs]</a>    <span class="k">def</span> <span class="nf">schedule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">seconds</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">kwargs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">repeat</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Schedule a callback function to execute after a given delay.</span>
+
+<span class="sd">        :param name: A unique name for the scheduled callback.</span>
+<span class="sd">        :param  seconds: The time in seconds to wait before executing.</span>
+<span class="sd">        :param callback: A pointer to the function to execute.</span>
+<span class="sd">        :param args: A tuple of arguments to pass to the function.</span>
+<span class="sd">        :param kwargs: A dictionary of keyword arguments to pass to</span>
+<span class="sd">                       the function.</span>
+<span class="sd">        :param repeat: Flag indicating if the scheduled event should</span>
+<span class="sd">                       be reset and repeat after executing.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scheduler</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">seconds</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span>
+                           <span class="n">repeat</span><span class="p">,</span> <span class="n">qpointer</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">event_queue</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="XMLStream.incoming_filter"><a class="viewcode-back" href="../../../api/xmlstream/xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream.incoming_filter">[docs]</a>    <span class="k">def</span> <span class="nf">incoming_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Filter incoming XML objects before they are processed.</span>
+
+<span class="sd">        Possible uses include remapping namespaces, or correcting elements</span>
+<span class="sd">        from sources with incorrect behavior.</span>
+
+<span class="sd">        Meant to be overridden.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">xml</span>
+</div>
+<div class="viewcode-block" id="XMLStream.send"><a class="viewcode-back" href="../../../api/xmlstream/xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream.send">[docs]</a>    <span class="k">def</span> <span class="nf">send</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">now</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A wrapper for :meth:`send_raw()` for sending stanza objects.</span>
+
+<span class="sd">        May optionally block until an expected response is received.</span>
+
+<span class="sd">        :param data: The :class:`~sleekxmpp.xmlstream.stanzabase.ElementBase` </span>
+<span class="sd">                     stanza to send on the stream.</span>
+<span class="sd">        :param mask: **DEPRECATED** </span>
+<span class="sd">                     An XML string snippet matching the structure</span>
+<span class="sd">                     of the expected response. Execution will block</span>
+<span class="sd">                     in this thread until the response is received</span>
+<span class="sd">                     or a timeout occurs.</span>
+<span class="sd">        :param int timeout: Time in seconds to wait for a response before</span>
+<span class="sd">                       continuing. Defaults to :attr:`response_timeout`.</span>
+<span class="sd">        :param bool now: Indicates if the send queue should be skipped,</span>
+<span class="sd">                        sending the stanza immediately. Useful mainly</span>
+<span class="sd">                        for stream initialization stanzas.</span>
+<span class="sd">                        Defaults to ``False``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">timeout</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">timeout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">response_timeout</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="s">&#39;xml&#39;</span><span class="p">):</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">xml</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;Use of send mask waiters is deprecated.&quot;</span><span class="p">)</span>
+            <span class="n">wait_for</span> <span class="o">=</span> <span class="n">Waiter</span><span class="p">(</span><span class="s">&quot;SendWait_</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">new_id</span><span class="p">(),</span>
+                              <span class="n">MatchXMLMask</span><span class="p">(</span><span class="n">mask</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">register_handler</span><span class="p">(</span><span class="n">wait_for</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">send_raw</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">now</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">wait_for</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="n">timeout</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="XMLStream.send_xml"><a class="viewcode-back" href="../../../api/xmlstream/xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream.send_xml">[docs]</a>    <span class="k">def</span> <span class="nf">send_xml</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">now</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Send an XML object on the stream, and optionally wait</span>
+<span class="sd">        for a response.</span>
+
+<span class="sd">        :param data: The :class:`~xml.etree.ElementTree.Element` XML object </span>
+<span class="sd">                     to send on the stream.</span>
+<span class="sd">        :param mask: **DEPRECATED** </span>
+<span class="sd">                     An XML string snippet matching the structure</span>
+<span class="sd">                     of the expected response. Execution will block</span>
+<span class="sd">                     in this thread until the response is received</span>
+<span class="sd">                     or a timeout occurs.</span>
+<span class="sd">        :param int timeout: Time in seconds to wait for a response before</span>
+<span class="sd">                       continuing. Defaults to :attr:`response_timeout`.</span>
+<span class="sd">        :param bool now: Indicates if the send queue should be skipped,</span>
+<span class="sd">                        sending the stanza immediately. Useful mainly</span>
+<span class="sd">                        for stream initialization stanzas.</span>
+<span class="sd">                        Defaults to ``False``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">timeout</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">timeout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">response_timeout</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">tostring</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="n">mask</span><span class="p">,</span> <span class="n">timeout</span><span class="p">,</span> <span class="n">now</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="XMLStream.send_raw"><a class="viewcode-back" href="../../../api/xmlstream/xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream.send_raw">[docs]</a>    <span class="k">def</span> <span class="nf">send_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">now</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">reconnect</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Send raw data across the stream.</span>
+
+<span class="sd">        :param string data: Any string value.</span>
+<span class="sd">        :param bool reconnect: Indicates if the stream should be</span>
+<span class="sd">                               restarted if there is an error sending</span>
+<span class="sd">                               the stanza. Used mainly for testing.</span>
+<span class="sd">                               Defaults to :attr:`auto_reconnect`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">now</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;SEND (IMMED): </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
+                <span class="n">total</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+                <span class="n">sent</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">tries</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">while</span> <span class="n">sent</span> <span class="o">&lt;</span> <span class="n">total</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="o">.</span><span class="n">is_set</span><span class="p">():</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">sent</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">socket</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">sent</span><span class="p">:])</span>
+                        <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">except</span> <span class="n">ssl</span><span class="o">.</span><span class="n">SSLError</span> <span class="k">as</span> <span class="n">serr</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">tries</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssl_retry_max</span><span class="p">:</span>
+                            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;SSL error - max retries reached&#39;</span><span class="p">)</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">serr</span><span class="p">)</span>
+                            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;Failed to send </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="n">reconnect</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                                <span class="n">reconnect</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">auto_reconnect</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">disconnect</span><span class="p">(</span><span class="n">reconnect</span><span class="p">)</span>
+                        <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&#39;SSL write error - reattempting&#39;</span><span class="p">)</span>
+                        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ssl_retry_delay</span><span class="p">)</span>
+                        <span class="n">tries</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">count</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;SENT: </span><span class="si">%d</span><span class="s"> chunks&#39;</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">Socket</span><span class="o">.</span><span class="n">error</span> <span class="k">as</span> <span class="n">serr</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">event</span><span class="p">(</span><span class="s">&#39;socket_error&#39;</span><span class="p">,</span> <span class="n">serr</span><span class="p">)</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;Failed to send </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">reconnect</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="n">reconnect</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">auto_reconnect</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">disconnect</span><span class="p">(</span><span class="n">reconnect</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">send_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">True</span>
+</div>
+<div class="viewcode-block" id="XMLStream.process"><a class="viewcode-back" href="../../../api/xmlstream/xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream.process">[docs]</a>    <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize the XML streams and begin processing events.</span>
+
+<span class="sd">        The number of threads used for processing stream events is determined</span>
+<span class="sd">        by :data:`HANDLER_THREADS`.</span>
+
+<span class="sd">        :param bool block: If ``False``, then event dispatcher will run</span>
+<span class="sd">                    in a separate thread, allowing for the stream to be</span>
+<span class="sd">                    used in the background for another application.</span>
+<span class="sd">                    Otherwise, ``process(block=True)`` blocks the current</span>
+<span class="sd">                    thread. Defaults to ``False``.</span>
+<span class="sd">        :param bool threaded: **DEPRECATED**</span>
+<span class="sd">                    If ``True``, then event dispatcher will run</span>
+<span class="sd">                    in a separate thread, allowing for the stream to be</span>
+<span class="sd">                    used in the background for another application.</span>
+<span class="sd">                    Defaults to ``True``. This does **not** mean that no</span>
+<span class="sd">                    threads are used at all if ``threaded=False``.</span>
+
+<span class="sd">        Regardless of these threading options, these threads will </span>
+<span class="sd">        always exist:</span>
+
+<span class="sd">        - The event queue processor</span>
+<span class="sd">        - The send queue processor</span>
+<span class="sd">        - The scheduler</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s">&#39;threaded&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="s">&#39;block&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;process() called with both &quot;</span> <span class="o">+</span> \
+                             <span class="s">&quot;block and threaded arguments&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="s">&#39;block&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">threaded</span> <span class="o">=</span> <span class="ow">not</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;block&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">threaded</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;threaded&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">scheduler</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">threaded</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">start_thread</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__thread</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="n">target</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__thread</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">HANDLER_THREADS</span><span class="p">):</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Starting HANDLER THREAD&quot;</span><span class="p">)</span>
+            <span class="n">start_thread</span><span class="p">(</span><span class="s">&#39;stream_event_handler_</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">t</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_event_runner</span><span class="p">)</span>
+
+        <span class="n">start_thread</span><span class="p">(</span><span class="s">&#39;send_thread&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_send_thread</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">threaded</span><span class="p">:</span>
+            <span class="c"># Run the XML stream in the background for another application.</span>
+            <span class="n">start_thread</span><span class="p">(</span><span class="s">&#39;process&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_process</span><span class="p">()</span>
+</div>
+    <span class="k">def</span> <span class="nf">_process</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Start processing the XML streams.</span>
+
+<span class="sd">        Processing will continue after any recoverable errors</span>
+<span class="sd">        if reconnections are allowed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c"># The body of this loop will only execute once per connection.</span>
+        <span class="c"># Additional passes will be made only if an error occurs and</span>
+        <span class="c"># reconnecting is permitted.</span>
+        <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="n">shutdown</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c"># The call to self.__read_xml will block and prevent</span>
+                <span class="c"># the body of the loop from running until a disconnect</span>
+                <span class="c"># occurs. After any reconnection, the stream header will</span>
+                <span class="c"># be resent and processing will resume.</span>
+                <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="o">.</span><span class="n">is_set</span><span class="p">():</span>
+                    <span class="c"># Only process the stream while connected to the server</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">ensure</span><span class="p">(</span><span class="s">&#39;connected&#39;</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+                                             <span class="n">block_on_transition</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+                        <span class="k">continue</span>
+                    <span class="c"># Ensure the stream header is sent for any</span>
+                    <span class="c"># new connections.</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">session_started_event</span><span class="o">.</span><span class="n">is_set</span><span class="p">():</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">send_raw</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stream_header</span><span class="p">,</span> <span class="n">now</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__read_xml</span><span class="p">():</span>
+                        <span class="c"># If the server terminated the stream, end processing</span>
+                        <span class="k">break</span>
+            <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Keyboard Escape Detected in _process&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">event</span><span class="p">(</span><span class="s">&#39;killed&#39;</span><span class="p">,</span> <span class="n">direct</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="n">shutdown</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="k">except</span> <span class="ne">SystemExit</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;SystemExit in _process&quot;</span><span class="p">)</span>
+                <span class="n">shutdown</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="k">except</span> <span class="ne">SyntaxError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Error reading from XML stream.&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">Socket</span><span class="o">.</span><span class="n">error</span> <span class="k">as</span> <span class="n">serr</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">event</span><span class="p">(</span><span class="s">&#39;socket_error&#39;</span><span class="p">,</span> <span class="n">serr</span><span class="p">)</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s">&#39;Socket Error&#39;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="o">.</span><span class="n">is_set</span><span class="p">():</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s">&#39;Connection error.&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">shutdown</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="o">.</span><span class="n">is_set</span><span class="p">()</span> \
+               <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">auto_reconnect</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">reconnect</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">disconnect</span><span class="p">()</span>
+                <span class="k">break</span>
+
+    <span class="k">def</span> <span class="nf">__read_xml</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Parse the incoming XML stream</span>
+<span class="sd">        </span>
+<span class="sd">        Stream events are raised for each received stanza.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">depth</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">for</span> <span class="n">event</span><span class="p">,</span> <span class="n">xml</span> <span class="ow">in</span> <span class="n">ET</span><span class="o">.</span><span class="n">iterparse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filesocket</span><span class="p">,</span> <span class="p">(</span><span class="n">b</span><span class="s">&#39;end&#39;</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;start&#39;</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">event</span> <span class="o">==</span> <span class="n">b</span><span class="s">&#39;start&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">depth</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="c"># We have received the start of the root element.</span>
+                    <span class="n">root</span> <span class="o">=</span> <span class="n">xml</span>
+                    <span class="c"># Perform any stream initialization actions, such</span>
+                    <span class="c"># as handshakes.</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">stream_end_event</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">start_stream_handler</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
+                <span class="n">depth</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">event</span> <span class="o">==</span> <span class="n">b</span><span class="s">&#39;end&#39;</span><span class="p">:</span>
+                <span class="n">depth</span> <span class="o">-=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">depth</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="c"># The stream&#39;s root element has closed,</span>
+                    <span class="c"># terminating the stream.</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;End of stream recieved&quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">stream_end_event</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>
+                    <span class="k">return</span> <span class="bp">False</span>
+                <span class="k">elif</span> <span class="n">depth</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="c"># We only raise events for stanzas that are direct</span>
+                    <span class="c"># children of the root element.</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">__spawn_event</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="n">RestartStream</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="bp">True</span>
+                    <span class="k">if</span> <span class="n">root</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                        <span class="c"># Keep the root element empty of children to</span>
+                        <span class="c"># save on memory use.</span>
+                        <span class="n">root</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Ending read XML loop&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_build_stanza</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">,</span> <span class="n">default_ns</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a stanza object from a given XML object.</span>
+
+<span class="sd">        If a specialized stanza type is not found for the XML, then</span>
+<span class="sd">        a generic :class:`~sleekxmpp.xmlstream.stanzabase.StanzaBase` </span>
+<span class="sd">        stanza will be returned.</span>
+
+<span class="sd">        :param xml: The :class:`~xml.etree.ElementTree.Element` XML object </span>
+<span class="sd">                    to convert into a stanza object.</span>
+<span class="sd">        :param default_ns: Optional default namespace to use instead of the</span>
+<span class="sd">                           stream&#39;s current default namespace.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">default_ns</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">default_ns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_ns</span>
+        <span class="n">stanza_type</span> <span class="o">=</span> <span class="n">StanzaBase</span>
+        <span class="k">for</span> <span class="n">stanza_class</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__root_stanza</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">xml</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s">&quot;{</span><span class="si">%s</span><span class="s">}</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">default_ns</span><span class="p">,</span> <span class="n">stanza_class</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="ow">or</span> \
+               <span class="n">xml</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="n">stanza_class</span><span class="o">.</span><span class="n">tag_name</span><span class="p">():</span>
+                <span class="n">stanza_type</span> <span class="o">=</span> <span class="n">stanza_class</span>
+                <span class="k">break</span>
+        <span class="n">stanza</span> <span class="o">=</span> <span class="n">stanza_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">stanza</span>
+
+    <span class="k">def</span> <span class="nf">__spawn_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Analyze incoming XML stanzas and convert them into stanza</span>
+<span class="sd">        objects if applicable and queue stream events to be processed</span>
+<span class="sd">        by matching handlers.</span>
+
+<span class="sd">        :param xml: The :class:`~sleekxmpp.xmlstream.stanzabase.ElementBase`</span>
+<span class="sd">                    stanza to analyze.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;RECV: </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">tostring</span><span class="p">(</span><span class="n">xml</span><span class="p">,</span> <span class="n">xmlns</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">default_ns</span><span class="p">,</span>
+                                            <span class="n">stream</span><span class="o">=</span><span class="bp">self</span><span class="p">))</span>
+        <span class="c"># Apply any preprocessing filters.</span>
+        <span class="n">xml</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">incoming_filter</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
+
+        <span class="c"># Convert the raw XML object into a stanza object. If no registered</span>
+        <span class="c"># stanza type applies, a generic StanzaBase stanza will be used.</span>
+        <span class="n">stanza</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_stanza</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
+
+        <span class="c"># Match the stanza against registered handlers. Handlers marked</span>
+        <span class="c"># to run &quot;in stream&quot; will be executed immediately; the rest will</span>
+        <span class="c"># be queued.</span>
+        <span class="n">unhandled</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">matched_handlers</span> <span class="o">=</span> <span class="p">[</span><span class="n">h</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__handlers</span> <span class="k">if</span> <span class="n">h</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">stanza</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">handler</span> <span class="ow">in</span> <span class="n">matched_handlers</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">matched_handlers</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">stanza_copy</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">stanza</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">stanza_copy</span> <span class="o">=</span> <span class="n">stanza</span>
+            <span class="n">handler</span><span class="o">.</span><span class="n">prerun</span><span class="p">(</span><span class="n">stanza_copy</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">event_queue</span><span class="o">.</span><span class="n">put</span><span class="p">((</span><span class="s">&#39;stanza&#39;</span><span class="p">,</span> <span class="n">handler</span><span class="p">,</span> <span class="n">stanza_copy</span><span class="p">))</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">handler</span><span class="o">.</span><span class="n">check_delete</span><span class="p">():</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__handlers</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">pass</span>  <span class="c"># not thread safe</span>
+            <span class="n">unhandled</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="c"># Some stanzas require responses, such as Iq queries. A default</span>
+        <span class="c"># handler will be executed immediately for this case.</span>
+        <span class="k">if</span> <span class="n">unhandled</span><span class="p">:</span>
+            <span class="n">stanza</span><span class="o">.</span><span class="n">unhandled</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_threaded_event_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Capture exceptions for event handlers that run</span>
+<span class="sd">        in individual threads.</span>
+
+<span class="sd">        :param func: The event handler to execute.</span>
+<span class="sd">        :param args: Arguments to the event handler.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># this is always already copied before this is invoked</span>
+        <span class="n">orig</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">error_msg</span> <span class="o">=</span> <span class="s">&#39;Error processing event handler: </span><span class="si">%s</span><span class="s">&#39;</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">error_msg</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">func</span><span class="p">))</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">orig</span><span class="p">,</span> <span class="s">&#39;exception&#39;</span><span class="p">):</span>
+                <span class="n">orig</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_event_runner</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Process the event queue and execute handlers.</span>
+
+<span class="sd">        The number of event runner threads is controlled by HANDLER_THREADS.</span>
+
+<span class="sd">        Stream event handlers will all execute in this thread. Custom event</span>
+<span class="sd">        handlers may be spawned in individual threads.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Loading event runner&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="o">.</span><span class="n">is_set</span><span class="p">():</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">wait</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wait_timeout</span>
+                    <span class="n">event</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">event_queue</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">True</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">wait</span><span class="p">)</span>
+                <span class="k">except</span> <span class="n">queue</span><span class="o">.</span><span class="n">Empty</span><span class="p">:</span>
+                    <span class="n">event</span> <span class="o">=</span> <span class="bp">None</span>
+                <span class="k">if</span> <span class="n">event</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="k">continue</span>
+
+                <span class="n">etype</span><span class="p">,</span> <span class="n">handler</span> <span class="o">=</span> <span class="n">event</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+                <span class="n">args</span> <span class="o">=</span> <span class="n">event</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span>
+                <span class="n">orig</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+                <span class="k">if</span> <span class="n">etype</span> <span class="o">==</span> <span class="s">&#39;stanza&#39;</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">handler</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                        <span class="n">error_msg</span> <span class="o">=</span> <span class="s">&#39;Error processing stream handler: </span><span class="si">%s</span><span class="s">&#39;</span>
+                        <span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">error_msg</span><span class="p">,</span> <span class="n">handler</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                        <span class="n">orig</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">etype</span> <span class="o">==</span> <span class="s">&#39;schedule&#39;</span><span class="p">:</span>
+                    <span class="n">name</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Scheduled event: </span><span class="si">%s</span><span class="s">: </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                        <span class="n">handler</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                        <span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s">&#39;Error processing scheduled task&#39;</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">etype</span> <span class="o">==</span> <span class="s">&#39;event&#39;</span><span class="p">:</span>
+                    <span class="n">func</span><span class="p">,</span> <span class="n">threaded</span><span class="p">,</span> <span class="n">disposable</span> <span class="o">=</span> <span class="n">handler</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">threaded</span><span class="p">:</span>
+                            <span class="n">x</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span>
+                                    <span class="n">name</span><span class="o">=</span><span class="s">&quot;Event_</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">func</span><span class="p">),</span>
+                                    <span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_threaded_event_wrapper</span><span class="p">,</span>
+                                    <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span>
+                            <span class="n">x</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                        <span class="n">error_msg</span> <span class="o">=</span> <span class="s">&#39;Error processing event handler: </span><span class="si">%s</span><span class="s">&#39;</span>
+                        <span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">error_msg</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">func</span><span class="p">))</span>
+                        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">orig</span><span class="p">,</span> <span class="s">&#39;exception&#39;</span><span class="p">):</span>
+                            <span class="n">orig</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">etype</span> <span class="o">==</span> <span class="s">&#39;quit&#39;</span><span class="p">:</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Quitting event runner thread&quot;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Keyboard Escape Detected in _event_runner&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">event</span><span class="p">(</span><span class="s">&#39;killed&#39;</span><span class="p">,</span> <span class="n">direct</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">disconnect</span><span class="p">()</span>
+            <span class="k">return</span>
+        <span class="k">except</span> <span class="ne">SystemExit</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">disconnect</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">event_queue</span><span class="o">.</span><span class="n">put</span><span class="p">((</span><span class="s">&#39;quit&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">))</span>
+            <span class="k">return</span>
+
+    <span class="k">def</span> <span class="nf">_send_thread</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Extract stanzas from the send queue and send them on the stream.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="o">.</span><span class="n">is_set</span><span class="p">():</span>
+                <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="o">.</span><span class="n">is_set</span> <span class="ow">and</span> \
+                      <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">session_started_event</span><span class="o">.</span><span class="n">is_set</span><span class="p">():</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">session_started_event</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__failed_send_stanza</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__failed_send_stanza</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__failed_send_stanza</span> <span class="o">=</span> <span class="bp">None</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">send_queue</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">True</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="n">queue</span><span class="o">.</span><span class="n">Empty</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;SEND: </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+                <span class="n">enc_data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
+                <span class="n">total</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">enc_data</span><span class="p">)</span>
+                <span class="n">sent</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">tries</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">while</span> <span class="n">sent</span> <span class="o">&lt;</span> <span class="n">total</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="o">.</span><span class="n">is_set</span><span class="p">():</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">sent</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">socket</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">enc_data</span><span class="p">[</span><span class="n">sent</span><span class="p">:])</span>
+                            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+                        <span class="k">except</span> <span class="n">ssl</span><span class="o">.</span><span class="n">SSLError</span> <span class="k">as</span> <span class="n">serr</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">tries</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssl_retry_max</span><span class="p">:</span>
+                                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;SSL error - max retries reached&#39;</span><span class="p">)</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">serr</span><span class="p">)</span>
+                                <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;Failed to send </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+                                <span class="k">if</span> <span class="n">reconnect</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                                    <span class="n">reconnect</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">auto_reconnect</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">disconnect</span><span class="p">(</span><span class="n">reconnect</span><span class="p">)</span>
+                            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&#39;SSL write error - reattempting&#39;</span><span class="p">)</span>
+                            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ssl_retry_delay</span><span class="p">)</span>
+                            <span class="n">tries</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">count</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;SENT: </span><span class="si">%d</span><span class="s"> chunks&#39;</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">send_queue</span><span class="o">.</span><span class="n">task_done</span><span class="p">()</span>
+                <span class="k">except</span> <span class="n">Socket</span><span class="o">.</span><span class="n">error</span> <span class="k">as</span> <span class="n">serr</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">event</span><span class="p">(</span><span class="s">&#39;socket_error&#39;</span><span class="p">,</span> <span class="n">serr</span><span class="p">)</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;Failed to send </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__failed_send_stanza</span> <span class="o">=</span> <span class="n">data</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">auto_reconnect</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s">&#39;Unexpected error in send thread: </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">ex</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="o">.</span><span class="n">is_set</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">auto_reconnect</span><span class="p">)</span>
+
+<div class="viewcode-block" id="XMLStream.exception"><a class="viewcode-back" href="../../../api/xmlstream/xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream.exception">[docs]</a>    <span class="k">def</span> <span class="nf">exception</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exception</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Process an unknown exception.</span>
+
+<span class="sd">        Meant to be overridden.</span>
+
+<span class="sd">        :param exception: An unhandled exception object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+
+<span class="c"># To comply with PEP8, method names now use underscores.</span>
+<span class="c"># Deprecated method names are re-mapped for backwards compatibility.</span></div></div>
+<span class="n">XMLStream</span><span class="o">.</span><span class="n">startTLS</span> <span class="o">=</span> <span class="n">XMLStream</span><span class="o">.</span><span class="n">start_tls</span>
+<span class="n">XMLStream</span><span class="o">.</span><span class="n">registerStanza</span> <span class="o">=</span> <span class="n">XMLStream</span><span class="o">.</span><span class="n">register_stanza</span>
+<span class="n">XMLStream</span><span class="o">.</span><span class="n">removeStanza</span> <span class="o">=</span> <span class="n">XMLStream</span><span class="o">.</span><span class="n">remove_stanza</span>
+<span class="n">XMLStream</span><span class="o">.</span><span class="n">registerHandler</span> <span class="o">=</span> <span class="n">XMLStream</span><span class="o">.</span><span class="n">register_handler</span>
+<span class="n">XMLStream</span><span class="o">.</span><span class="n">removeHandler</span> <span class="o">=</span> <span class="n">XMLStream</span><span class="o">.</span><span class="n">remove_handler</span>
+<span class="n">XMLStream</span><span class="o">.</span><span class="n">setSocket</span> <span class="o">=</span> <span class="n">XMLStream</span><span class="o">.</span><span class="n">set_socket</span>
+<span class="n">XMLStream</span><span class="o">.</span><span class="n">sendRaw</span> <span class="o">=</span> <span class="n">XMLStream</span><span class="o">.</span><span class="n">send_raw</span>
+<span class="n">XMLStream</span><span class="o">.</span><span class="n">getId</span> <span class="o">=</span> <span class="n">XMLStream</span><span class="o">.</span><span class="n">get_id</span>
+<span class="n">XMLStream</span><span class="o">.</span><span class="n">getNewId</span> <span class="o">=</span> <span class="n">XMLStream</span><span class="o">.</span><span class="n">new_id</span>
+<span class="n">XMLStream</span><span class="o">.</span><span class="n">sendXML</span> <span class="o">=</span> <span class="n">XMLStream</span><span class="o">.</span><span class="n">send_xml</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">1.0RC3 Documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Nathan Fritz, Lance Stout.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

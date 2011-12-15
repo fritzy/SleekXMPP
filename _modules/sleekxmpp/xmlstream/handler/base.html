@@ -1,0 +1,177 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>sleekxmpp.xmlstream.handler.base &mdash; SleekXMPP</title>
+    
+    <link rel="stylesheet" href="../../../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '1.0RC3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="SleekXMPP" href="../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">1.0RC3 Documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for sleekxmpp.xmlstream.handler.base</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    sleekxmpp.xmlstream.handler.base</span>
+<span class="sd">    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+
+<span class="sd">    Part of SleekXMPP: The Sleek XMPP Library</span>
+
+<span class="sd">    :copyright: (c) 2011 Nathanael C. Fritz</span>
+<span class="sd">    :license: MIT, see LICENSE for more details</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">weakref</span>
+
+
+<div class="viewcode-block" id="BaseHandler"><a class="viewcode-back" href="../../../../api/xmlstream/handler.html#sleekxmpp.xmlstream.handler.base.BaseHandler">[docs]</a><span class="k">class</span> <span class="nc">BaseHandler</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Base class for stream handlers. Stream handlers are matched with</span>
+<span class="sd">    incoming stanzas so that the stanza may be processed in some way.</span>
+<span class="sd">    Stanzas may be matched with multiple handlers.</span>
+
+<span class="sd">    Handler execution may take place in two phases: during the incoming</span>
+<span class="sd">    stream processing, and in the main event loop. The :meth:`prerun()`</span>
+<span class="sd">    method is executed in the first case, and :meth:`run()` is called</span>
+<span class="sd">    during the second.</span>
+
+<span class="sd">    :param string name: The name of the handler.</span>
+<span class="sd">    :param matcher: A :class:`~sleekxmpp.xmlstream.matcher.base.MatcherBase`</span>
+<span class="sd">                    derived object that will be used to determine if a</span>
+<span class="sd">                    stanza should be accepted by this handler.</span>
+<span class="sd">    :param stream: The :class:`~sleekxmpp.xmlstream.xmlstream.XMLStream`</span>
+<span class="sd">                    instance that the handle will respond to.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">matcher</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="c">#: The name of the handler</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+
+        <span class="c">#: The XML stream this handler is assigned to</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stream</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="n">stream</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stream</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="n">stream</span><span class="p">)</span>
+            <span class="n">stream</span><span class="o">.</span><span class="n">register_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_destroy</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_payload</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_matcher</span> <span class="o">=</span> <span class="n">matcher</span>
+
+<div class="viewcode-block" id="BaseHandler.match"><a class="viewcode-back" href="../../../../api/xmlstream/handler.html#sleekxmpp.xmlstream.handler.base.BaseHandler.match">[docs]</a>    <span class="k">def</span> <span class="nf">match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compare a stanza or XML object with the handler&#39;s matcher.</span>
+
+<span class="sd">        :param xml: An XML or </span>
+<span class="sd">            :class:`~sleekxmpp.xmlstream.stanzabase.ElementBase` object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_matcher</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="BaseHandler.prerun"><a class="viewcode-back" href="../../../../api/xmlstream/handler.html#sleekxmpp.xmlstream.handler.base.BaseHandler.prerun">[docs]</a>    <span class="k">def</span> <span class="nf">prerun</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Prepare the handler for execution while the XML</span>
+<span class="sd">        stream is being processed.</span>
+
+<span class="sd">        :param payload: A :class:`~sleekxmpp.xmlstream.stanzabase.ElementBase`</span>
+<span class="sd">                        object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_payload</span> <span class="o">=</span> <span class="n">payload</span>
+</div>
+<div class="viewcode-block" id="BaseHandler.run"><a class="viewcode-back" href="../../../../api/xmlstream/handler.html#sleekxmpp.xmlstream.handler.base.BaseHandler.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Execute the handler after XML stream processing and during the</span>
+<span class="sd">        main event loop.</span>
+
+<span class="sd">        :param payload: A :class:`~sleekxmpp.xmlstream.stanzabase.ElementBase`</span>
+<span class="sd">                        object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_payload</span> <span class="o">=</span> <span class="n">payload</span>
+</div>
+<div class="viewcode-block" id="BaseHandler.check_delete"><a class="viewcode-back" href="../../../../api/xmlstream/handler.html#sleekxmpp.xmlstream.handler.base.BaseHandler.check_delete">[docs]</a>    <span class="k">def</span> <span class="nf">check_delete</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Check if the handler should be removed from the list </span>
+<span class="sd">        of stream handlers.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_destroy</span>
+
+
+<span class="c"># To comply with PEP8, method names now use underscores.</span>
+<span class="c"># Deprecated method names are re-mapped for backwards compatibility.</span></div></div>
+<span class="n">BaseHandler</span><span class="o">.</span><span class="n">checkDelete</span> <span class="o">=</span> <span class="n">BaseHandler</span><span class="o">.</span><span class="n">check_delete</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">1.0RC3 Documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Nathan Fritz, Lance Stout.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

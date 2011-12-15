@@ -1,0 +1,991 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>BaseXMPP &mdash; SleekXMPP</title>
+    
+    <link rel="stylesheet" href="../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0RC3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="SleekXMPP" href="../index.html" />
+    <link rel="next" title="Jabber IDs (JID)" href="xmlstream/jid.html" />
+    <link rel="prev" title="ComponentXMPP" href="componentxmpp.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="xmlstream/jid.html" title="Jabber IDs (JID)"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="componentxmpp.html" title="ComponentXMPP"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">1.0RC3 Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-sleekxmpp.basexmpp">
+<span id="basexmpp"></span><h1>BaseXMPP<a class="headerlink" href="#module-sleekxmpp.basexmpp" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="sleekxmpp.basexmpp.BaseXMPP">
+<em class="property">class </em><tt class="descclassname">sleekxmpp.basexmpp.</tt><tt class="descname">BaseXMPP</tt><big>(</big><em>jid=u''</em>, <em>default_ns=u'jabber:client'</em><big>)</big><a class="reference internal" href="../_modules/sleekxmpp/basexmpp.html#BaseXMPP"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP" title="Permalink to this definition">¶</a></dt>
+<dd><p>The BaseXMPP class adapts the generic XMLStream class for use
+with XMPP. It also provides a plugin mechanism to easily extend
+and add support for new XMPP features.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>default_ns</strong> &#8211; Ensure that the correct default XML namespace
+is used during initialization.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.Iq">
+<tt class="descname">Iq</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/sleekxmpp/basexmpp.html#BaseXMPP.Iq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.Iq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an Iq stanza associated with this stream.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.Message">
+<tt class="descname">Message</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/sleekxmpp/basexmpp.html#BaseXMPP.Message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.Message" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a Message stanza associated with this stream.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.Presence">
+<tt class="descname">Presence</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/sleekxmpp/basexmpp.html#BaseXMPP.Presence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.Presence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a Presence stanza associated with this stream.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.auto_authorize">
+<tt class="descname">auto_authorize</tt><a class="reference internal" href="../_modules/sleekxmpp/basexmpp.html#BaseXMPP.auto_authorize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.auto_authorize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Auto accept or deny subscription requests.</p>
+<p>If <tt class="docutils literal"><span class="pre">True</span></tt>, auto accept subscription requests.
+If <tt class="docutils literal"><span class="pre">False</span></tt>, auto deny subscription requests.
+If <tt class="docutils literal"><span class="pre">None</span></tt>, don&#8217;t automatically respond.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.auto_subscribe">
+<tt class="descname">auto_subscribe</tt><a class="reference internal" href="../_modules/sleekxmpp/basexmpp.html#BaseXMPP.auto_subscribe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.auto_subscribe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Auto send requests for mutual subscriptions.</p>
+<p>If <tt class="docutils literal"><span class="pre">True</span></tt>, auto send mutual subscription requests.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.boundjid">
+<tt class="descname">boundjid</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.boundjid" title="Permalink to this definition">¶</a></dt>
+<dd><p>The JabberID (JID) used by this connection.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.client_roster">
+<tt class="descname">client_roster</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.client_roster" title="Permalink to this definition">¶</a></dt>
+<dd><p>The single roster for the bound JID. This is the
+equivalent of:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="bp">self</span><span class="o">.</span><span class="n">roster</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">boundjid</span><span class="o">.</span><span class="n">bare</span><span class="p">]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.exception">
+<tt class="descname">exception</tt><big>(</big><em>exception</em><big>)</big><a class="reference internal" href="../_modules/sleekxmpp/basexmpp.html#BaseXMPP.exception"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.exception" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process any uncaught exceptions, notably 
+<tt class="xref py py-class docutils literal"><span class="pre">IqError</span></tt> and
+<tt class="xref py py-class docutils literal"><span class="pre">IqTimeout</span></tt> exceptions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>exception</strong> &#8211; An unhandled <tt class="xref py py-class docutils literal"><span class="pre">Exception</span></tt> object.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.fulljid">
+<tt class="descname">fulljid</tt><a class="reference internal" href="../_modules/sleekxmpp/basexmpp.html#BaseXMPP.fulljid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.fulljid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attribute accessor for full jid</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.get">
+<tt class="descname">get</tt><big>(</big><em>key</em>, <em>default</em><big>)</big><a class="reference internal" href="../_modules/sleekxmpp/basexmpp.html#BaseXMPP.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a plugin given its name, if it has been registered.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.is_component">
+<tt class="descname">is_component</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.is_component" title="Permalink to this definition">¶</a></dt>
+<dd><p>The distinction between clients and components can be
+important, primarily for choosing how to handle the
+<tt class="docutils literal"><span class="pre">'to'</span></tt> and <tt class="docutils literal"><span class="pre">'from'</span></tt> JIDs of stanzas.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.jid">
+<tt class="descname">jid</tt><a class="reference internal" href="../_modules/sleekxmpp/basexmpp.html#BaseXMPP.jid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.jid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attribute accessor for bare jid</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.makeIq">
+<tt class="descname">makeIq</tt><big>(</big><em>id=0</em>, <em>ifrom=None</em>, <em>ito=None</em>, <em>itype=None</em>, <em>iquery=None</em><big>)</big><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.makeIq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new Iq stanza with a given Id and from JID.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>id</strong> &#8211; An ideally unique ID value for this stanza thread.
+Defaults to 0.</li>
+<li><strong>ifrom</strong> &#8211; The from <a class="reference internal" href="xmlstream/jid.html#sleekxmpp.xmlstream.jid.JID" title="sleekxmpp.xmlstream.jid.JID"><tt class="xref py py-class docutils literal"><span class="pre">JID</span></tt></a> 
+to use for this stanza.</li>
+<li><strong>ito</strong> &#8211; The destination <a class="reference internal" href="xmlstream/jid.html#sleekxmpp.xmlstream.jid.JID" title="sleekxmpp.xmlstream.jid.JID"><tt class="xref py py-class docutils literal"><span class="pre">JID</span></tt></a>
+for this stanza.</li>
+<li><strong>itype</strong> &#8211; The <tt class="xref py py-class docutils literal"><span class="pre">Iq</span></tt>&#8216;s type, 
+one of: <tt class="docutils literal"><span class="pre">'get'</span></tt>, <tt class="docutils literal"><span class="pre">'set'</span></tt>, <tt class="docutils literal"><span class="pre">'result'</span></tt>,
+or <tt class="docutils literal"><span class="pre">'error'</span></tt>.</li>
+<li><strong>iquery</strong> &#8211; Optional namespace for adding a query element.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.makeIqError">
+<tt class="descname">makeIqError</tt><big>(</big><em>id</em>, <em>type=u'cancel'</em>, <em>condition=u'feature-not-implemented'</em>, <em>text=None</em>, <em>ito=None</em>, <em>ifrom=None</em>, <em>iq=None</em><big>)</big><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.makeIqError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an <tt class="xref py py-class docutils literal"><span class="pre">Iq</span></tt> stanza of type <tt class="docutils literal"><span class="pre">'error'</span></tt>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>id</strong> &#8211; An ideally unique ID value. May use <tt class="xref py py-meth docutils literal"><span class="pre">new_id()</span></tt>.</li>
+<li><strong>type</strong> &#8211; The type of the error, such as <tt class="docutils literal"><span class="pre">'cancel'</span></tt> or 
+<tt class="docutils literal"><span class="pre">'modify'</span></tt>. Defaults to <tt class="docutils literal"><span class="pre">'cancel'</span></tt>.</li>
+<li><strong>condition</strong> &#8211; The error condition. Defaults to 
+<tt class="docutils literal"><span class="pre">'feature-not-implemented'</span></tt>.</li>
+<li><strong>text</strong> &#8211; A message describing the cause of the error.</li>
+<li><strong>ito</strong> &#8211; The destination <a class="reference internal" href="xmlstream/jid.html#sleekxmpp.xmlstream.jid.JID" title="sleekxmpp.xmlstream.jid.JID"><tt class="xref py py-class docutils literal"><span class="pre">JID</span></tt></a>
+for this stanza.</li>
+<li><strong>ifrom</strong> &#8211; The <tt class="docutils literal"><span class="pre">'from'</span></tt> <a class="reference internal" href="xmlstream/jid.html#sleekxmpp.xmlstream.jid.JID" title="sleekxmpp.xmlstream.jid.JID"><tt class="xref py py-class docutils literal"><span class="pre">JID</span></tt></a>
+to use for this stanza.</li>
+<li><strong>iq</strong> &#8211; Optionally use an existing stanza instead
+of generating a new one.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.makeIqGet">
+<tt class="descname">makeIqGet</tt><big>(</big><em>queryxmlns=None</em>, <em>ito=None</em>, <em>ifrom=None</em>, <em>iq=None</em><big>)</big><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.makeIqGet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an <tt class="xref py py-class docutils literal"><span class="pre">Iq</span></tt> stanza of type <tt class="docutils literal"><span class="pre">'get'</span></tt>.</p>
+<p>Optionally, a query element may be added.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>queryxmlns</strong> &#8211; The namespace of the query to use.</li>
+<li><strong>ito</strong> &#8211; The destination <a class="reference internal" href="xmlstream/jid.html#sleekxmpp.xmlstream.jid.JID" title="sleekxmpp.xmlstream.jid.JID"><tt class="xref py py-class docutils literal"><span class="pre">JID</span></tt></a>
+for this stanza.</li>
+<li><strong>ifrom</strong> &#8211; The <tt class="docutils literal"><span class="pre">'from'</span></tt> <a class="reference internal" href="xmlstream/jid.html#sleekxmpp.xmlstream.jid.JID" title="sleekxmpp.xmlstream.jid.JID"><tt class="xref py py-class docutils literal"><span class="pre">JID</span></tt></a>
+to use for this stanza.</li>
+<li><strong>iq</strong> &#8211; Optionally use an existing stanza instead
+of generating a new one.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.makeIqQuery">
+<tt class="descname">makeIqQuery</tt><big>(</big><em>iq=None</em>, <em>xmlns=u''</em>, <em>ito=None</em>, <em>ifrom=None</em><big>)</big><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.makeIqQuery" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create or modify an <tt class="xref py py-class docutils literal"><span class="pre">Iq</span></tt> stanza 
+to use the given query namespace.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>iq</strong> &#8211; Optionally use an existing stanza instead
+of generating a new one.</li>
+<li><strong>xmlns</strong> &#8211; The query&#8217;s namespace.</li>
+<li><strong>ito</strong> &#8211; The destination <a class="reference internal" href="xmlstream/jid.html#sleekxmpp.xmlstream.jid.JID" title="sleekxmpp.xmlstream.jid.JID"><tt class="xref py py-class docutils literal"><span class="pre">JID</span></tt></a>
+for this stanza.</li>
+<li><strong>ifrom</strong> &#8211; The <tt class="docutils literal"><span class="pre">'from'</span></tt> <a class="reference internal" href="xmlstream/jid.html#sleekxmpp.xmlstream.jid.JID" title="sleekxmpp.xmlstream.jid.JID"><tt class="xref py py-class docutils literal"><span class="pre">JID</span></tt></a>
+to use for this stanza.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.makeIqResult">
+<tt class="descname">makeIqResult</tt><big>(</big><em>id=None</em>, <em>ito=None</em>, <em>ifrom=None</em>, <em>iq=None</em><big>)</big><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.makeIqResult" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an <tt class="xref py py-class docutils literal"><span class="pre">Iq</span></tt> stanza of type 
+<tt class="docutils literal"><span class="pre">'result'</span></tt> with the given ID value.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>id</strong> &#8211; An ideally unique ID value. May use <tt class="xref py py-meth docutils literal"><span class="pre">new_id()</span></tt>.</li>
+<li><strong>ito</strong> &#8211; The destination <a class="reference internal" href="xmlstream/jid.html#sleekxmpp.xmlstream.jid.JID" title="sleekxmpp.xmlstream.jid.JID"><tt class="xref py py-class docutils literal"><span class="pre">JID</span></tt></a>
+for this stanza.</li>
+<li><strong>ifrom</strong> &#8211; The <tt class="docutils literal"><span class="pre">'from'</span></tt> <a class="reference internal" href="xmlstream/jid.html#sleekxmpp.xmlstream.jid.JID" title="sleekxmpp.xmlstream.jid.JID"><tt class="xref py py-class docutils literal"><span class="pre">JID</span></tt></a>
+to use for this stanza.</li>
+<li><strong>iq</strong> &#8211; Optionally use an existing stanza instead
+of generating a new one.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.makeIqSet">
+<tt class="descname">makeIqSet</tt><big>(</big><em>sub=None</em>, <em>ito=None</em>, <em>ifrom=None</em>, <em>iq=None</em><big>)</big><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.makeIqSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an <tt class="xref py py-class docutils literal"><span class="pre">Iq</span></tt> stanza of type <tt class="docutils literal"><span class="pre">'set'</span></tt>.</p>
+<p>Optionally, a substanza may be given to use as the
+stanza&#8217;s payload.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>sub</strong> &#8211; Either an 
+<a class="reference internal" href="xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase" title="sleekxmpp.xmlstream.stanzabase.ElementBase"><tt class="xref py py-class docutils literal"><span class="pre">ElementBase</span></tt></a>
+stanza object or an
+<a class="reference external" href="http://docs.python.org/3.2/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element" title="(in Python v3.2)"><tt class="xref py py-class docutils literal"><span class="pre">Element</span></tt></a> XML object 
+to use as the <tt class="xref py py-class docutils literal"><span class="pre">Iq</span></tt>&#8216;s payload.</li>
+<li><strong>ito</strong> &#8211; The destination <a class="reference internal" href="xmlstream/jid.html#sleekxmpp.xmlstream.jid.JID" title="sleekxmpp.xmlstream.jid.JID"><tt class="xref py py-class docutils literal"><span class="pre">JID</span></tt></a>
+for this stanza.</li>
+<li><strong>ifrom</strong> &#8211; The <tt class="docutils literal"><span class="pre">'from'</span></tt> <a class="reference internal" href="xmlstream/jid.html#sleekxmpp.xmlstream.jid.JID" title="sleekxmpp.xmlstream.jid.JID"><tt class="xref py py-class docutils literal"><span class="pre">JID</span></tt></a>
+to use for this stanza.</li>
+<li><strong>iq</strong> &#8211; Optionally use an existing stanza instead
+of generating a new one.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.makeMessage">
+<tt class="descname">makeMessage</tt><big>(</big><em>mto</em>, <em>mbody=None</em>, <em>msubject=None</em>, <em>mtype=None</em>, <em>mhtml=None</em>, <em>mfrom=None</em>, <em>mnick=None</em><big>)</big><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.makeMessage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create and initialize a new 
+<tt class="xref py py-class docutils literal"><span class="pre">Message</span></tt> stanza.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>mto</strong> &#8211; The recipient of the message.</li>
+<li><strong>mbody</strong> &#8211; The main contents of the message.</li>
+<li><strong>msubject</strong> &#8211; Optional subject for the message.</li>
+<li><strong>mtype</strong> &#8211; The message&#8217;s type, such as <tt class="docutils literal"><span class="pre">'chat'</span></tt> or
+<tt class="docutils literal"><span class="pre">'groupchat'</span></tt>.</li>
+<li><strong>mhtml</strong> &#8211; Optional HTML body content in the form of a string.</li>
+<li><strong>mfrom</strong> &#8211; The sender of the message. if sending from a client,
+be aware that some servers require that the full JID
+of the sender be used.</li>
+<li><strong>mnick</strong> &#8211; Optional nickname of the sender.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.makePresence">
+<tt class="descname">makePresence</tt><big>(</big><em>pshow=None</em>, <em>pstatus=None</em>, <em>ppriority=None</em>, <em>pto=None</em>, <em>ptype=None</em>, <em>pfrom=None</em>, <em>pnick=None</em><big>)</big><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.makePresence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create and initialize a new 
+<tt class="xref py py-class docutils literal"><span class="pre">Presence</span></tt> stanza.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>pshow</strong> &#8211; The presence&#8217;s show value.</li>
+<li><strong>pstatus</strong> &#8211; The presence&#8217;s status message.</li>
+<li><strong>ppriority</strong> &#8211; This connection&#8217;s priority.</li>
+<li><strong>pto</strong> &#8211; The recipient of a directed presence.</li>
+<li><strong>ptype</strong> &#8211; The type of presence, such as <tt class="docutils literal"><span class="pre">'subscribe'</span></tt>.</li>
+<li><strong>pfrom</strong> &#8211; The sender of the presence.</li>
+<li><strong>pnick</strong> &#8211; Optional nickname of the presence&#8217;s sender.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.makeQueryRoster">
+<tt class="descname">makeQueryRoster</tt><big>(</big><em>iq=None</em><big>)</big><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.makeQueryRoster" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a roster query element.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>iq</strong> &#8211; Optionally use an existing stanza instead
+of generating a new one.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.make_iq">
+<tt class="descname">make_iq</tt><big>(</big><em>id=0</em>, <em>ifrom=None</em>, <em>ito=None</em>, <em>itype=None</em>, <em>iquery=None</em><big>)</big><a class="reference internal" href="../_modules/sleekxmpp/basexmpp.html#BaseXMPP.make_iq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.make_iq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new Iq stanza with a given Id and from JID.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>id</strong> &#8211; An ideally unique ID value for this stanza thread.
+Defaults to 0.</li>
+<li><strong>ifrom</strong> &#8211; The from <a class="reference internal" href="xmlstream/jid.html#sleekxmpp.xmlstream.jid.JID" title="sleekxmpp.xmlstream.jid.JID"><tt class="xref py py-class docutils literal"><span class="pre">JID</span></tt></a> 
+to use for this stanza.</li>
+<li><strong>ito</strong> &#8211; The destination <a class="reference internal" href="xmlstream/jid.html#sleekxmpp.xmlstream.jid.JID" title="sleekxmpp.xmlstream.jid.JID"><tt class="xref py py-class docutils literal"><span class="pre">JID</span></tt></a>
+for this stanza.</li>
+<li><strong>itype</strong> &#8211; The <tt class="xref py py-class docutils literal"><span class="pre">Iq</span></tt>&#8216;s type, 
+one of: <tt class="docutils literal"><span class="pre">'get'</span></tt>, <tt class="docutils literal"><span class="pre">'set'</span></tt>, <tt class="docutils literal"><span class="pre">'result'</span></tt>,
+or <tt class="docutils literal"><span class="pre">'error'</span></tt>.</li>
+<li><strong>iquery</strong> &#8211; Optional namespace for adding a query element.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.make_iq_error">
+<tt class="descname">make_iq_error</tt><big>(</big><em>id</em>, <em>type=u'cancel'</em>, <em>condition=u'feature-not-implemented'</em>, <em>text=None</em>, <em>ito=None</em>, <em>ifrom=None</em>, <em>iq=None</em><big>)</big><a class="reference internal" href="../_modules/sleekxmpp/basexmpp.html#BaseXMPP.make_iq_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.make_iq_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an <tt class="xref py py-class docutils literal"><span class="pre">Iq</span></tt> stanza of type <tt class="docutils literal"><span class="pre">'error'</span></tt>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>id</strong> &#8211; An ideally unique ID value. May use <tt class="xref py py-meth docutils literal"><span class="pre">new_id()</span></tt>.</li>
+<li><strong>type</strong> &#8211; The type of the error, such as <tt class="docutils literal"><span class="pre">'cancel'</span></tt> or 
+<tt class="docutils literal"><span class="pre">'modify'</span></tt>. Defaults to <tt class="docutils literal"><span class="pre">'cancel'</span></tt>.</li>
+<li><strong>condition</strong> &#8211; The error condition. Defaults to 
+<tt class="docutils literal"><span class="pre">'feature-not-implemented'</span></tt>.</li>
+<li><strong>text</strong> &#8211; A message describing the cause of the error.</li>
+<li><strong>ito</strong> &#8211; The destination <a class="reference internal" href="xmlstream/jid.html#sleekxmpp.xmlstream.jid.JID" title="sleekxmpp.xmlstream.jid.JID"><tt class="xref py py-class docutils literal"><span class="pre">JID</span></tt></a>
+for this stanza.</li>
+<li><strong>ifrom</strong> &#8211; The <tt class="docutils literal"><span class="pre">'from'</span></tt> <a class="reference internal" href="xmlstream/jid.html#sleekxmpp.xmlstream.jid.JID" title="sleekxmpp.xmlstream.jid.JID"><tt class="xref py py-class docutils literal"><span class="pre">JID</span></tt></a>
+to use for this stanza.</li>
+<li><strong>iq</strong> &#8211; Optionally use an existing stanza instead
+of generating a new one.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.make_iq_get">
+<tt class="descname">make_iq_get</tt><big>(</big><em>queryxmlns=None</em>, <em>ito=None</em>, <em>ifrom=None</em>, <em>iq=None</em><big>)</big><a class="reference internal" href="../_modules/sleekxmpp/basexmpp.html#BaseXMPP.make_iq_get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.make_iq_get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an <tt class="xref py py-class docutils literal"><span class="pre">Iq</span></tt> stanza of type <tt class="docutils literal"><span class="pre">'get'</span></tt>.</p>
+<p>Optionally, a query element may be added.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>queryxmlns</strong> &#8211; The namespace of the query to use.</li>
+<li><strong>ito</strong> &#8211; The destination <a class="reference internal" href="xmlstream/jid.html#sleekxmpp.xmlstream.jid.JID" title="sleekxmpp.xmlstream.jid.JID"><tt class="xref py py-class docutils literal"><span class="pre">JID</span></tt></a>
+for this stanza.</li>
+<li><strong>ifrom</strong> &#8211; The <tt class="docutils literal"><span class="pre">'from'</span></tt> <a class="reference internal" href="xmlstream/jid.html#sleekxmpp.xmlstream.jid.JID" title="sleekxmpp.xmlstream.jid.JID"><tt class="xref py py-class docutils literal"><span class="pre">JID</span></tt></a>
+to use for this stanza.</li>
+<li><strong>iq</strong> &#8211; Optionally use an existing stanza instead
+of generating a new one.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.make_iq_query">
+<tt class="descname">make_iq_query</tt><big>(</big><em>iq=None</em>, <em>xmlns=u''</em>, <em>ito=None</em>, <em>ifrom=None</em><big>)</big><a class="reference internal" href="../_modules/sleekxmpp/basexmpp.html#BaseXMPP.make_iq_query"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.make_iq_query" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create or modify an <tt class="xref py py-class docutils literal"><span class="pre">Iq</span></tt> stanza 
+to use the given query namespace.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>iq</strong> &#8211; Optionally use an existing stanza instead
+of generating a new one.</li>
+<li><strong>xmlns</strong> &#8211; The query&#8217;s namespace.</li>
+<li><strong>ito</strong> &#8211; The destination <a class="reference internal" href="xmlstream/jid.html#sleekxmpp.xmlstream.jid.JID" title="sleekxmpp.xmlstream.jid.JID"><tt class="xref py py-class docutils literal"><span class="pre">JID</span></tt></a>
+for this stanza.</li>
+<li><strong>ifrom</strong> &#8211; The <tt class="docutils literal"><span class="pre">'from'</span></tt> <a class="reference internal" href="xmlstream/jid.html#sleekxmpp.xmlstream.jid.JID" title="sleekxmpp.xmlstream.jid.JID"><tt class="xref py py-class docutils literal"><span class="pre">JID</span></tt></a>
+to use for this stanza.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.make_iq_result">
+<tt class="descname">make_iq_result</tt><big>(</big><em>id=None</em>, <em>ito=None</em>, <em>ifrom=None</em>, <em>iq=None</em><big>)</big><a class="reference internal" href="../_modules/sleekxmpp/basexmpp.html#BaseXMPP.make_iq_result"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.make_iq_result" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an <tt class="xref py py-class docutils literal"><span class="pre">Iq</span></tt> stanza of type 
+<tt class="docutils literal"><span class="pre">'result'</span></tt> with the given ID value.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>id</strong> &#8211; An ideally unique ID value. May use <tt class="xref py py-meth docutils literal"><span class="pre">new_id()</span></tt>.</li>
+<li><strong>ito</strong> &#8211; The destination <a class="reference internal" href="xmlstream/jid.html#sleekxmpp.xmlstream.jid.JID" title="sleekxmpp.xmlstream.jid.JID"><tt class="xref py py-class docutils literal"><span class="pre">JID</span></tt></a>
+for this stanza.</li>
+<li><strong>ifrom</strong> &#8211; The <tt class="docutils literal"><span class="pre">'from'</span></tt> <a class="reference internal" href="xmlstream/jid.html#sleekxmpp.xmlstream.jid.JID" title="sleekxmpp.xmlstream.jid.JID"><tt class="xref py py-class docutils literal"><span class="pre">JID</span></tt></a>
+to use for this stanza.</li>
+<li><strong>iq</strong> &#8211; Optionally use an existing stanza instead
+of generating a new one.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.make_iq_set">
+<tt class="descname">make_iq_set</tt><big>(</big><em>sub=None</em>, <em>ito=None</em>, <em>ifrom=None</em>, <em>iq=None</em><big>)</big><a class="reference internal" href="../_modules/sleekxmpp/basexmpp.html#BaseXMPP.make_iq_set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.make_iq_set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an <tt class="xref py py-class docutils literal"><span class="pre">Iq</span></tt> stanza of type <tt class="docutils literal"><span class="pre">'set'</span></tt>.</p>
+<p>Optionally, a substanza may be given to use as the
+stanza&#8217;s payload.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>sub</strong> &#8211; Either an 
+<a class="reference internal" href="xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase" title="sleekxmpp.xmlstream.stanzabase.ElementBase"><tt class="xref py py-class docutils literal"><span class="pre">ElementBase</span></tt></a>
+stanza object or an
+<a class="reference external" href="http://docs.python.org/3.2/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element" title="(in Python v3.2)"><tt class="xref py py-class docutils literal"><span class="pre">Element</span></tt></a> XML object 
+to use as the <tt class="xref py py-class docutils literal"><span class="pre">Iq</span></tt>&#8216;s payload.</li>
+<li><strong>ito</strong> &#8211; The destination <a class="reference internal" href="xmlstream/jid.html#sleekxmpp.xmlstream.jid.JID" title="sleekxmpp.xmlstream.jid.JID"><tt class="xref py py-class docutils literal"><span class="pre">JID</span></tt></a>
+for this stanza.</li>
+<li><strong>ifrom</strong> &#8211; The <tt class="docutils literal"><span class="pre">'from'</span></tt> <a class="reference internal" href="xmlstream/jid.html#sleekxmpp.xmlstream.jid.JID" title="sleekxmpp.xmlstream.jid.JID"><tt class="xref py py-class docutils literal"><span class="pre">JID</span></tt></a>
+to use for this stanza.</li>
+<li><strong>iq</strong> &#8211; Optionally use an existing stanza instead
+of generating a new one.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.make_message">
+<tt class="descname">make_message</tt><big>(</big><em>mto</em>, <em>mbody=None</em>, <em>msubject=None</em>, <em>mtype=None</em>, <em>mhtml=None</em>, <em>mfrom=None</em>, <em>mnick=None</em><big>)</big><a class="reference internal" href="../_modules/sleekxmpp/basexmpp.html#BaseXMPP.make_message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.make_message" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create and initialize a new 
+<tt class="xref py py-class docutils literal"><span class="pre">Message</span></tt> stanza.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>mto</strong> &#8211; The recipient of the message.</li>
+<li><strong>mbody</strong> &#8211; The main contents of the message.</li>
+<li><strong>msubject</strong> &#8211; Optional subject for the message.</li>
+<li><strong>mtype</strong> &#8211; The message&#8217;s type, such as <tt class="docutils literal"><span class="pre">'chat'</span></tt> or
+<tt class="docutils literal"><span class="pre">'groupchat'</span></tt>.</li>
+<li><strong>mhtml</strong> &#8211; Optional HTML body content in the form of a string.</li>
+<li><strong>mfrom</strong> &#8211; The sender of the message. if sending from a client,
+be aware that some servers require that the full JID
+of the sender be used.</li>
+<li><strong>mnick</strong> &#8211; Optional nickname of the sender.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.make_presence">
+<tt class="descname">make_presence</tt><big>(</big><em>pshow=None</em>, <em>pstatus=None</em>, <em>ppriority=None</em>, <em>pto=None</em>, <em>ptype=None</em>, <em>pfrom=None</em>, <em>pnick=None</em><big>)</big><a class="reference internal" href="../_modules/sleekxmpp/basexmpp.html#BaseXMPP.make_presence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.make_presence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create and initialize a new 
+<tt class="xref py py-class docutils literal"><span class="pre">Presence</span></tt> stanza.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>pshow</strong> &#8211; The presence&#8217;s show value.</li>
+<li><strong>pstatus</strong> &#8211; The presence&#8217;s status message.</li>
+<li><strong>ppriority</strong> &#8211; This connection&#8217;s priority.</li>
+<li><strong>pto</strong> &#8211; The recipient of a directed presence.</li>
+<li><strong>ptype</strong> &#8211; The type of presence, such as <tt class="docutils literal"><span class="pre">'subscribe'</span></tt>.</li>
+<li><strong>pfrom</strong> &#8211; The sender of the presence.</li>
+<li><strong>pnick</strong> &#8211; Optional nickname of the presence&#8217;s sender.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.make_query_roster">
+<tt class="descname">make_query_roster</tt><big>(</big><em>iq=None</em><big>)</big><a class="reference internal" href="../_modules/sleekxmpp/basexmpp.html#BaseXMPP.make_query_roster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.make_query_roster" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a roster query element.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>iq</strong> &#8211; Optionally use an existing stanza instead
+of generating a new one.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.plugin">
+<tt class="descname">plugin</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.plugin" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dictionary mapping plugin names to plugins.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.plugin_config">
+<tt class="descname">plugin_config</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.plugin_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configuration options for whitelisted plugins.
+If a plugin is registered without any configuration,
+and there is an entry here, it will be used.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.plugin_whitelist">
+<tt class="descname">plugin_whitelist</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.plugin_whitelist" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of plugins that will be loaded if
+<a class="reference internal" href="#sleekxmpp.basexmpp.BaseXMPP.register_plugins" title="sleekxmpp.basexmpp.BaseXMPP.register_plugins"><tt class="xref py py-meth docutils literal"><span class="pre">register_plugins()</span></tt></a> is called.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.process">
+<tt class="descname">process</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/sleekxmpp/basexmpp.html#BaseXMPP.process"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.process" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize plugins and begin processing the XML stream.</p>
+<p>The number of threads used for processing stream events is determined
+by <tt class="xref py py-data docutils literal"><span class="pre">HANDLER_THREADS</span></tt>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>block</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/functions.html#bool" title="(in Python v3.2)"><em>bool</em></a>) &#8211; If <tt class="docutils literal"><span class="pre">False</span></tt>, then event dispatcher will run
+in a separate thread, allowing for the stream to be
+used in the background for another application.
+Otherwise, <tt class="docutils literal"><span class="pre">process(block=True)</span></tt> blocks the current
+thread. Defaults to <tt class="docutils literal"><span class="pre">False</span></tt>.</li>
+<li><strong>threaded</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/functions.html#bool" title="(in Python v3.2)"><em>bool</em></a>) &#8211; <strong>DEPRECATED</strong>
+If <tt class="docutils literal"><span class="pre">True</span></tt>, then event dispatcher will run
+in a separate thread, allowing for the stream to be
+used in the background for another application.
+Defaults to <tt class="docutils literal"><span class="pre">True</span></tt>. This does <strong>not</strong> mean that no
+threads are used at all if <tt class="docutils literal"><span class="pre">threaded=False</span></tt>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Regardless of these threading options, these threads will 
+always exist:</p>
+<ul class="simple">
+<li>The event queue processor</li>
+<li>The send queue processor</li>
+<li>The scheduler</li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.registerPlugin">
+<tt class="descname">registerPlugin</tt><big>(</big><em>plugin</em>, <em>pconfig={}</em>, <em>module=None</em><big>)</big><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.registerPlugin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register and configure  a plugin for use in this stream.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>plugin</strong> &#8211; The name of the plugin class. Plugin names must
+be unique.</li>
+<li><strong>pconfig</strong> &#8211; A dictionary of configuration data for the plugin.
+Defaults to an empty dictionary.</li>
+<li><strong>module</strong> &#8211; Optional refence to the module containing the plugin
+class if using custom plugins.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.register_plugin">
+<tt class="descname">register_plugin</tt><big>(</big><em>plugin</em>, <em>pconfig={}</em>, <em>module=None</em><big>)</big><a class="reference internal" href="../_modules/sleekxmpp/basexmpp.html#BaseXMPP.register_plugin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.register_plugin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register and configure  a plugin for use in this stream.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>plugin</strong> &#8211; The name of the plugin class. Plugin names must
+be unique.</li>
+<li><strong>pconfig</strong> &#8211; A dictionary of configuration data for the plugin.
+Defaults to an empty dictionary.</li>
+<li><strong>module</strong> &#8211; Optional refence to the module containing the plugin
+class if using custom plugins.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.register_plugins">
+<tt class="descname">register_plugins</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/sleekxmpp/basexmpp.html#BaseXMPP.register_plugins"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.register_plugins" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register and initialize all built-in plugins.</p>
+<p>Optionally, the list of plugins loaded may be limited to those
+contained in <a class="reference internal" href="#sleekxmpp.basexmpp.BaseXMPP.plugin_whitelist" title="sleekxmpp.basexmpp.BaseXMPP.plugin_whitelist"><tt class="xref py py-attr docutils literal"><span class="pre">plugin_whitelist</span></tt></a>.</p>
+<p>Plugin configurations stored in <a class="reference internal" href="#sleekxmpp.basexmpp.BaseXMPP.plugin_config" title="sleekxmpp.basexmpp.BaseXMPP.plugin_config"><tt class="xref py py-attr docutils literal"><span class="pre">plugin_config</span></tt></a> will be used.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.resource">
+<tt class="descname">resource</tt><a class="reference internal" href="../_modules/sleekxmpp/basexmpp.html#BaseXMPP.resource"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.resource" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attribute accessor for jid resource</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.roster">
+<tt class="descname">roster</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.roster" title="Permalink to this definition">¶</a></dt>
+<dd><p>The main roster object. This roster supports multiple
+owner JIDs, as in the case for components. For clients
+which only have a single JID, see <a class="reference internal" href="#sleekxmpp.basexmpp.BaseXMPP.client_roster" title="sleekxmpp.basexmpp.BaseXMPP.client_roster"><tt class="xref py py-attr docutils literal"><span class="pre">client_roster</span></tt></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.sendMessage">
+<tt class="descname">sendMessage</tt><big>(</big><em>mto</em>, <em>mbody</em>, <em>msubject=None</em>, <em>mtype=None</em>, <em>mhtml=None</em>, <em>mfrom=None</em>, <em>mnick=None</em><big>)</big><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.sendMessage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create, initialize, and send a new 
+<tt class="xref py py-class docutils literal"><span class="pre">Message</span></tt> stanza.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>mto</strong> &#8211; The recipient of the message.</li>
+<li><strong>mbody</strong> &#8211; The main contents of the message.</li>
+<li><strong>msubject</strong> &#8211; Optional subject for the message.</li>
+<li><strong>mtype</strong> &#8211; The message&#8217;s type, such as <tt class="docutils literal"><span class="pre">'chat'</span></tt> or
+<tt class="docutils literal"><span class="pre">'groupchat'</span></tt>.</li>
+<li><strong>mhtml</strong> &#8211; Optional HTML body content in the form of a string.</li>
+<li><strong>mfrom</strong> &#8211; The sender of the message. if sending from a client,
+be aware that some servers require that the full JID
+of the sender be used.</li>
+<li><strong>mnick</strong> &#8211; Optional nickname of the sender.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.sendPresence">
+<tt class="descname">sendPresence</tt><big>(</big><em>pshow=None</em>, <em>pstatus=None</em>, <em>ppriority=None</em>, <em>pto=None</em>, <em>pfrom=None</em>, <em>ptype=None</em>, <em>pnick=None</em><big>)</big><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.sendPresence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create, initialize, and send a new 
+<tt class="xref py py-class docutils literal"><span class="pre">Presence</span></tt> stanza.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>pshow</strong> &#8211; The presence&#8217;s show value.</li>
+<li><strong>pstatus</strong> &#8211; The presence&#8217;s status message.</li>
+<li><strong>ppriority</strong> &#8211; This connection&#8217;s priority.</li>
+<li><strong>pto</strong> &#8211; The recipient of a directed presence.</li>
+<li><strong>ptype</strong> &#8211; The type of presence, such as <tt class="docutils literal"><span class="pre">'subscribe'</span></tt>.</li>
+<li><strong>pfrom</strong> &#8211; The sender of the presence.</li>
+<li><strong>pnick</strong> &#8211; Optional nickname of the presence&#8217;s sender.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.sendPresenceSubscription">
+<tt class="descname">sendPresenceSubscription</tt><big>(</big><em>pto</em>, <em>pfrom=None</em>, <em>ptype=u'subscribe'</em>, <em>pnick=None</em><big>)</big><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.sendPresenceSubscription" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create, initialize, and send a new 
+<tt class="xref py py-class docutils literal"><span class="pre">Presence</span></tt> stanza of
+type <tt class="docutils literal"><span class="pre">'subscribe'</span></tt>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>pto</strong> &#8211; The recipient of a directed presence.</li>
+<li><strong>pfrom</strong> &#8211; The sender of the presence.</li>
+<li><strong>ptype</strong> &#8211; The type of presence, such as <tt class="docutils literal"><span class="pre">'subscribe'</span></tt>.</li>
+<li><strong>pnick</strong> &#8211; Optional nickname of the presence&#8217;s sender.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.send_message">
+<tt class="descname">send_message</tt><big>(</big><em>mto</em>, <em>mbody</em>, <em>msubject=None</em>, <em>mtype=None</em>, <em>mhtml=None</em>, <em>mfrom=None</em>, <em>mnick=None</em><big>)</big><a class="reference internal" href="../_modules/sleekxmpp/basexmpp.html#BaseXMPP.send_message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.send_message" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create, initialize, and send a new 
+<tt class="xref py py-class docutils literal"><span class="pre">Message</span></tt> stanza.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>mto</strong> &#8211; The recipient of the message.</li>
+<li><strong>mbody</strong> &#8211; The main contents of the message.</li>
+<li><strong>msubject</strong> &#8211; Optional subject for the message.</li>
+<li><strong>mtype</strong> &#8211; The message&#8217;s type, such as <tt class="docutils literal"><span class="pre">'chat'</span></tt> or
+<tt class="docutils literal"><span class="pre">'groupchat'</span></tt>.</li>
+<li><strong>mhtml</strong> &#8211; Optional HTML body content in the form of a string.</li>
+<li><strong>mfrom</strong> &#8211; The sender of the message. if sending from a client,
+be aware that some servers require that the full JID
+of the sender be used.</li>
+<li><strong>mnick</strong> &#8211; Optional nickname of the sender.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.send_presence">
+<tt class="descname">send_presence</tt><big>(</big><em>pshow=None</em>, <em>pstatus=None</em>, <em>ppriority=None</em>, <em>pto=None</em>, <em>pfrom=None</em>, <em>ptype=None</em>, <em>pnick=None</em><big>)</big><a class="reference internal" href="../_modules/sleekxmpp/basexmpp.html#BaseXMPP.send_presence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.send_presence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create, initialize, and send a new 
+<tt class="xref py py-class docutils literal"><span class="pre">Presence</span></tt> stanza.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>pshow</strong> &#8211; The presence&#8217;s show value.</li>
+<li><strong>pstatus</strong> &#8211; The presence&#8217;s status message.</li>
+<li><strong>ppriority</strong> &#8211; This connection&#8217;s priority.</li>
+<li><strong>pto</strong> &#8211; The recipient of a directed presence.</li>
+<li><strong>ptype</strong> &#8211; The type of presence, such as <tt class="docutils literal"><span class="pre">'subscribe'</span></tt>.</li>
+<li><strong>pfrom</strong> &#8211; The sender of the presence.</li>
+<li><strong>pnick</strong> &#8211; Optional nickname of the presence&#8217;s sender.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.send_presence_subscription">
+<tt class="descname">send_presence_subscription</tt><big>(</big><em>pto</em>, <em>pfrom=None</em>, <em>ptype=u'subscribe'</em>, <em>pnick=None</em><big>)</big><a class="reference internal" href="../_modules/sleekxmpp/basexmpp.html#BaseXMPP.send_presence_subscription"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.send_presence_subscription" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create, initialize, and send a new 
+<tt class="xref py py-class docutils literal"><span class="pre">Presence</span></tt> stanza of
+type <tt class="docutils literal"><span class="pre">'subscribe'</span></tt>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>pto</strong> &#8211; The recipient of a directed presence.</li>
+<li><strong>pfrom</strong> &#8211; The sender of the presence.</li>
+<li><strong>ptype</strong> &#8211; The type of presence, such as <tt class="docutils literal"><span class="pre">'subscribe'</span></tt>.</li>
+<li><strong>pnick</strong> &#8211; Optional nickname of the presence&#8217;s sender.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.sentpresence">
+<tt class="descname">sentpresence</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.sentpresence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Flag indicating that the initial presence broadcast has
+been sent. Until this happens, some servers may not
+behave as expected when sending stanzas.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.server">
+<tt class="descname">server</tt><a class="reference internal" href="../_modules/sleekxmpp/basexmpp.html#BaseXMPP.server"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.server" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attribute accessor for jid host</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.set_jid">
+<tt class="descname">set_jid</tt><big>(</big><em>jid</em><big>)</big><a class="reference internal" href="../_modules/sleekxmpp/basexmpp.html#BaseXMPP.set_jid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.set_jid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rip a JID apart and claim it as our own.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.stanza">
+<tt class="descname">stanza</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.stanza" title="Permalink to this definition">¶</a></dt>
+<dd><p>A reference to <tt class="xref py py-mod docutils literal"><span class="pre">sleekxmpp.stanza</span></tt> to make accessing
+stanza classes easier.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.start_stream_handler">
+<tt class="descname">start_stream_handler</tt><big>(</big><em>xml</em><big>)</big><a class="reference internal" href="../_modules/sleekxmpp/basexmpp.html#BaseXMPP.start_stream_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.start_stream_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save the stream ID once the streams have been established.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>xml</strong> &#8211; The incoming stream&#8217;s root element.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.stream_id">
+<tt class="descname">stream_id</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.stream_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>An identifier for the stream as given by the server.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.basexmpp.BaseXMPP.username">
+<tt class="descname">username</tt><a class="reference internal" href="../_modules/sleekxmpp/basexmpp.html#BaseXMPP.username"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.username" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attribute accessor for jid usernode</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="componentxmpp.html"
+                        title="previous chapter">ComponentXMPP</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="xmlstream/jid.html"
+                        title="next chapter">Jabber IDs (JID)</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/api/basexmpp.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="xmlstream/jid.html" title="Jabber IDs (JID)"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="componentxmpp.html" title="ComponentXMPP"
+             >previous</a> |</li>
+        <li><a href="../index.html">1.0RC3 Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Nathan Fritz, Lance Stout.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

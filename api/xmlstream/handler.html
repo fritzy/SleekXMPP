@@ -1,0 +1,383 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Stanza Handlers &mdash; SleekXMPP</title>
+    
+    <link rel="stylesheet" href="../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0RC3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="SleekXMPP" href="../../index.html" />
+    <link rel="next" title="Stanza Matchers" href="matcher.html" />
+    <link rel="prev" title="Stanza Objects" href="stanzabase.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="matcher.html" title="Stanza Matchers"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="stanzabase.html" title="Stanza Objects"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">1.0RC3 Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="stanza-handlers">
+<h1>Stanza Handlers<a class="headerlink" href="#stanza-handlers" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-sleekxmpp.xmlstream.handler.base">
+<span id="the-basic-handler"></span><h2>The Basic Handler<a class="headerlink" href="#module-sleekxmpp.xmlstream.handler.base" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="sleekxmpp.xmlstream.handler.base.BaseHandler">
+<em class="property">class </em><tt class="descclassname">sleekxmpp.xmlstream.handler.base.</tt><tt class="descname">BaseHandler</tt><big>(</big><em>name</em>, <em>matcher</em>, <em>stream=None</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/handler/base.html#BaseHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.handler.base.BaseHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class for stream handlers. Stream handlers are matched with
+incoming stanzas so that the stanza may be processed in some way.
+Stanzas may be matched with multiple handlers.</p>
+<p>Handler execution may take place in two phases: during the incoming
+stream processing, and in the main event loop. The <a class="reference internal" href="#sleekxmpp.xmlstream.handler.base.BaseHandler.prerun" title="sleekxmpp.xmlstream.handler.base.BaseHandler.prerun"><tt class="xref py py-meth docutils literal"><span class="pre">prerun()</span></tt></a>
+method is executed in the first case, and <a class="reference internal" href="#sleekxmpp.xmlstream.handler.base.BaseHandler.run" title="sleekxmpp.xmlstream.handler.base.BaseHandler.run"><tt class="xref py py-meth docutils literal"><span class="pre">run()</span></tt></a> is called
+during the second.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/string.html#string" title="(in Python v3.2)"><em>string</em></a>) &#8211; The name of the handler.</li>
+<li><strong>matcher</strong> &#8211; A <a class="reference internal" href="matcher.html#sleekxmpp.xmlstream.matcher.base.MatcherBase" title="sleekxmpp.xmlstream.matcher.base.MatcherBase"><tt class="xref py py-class docutils literal"><span class="pre">MatcherBase</span></tt></a>
+derived object that will be used to determine if a
+stanza should be accepted by this handler.</li>
+<li><strong>stream</strong> &#8211; The <a class="reference internal" href="xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream" title="sleekxmpp.xmlstream.xmlstream.XMLStream"><tt class="xref py py-class docutils literal"><span class="pre">XMLStream</span></tt></a>
+instance that the handle will respond to.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.handler.base.BaseHandler.checkDelete">
+<tt class="descname">checkDelete</tt><big>(</big><big>)</big><a class="headerlink" href="#sleekxmpp.xmlstream.handler.base.BaseHandler.checkDelete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if the handler should be removed from the list 
+of stream handlers.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.handler.base.BaseHandler.check_delete">
+<tt class="descname">check_delete</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/handler/base.html#BaseHandler.check_delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.handler.base.BaseHandler.check_delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if the handler should be removed from the list 
+of stream handlers.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.handler.base.BaseHandler.match">
+<tt class="descname">match</tt><big>(</big><em>xml</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/handler/base.html#BaseHandler.match"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.handler.base.BaseHandler.match" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compare a stanza or XML object with the handler&#8217;s matcher.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>xml</strong> &#8211; An XML or 
+<a class="reference internal" href="stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase" title="sleekxmpp.xmlstream.stanzabase.ElementBase"><tt class="xref py py-class docutils literal"><span class="pre">ElementBase</span></tt></a> object</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.handler.base.BaseHandler.name">
+<tt class="descname">name</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.handler.base.BaseHandler.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>The name of the handler</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.handler.base.BaseHandler.prerun">
+<tt class="descname">prerun</tt><big>(</big><em>payload</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/handler/base.html#BaseHandler.prerun"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.handler.base.BaseHandler.prerun" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepare the handler for execution while the XML
+stream is being processed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>payload</strong> &#8211; A <a class="reference internal" href="stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase" title="sleekxmpp.xmlstream.stanzabase.ElementBase"><tt class="xref py py-class docutils literal"><span class="pre">ElementBase</span></tt></a>
+object.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.handler.base.BaseHandler.run">
+<tt class="descname">run</tt><big>(</big><em>payload</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/handler/base.html#BaseHandler.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.handler.base.BaseHandler.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the handler after XML stream processing and during the
+main event loop.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>payload</strong> &#8211; A <a class="reference internal" href="stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase" title="sleekxmpp.xmlstream.stanzabase.ElementBase"><tt class="xref py py-class docutils literal"><span class="pre">ElementBase</span></tt></a>
+object.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.handler.base.BaseHandler.stream">
+<tt class="descname">stream</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.handler.base.BaseHandler.stream" title="Permalink to this definition">¶</a></dt>
+<dd><p>The XML stream this handler is assigned to</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-sleekxmpp.xmlstream.handler.callback">
+<span id="callback"></span><h2>Callback<a class="headerlink" href="#module-sleekxmpp.xmlstream.handler.callback" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="sleekxmpp.xmlstream.handler.callback.Callback">
+<em class="property">class </em><tt class="descclassname">sleekxmpp.xmlstream.handler.callback.</tt><tt class="descname">Callback</tt><big>(</big><em>name</em>, <em>matcher</em>, <em>pointer</em>, <em>thread=False</em>, <em>once=False</em>, <em>instream=False</em>, <em>stream=None</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/handler/callback.html#Callback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.handler.callback.Callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>The Callback handler will execute a callback function with
+matched stanzas.</p>
+<p>The handler may execute the callback either during stream
+processing or during the main event loop.</p>
+<p>Callback functions are all executed in the same thread, so be aware if
+you are executing functions that will block for extended periods of
+time. Typically, you should signal your own events using the SleekXMPP
+object&#8217;s <a class="reference internal" href="xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream.event" title="sleekxmpp.xmlstream.xmlstream.XMLStream.event"><tt class="xref py py-meth docutils literal"><span class="pre">event()</span></tt></a>
+method to pass the stanza off to a threaded event handler for further
+processing.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/string.html#string" title="(in Python v3.2)"><em>string</em></a>) &#8211; The name of the handler.</li>
+<li><strong>matcher</strong> &#8211; A <a class="reference internal" href="matcher.html#sleekxmpp.xmlstream.matcher.base.MatcherBase" title="sleekxmpp.xmlstream.matcher.base.MatcherBase"><tt class="xref py py-class docutils literal"><span class="pre">MatcherBase</span></tt></a>
+derived object for matching stanza objects.</li>
+<li><strong>pointer</strong> &#8211; The function to execute during callback.</li>
+<li><strong>thread</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/functions.html#bool" title="(in Python v3.2)"><em>bool</em></a>) &#8211; <strong>DEPRECATED.</strong> Remains only for 
+backwards compatibility.</li>
+<li><strong>once</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/functions.html#bool" title="(in Python v3.2)"><em>bool</em></a>) &#8211; Indicates if the handler should be used only
+once. Defaults to False.</li>
+<li><strong>instream</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/functions.html#bool" title="(in Python v3.2)"><em>bool</em></a>) &#8211; Indicates if the callback should be executed
+during stream processing instead of in the
+main event loop.</li>
+<li><strong>stream</strong> &#8211; The <a class="reference internal" href="xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream" title="sleekxmpp.xmlstream.xmlstream.XMLStream"><tt class="xref py py-class docutils literal"><span class="pre">XMLStream</span></tt></a>
+instance this handler should monitor.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.handler.callback.Callback.prerun">
+<tt class="descname">prerun</tt><big>(</big><em>payload</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/handler/callback.html#Callback.prerun"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.handler.callback.Callback.prerun" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the callback during stream processing, if
+the callback was created with <tt class="docutils literal"><span class="pre">instream=True</span></tt>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>payload</strong> &#8211; The matched
+<a class="reference internal" href="stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase" title="sleekxmpp.xmlstream.stanzabase.ElementBase"><tt class="xref py py-class docutils literal"><span class="pre">ElementBase</span></tt></a> object.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.handler.callback.Callback.run">
+<tt class="descname">run</tt><big>(</big><em>payload</em>, <em>instream=False</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/handler/callback.html#Callback.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.handler.callback.Callback.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the callback function with the matched stanza payload.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>payload</strong> &#8211; The matched
+<a class="reference internal" href="stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase" title="sleekxmpp.xmlstream.stanzabase.ElementBase"><tt class="xref py py-class docutils literal"><span class="pre">ElementBase</span></tt></a> object.</li>
+<li><strong>instream</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/functions.html#bool" title="(in Python v3.2)"><em>bool</em></a>) &#8211; Force the handler to execute during stream
+processing. This should only be used by
+<a class="reference internal" href="#sleekxmpp.xmlstream.handler.callback.Callback.prerun" title="sleekxmpp.xmlstream.handler.callback.Callback.prerun"><tt class="xref py py-meth docutils literal"><span class="pre">prerun()</span></tt></a>. Defaults to <tt class="docutils literal"><span class="pre">False</span></tt>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-sleekxmpp.xmlstream.handler.waiter">
+<span id="waiter"></span><h2>Waiter<a class="headerlink" href="#module-sleekxmpp.xmlstream.handler.waiter" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="sleekxmpp.xmlstream.handler.waiter.Waiter">
+<em class="property">class </em><tt class="descclassname">sleekxmpp.xmlstream.handler.waiter.</tt><tt class="descname">Waiter</tt><big>(</big><em>name</em>, <em>matcher</em>, <em>stream=None</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/handler/waiter.html#Waiter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.handler.waiter.Waiter" title="Permalink to this definition">¶</a></dt>
+<dd><p>The Waiter handler allows an event handler to block until a
+particular stanza has been received. The handler will either be
+given the matched stanza, or <tt class="docutils literal"><span class="pre">False</span></tt> if the waiter has timed out.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/string.html#string" title="(in Python v3.2)"><em>string</em></a>) &#8211; The name of the handler.</li>
+<li><strong>matcher</strong> &#8211; A <a class="reference internal" href="matcher.html#sleekxmpp.xmlstream.matcher.base.MatcherBase" title="sleekxmpp.xmlstream.matcher.base.MatcherBase"><tt class="xref py py-class docutils literal"><span class="pre">MatcherBase</span></tt></a>
+derived object for matching stanza objects.</li>
+<li><strong>stream</strong> &#8211; The <a class="reference internal" href="xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream" title="sleekxmpp.xmlstream.xmlstream.XMLStream"><tt class="xref py py-class docutils literal"><span class="pre">XMLStream</span></tt></a>
+instance this handler should monitor.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.handler.waiter.Waiter.check_delete">
+<tt class="descname">check_delete</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/handler/waiter.html#Waiter.check_delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.handler.waiter.Waiter.check_delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Always remove waiters after use.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.handler.waiter.Waiter.prerun">
+<tt class="descname">prerun</tt><big>(</big><em>payload</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/handler/waiter.html#Waiter.prerun"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.handler.waiter.Waiter.prerun" title="Permalink to this definition">¶</a></dt>
+<dd><p>Store the matched stanza when received during processing.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>payload</strong> &#8211; The matched
+<a class="reference internal" href="stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase" title="sleekxmpp.xmlstream.stanzabase.ElementBase"><tt class="xref py py-class docutils literal"><span class="pre">ElementBase</span></tt></a> object.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.handler.waiter.Waiter.run">
+<tt class="descname">run</tt><big>(</big><em>payload</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/handler/waiter.html#Waiter.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.handler.waiter.Waiter.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Do not process this handler during the main event loop.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.handler.waiter.Waiter.wait">
+<tt class="descname">wait</tt><big>(</big><em>timeout=None</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/handler/waiter.html#Waiter.wait"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.handler.waiter.Waiter.wait" title="Permalink to this definition">¶</a></dt>
+<dd><p>Block an event handler while waiting for a stanza to arrive.</p>
+<p>Be aware that this will impact performance if called from a
+non-threaded event handler.</p>
+<p>Will return either the received stanza, or <tt class="docutils literal"><span class="pre">False</span></tt> if the
+waiter timed out.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>timeout</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/functions.html#int" title="(in Python v3.2)"><em>int</em></a>) &#8211; The number of seconds to wait for the stanza
+to arrive. Defaults to the the stream&#8217;s
+<a class="reference internal" href="xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream.response_timeout" title="sleekxmpp.xmlstream.xmlstream.XMLStream.response_timeout"><tt class="xref py py-class docutils literal"><span class="pre">response_timeout</span></tt></a>
+value.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Stanza Handlers</a><ul>
+<li><a class="reference internal" href="#module-sleekxmpp.xmlstream.handler.base">The Basic Handler</a></li>
+<li><a class="reference internal" href="#module-sleekxmpp.xmlstream.handler.callback">Callback</a></li>
+<li><a class="reference internal" href="#module-sleekxmpp.xmlstream.handler.waiter">Waiter</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="stanzabase.html"
+                        title="previous chapter">Stanza Objects</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="matcher.html"
+                        title="next chapter">Stanza Matchers</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../../_sources/api/xmlstream/handler.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="matcher.html" title="Stanza Matchers"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="stanzabase.html" title="Stanza Objects"
+             >previous</a> |</li>
+        <li><a href="../../index.html">1.0RC3 Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Nathan Fritz, Lance Stout.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,327 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>XEP-0030: Working with Service Discovery &mdash; SleekXMPP</title>
+    
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.0RC3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="SleekXMPP" href="index.html" />
+    <link rel="next" title="SleekXMPP Architecture" href="architecture.html" />
+    <link rel="prev" title="Using Stream Handlers and Matchers" href="handlersmatchers.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="architecture.html" title="SleekXMPP Architecture"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="handlersmatchers.html" title="Using Stream Handlers and Matchers"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">1.0RC3 Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="xep-0030-working-with-service-discovery">
+<h1>XEP-0030: Working with Service Discovery<a class="headerlink" href="#xep-0030-working-with-service-discovery" title="Permalink to this headline">¶</a></h1>
+<p>XMPP networks can be composed of many individual clients, components,
+and servers. Determining the JIDs for these entities and the various
+features they may support is the role of <a class="reference external" href="http://xmpp.org/extensions/xep-0030.html">XEP-0030, Service
+Discovery</a>, or &#8220;disco&#8221; for short.</p>
+<p>Every XMPP entity may possess what are called nodes. A node is just a name for
+some aspect of an XMPP entity. For example, if an XMPP entity provides <a class="reference external" href="http://xmpp.org/extensions/xep-0050.html">Ad-Hoc
+Commands</a>, then it will have a node
+named <tt class="docutils literal"><span class="pre">http://jabber.org/protocol/commands</span></tt> which will contain information
+about the commands provided. Other agents using these ad-hoc commands will
+interact with the information provided by this node. Note that the node name is
+just an identifier; there is no inherent meaning.</p>
+<p>Working with service discovery is about creating and querying these nodes.
+According to XEP-0030, a node may contain three types of information:
+identities, features, and items. (Further, extensible, information types are
+defined in <a class="reference external" href="http://xmpp.org/extensions/xep-0128.html">XEP-0128</a>, but they are
+not yet implemented by SleekXMPP.) SleekXMPP provides methods to configure each
+of these node attributes.</p>
+<div class="section" id="configuring-service-discovery">
+<h2>Configuring Service Discovery<a class="headerlink" href="#configuring-service-discovery" title="Permalink to this headline">¶</a></h2>
+<p>The design focus for the XEP-0030 plug-in is handling info and items requests
+in a dynamic fashion, allowing for complex policy decisions of who may receive
+information and how much, or use alternate backend storage mechanisms for all
+of the disco data. To do this, each action that the XEP-0030 plug-in performs
+is handed off to what is called a &#8220;node handler,&#8221; which is just a callback
+function. These handlers are arranged in a hierarchy that allows for a single
+handler to manage an entire domain of JIDs (say for a component), while allowing
+other handler functions to override that global behaviour for certain JIDs, or
+even further limited to only certain JID and node combinations.</p>
+<div class="section" id="the-dynamic-handler-hierarchy">
+<h3>The Dynamic Handler Hierarchy<a class="headerlink" href="#the-dynamic-handler-hierarchy" title="Permalink to this headline">¶</a></h3>
+<ul>
+<li><p class="first"><tt class="docutils literal"><span class="pre">global</span></tt>: (JID is None, node is None)</p>
+<p>Handlers assigned at this level for an action (such as <tt class="docutils literal"><span class="pre">add_feature</span></tt>) provide a global default
+behaviour when the action is performed.</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">jid</span></tt>: (JID assigned, node is None)</p>
+<p>At this level, handlers provide a default behaviour for actions affecting any node owned by the
+JID in question. This level is most useful for component connections; there is effectively no
+difference between this and the global level when using a client connection.</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">node</span></tt>: (JID assigned, node assigned)</p>
+<p>A handler for this level is responsible for carrying out an action for only one node, and is the
+most specific handler type available. These types of handlers will be most useful for &#8220;special&#8221;
+nodes that require special processing different than others provided by the JID, such as using
+access control lists, or consolidating data from other nodes.</p>
+</li>
+</ul>
+</div>
+<div class="section" id="default-static-handlers">
+<h3>Default Static Handlers<a class="headerlink" href="#default-static-handlers" title="Permalink to this headline">¶</a></h3>
+<p>The XEP-0030 plug-in provides a default set of handlers that work using in-memory
+disco stanzas. Each handler simply performs the appropriate lookup or storage
+operation using these stanzas without doing any complex operations such as
+checking an ACL, etc.</p>
+<p>You may find it necessary at some point to revert a particular node or JID to
+using the default, static handlers. To do so, use the method <tt class="docutils literal"><span class="pre">make_static()</span></tt>.
+You may also elect to only convert a given set of actions instead.</p>
+</div>
+<div class="section" id="creating-a-node-handler">
+<h3>Creating a Node Handler<a class="headerlink" href="#creating-a-node-handler" title="Permalink to this headline">¶</a></h3>
+<p>Every node handler receives three arguments: the JID, the node, and a data
+parameter that will contain the relevant information for carrying out the
+handler&#8217;s action, typically a dictionary.</p>
+<p>The JID will always have a value, defaulting to <tt class="docutils literal"><span class="pre">xmpp.boundjid.full</span></tt> for
+components or <tt class="docutils literal"><span class="pre">xmpp.boundjid.bare</span></tt> for clients. The node value may be None or
+a string.</p>
+<p>Only handlers for the actions <tt class="docutils literal"><span class="pre">get_info</span></tt> and <tt class="docutils literal"><span class="pre">get_items</span></tt> need to have return
+values. For these actions, DiscoInfo or DiscoItems stanzas are exepected as
+output. It is also acceptable for handlers for these actions to generate an
+XMPPError exception when necessary.</p>
+<div class="section" id="example-node-handler">
+<h4>Example Node Handler:<a class="headerlink" href="#example-node-handler" title="Permalink to this headline">¶</a></h4>
+<p>Here is one of the built-in default handlers as an example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">add_identity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jid</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Add a new identity to the JID/node combination.</span>
+
+<span class="sd">    The data parameter may provide:</span>
+<span class="sd">        category -- The general category to which the agent belongs.</span>
+<span class="sd">        itype    -- A more specific designation with the category.</span>
+<span class="sd">        name     -- Optional human readable name for this identity.</span>
+<span class="sd">        lang     -- Optional standard xml:lang value.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">jid</span><span class="p">,</span> <span class="n">node</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[(</span><span class="n">jid</span><span class="p">,</span> <span class="n">node</span><span class="p">)][</span><span class="s">&#39;info&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">add_identity</span><span class="p">(</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;category&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">),</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;itype&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">),</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;lang&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="adding-identities-features-and-items">
+<h2>Adding Identities, Features, and Items<a class="headerlink" href="#adding-identities-features-and-items" title="Permalink to this headline">¶</a></h2>
+<p>In order to maintain some backwards compatibility, the methods <tt class="docutils literal"><span class="pre">add_identity</span></tt>,
+<tt class="docutils literal"><span class="pre">add_feature</span></tt>, and <tt class="docutils literal"><span class="pre">add_item</span></tt> do not follow the method signature pattern of
+the other API methods (i.e. jid, node, then other options), but rather retain
+the parameter orders from previous plug-in versions.</p>
+<div class="section" id="adding-an-identity">
+<h3>Adding an Identity<a class="headerlink" href="#adding-an-identity" title="Permalink to this headline">¶</a></h3>
+<p>Adding an identity may be done using either the older positional notation, or
+with keyword parameters. The example below uses the keyword arguments, but in
+the same order as expected using positional arguments.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">xmpp</span><span class="p">[</span><span class="s">&#39;xep_0030&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">add_identity</span><span class="p">(</span><span class="n">category</span><span class="o">=</span><span class="s">&#39;client&#39;</span><span class="p">,</span>
+                              <span class="n">itype</span><span class="o">=</span><span class="s">&#39;bot&#39;</span><span class="p">,</span>
+                              <span class="n">name</span><span class="o">=</span><span class="s">&#39;Sleek&#39;</span><span class="p">,</span>
+                              <span class="n">node</span><span class="o">=</span><span class="s">&#39;foo&#39;</span><span class="p">,</span>
+                              <span class="n">jid</span><span class="o">=</span><span class="n">xmpp</span><span class="o">.</span><span class="n">boundjid</span><span class="o">.</span><span class="n">full</span><span class="p">,</span>
+                              <span class="n">lang</span><span class="o">=</span><span class="s">&#39;no&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The JID and node values determine which handler will be used to perform the
+<tt class="docutils literal"><span class="pre">add_identity</span></tt> action.</p>
+<p>The <tt class="docutils literal"><span class="pre">lang</span></tt> parameter allows for adding localized versions of identities using
+the <tt class="docutils literal"><span class="pre">xml:lang</span></tt> attribute.</p>
+</div>
+<div class="section" id="adding-a-feature">
+<h3>Adding a Feature<a class="headerlink" href="#adding-a-feature" title="Permalink to this headline">¶</a></h3>
+<p>The position ordering for <tt class="docutils literal"><span class="pre">add_feature()</span></tt> is to include the feature, then
+specify the node and then the JID. The JID and node values determine which
+handler will be used to perform the <tt class="docutils literal"><span class="pre">add_feature</span></tt> action.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">xmpp</span><span class="p">[</span><span class="s">&#39;xep_0030&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">add_feature</span><span class="p">(</span><span class="n">feature</span><span class="o">=</span><span class="s">&#39;jabber:x:data&#39;</span><span class="p">,</span>
+                             <span class="n">node</span><span class="o">=</span><span class="s">&#39;foo&#39;</span><span class="p">,</span>
+                             <span class="n">jid</span><span class="o">=</span><span class="n">xmpp</span><span class="o">.</span><span class="n">boundjid</span><span class="o">.</span><span class="n">full</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="adding-an-item">
+<h3>Adding an Item<a class="headerlink" href="#adding-an-item" title="Permalink to this headline">¶</a></h3>
+<p>The parameters to <tt class="docutils literal"><span class="pre">add_item()</span></tt> are potentially confusing due to the fact that
+adding an item requires two JID and node combinations: the JID and node of the
+item itself, and the JID and node that will own the item.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">xmpp</span><span class="p">[</span><span class="s">&#39;xep_0030&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">add_item</span><span class="p">(</span><span class="n">jid</span><span class="o">=</span><span class="s">&#39;myitemjid@example.com&#39;</span><span class="p">,</span>
+                          <span class="n">name</span><span class="o">=</span><span class="s">&#39;An Item!&#39;</span><span class="p">,</span>
+                          <span class="n">node</span><span class="o">=</span><span class="s">&#39;owner_node&#39;</span><span class="p">,</span>
+                          <span class="n">subnode</span><span class="o">=</span><span class="s">&#39;item_node&#39;</span><span class="p">,</span>
+                          <span class="n">ijid</span><span class="o">=</span><span class="n">xmpp</span><span class="o">.</span><span class="n">boundjid</span><span class="o">.</span><span class="n">full</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">In this case, the owning JID and node are provided with the
+parameters <tt class="docutils literal"><span class="pre">ijid</span></tt> and <tt class="docutils literal"><span class="pre">node</span></tt>.</p>
+</div>
+</div>
+</div>
+<div class="section" id="peforming-disco-queries">
+<h2>Peforming Disco Queries<a class="headerlink" href="#peforming-disco-queries" title="Permalink to this headline">¶</a></h2>
+<p>The methods <tt class="docutils literal"><span class="pre">get_info()</span></tt> and <tt class="docutils literal"><span class="pre">get_items()</span></tt> are used to query remote JIDs
+and their nodes for disco information. Since these methods are wrappers for
+sending Iq stanzas, they also accept all of the parameters of the <tt class="docutils literal"><span class="pre">Iq.send()</span></tt>
+method. The <tt class="docutils literal"><span class="pre">get_items()</span></tt> method may also accept the boolean parameter
+<tt class="docutils literal"><span class="pre">iterator</span></tt>, which when set to <tt class="docutils literal"><span class="pre">True</span></tt> will return an iterator object using
+the <a class="reference external" href="http://xmpp.org/extensions/xep-0059.html">XEP-0059</a> plug-in.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="s">&#39;xep_0030&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get_info</span><span class="p">(</span><span class="n">jid</span><span class="o">=</span><span class="s">&#39;foo@example.com&#39;</span><span class="p">,</span>
+                                 <span class="n">node</span><span class="o">=</span><span class="s">&#39;bar&#39;</span><span class="p">,</span>
+                                 <span class="n">ifrom</span><span class="o">=</span><span class="s">&#39;baz@mycomponent.example.com&#39;</span><span class="p">,</span>
+                                 <span class="n">block</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                 <span class="n">timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+
+<span class="n">items</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="s">&#39;xep_0030&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get_info</span><span class="p">(</span><span class="n">jid</span><span class="o">=</span><span class="s">&#39;foo@example.com&#39;</span><span class="p">,</span>
+                                  <span class="n">node</span><span class="o">=</span><span class="s">&#39;bar&#39;</span><span class="p">,</span>
+                                  <span class="n">iterator</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For more examples on how to use basic disco queries, check the <tt class="docutils literal"><span class="pre">disco_browser.py</span></tt>
+example in the <tt class="docutils literal"><span class="pre">examples</span></tt> directory.</p>
+<div class="section" id="local-queries">
+<h3>Local Queries<a class="headerlink" href="#local-queries" title="Permalink to this headline">¶</a></h3>
+<p>In some cases, it may be necessary to query the contents of a node owned by the
+client itself, or one of a component&#8217;s many JIDs. The same method is used as for
+normal queries, with two differences. First, the parameter <tt class="docutils literal"><span class="pre">local=True</span></tt> must
+be used. Second, the return value will be a DiscoInfo or DiscoItems stanza, not
+a full Iq stanza.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="s">&#39;xep_0030&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get_info</span><span class="p">(</span><span class="n">node</span><span class="o">=</span><span class="s">&#39;foo&#39;</span><span class="p">,</span> <span class="n">local</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">items</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="s">&#39;xep_0030&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get_items</span><span class="p">(</span><span class="n">jid</span><span class="o">=</span><span class="s">&#39;somejid@mycomponent.example.com&#39;</span><span class="p">,</span>
+                                   <span class="n">node</span><span class="o">=</span><span class="s">&#39;bar&#39;</span><span class="p">,</span>
+                                   <span class="n">local</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">XEP-0030: Working with Service Discovery</a><ul>
+<li><a class="reference internal" href="#configuring-service-discovery">Configuring Service Discovery</a><ul>
+<li><a class="reference internal" href="#the-dynamic-handler-hierarchy">The Dynamic Handler Hierarchy</a></li>
+<li><a class="reference internal" href="#default-static-handlers">Default Static Handlers</a></li>
+<li><a class="reference internal" href="#creating-a-node-handler">Creating a Node Handler</a><ul>
+<li><a class="reference internal" href="#example-node-handler">Example Node Handler:</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#adding-identities-features-and-items">Adding Identities, Features, and Items</a><ul>
+<li><a class="reference internal" href="#adding-an-identity">Adding an Identity</a></li>
+<li><a class="reference internal" href="#adding-a-feature">Adding a Feature</a></li>
+<li><a class="reference internal" href="#adding-an-item">Adding an Item</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#peforming-disco-queries">Peforming Disco Queries</a><ul>
+<li><a class="reference internal" href="#local-queries">Local Queries</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="handlersmatchers.html"
+                        title="previous chapter">Using Stream Handlers and Matchers</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="architecture.html"
+                        title="next chapter">SleekXMPP Architecture</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/guide_xep_0030.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="architecture.html" title="SleekXMPP Architecture"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="handlersmatchers.html" title="Using Stream Handlers and Matchers"
+             >previous</a> |</li>
+        <li><a href="index.html">1.0RC3 Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Nathan Fritz, Lance Stout.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

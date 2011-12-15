@@ -1,0 +1,1127 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>XML Stream &mdash; SleekXMPP</title>
+    
+    <link rel="stylesheet" href="../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0RC3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="SleekXMPP" href="../../index.html" />
+    <link rel="next" title="Scheduler" href="scheduler.html" />
+    <link rel="prev" title="Stanza Matchers" href="matcher.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="scheduler.html" title="Scheduler"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="matcher.html" title="Stanza Matchers"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">1.0RC3 Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-sleekxmpp.xmlstream.xmlstream">
+<span id="xml-stream"></span><h1>XML Stream<a class="headerlink" href="#module-sleekxmpp.xmlstream.xmlstream" title="Permalink to this headline">¶</a></h1>
+<dl class="exception">
+<dt id="sleekxmpp.xmlstream.xmlstream.RestartStream">
+<em class="property">exception </em><tt class="descclassname">sleekxmpp.xmlstream.xmlstream.</tt><tt class="descname">RestartStream</tt><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/xmlstream.html#RestartStream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.RestartStream" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exception to restart stream processing, including
+resending the stream header.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream">
+<em class="property">class </em><tt class="descclassname">sleekxmpp.xmlstream.xmlstream.</tt><tt class="descname">XMLStream</tt><big>(</big><em>socket=None</em>, <em>host=u''</em>, <em>port=0</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/xmlstream.html#XMLStream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream" title="Permalink to this definition">¶</a></dt>
+<dd><p>An XML stream connection manager and event dispatcher.</p>
+<p>The XMLStream class abstracts away the issues of establishing a
+connection with a server and sending and receiving XML &#8220;stanzas&#8221;.
+A stanza is a complete XML element that is a direct child of a root
+document element. Two streams are used, one for each communication
+direction, over the same socket. Once the connection is closed, both
+streams should be complete and valid XML documents.</p>
+<dl class="docutils">
+<dt>Three types of events are provided to manage the stream:</dt>
+<dd><table class="first last docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Stream:</th><td class="field-body">Triggered based on received stanzas, similar in concept
+to events in a SAX XML parser.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Custom:</th><td class="field-body">Triggered manually.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Scheduled:</th><td class="field-body">Triggered based on time delays.</td>
+</tr>
+</tbody>
+</table>
+</dd>
+</dl>
+<p>Typically, stanzas are first processed by a stream event handler which
+will then trigger custom events to continue further processing,
+especially since custom event handlers may run in individual threads.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>socket</strong> &#8211; Use an existing socket for the stream. Defaults to
+<tt class="docutils literal"><span class="pre">None</span></tt> to generate a new socket.</li>
+<li><strong>host</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/string.html#string" title="(in Python v3.2)"><em>string</em></a>) &#8211; The name of the target server.</li>
+<li><strong>port</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/functions.html#int" title="(in Python v3.2)"><em>int</em></a>) &#8211; The port to use for the connection. Defaults to 0.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.add_event_handler">
+<tt class="descname">add_event_handler</tt><big>(</big><em>name</em>, <em>pointer</em>, <em>threaded=False</em>, <em>disposable=False</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/xmlstream.html#XMLStream.add_event_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.add_event_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a custom event handler that will be executed whenever
+its event is manually triggered.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> &#8211; The name of the event that will trigger
+this handler.</li>
+<li><strong>pointer</strong> &#8211; The function to execute.</li>
+<li><strong>threaded</strong> &#8211; If set to <tt class="docutils literal"><span class="pre">True</span></tt>, the handler will execute
+in its own thread. Defaults to <tt class="docutils literal"><span class="pre">False</span></tt>.</li>
+<li><strong>disposable</strong> &#8211; If set to <tt class="docutils literal"><span class="pre">True</span></tt>, the handler will be
+discarded after one use. Defaults to <tt class="docutils literal"><span class="pre">False</span></tt>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.add_handler">
+<tt class="descname">add_handler</tt><big>(</big><em>mask</em>, <em>pointer</em>, <em>name=None</em>, <em>disposable=False</em>, <em>threaded=False</em>, <em>filter=False</em>, <em>instream=False</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/xmlstream.html#XMLStream.add_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.add_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>A shortcut method for registering a handler using XML masks.</p>
+<p>The use of <a class="reference internal" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.register_handler" title="sleekxmpp.xmlstream.xmlstream.XMLStream.register_handler"><tt class="xref py py-meth docutils literal"><span class="pre">register_handler()</span></tt></a> is preferred.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>mask</strong> &#8211; An XML snippet matching the structure of the
+stanzas that will be passed to this handler.</li>
+<li><strong>pointer</strong> &#8211; The handler function itself.</li>
+<li><strong>disposable</strong> &#8211; Indicates if the handler should be discarded
+after one use.</li>
+<li><strong>threaded</strong> &#8211; <strong>DEPRECATED</strong>.
+Remains for backwards compatibility.</li>
+<li><strong>filter</strong> &#8211; <strong>DEPRECATED</strong>.
+Remains for backwards compatibility.</li>
+<li><strong>instream</strong> &#8211; Indicates if the handler should execute during
+stream processing and not during normal event
+processing.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Parm name:</th><td class="field-body"><p class="first last">A unique name for the handler. A name will
+be generated if one is not provided.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.address">
+<tt class="descname">address</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.address" title="Permalink to this definition">¶</a></dt>
+<dd><p>The desired, or actual, address of the connected server.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.auto_reconnect">
+<tt class="descname">auto_reconnect</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.auto_reconnect" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <tt class="xref py py-attr docutils literal"><span class="pre">auto_reconnnect</span></tt> setting controls whether or not
+the stream will be restarted in the event of an error.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.ca_certs">
+<tt class="descname">ca_certs</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.ca_certs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path to a file containing certificates for verifying the
+server SSL certificate. A non-<tt class="docutils literal"><span class="pre">None</span></tt> value will trigger
+certificate checking.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">On Mac OS X, certificates in the system keyring will
+be consulted, even if they are not in the provided file.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.configure_dns">
+<tt class="descname">configure_dns</tt><big>(</big><em>resolver</em>, <em>domain=None</em>, <em>port=None</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/xmlstream.html#XMLStream.configure_dns"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.configure_dns" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configure and set options for a <tt class="xref py py-class docutils literal"><span class="pre">Resolver</span></tt>
+instance, and other DNS related tasks. For example, you
+can also check <tt class="xref py py-meth docutils literal"><span class="pre">getaddrinfo()</span></tt> to see 
+if you need to call out to <tt class="docutils literal"><span class="pre">libresolv.so.2</span></tt> to 
+run <tt class="docutils literal"><span class="pre">res_init()</span></tt>.</p>
+<p>Meant to be overridden.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>resolver</strong> &#8211; A <tt class="xref py py-class docutils literal"><span class="pre">Resolver</span></tt> instance
+or <tt class="docutils literal"><span class="pre">None</span></tt> if <tt class="docutils literal"><span class="pre">dnspython</span></tt> is not installed.</li>
+<li><strong>domain</strong> &#8211; The initial domain under consideration.</li>
+<li><strong>port</strong> &#8211; The initial port under consideration.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.configure_socket">
+<tt class="descname">configure_socket</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/xmlstream.html#XMLStream.configure_socket"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.configure_socket" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set timeout and other options for self.socket.</p>
+<p>Meant to be overridden.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.connect">
+<tt class="descname">connect</tt><big>(</big><em>host=u''</em>, <em>port=0</em>, <em>use_ssl=False</em>, <em>use_tls=True</em>, <em>reattempt=True</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/xmlstream.html#XMLStream.connect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new socket and connect to the server.</p>
+<p>Setting <tt class="docutils literal"><span class="pre">reattempt</span></tt> to <tt class="docutils literal"><span class="pre">True</span></tt> will cause connection attempts to
+be made every second until a successful connection is established.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>host</strong> &#8211; The name of the desired server for the connection.</li>
+<li><strong>port</strong> &#8211; Port to connect to on the server.</li>
+<li><strong>use_ssl</strong> &#8211; Flag indicating if SSL should be used by connecting
+directly to a port using SSL.</li>
+<li><strong>use_tls</strong> &#8211; Flag indicating if TLS should be used, allowing for
+connecting to a port without using SSL immediately and
+later upgrading the connection.</li>
+<li><strong>reattempt</strong> &#8211; Flag indicating if the socket should reconnect
+after disconnections.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.default_domain">
+<tt class="descname">default_domain</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.default_domain" title="Permalink to this definition">¶</a></dt>
+<dd><p>The domain to try when querying DNS records.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.default_ns">
+<tt class="descname">default_ns</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.default_ns" title="Permalink to this definition">¶</a></dt>
+<dd><p>The default namespace of the stream content, not of the
+stream wrapper itself.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.default_port">
+<tt class="descname">default_port</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.default_port" title="Permalink to this definition">¶</a></dt>
+<dd><p>The default port to return when querying DNS records.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.del_event_handler">
+<tt class="descname">del_event_handler</tt><big>(</big><em>name</em>, <em>pointer</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/xmlstream.html#XMLStream.del_event_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.del_event_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove a function as a handler for an event.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> &#8211; The name of the event.</li>
+<li><strong>pointer</strong> &#8211; The function to remove as a handler.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.disconnect">
+<tt class="descname">disconnect</tt><big>(</big><em>reconnect=False</em>, <em>wait=None</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/xmlstream.html#XMLStream.disconnect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.disconnect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Terminate processing and close the XML streams.</p>
+<p>Optionally, the connection may be reconnected and
+resume processing afterwards.</p>
+<p>If the disconnect should take place after all items
+in the send queue have been sent, use <tt class="docutils literal"><span class="pre">wait=True</span></tt>.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">If you are constantly adding items to the queue
+such that it is never empty, then the disconnect will
+not occur and the call will continue to block.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>reconnect</strong> &#8211; Flag indicating if the connection
+and processing should be restarted.
+Defaults to <tt class="docutils literal"><span class="pre">False</span></tt>.</li>
+<li><strong>wait</strong> &#8211; Flag indicating if the send queue should
+be emptied before disconnecting, overriding
+<a class="reference internal" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.disconnect_wait" title="sleekxmpp.xmlstream.xmlstream.XMLStream.disconnect_wait"><tt class="xref py py-attr docutils literal"><span class="pre">disconnect_wait</span></tt></a>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.disconnect_wait">
+<tt class="descname">disconnect_wait</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.disconnect_wait" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <a class="reference internal" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.disconnect_wait" title="sleekxmpp.xmlstream.xmlstream.XMLStream.disconnect_wait"><tt class="xref py py-attr docutils literal"><span class="pre">disconnect_wait</span></tt></a> setting is the default value
+for controlling if the system waits for the send queue to
+empty before ending the stream. This may be overridden by
+passing <tt class="docutils literal"><span class="pre">wait=True</span></tt> or <tt class="docutils literal"><span class="pre">wait=False</span></tt> to <a class="reference internal" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.disconnect" title="sleekxmpp.xmlstream.xmlstream.XMLStream.disconnect"><tt class="xref py py-meth docutils literal"><span class="pre">disconnect()</span></tt></a>.
+The default <a class="reference internal" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.disconnect_wait" title="sleekxmpp.xmlstream.xmlstream.XMLStream.disconnect_wait"><tt class="xref py py-attr docutils literal"><span class="pre">disconnect_wait</span></tt></a> value is <tt class="docutils literal"><span class="pre">False</span></tt>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.dns_answers">
+<tt class="descname">dns_answers</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.dns_answers" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of DNS results that have not yet been tried.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.event">
+<tt class="descname">event</tt><big>(</big><em>name</em>, <em>data={}</em>, <em>direct=False</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/xmlstream.html#XMLStream.event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Manually trigger a custom event.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> &#8211; The name of the event to trigger.</li>
+<li><strong>data</strong> &#8211; Data that will be passed to each event handler.
+Defaults to an empty dictionary, but is usually
+a stanza object.</li>
+<li><strong>direct</strong> &#8211; Runs the event directly if True, skipping the
+event queue. All event handlers will run in the
+same thread.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.event_handled">
+<tt class="descname">event_handled</tt><big>(</big><em>name</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/xmlstream.html#XMLStream.event_handled"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.event_handled" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the number of registered handlers for an event.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> &#8211; The name of the event to check.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.event_queue">
+<tt class="descname">event_queue</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.event_queue" title="Permalink to this definition">¶</a></dt>
+<dd><p>A queue of stream, custom, and scheduled events to be processed.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.exception">
+<tt class="descname">exception</tt><big>(</big><em>exception</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/xmlstream.html#XMLStream.exception"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.exception" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process an unknown exception.</p>
+<p>Meant to be overridden.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>exception</strong> &#8211; An unhandled exception object.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.filesocket">
+<tt class="descname">filesocket</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.filesocket" title="Permalink to this definition">¶</a></dt>
+<dd><p>A file-like wrapper for the socket for use with the
+<a class="reference external" href="http://docs.python.org/3.2/library/xml.etree.elementtree.html#xml.etree.ElementTree" title="(in Python v3.2)"><tt class="xref py py-mod docutils literal"><span class="pre">ElementTree</span></tt></a> module.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.getId">
+<tt class="descname">getId</tt><big>(</big><big>)</big><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.getId" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the current unique stream ID in hexadecimal form.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.getNewId">
+<tt class="descname">getNewId</tt><big>(</big><big>)</big><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.getNewId" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate and return a new stream ID in hexadecimal form.</p>
+<p>Many stanzas, handlers, or matchers may require unique
+ID values. Using this method ensures that all new ID values
+are unique in this stream.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.get_dns_records">
+<tt class="descname">get_dns_records</tt><big>(</big><em>domain</em>, <em>port=None</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/xmlstream.html#XMLStream.get_dns_records"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.get_dns_records" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the DNS records for a domain.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>domain</strong> &#8211; The domain in question.</li>
+<li><strong>port</strong> &#8211; If the results don&#8217;t include a port, use this one.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.get_id">
+<tt class="descname">get_id</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/xmlstream.html#XMLStream.get_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.get_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the current unique stream ID in hexadecimal form.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.incoming_filter">
+<tt class="descname">incoming_filter</tt><big>(</big><em>xml</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/xmlstream.html#XMLStream.incoming_filter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.incoming_filter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter incoming XML objects before they are processed.</p>
+<p>Possible uses include remapping namespaces, or correcting elements
+from sources with incorrect behavior.</p>
+<p>Meant to be overridden.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.namespace_map">
+<tt class="descname">namespace_map</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.namespace_map" title="Permalink to this definition">¶</a></dt>
+<dd><p>A mapping of XML namespaces to well-known prefixes.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.new_id">
+<tt class="descname">new_id</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/xmlstream.html#XMLStream.new_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.new_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate and return a new stream ID in hexadecimal form.</p>
+<p>Many stanzas, handlers, or matchers may require unique
+ID values. Using this method ensures that all new ID values
+are unique in this stream.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.pick_dns_answer">
+<tt class="descname">pick_dns_answer</tt><big>(</big><em>domain</em>, <em>port=None</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/xmlstream.html#XMLStream.pick_dns_answer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.pick_dns_answer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pick a server and port from DNS answers.</p>
+<p>Gets DNS answers if none available.
+Removes used answer from available answers.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>domain</strong> &#8211; The domain in question.</li>
+<li><strong>port</strong> &#8211; If the results don&#8217;t include a port, use this one.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.process">
+<tt class="descname">process</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/xmlstream.html#XMLStream.process"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.process" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the XML streams and begin processing events.</p>
+<p>The number of threads used for processing stream events is determined
+by <tt class="xref py py-data docutils literal"><span class="pre">HANDLER_THREADS</span></tt>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>block</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/functions.html#bool" title="(in Python v3.2)"><em>bool</em></a>) &#8211; If <tt class="docutils literal"><span class="pre">False</span></tt>, then event dispatcher will run
+in a separate thread, allowing for the stream to be
+used in the background for another application.
+Otherwise, <tt class="docutils literal"><span class="pre">process(block=True)</span></tt> blocks the current
+thread. Defaults to <tt class="docutils literal"><span class="pre">False</span></tt>.</li>
+<li><strong>threaded</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/functions.html#bool" title="(in Python v3.2)"><em>bool</em></a>) &#8211; <strong>DEPRECATED</strong>
+If <tt class="docutils literal"><span class="pre">True</span></tt>, then event dispatcher will run
+in a separate thread, allowing for the stream to be
+used in the background for another application.
+Defaults to <tt class="docutils literal"><span class="pre">True</span></tt>. This does <strong>not</strong> mean that no
+threads are used at all if <tt class="docutils literal"><span class="pre">threaded=False</span></tt>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Regardless of these threading options, these threads will 
+always exist:</p>
+<ul class="simple">
+<li>The event queue processor</li>
+<li>The send queue processor</li>
+<li>The scheduler</li>
+</ul>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.proxy_config">
+<tt class="descname">proxy_config</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.proxy_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>An optional dictionary of proxy settings. It may provide:
+:host: The host offering proxy services.
+:port: The port for the proxy service.
+:username: Optional username for accessing the proxy.
+:password: Optional password for accessing the proxy.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.reconnect">
+<tt class="descname">reconnect</tt><big>(</big><em>reattempt=True</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/xmlstream.html#XMLStream.reconnect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.reconnect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset the stream&#8217;s state and reconnect to the server.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.reconnect_delay">
+<tt class="descname">reconnect_delay</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.reconnect_delay" title="Permalink to this definition">¶</a></dt>
+<dd><p>The current amount to time to delay attempting to reconnect.
+This value doubles (with some jitter) with each failed
+connection attempt up to <a class="reference internal" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.reconnect_max_delay" title="sleekxmpp.xmlstream.xmlstream.XMLStream.reconnect_max_delay"><tt class="xref py py-attr docutils literal"><span class="pre">reconnect_max_delay</span></tt></a> seconds.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.reconnect_max_delay">
+<tt class="descname">reconnect_max_delay</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.reconnect_max_delay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Maximum time to delay between connection attempts is one hour.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.registerHandler">
+<tt class="descname">registerHandler</tt><big>(</big><em>handler</em>, <em>before=None</em>, <em>after=None</em><big>)</big><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.registerHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a stream event handler that will be executed when a matching
+stanza is received.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>handler</strong> &#8211; The <a class="reference internal" href="handler.html#sleekxmpp.xmlstream.handler.base.BaseHandler" title="sleekxmpp.xmlstream.handler.base.BaseHandler"><tt class="xref py py-class docutils literal"><span class="pre">BaseHandler</span></tt></a>
+derived object to execute.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.registerStanza">
+<tt class="descname">registerStanza</tt><big>(</big><em>stanza_class</em><big>)</big><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.registerStanza" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a stanza object class as a known root stanza.</p>
+<p>A root stanza is one that appears as a direct child of the stream&#8217;s
+root element.</p>
+<p>Stanzas that appear as substanzas of a root stanza do not need to
+be registered here. That is done using register_stanza_plugin() from
+sleekxmpp.xmlstream.stanzabase.</p>
+<p>Stanzas that are not registered will not be converted into
+stanza objects, but may still be processed using handlers and
+matchers.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>stanza_class</strong> &#8211; The top-level stanza object&#8217;s class.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.register_handler">
+<tt class="descname">register_handler</tt><big>(</big><em>handler</em>, <em>before=None</em>, <em>after=None</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/xmlstream.html#XMLStream.register_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.register_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a stream event handler that will be executed when a matching
+stanza is received.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>handler</strong> &#8211; The <a class="reference internal" href="handler.html#sleekxmpp.xmlstream.handler.base.BaseHandler" title="sleekxmpp.xmlstream.handler.base.BaseHandler"><tt class="xref py py-class docutils literal"><span class="pre">BaseHandler</span></tt></a>
+derived object to execute.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.register_stanza">
+<tt class="descname">register_stanza</tt><big>(</big><em>stanza_class</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/xmlstream.html#XMLStream.register_stanza"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.register_stanza" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a stanza object class as a known root stanza.</p>
+<p>A root stanza is one that appears as a direct child of the stream&#8217;s
+root element.</p>
+<p>Stanzas that appear as substanzas of a root stanza do not need to
+be registered here. That is done using register_stanza_plugin() from
+sleekxmpp.xmlstream.stanzabase.</p>
+<p>Stanzas that are not registered will not be converted into
+stanza objects, but may still be processed using handlers and
+matchers.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>stanza_class</strong> &#8211; The top-level stanza object&#8217;s class.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.removeHandler">
+<tt class="descname">removeHandler</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.removeHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove any stream event handlers with the given name.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> &#8211; The name of the handler.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.removeStanza">
+<tt class="descname">removeStanza</tt><big>(</big><em>stanza_class</em><big>)</big><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.removeStanza" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove a stanza from being a known root stanza.</p>
+<p>A root stanza is one that appears as a direct child of the stream&#8217;s
+root element.</p>
+<p>Stanzas that are not registered will not be converted into
+stanza objects, but may still be processed using handlers and
+matchers.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.remove_handler">
+<tt class="descname">remove_handler</tt><big>(</big><em>name</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/xmlstream.html#XMLStream.remove_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.remove_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove any stream event handlers with the given name.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> &#8211; The name of the handler.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.remove_stanza">
+<tt class="descname">remove_stanza</tt><big>(</big><em>stanza_class</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/xmlstream.html#XMLStream.remove_stanza"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.remove_stanza" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove a stanza from being a known root stanza.</p>
+<p>A root stanza is one that appears as a direct child of the stream&#8217;s
+root element.</p>
+<p>Stanzas that are not registered will not be converted into
+stanza objects, but may still be processed using handlers and
+matchers.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.response_timeout">
+<tt class="descname">response_timeout</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.response_timeout" title="Permalink to this definition">¶</a></dt>
+<dd><p>The time in seconds to wait before timing out waiting
+for response stanzas.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.schedule">
+<tt class="descname">schedule</tt><big>(</big><em>name</em>, <em>seconds</em>, <em>callback</em>, <em>args=None</em>, <em>kwargs=None</em>, <em>repeat=False</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/xmlstream.html#XMLStream.schedule"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.schedule" title="Permalink to this definition">¶</a></dt>
+<dd><p>Schedule a callback function to execute after a given delay.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> &#8211; A unique name for the scheduled callback.</li>
+<li><strong>seconds</strong> &#8211; The time in seconds to wait before executing.</li>
+<li><strong>callback</strong> &#8211; A pointer to the function to execute.</li>
+<li><strong>args</strong> &#8211; A tuple of arguments to pass to the function.</li>
+<li><strong>kwargs</strong> &#8211; A dictionary of keyword arguments to pass to
+the function.</li>
+<li><strong>repeat</strong> &#8211; Flag indicating if the scheduled event should
+be reset and repeat after executing.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.scheduler">
+<tt class="descname">scheduler</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.scheduler" title="Permalink to this definition">¶</a></dt>
+<dd><p>A <a class="reference internal" href="scheduler.html#sleekxmpp.xmlstream.scheduler.Scheduler" title="sleekxmpp.xmlstream.scheduler.Scheduler"><tt class="xref py py-class docutils literal"><span class="pre">Scheduler</span></tt></a> instance for
+executing callbacks in the future based on time delays.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.send">
+<tt class="descname">send</tt><big>(</big><em>data</em>, <em>mask=None</em>, <em>timeout=None</em>, <em>now=False</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/xmlstream.html#XMLStream.send"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.send" title="Permalink to this definition">¶</a></dt>
+<dd><p>A wrapper for <a class="reference internal" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.send_raw" title="sleekxmpp.xmlstream.xmlstream.XMLStream.send_raw"><tt class="xref py py-meth docutils literal"><span class="pre">send_raw()</span></tt></a> for sending stanza objects.</p>
+<p>May optionally block until an expected response is received.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>data</strong> &#8211; The <a class="reference internal" href="stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase" title="sleekxmpp.xmlstream.stanzabase.ElementBase"><tt class="xref py py-class docutils literal"><span class="pre">ElementBase</span></tt></a> 
+stanza to send on the stream.</li>
+<li><strong>mask</strong> &#8211; <strong>DEPRECATED</strong> 
+An XML string snippet matching the structure
+of the expected response. Execution will block
+in this thread until the response is received
+or a timeout occurs.</li>
+<li><strong>timeout</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/functions.html#int" title="(in Python v3.2)"><em>int</em></a>) &#8211; Time in seconds to wait for a response before
+continuing. Defaults to <a class="reference internal" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.response_timeout" title="sleekxmpp.xmlstream.xmlstream.XMLStream.response_timeout"><tt class="xref py py-attr docutils literal"><span class="pre">response_timeout</span></tt></a>.</li>
+<li><strong>now</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/functions.html#bool" title="(in Python v3.2)"><em>bool</em></a>) &#8211; Indicates if the send queue should be skipped,
+sending the stanza immediately. Useful mainly
+for stream initialization stanzas.
+Defaults to <tt class="docutils literal"><span class="pre">False</span></tt>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.sendRaw">
+<tt class="descname">sendRaw</tt><big>(</big><em>data</em>, <em>now=False</em>, <em>reconnect=None</em><big>)</big><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.sendRaw" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send raw data across the stream.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>data</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/string.html#string" title="(in Python v3.2)"><em>string</em></a>) &#8211; Any string value.</li>
+<li><strong>reconnect</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/functions.html#bool" title="(in Python v3.2)"><em>bool</em></a>) &#8211; Indicates if the stream should be
+restarted if there is an error sending
+the stanza. Used mainly for testing.
+Defaults to <a class="reference internal" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.auto_reconnect" title="sleekxmpp.xmlstream.xmlstream.XMLStream.auto_reconnect"><tt class="xref py py-attr docutils literal"><span class="pre">auto_reconnect</span></tt></a>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.sendXML">
+<tt class="descname">sendXML</tt><big>(</big><em>data</em>, <em>mask=None</em>, <em>timeout=None</em>, <em>now=False</em><big>)</big><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.sendXML" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send an XML object on the stream, and optionally wait
+for a response.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>data</strong> &#8211; The <a class="reference external" href="http://docs.python.org/3.2/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element" title="(in Python v3.2)"><tt class="xref py py-class docutils literal"><span class="pre">Element</span></tt></a> XML object 
+to send on the stream.</li>
+<li><strong>mask</strong> &#8211; <strong>DEPRECATED</strong> 
+An XML string snippet matching the structure
+of the expected response. Execution will block
+in this thread until the response is received
+or a timeout occurs.</li>
+<li><strong>timeout</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/functions.html#int" title="(in Python v3.2)"><em>int</em></a>) &#8211; Time in seconds to wait for a response before
+continuing. Defaults to <a class="reference internal" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.response_timeout" title="sleekxmpp.xmlstream.xmlstream.XMLStream.response_timeout"><tt class="xref py py-attr docutils literal"><span class="pre">response_timeout</span></tt></a>.</li>
+<li><strong>now</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/functions.html#bool" title="(in Python v3.2)"><em>bool</em></a>) &#8211; Indicates if the send queue should be skipped,
+sending the stanza immediately. Useful mainly
+for stream initialization stanzas.
+Defaults to <tt class="docutils literal"><span class="pre">False</span></tt>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.send_queue">
+<tt class="descname">send_queue</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.send_queue" title="Permalink to this definition">¶</a></dt>
+<dd><p>A queue of string data to be sent over the stream.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.send_raw">
+<tt class="descname">send_raw</tt><big>(</big><em>data</em>, <em>now=False</em>, <em>reconnect=None</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/xmlstream.html#XMLStream.send_raw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.send_raw" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send raw data across the stream.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>data</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/string.html#string" title="(in Python v3.2)"><em>string</em></a>) &#8211; Any string value.</li>
+<li><strong>reconnect</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/functions.html#bool" title="(in Python v3.2)"><em>bool</em></a>) &#8211; Indicates if the stream should be
+restarted if there is an error sending
+the stanza. Used mainly for testing.
+Defaults to <a class="reference internal" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.auto_reconnect" title="sleekxmpp.xmlstream.xmlstream.XMLStream.auto_reconnect"><tt class="xref py py-attr docutils literal"><span class="pre">auto_reconnect</span></tt></a>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.send_xml">
+<tt class="descname">send_xml</tt><big>(</big><em>data</em>, <em>mask=None</em>, <em>timeout=None</em>, <em>now=False</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/xmlstream.html#XMLStream.send_xml"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.send_xml" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send an XML object on the stream, and optionally wait
+for a response.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>data</strong> &#8211; The <a class="reference external" href="http://docs.python.org/3.2/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element" title="(in Python v3.2)"><tt class="xref py py-class docutils literal"><span class="pre">Element</span></tt></a> XML object 
+to send on the stream.</li>
+<li><strong>mask</strong> &#8211; <strong>DEPRECATED</strong> 
+An XML string snippet matching the structure
+of the expected response. Execution will block
+in this thread until the response is received
+or a timeout occurs.</li>
+<li><strong>timeout</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/functions.html#int" title="(in Python v3.2)"><em>int</em></a>) &#8211; Time in seconds to wait for a response before
+continuing. Defaults to <a class="reference internal" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.response_timeout" title="sleekxmpp.xmlstream.xmlstream.XMLStream.response_timeout"><tt class="xref py py-attr docutils literal"><span class="pre">response_timeout</span></tt></a>.</li>
+<li><strong>now</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/functions.html#bool" title="(in Python v3.2)"><em>bool</em></a>) &#8211; Indicates if the send queue should be skipped,
+sending the stanza immediately. Useful mainly
+for stream initialization stanzas.
+Defaults to <tt class="docutils literal"><span class="pre">False</span></tt>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.session_started_event">
+<tt class="descname">session_started_event</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.session_started_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>An <a class="reference external" href="http://docs.python.org/3.2/library/threading.html#threading.Event" title="(in Python v3.2)"><tt class="xref py py-class docutils literal"><span class="pre">Event</span></tt></a> to signal the start of a stream
+session. Until this event fires, the send queue is not used
+and data is sent immediately over the wire.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.session_timeout">
+<tt class="descname">session_timeout</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.session_timeout" title="Permalink to this definition">¶</a></dt>
+<dd><p>The default time in seconds to wait for a session to start
+after connecting before reconnecting and trying again.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.setSocket">
+<tt class="descname">setSocket</tt><big>(</big><em>socket</em>, <em>ignore=False</em><big>)</big><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.setSocket" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the socket to use for the stream.</p>
+<p>The filesocket will be recreated as well.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>socket</strong> &#8211; The new socket object to use.</li>
+<li><strong>ignore</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/functions.html#bool" title="(in Python v3.2)"><em>bool</em></a>) &#8211; If <tt class="docutils literal"><span class="pre">True</span></tt>, don&#8217;t set the connection
+state to <tt class="docutils literal"><span class="pre">'connected'</span></tt>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.set_socket">
+<tt class="descname">set_socket</tt><big>(</big><em>socket</em>, <em>ignore=False</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/xmlstream.html#XMLStream.set_socket"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.set_socket" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the socket to use for the stream.</p>
+<p>The filesocket will be recreated as well.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>socket</strong> &#8211; The new socket object to use.</li>
+<li><strong>ignore</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/functions.html#bool" title="(in Python v3.2)"><em>bool</em></a>) &#8211; If <tt class="docutils literal"><span class="pre">True</span></tt>, don&#8217;t set the connection
+state to <tt class="docutils literal"><span class="pre">'connected'</span></tt>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.ssl_retry_delay">
+<tt class="descname">ssl_retry_delay</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.ssl_retry_delay" title="Permalink to this definition">¶</a></dt>
+<dd><p>The maximum number of times to attempt resending data due to
+an SSL error.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.ssl_retry_max">
+<tt class="descname">ssl_retry_max</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.ssl_retry_max" title="Permalink to this definition">¶</a></dt>
+<dd><p>The time in seconds to delay between attempts to resend data
+after an SSL error.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.ssl_support">
+<tt class="descname">ssl_support</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.ssl_support" title="Permalink to this definition">¶</a></dt>
+<dd><p>Flag indicating if the SSL library is available for use.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.ssl_version">
+<tt class="descname">ssl_version</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.ssl_version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Most XMPP servers support TLSv1, but OpenFire in particular
+does not work well with it. For OpenFire, set
+<a class="reference internal" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.ssl_version" title="sleekxmpp.xmlstream.xmlstream.XMLStream.ssl_version"><tt class="xref py py-attr docutils literal"><span class="pre">ssl_version</span></tt></a> to use <tt class="docutils literal"><span class="pre">SSLv23</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">ssl</span>
+<span class="n">xmpp</span><span class="o">.</span><span class="n">ssl_version</span> <span class="o">=</span> <span class="n">ssl</span><span class="o">.</span><span class="n">PROTOCOL_SSLv23</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.startTLS">
+<tt class="descname">startTLS</tt><big>(</big><big>)</big><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.startTLS" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform handshakes for TLS.</p>
+<p>If the handshake is successful, the XML stream will need
+to be restarted.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.start_stream_handler">
+<tt class="descname">start_stream_handler</tt><big>(</big><em>xml</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/xmlstream.html#XMLStream.start_stream_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.start_stream_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform any initialization actions, such as handshakes, 
+once the stream header has been sent.</p>
+<p>Meant to be overridden.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.start_tls">
+<tt class="descname">start_tls</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/xmlstream.html#XMLStream.start_tls"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.start_tls" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform handshakes for TLS.</p>
+<p>If the handshake is successful, the XML stream will need
+to be restarted.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.state">
+<tt class="descname">state</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.state" title="Permalink to this definition">¶</a></dt>
+<dd><p>The connection state machine tracks if the stream is
+<tt class="docutils literal"><span class="pre">'connected'</span></tt> or <tt class="docutils literal"><span class="pre">'disconnected'</span></tt>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.stop">
+<tt class="descname">stop</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>An <a class="reference external" href="http://docs.python.org/3.2/library/threading.html#threading.Event" title="(in Python v3.2)"><tt class="xref py py-class docutils literal"><span class="pre">Event</span></tt></a> to signal that the application
+is stopping, and that all threads should shutdown.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.stream_end_event">
+<tt class="descname">stream_end_event</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.stream_end_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>An <a class="reference external" href="http://docs.python.org/3.2/library/threading.html#threading.Event" title="(in Python v3.2)"><tt class="xref py py-class docutils literal"><span class="pre">Event</span></tt></a> to signal receiving a closing
+stream tag from the server.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.stream_footer">
+<tt class="descname">stream_footer</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.stream_footer" title="Permalink to this definition">¶</a></dt>
+<dd><p>The default closing tag for the stream element.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.stream_header">
+<tt class="descname">stream_header</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.stream_header" title="Permalink to this definition">¶</a></dt>
+<dd><p>The default opening tag for the stream element.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.stream_ns">
+<tt class="descname">stream_ns</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.stream_ns" title="Permalink to this definition">¶</a></dt>
+<dd><p>The namespace of the enveloping stream element.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.use_proxy">
+<tt class="descname">use_proxy</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.use_proxy" title="Permalink to this definition">¶</a></dt>
+<dd><p>If set to <tt class="docutils literal"><span class="pre">True</span></tt>, attempt to connect through an HTTP
+proxy based on the settings in <a class="reference internal" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.proxy_config" title="sleekxmpp.xmlstream.xmlstream.XMLStream.proxy_config"><tt class="xref py py-attr docutils literal"><span class="pre">proxy_config</span></tt></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.use_signals">
+<tt class="descname">use_signals</tt><big>(</big><em>signals=None</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/xmlstream.html#XMLStream.use_signals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.use_signals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register signal handlers for <tt class="docutils literal"><span class="pre">SIGHUP</span></tt> and <tt class="docutils literal"><span class="pre">SIGTERM</span></tt>.</p>
+<p>By using signals, a <tt class="docutils literal"><span class="pre">'killed'</span></tt> event will be raised when the
+application is terminated.</p>
+<p>If a signal handler already existed, it will be executed first,
+before the <tt class="docutils literal"><span class="pre">'killed'</span></tt> event is raised.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>signals</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/functions.html#list" title="(in Python v3.2)"><em>list</em></a>) &#8211; A list of signal names to be monitored.
+Defaults to <tt class="docutils literal"><span class="pre">['SIGHUP',</span> <span class="pre">'SIGTERM']</span></tt>.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.use_ssl">
+<tt class="descname">use_ssl</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.use_ssl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enable connecting to the server directly over SSL, in
+particular when the service provides two ports: one for
+non-SSL traffic and another for SSL traffic.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.use_tls">
+<tt class="descname">use_tls</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.use_tls" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enable connecting to the service without using SSL
+immediately, but allow upgrading the connection later
+to use SSL.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.wait_timeout">
+<tt class="descname">wait_timeout</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.wait_timeout" title="Permalink to this definition">¶</a></dt>
+<dd><p>The time in seconds to wait for events from the event queue,
+and also the time between checks for the process stop signal.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.whitespace_keepalive">
+<tt class="descname">whitespace_keepalive</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.whitespace_keepalive" title="Permalink to this definition">¶</a></dt>
+<dd><p>If <tt class="docutils literal"><span class="pre">True</span></tt>, periodically send a whitespace character over the
+wire to keep the connection alive. Mainly useful for connections
+traversing NAT.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.whitespace_keepalive_interval">
+<tt class="descname">whitespace_keepalive_interval</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.whitespace_keepalive_interval" title="Permalink to this definition">¶</a></dt>
+<dd><p>The default interval between keepalive signals when
+<a class="reference internal" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.whitespace_keepalive" title="sleekxmpp.xmlstream.xmlstream.XMLStream.whitespace_keepalive"><tt class="xref py py-attr docutils literal"><span class="pre">whitespace_keepalive</span></tt></a> is enabled.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="matcher.html"
+                        title="previous chapter">Stanza Matchers</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="scheduler.html"
+                        title="next chapter">Scheduler</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../../_sources/api/xmlstream/xmlstream.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="scheduler.html" title="Scheduler"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="matcher.html" title="Stanza Matchers"
+             >previous</a> |</li>
+        <li><a href="../../index.html">1.0RC3 Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Nathan Fritz, Lance Stout.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

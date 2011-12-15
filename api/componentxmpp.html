@@ -1,0 +1,206 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ComponentXMPP &mdash; SleekXMPP</title>
+    
+    <link rel="stylesheet" href="../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0RC3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="SleekXMPP" href="../index.html" />
+    <link rel="next" title="BaseXMPP" href="basexmpp.html" />
+    <link rel="prev" title="ClientXMPP" href="clientxmpp.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="basexmpp.html" title="BaseXMPP"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="clientxmpp.html" title="ClientXMPP"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">1.0RC3 Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-sleekxmpp.componentxmpp">
+<span id="componentxmpp"></span><h1>ComponentXMPP<a class="headerlink" href="#module-sleekxmpp.componentxmpp" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="sleekxmpp.componentxmpp.ComponentXMPP">
+<em class="property">class </em><tt class="descclassname">sleekxmpp.componentxmpp.</tt><tt class="descname">ComponentXMPP</tt><big>(</big><em>jid</em>, <em>secret</em>, <em>host=None</em>, <em>port=None</em>, <em>plugin_config={}</em>, <em>plugin_whitelist=</em><span class="optional">[</span><span class="optional">]</span>, <em>use_jc_ns=False</em><big>)</big><a class="reference internal" href="../_modules/sleekxmpp/componentxmpp.html#ComponentXMPP"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.componentxmpp.ComponentXMPP" title="Permalink to this definition">¶</a></dt>
+<dd><p>SleekXMPP&#8217;s basic XMPP server component.</p>
+<p>Use only for good, not for evil.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>jid</strong> &#8211; The JID of the component.</li>
+<li><strong>secret</strong> &#8211; The secret or password for the component.</li>
+<li><strong>host</strong> &#8211; The server accepting the component.</li>
+<li><strong>port</strong> &#8211; The port used to connect to the server.</li>
+<li><strong>plugin_config</strong> &#8211; A dictionary of plugin configurations.</li>
+<li><strong>plugin_whitelist</strong> &#8211; A list of approved plugins that 
+will be loaded when calling 
+<a class="reference internal" href="basexmpp.html#sleekxmpp.basexmpp.BaseXMPP.register_plugins" title="sleekxmpp.basexmpp.BaseXMPP.register_plugins"><tt class="xref py py-meth docutils literal"><span class="pre">register_plugins()</span></tt></a>.</li>
+<li><strong>use_jc_ns</strong> &#8211; Indicates if the <tt class="docutils literal"><span class="pre">'jabber:client'</span></tt> namespace
+should be used instead of the standard
+<tt class="docutils literal"><span class="pre">'jabber:component:accept'</span></tt> namespace.
+Defaults to <tt class="docutils literal"><span class="pre">False</span></tt>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="sleekxmpp.componentxmpp.ComponentXMPP.connect">
+<tt class="descname">connect</tt><big>(</big><em>host=None</em>, <em>port=None</em>, <em>use_ssl=False</em>, <em>use_tls=True</em>, <em>reattempt=True</em><big>)</big><a class="reference internal" href="../_modules/sleekxmpp/componentxmpp.html#ComponentXMPP.connect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.componentxmpp.ComponentXMPP.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connect to the server.</p>
+<p>Setting <tt class="docutils literal"><span class="pre">reattempt</span></tt> to <tt class="docutils literal"><span class="pre">True</span></tt> will cause connection attempts to
+be made every second until a successful connection is established.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>host</strong> &#8211; The name of the desired server for the connection.
+Defaults to <tt class="xref py py-attr docutils literal"><span class="pre">server_host</span></tt>.</li>
+<li><strong>port</strong> &#8211; Port to connect to on the server.
+Defauts to <tt class="xref py py-attr docutils literal"><span class="pre">server_port</span></tt>.</li>
+<li><strong>use_ssl</strong> &#8211; Flag indicating if SSL should be used by connecting
+directly to a port using SSL.</li>
+<li><strong>use_tls</strong> &#8211; Flag indicating if TLS should be used, allowing for
+connecting to a port without using SSL immediately and
+later upgrading the connection.</li>
+<li><strong>reattempt</strong> &#8211; Flag indicating if the socket should reconnect
+after disconnections.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.componentxmpp.ComponentXMPP.incoming_filter">
+<tt class="descname">incoming_filter</tt><big>(</big><em>xml</em><big>)</big><a class="reference internal" href="../_modules/sleekxmpp/componentxmpp.html#ComponentXMPP.incoming_filter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.componentxmpp.ComponentXMPP.incoming_filter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pre-process incoming XML stanzas by converting any
+<tt class="docutils literal"><span class="pre">'jabber:client'</span></tt> namespaced elements to the component&#8217;s
+default namespace.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>xml</strong> &#8211; The XML stanza to pre-process.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.componentxmpp.ComponentXMPP.start_stream_handler">
+<tt class="descname">start_stream_handler</tt><big>(</big><em>xml</em><big>)</big><a class="reference internal" href="../_modules/sleekxmpp/componentxmpp.html#ComponentXMPP.start_stream_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.componentxmpp.ComponentXMPP.start_stream_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Once the streams are established, attempt to handshake
+with the server to be accepted as a component.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>xml</strong> &#8211; The incoming stream&#8217;s root element.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="clientxmpp.html"
+                        title="previous chapter">ClientXMPP</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="basexmpp.html"
+                        title="next chapter">BaseXMPP</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/api/componentxmpp.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="basexmpp.html" title="BaseXMPP"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="clientxmpp.html" title="ClientXMPP"
+             >previous</a> |</li>
+        <li><a href="../index.html">1.0RC3 Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Nathan Fritz, Lance Stout.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

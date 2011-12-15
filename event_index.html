@@ -1,0 +1,445 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Event Index &mdash; SleekXMPP</title>
+    
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.0RC3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="SleekXMPP" href="index.html" />
+    <link rel="next" title="ClientXMPP" href="api/clientxmpp.html" />
+    <link rel="prev" title="Plugin Architecture" href="plugin_arch.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api/clientxmpp.html" title="ClientXMPP"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="plugin_arch.html" title="Plugin Architecture"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">1.0RC3 Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="event-index">
+<h1>Event Index<a class="headerlink" href="#event-index" title="Permalink to this headline">¶</a></h1>
+<dl class="glossary docutils">
+<dt id="term-changed-status">changed_status</dt>
+<dd><ul class="first simple">
+<li><strong>Data:</strong> <tt class="xref py py-class docutils literal"><span class="pre">Presence</span></tt></li>
+<li><strong>Source:</strong> <tt class="xref py py-class docutils literal"><span class="pre">BaseXMPP</span></tt></li>
+</ul>
+<p class="last">Triggered when a presence stanza is received from a JID with a show type
+different than the last presence stanza from the same JID.</p>
+</dd>
+<dt id="term-changed-subscription">changed_subscription</dt>
+<dd><ul class="first simple">
+<li><strong>Data:</strong> <tt class="xref py py-class docutils literal"><span class="pre">Presence</span></tt></li>
+<li><strong>Source:</strong> <tt class="xref py py-class docutils literal"><span class="pre">BaseXMPP</span></tt></li>
+</ul>
+<p>Triggered whenever a presence stanza with a type of <tt class="docutils literal"><span class="pre">subscribe</span></tt>,
+<tt class="docutils literal"><span class="pre">subscribed</span></tt>, <tt class="docutils literal"><span class="pre">unsubscribe</span></tt>, or <tt class="docutils literal"><span class="pre">unsubscribed</span></tt> is received.</p>
+<p class="last">Note that if the values <tt class="docutils literal"><span class="pre">xmpp.auto_authorize</span></tt> and <tt class="docutils literal"><span class="pre">xmpp.auto_subscribe</span></tt>
+are set to <tt class="docutils literal"><span class="pre">True</span></tt> or <tt class="docutils literal"><span class="pre">False</span></tt>, and not <tt class="docutils literal"><span class="pre">None</span></tt>, then SleekXMPP will
+either accept or reject all subscription requests before your event handlers
+are called. Set these values to <tt class="docutils literal"><span class="pre">None</span></tt> if you wish to make more complex
+subscription decisions.</p>
+</dd>
+<dt id="term-chatstate-active">chatstate_active</dt>
+<dd><ul class="first last simple">
+<li><strong>Data:</strong></li>
+<li><strong>Source:</strong></li>
+</ul>
+</dd>
+<dt id="term-chatstate-composing">chatstate_composing</dt>
+<dd><ul class="first last simple">
+<li><strong>Data:</strong></li>
+<li><strong>Source:</strong></li>
+</ul>
+</dd>
+<dt id="term-chatstate-gone">chatstate_gone</dt>
+<dd><ul class="first last simple">
+<li><strong>Data:</strong></li>
+<li><strong>Source:</strong></li>
+</ul>
+</dd>
+<dt id="term-chatstate-inactive">chatstate_inactive</dt>
+<dd><ul class="first last simple">
+<li><strong>Data:</strong></li>
+<li><strong>Source:</strong></li>
+</ul>
+</dd>
+<dt id="term-chatstate-paused">chatstate_paused</dt>
+<dd><ul class="first last simple">
+<li><strong>Data:</strong></li>
+<li><strong>Source:</strong></li>
+</ul>
+</dd>
+<dt id="term-connected">connected</dt>
+<dd><ul class="first simple">
+<li><strong>Data:</strong> <tt class="docutils literal"><span class="pre">{}</span></tt></li>
+<li><strong>Source:</strong> <a class="reference internal" href="api/clientxmpp.html#sleekxmpp.clientxmpp.ClientXMPP" title="sleekxmpp.clientxmpp.ClientXMPP"><tt class="xref py py-class docutils literal"><span class="pre">ClientXMPP</span></tt></a></li>
+</ul>
+<p class="last">Signal that a connection has been made with the XMPP server, but a session
+has not yet been established.</p>
+</dd>
+<dt id="term-disco-info">disco_info</dt>
+<dd><ul class="first simple">
+<li><strong>Data:</strong> <tt class="xref py py-class docutils literal"><span class="pre">DiscoInfo</span></tt></li>
+<li><strong>Source:</strong> <tt class="xref py py-class docutils literal"><span class="pre">xep_0030</span></tt></li>
+</ul>
+<p class="last">Triggered whenever a <tt class="docutils literal"><span class="pre">disco#info</span></tt> result stanza is received.</p>
+</dd>
+<dt id="term-disco-items">disco_items</dt>
+<dd><ul class="first simple">
+<li><strong>Data:</strong> <tt class="xref py py-class docutils literal"><span class="pre">DiscoItems</span></tt></li>
+<li><strong>Source:</strong> <tt class="xref py py-class docutils literal"><span class="pre">xep_0030</span></tt></li>
+</ul>
+<p class="last">Triggered whenever a <tt class="docutils literal"><span class="pre">disco#items</span></tt> result stanza is received.</p>
+</dd>
+<dt id="term-disconnected">disconnected</dt>
+<dd><ul class="first simple">
+<li><strong>Data:</strong> <tt class="docutils literal"><span class="pre">{}</span></tt></li>
+<li><strong>Source:</strong> <tt class="xref py py-class docutils literal"><span class="pre">ClientXMPP</span></tt></li>
+</ul>
+<p class="last">Signal that the connection with the XMPP server has been lost.</p>
+</dd>
+<dt id="term-entity-time">entity_time</dt>
+<dd><ul class="first last simple">
+<li><strong>Data:</strong></li>
+<li><strong>Source:</strong></li>
+</ul>
+</dd>
+<dt id="term-failed-auth">failed_auth</dt>
+<dd><ul class="first simple">
+<li><strong>Data:</strong> <tt class="docutils literal"><span class="pre">{}</span></tt></li>
+<li><strong>Source:</strong> <tt class="xref py py-class docutils literal"><span class="pre">ClientXMPP</span></tt>, <tt class="xref py py-class docutils literal"><span class="pre">xep_0078</span></tt></li>
+</ul>
+<p class="last">Signal that the server has rejected the provided login credentials.</p>
+</dd>
+<dt id="term-gmail-messages">gmail_messages</dt>
+<dd><ul class="first simple">
+<li><strong>Data:</strong> <tt class="xref py py-class docutils literal"><span class="pre">Iq</span></tt></li>
+<li><strong>Source:</strong> <tt class="xref py py-class docutils literal"><span class="pre">gmail_notify</span></tt></li>
+</ul>
+<p class="last">Signal that there are unread emails for the Gmail account associated with the current XMPP account.</p>
+</dd>
+<dt id="term-gmail-notify">gmail_notify</dt>
+<dd><ul class="first simple">
+<li><strong>Data:</strong> <tt class="docutils literal"><span class="pre">{}</span></tt></li>
+<li><strong>Source:</strong> <tt class="xref py py-class docutils literal"><span class="pre">gmail_notify</span></tt></li>
+</ul>
+<p class="last">Signal that there are unread emails for the Gmail account associated with the current XMPP account.</p>
+</dd>
+<dt id="term-got-offline">got_offline</dt>
+<dd><ul class="first simple">
+<li><strong>Data:</strong> <tt class="xref py py-class docutils literal"><span class="pre">Presence</span></tt></li>
+<li><strong>Source:</strong> <tt class="xref py py-class docutils literal"><span class="pre">BaseXMPP</span></tt></li>
+</ul>
+<p class="last">Signal that an unavailable presence stanza has been received from a JID.</p>
+</dd>
+<dt id="term-got-online">got_online</dt>
+<dd><ul class="first simple">
+<li><strong>Data:</strong> <tt class="xref py py-class docutils literal"><span class="pre">Presence</span></tt></li>
+<li><strong>Source:</strong> <tt class="xref py py-class docutils literal"><span class="pre">BaseXMPP</span></tt></li>
+</ul>
+<p class="last">If a presence stanza is received from a JID which was previously marked as
+offline, and the presence has a show type of &#8216;<tt class="docutils literal"><span class="pre">chat</span></tt>&#8216;, &#8216;<tt class="docutils literal"><span class="pre">dnd</span></tt>&#8216;, &#8216;<tt class="docutils literal"><span class="pre">away</span></tt>&#8216;,
+or &#8216;<tt class="docutils literal"><span class="pre">xa</span></tt>&#8216;, then this event is triggered as well.</p>
+</dd>
+<dt id="term-groupchat-direct-invite">groupchat_direct_invite</dt>
+<dd><ul class="first last simple">
+<li><strong>Data:</strong> <tt class="xref py py-class docutils literal"><span class="pre">Message</span></tt></li>
+<li><strong>Source:</strong> <tt class="xref py py-class docutils literal"><span class="pre">direct</span></tt></li>
+</ul>
+</dd>
+<dt id="term-groupchat-invite">groupchat_invite</dt>
+<dd><ul class="first last simple">
+<li><strong>Data:</strong></li>
+<li><strong>Source:</strong></li>
+</ul>
+</dd>
+<dt id="term-groupchat-message">groupchat_message</dt>
+<dd><ul class="first simple">
+<li><strong>Data:</strong> <tt class="xref py py-class docutils literal"><span class="pre">Message</span></tt></li>
+<li><strong>Source:</strong> <tt class="xref py py-class docutils literal"><span class="pre">xep_0045</span></tt></li>
+</ul>
+<p class="last">Triggered whenever a message is received from a multi-user chat room.</p>
+</dd>
+<dt id="term-groupchat-presence">groupchat_presence</dt>
+<dd><ul class="first simple">
+<li><strong>Data:</strong> <tt class="xref py py-class docutils literal"><span class="pre">Presence</span></tt></li>
+<li><strong>Source:</strong> <tt class="xref py py-class docutils literal"><span class="pre">xep_0045</span></tt></li>
+</ul>
+<p class="last">Triggered whenever a presence stanza is received from a user in a multi-user chat room.</p>
+</dd>
+<dt id="term-groupchat-subject">groupchat_subject</dt>
+<dd><ul class="first simple">
+<li><strong>Data:</strong> <tt class="xref py py-class docutils literal"><span class="pre">Message</span></tt></li>
+<li><strong>Source:</strong> <tt class="xref py py-class docutils literal"><span class="pre">xep_0045</span></tt></li>
+</ul>
+<p class="last">Triggered whenever the subject of a multi-user chat room is changed, or announced when joining a room.</p>
+</dd>
+<dt id="term-killed">killed</dt>
+<dd><ul class="first last simple">
+<li><strong>Data:</strong></li>
+<li><strong>Source:</strong></li>
+</ul>
+</dd>
+<dt id="term-last-activity">last_activity</dt>
+<dd><ul class="first last simple">
+<li><strong>Data:</strong></li>
+<li><strong>Source:</strong></li>
+</ul>
+</dd>
+<dt id="term-message">message</dt>
+<dd><ul class="first simple">
+<li><strong>Data:</strong> <tt class="xref py py-class docutils literal"><span class="pre">Message</span></tt></li>
+<li><strong>Source:</strong> <tt class="xref py py-class docutils literal"><span class="pre">BaseXMPP</span></tt></li>
+</ul>
+<p class="last">Makes the contents of message stanzas available whenever one is received. Be
+sure to check the message type in order to handle error messages.</p>
+</dd>
+<dt id="term-message-form">message_form</dt>
+<dd><ul class="first simple">
+<li><strong>Data:</strong> <tt class="xref py py-class docutils literal"><span class="pre">Form</span></tt></li>
+<li><strong>Source:</strong> <tt class="xref py py-class docutils literal"><span class="pre">xep_0004</span></tt></li>
+</ul>
+<p class="last">Currently the same as <a class="reference internal" href="#term-message-xform"><em class="xref std std-term">message_xform</em></a>.</p>
+</dd>
+<dt id="term-message-xform">message_xform</dt>
+<dd><ul class="first simple">
+<li><strong>Data:</strong> <tt class="xref py py-class docutils literal"><span class="pre">Form</span></tt></li>
+<li><strong>Source:</strong> <tt class="xref py py-class docutils literal"><span class="pre">xep_0004</span></tt></li>
+</ul>
+<p class="last">Triggered whenever a data form is received inside a message.</p>
+</dd>
+<dt id="term-muc-room-got-online">muc::[room]::got_online</dt>
+<dd><ul class="first last simple">
+<li><strong>Data:</strong></li>
+<li><strong>Source:</strong></li>
+</ul>
+</dd>
+<dt id="term-muc-room-message">muc::[room]::message</dt>
+<dd><ul class="first last simple">
+<li><strong>Data:</strong></li>
+<li><strong>Source:</strong></li>
+</ul>
+</dd>
+<dt id="term-muc-room-presence">muc::[room]::presence</dt>
+<dd><ul class="first last simple">
+<li><strong>Data:</strong></li>
+<li><strong>Source:</strong></li>
+</ul>
+</dd>
+<dt id="term-mucc-room-got-offline">mucc::[room]::got_offline</dt>
+<dd><ul class="first last simple">
+<li><strong>Data:</strong></li>
+<li><strong>Source:</strong></li>
+</ul>
+</dd>
+<dt id="term-presence-available">presence_available</dt>
+<dd><ul class="first simple">
+<li><strong>Data:</strong> <tt class="xref py py-class docutils literal"><span class="pre">Presence</span></tt></li>
+<li><strong>Source:</strong> <tt class="xref py py-class docutils literal"><span class="pre">BaseXMPP</span></tt></li>
+</ul>
+<p class="last">A presence stanza with a type of &#8216;<tt class="docutils literal"><span class="pre">available</span></tt>&#8216; is received.</p>
+</dd>
+<dt id="term-presence-error">presence_error</dt>
+<dd><ul class="first simple">
+<li><strong>Data:</strong> <tt class="xref py py-class docutils literal"><span class="pre">Presence</span></tt></li>
+<li><strong>Source:</strong> <tt class="xref py py-class docutils literal"><span class="pre">BaseXMPP</span></tt></li>
+</ul>
+<p class="last">A presence stanza with a type of &#8216;<tt class="docutils literal"><span class="pre">error</span></tt>&#8216; is received.</p>
+</dd>
+<dt id="term-presence-form">presence_form</dt>
+<dd><ul class="first simple">
+<li><strong>Data:</strong> <tt class="xref py py-class docutils literal"><span class="pre">Form</span></tt></li>
+<li><strong>Source:</strong> <tt class="xref py py-class docutils literal"><span class="pre">xep_0004</span></tt></li>
+</ul>
+<p class="last">This event is present in the XEP-0004 plugin code, but is currently not used.</p>
+</dd>
+<dt id="term-presence-probe">presence_probe</dt>
+<dd><ul class="first simple">
+<li><strong>Data:</strong> <tt class="xref py py-class docutils literal"><span class="pre">Presence</span></tt></li>
+<li><strong>Source:</strong> <tt class="xref py py-class docutils literal"><span class="pre">BaseXMPP</span></tt></li>
+</ul>
+<p class="last">A presence stanza with a type of &#8216;<tt class="docutils literal"><span class="pre">probe</span></tt>&#8216; is received.</p>
+</dd>
+<dt id="term-presence-subscribe">presence_subscribe</dt>
+<dd><ul class="first simple">
+<li><strong>Data:</strong> <tt class="xref py py-class docutils literal"><span class="pre">Presence</span></tt></li>
+<li><strong>Source:</strong> <tt class="xref py py-class docutils literal"><span class="pre">BaseXMPP</span></tt></li>
+</ul>
+<p class="last">A presence stanza with a type of &#8216;<tt class="docutils literal"><span class="pre">subscribe</span></tt>&#8216; is received.</p>
+</dd>
+<dt id="term-presence-subscribed">presence_subscribed</dt>
+<dd><ul class="first simple">
+<li><strong>Data:</strong> <tt class="xref py py-class docutils literal"><span class="pre">Presence</span></tt></li>
+<li><strong>Source:</strong> <tt class="xref py py-class docutils literal"><span class="pre">BaseXMPP</span></tt></li>
+</ul>
+<p class="last">A presence stanza with a type of &#8216;<tt class="docutils literal"><span class="pre">subscribed</span></tt>&#8216; is received.</p>
+</dd>
+<dt id="term-presence-unavailable">presence_unavailable</dt>
+<dd><ul class="first simple">
+<li><strong>Data:</strong> <tt class="xref py py-class docutils literal"><span class="pre">Presence</span></tt></li>
+<li><strong>Source:</strong> <tt class="xref py py-class docutils literal"><span class="pre">BaseXMPP</span></tt></li>
+</ul>
+<p class="last">A presence stanza with a type of &#8216;<tt class="docutils literal"><span class="pre">unavailable</span></tt>&#8216; is received.</p>
+</dd>
+<dt id="term-presence-unsubscribe">presence_unsubscribe</dt>
+<dd><ul class="first simple">
+<li><strong>Data:</strong> <tt class="xref py py-class docutils literal"><span class="pre">Presence</span></tt></li>
+<li><strong>Source:</strong> <tt class="xref py py-class docutils literal"><span class="pre">BaseXMPP</span></tt></li>
+</ul>
+<p class="last">A presence stanza with a type of &#8216;<tt class="docutils literal"><span class="pre">unsubscribe</span></tt>&#8216; is received.</p>
+</dd>
+<dt id="term-presence-unsubscribed">presence_unsubscribed</dt>
+<dd><ul class="first simple">
+<li><strong>Data:</strong> <tt class="xref py py-class docutils literal"><span class="pre">Presence</span></tt></li>
+<li><strong>Source:</strong> <tt class="xref py py-class docutils literal"><span class="pre">BaseXMPP</span></tt></li>
+</ul>
+<p class="last">A presence stanza with a type of &#8216;<tt class="docutils literal"><span class="pre">unsubscribed</span></tt>&#8216; is received.</p>
+</dd>
+<dt id="term-roster-update">roster_update</dt>
+<dd><ul class="first simple">
+<li><strong>Data:</strong> <tt class="xref py py-class docutils literal"><span class="pre">Roster</span></tt></li>
+<li><strong>Source:</strong> <tt class="xref py py-class docutils literal"><span class="pre">ClientXMPP</span></tt></li>
+</ul>
+<p class="last">An IQ result containing roster entries is received.</p>
+</dd>
+<dt id="term-sent-presence">sent_presence</dt>
+<dd><ul class="first simple">
+<li><strong>Data:</strong> <tt class="docutils literal"><span class="pre">{}</span></tt></li>
+<li><strong>Source:</strong> <tt class="xref py py-class docutils literal"><span class="pre">BaseXMPP</span></tt></li>
+</ul>
+<p class="last">Signal that an initial presence stanza has been written to the XML stream.</p>
+</dd>
+<dt id="term-session-end">session_end</dt>
+<dd><ul class="first simple">
+<li><strong>Data:</strong> <tt class="docutils literal"><span class="pre">{}</span></tt></li>
+<li><strong>Source:</strong> <tt class="xref py py-class docutils literal"><span class="pre">ClientXMPP</span></tt>,
+<tt class="xref py py-class docutils literal"><span class="pre">ComponentXMPP</span></tt>
+<tt class="xref py py-class docutils literal"><span class="pre">XEP-0078</span></tt></li>
+</ul>
+<p>Signal that a connection to the XMPP server has been lost and the current
+stream session has ended. Currently equivalent to <a class="reference internal" href="#term-disconnected"><em class="xref std std-term">disconnected</em></a>, but
+future implementation of <a class="reference external" href="http://xmpp.org/extensions/xep-0198.html">XEP-0198: Stream Management</a>
+will distinguish the two events.</p>
+<p class="last">Plugins that maintain session-based state should clear themselves when
+this event is fired.</p>
+</dd>
+<dt id="term-session-start">session_start</dt>
+<dd><ul class="first simple">
+<li><strong>Data:</strong> <tt class="docutils literal"><span class="pre">{}</span></tt></li>
+<li><strong>Source:</strong> <tt class="xref py py-class docutils literal"><span class="pre">ClientXMPP</span></tt>,
+<tt class="xref py py-class docutils literal"><span class="pre">ComponentXMPP</span></tt>
+<tt class="xref py py-class docutils literal"><span class="pre">XEP-0078</span></tt></li>
+</ul>
+<p class="last">Signal that a connection to the XMPP server has been made and a session has been established.</p>
+</dd>
+<dt id="term-socket-error">socket_error</dt>
+<dd><ul class="first last simple">
+<li><strong>Data:</strong> <tt class="docutils literal"><span class="pre">Socket</span></tt> exception object</li>
+<li><strong>Source:</strong> <tt class="xref py py-class docutils literal"><span class="pre">XMLstream</span></tt></li>
+</ul>
+</dd>
+<dt id="term-stream-error">stream_error</dt>
+<dd><ul class="first last simple">
+<li><strong>Data:</strong> <tt class="xref py py-class docutils literal"><span class="pre">StreamError</span></tt></li>
+<li><strong>Source:</strong> <tt class="xref py py-class docutils literal"><span class="pre">BaseXMPP</span></tt></li>
+</ul>
+</dd>
+</dl>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="plugin_arch.html"
+                        title="previous chapter">Plugin Architecture</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api/clientxmpp.html"
+                        title="next chapter">ClientXMPP</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/event_index.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api/clientxmpp.html" title="ClientXMPP"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="plugin_arch.html" title="Plugin Architecture"
+             >previous</a> |</li>
+        <li><a href="index.html">1.0RC3 Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Nathan Fritz, Lance Stout.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

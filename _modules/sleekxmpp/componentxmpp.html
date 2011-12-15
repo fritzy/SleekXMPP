@@ -1,0 +1,255 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>sleekxmpp.componentxmpp &mdash; SleekXMPP</title>
+    
+    <link rel="stylesheet" href="../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0RC3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="SleekXMPP" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">1.0RC3 Documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for sleekxmpp.componentxmpp</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    sleekxmpp.clientxmpp</span>
+<span class="sd">    ~~~~~~~~~~~~~~~~~~~~</span>
+
+<span class="sd">    This module provides XMPP functionality that</span>
+<span class="sd">    is specific to external server component connections.</span>
+
+<span class="sd">    Part of SleekXMPP: The Sleek XMPP Library</span>
+
+<span class="sd">    :copyright: (c) 2011 Nathanael C. Fritz</span>
+<span class="sd">    :license: MIT, see LICENSE for more details</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">base64</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">hashlib</span>
+
+<span class="kn">from</span> <span class="nn">sleekxmpp</span> <span class="kn">import</span> <span class="n">plugins</span>
+<span class="kn">from</span> <span class="nn">sleekxmpp</span> <span class="kn">import</span> <span class="n">stanza</span>
+<span class="kn">from</span> <span class="nn">sleekxmpp.basexmpp</span> <span class="kn">import</span> <span class="n">BaseXMPP</span>
+<span class="kn">from</span> <span class="nn">sleekxmpp.xmlstream</span> <span class="kn">import</span> <span class="n">XMLStream</span><span class="p">,</span> <span class="n">RestartStream</span>
+<span class="kn">from</span> <span class="nn">sleekxmpp.xmlstream</span> <span class="kn">import</span> <span class="n">StanzaBase</span><span class="p">,</span> <span class="n">ET</span>
+<span class="kn">from</span> <span class="nn">sleekxmpp.xmlstream.matcher</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">sleekxmpp.xmlstream.handler</span> <span class="kn">import</span> <span class="o">*</span>
+
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ComponentXMPP"><a class="viewcode-back" href="../../api/componentxmpp.html#sleekxmpp.componentxmpp.ComponentXMPP">[docs]</a><span class="k">class</span> <span class="nc">ComponentXMPP</span><span class="p">(</span><span class="n">BaseXMPP</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    SleekXMPP&#39;s basic XMPP server component.</span>
+
+<span class="sd">    Use only for good, not for evil.</span>
+
+<span class="sd">    :param jid: The JID of the component.</span>
+<span class="sd">    :param secret: The secret or password for the component.</span>
+<span class="sd">    :param host: The server accepting the component.</span>
+<span class="sd">    :param port: The port used to connect to the server.</span>
+<span class="sd">    :param plugin_config: A dictionary of plugin configurations.</span>
+<span class="sd">    :param plugin_whitelist: A list of approved plugins that </span>
+<span class="sd">                    will be loaded when calling </span>
+<span class="sd">                    :meth:`~sleekxmpp.basexmpp.BaseXMPP.register_plugins()`.</span>
+<span class="sd">    :param use_jc_ns: Indicates if the ``&#39;jabber:client&#39;`` namespace</span>
+<span class="sd">                      should be used instead of the standard</span>
+<span class="sd">                      ``&#39;jabber:component:accept&#39;`` namespace.</span>
+<span class="sd">                      Defaults to ``False``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jid</span><span class="p">,</span> <span class="n">secret</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">plugin_config</span><span class="o">=</span><span class="p">{},</span> <span class="n">plugin_whitelist</span><span class="o">=</span><span class="p">[],</span> <span class="n">use_jc_ns</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">use_jc_ns</span><span class="p">:</span>
+            <span class="n">default_ns</span> <span class="o">=</span> <span class="s">&#39;jabber:client&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">default_ns</span> <span class="o">=</span> <span class="s">&#39;jabber:component:accept&#39;</span>
+        <span class="n">BaseXMPP</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jid</span><span class="p">,</span> <span class="n">default_ns</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">auto_authorize</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stream_header</span> <span class="o">=</span> <span class="s">&quot;&lt;stream:stream </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> to=&#39;</span><span class="si">%s</span><span class="s">&#39;&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="s">&#39;xmlns=&quot;jabber:component:accept&quot;&#39;</span><span class="p">,</span>
+                <span class="s">&#39;xmlns:stream=&quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream_ns</span><span class="p">,</span>
+                <span class="n">jid</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stream_footer</span> <span class="o">=</span> <span class="s">&quot;&lt;/stream:stream&gt;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">server_host</span> <span class="o">=</span> <span class="n">host</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">server_port</span> <span class="o">=</span> <span class="n">port</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">secret</span> <span class="o">=</span> <span class="n">secret</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">plugin_config</span> <span class="o">=</span> <span class="n">plugin_config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plugin_whitelist</span> <span class="o">=</span> <span class="n">plugin_whitelist</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_component</span> <span class="o">=</span> <span class="bp">True</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_handler</span><span class="p">(</span>
+                <span class="n">Callback</span><span class="p">(</span><span class="s">&#39;Handshake&#39;</span><span class="p">,</span>
+                         <span class="n">MatchXPath</span><span class="p">(</span><span class="s">&#39;{jabber:component:accept}handshake&#39;</span><span class="p">),</span>
+                         <span class="bp">self</span><span class="o">.</span><span class="n">_handle_handshake</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_event_handler</span><span class="p">(</span><span class="s">&#39;presence_probe&#39;</span><span class="p">,</span>
+                               <span class="bp">self</span><span class="o">.</span><span class="n">_handle_probe</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ComponentXMPP.connect"><a class="viewcode-back" href="../../api/componentxmpp.html#sleekxmpp.componentxmpp.ComponentXMPP.connect">[docs]</a>    <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">use_ssl</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> 
+                      <span class="n">use_tls</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">reattempt</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Connect to the server.</span>
+
+<span class="sd">        Setting ``reattempt`` to ``True`` will cause connection attempts to</span>
+<span class="sd">        be made every second until a successful connection is established.</span>
+
+<span class="sd">        :param host: The name of the desired server for the connection.</span>
+<span class="sd">                     Defaults to :attr:`server_host`.</span>
+<span class="sd">        :param port: Port to connect to on the server.</span>
+<span class="sd">                     Defauts to :attr:`server_port`.</span>
+<span class="sd">        :param use_ssl: Flag indicating if SSL should be used by connecting</span>
+<span class="sd">                        directly to a port using SSL.</span>
+<span class="sd">        :param use_tls: Flag indicating if TLS should be used, allowing for</span>
+<span class="sd">                        connecting to a port without using SSL immediately and</span>
+<span class="sd">                        later upgrading the connection.</span>
+<span class="sd">        :param reattempt: Flag indicating if the socket should reconnect</span>
+<span class="sd">                          after disconnections.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">host</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">host</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server_host</span>
+        <span class="k">if</span> <span class="n">port</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">port</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server_port</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Connecting to </span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">XMLStream</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">port</span><span class="p">,</span>
+                                       <span class="n">use_ssl</span><span class="o">=</span><span class="n">use_ssl</span><span class="p">,</span>
+                                       <span class="n">use_tls</span><span class="o">=</span><span class="n">use_tls</span><span class="p">,</span>
+                                       <span class="n">reattempt</span><span class="o">=</span><span class="n">reattempt</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ComponentXMPP.incoming_filter"><a class="viewcode-back" href="../../api/componentxmpp.html#sleekxmpp.componentxmpp.ComponentXMPP.incoming_filter">[docs]</a>    <span class="k">def</span> <span class="nf">incoming_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Pre-process incoming XML stanzas by converting any</span>
+<span class="sd">        ``&#39;jabber:client&#39;`` namespaced elements to the component&#39;s</span>
+<span class="sd">        default namespace.</span>
+
+<span class="sd">        :param xml: The XML stanza to pre-process.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">xml</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;{jabber:client}&#39;</span><span class="p">):</span>
+            <span class="n">xml</span><span class="o">.</span><span class="n">tag</span> <span class="o">=</span> <span class="n">xml</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;jabber:client&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_ns</span><span class="p">)</span>
+
+        <span class="c"># The incoming_filter call is only made on top level stanza</span>
+        <span class="c"># elements. So we manually continue filtering on sub-elements.</span>
+        <span class="k">for</span> <span class="n">sub</span> <span class="ow">in</span> <span class="n">xml</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">incoming_filter</span><span class="p">(</span><span class="n">sub</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">xml</span>
+</div>
+<div class="viewcode-block" id="ComponentXMPP.start_stream_handler"><a class="viewcode-back" href="../../api/componentxmpp.html#sleekxmpp.componentxmpp.ComponentXMPP.start_stream_handler">[docs]</a>    <span class="k">def</span> <span class="nf">start_stream_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Once the streams are established, attempt to handshake</span>
+<span class="sd">        with the server to be accepted as a component.</span>
+
+<span class="sd">        :param xml: The incoming stream&#39;s root element.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">BaseXMPP</span><span class="o">.</span><span class="n">start_stream_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">)</span>
+
+        <span class="c"># Construct a hash of the stream ID and the component secret.</span>
+        <span class="n">sid</span> <span class="o">=</span> <span class="n">xml</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">pre_hash</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">secret</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="c"># Handle Unicode byte encoding in Python 3.</span>
+            <span class="n">pre_hash</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">pre_hash</span><span class="p">,</span> <span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
+
+        <span class="n">handshake</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s">&#39;{jabber:component:accept}handshake&#39;</span><span class="p">)</span>
+        <span class="n">handshake</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha1</span><span class="p">(</span><span class="n">pre_hash</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">send_xml</span><span class="p">(</span><span class="n">handshake</span><span class="p">,</span> <span class="n">now</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</div>
+    <span class="k">def</span> <span class="nf">_handle_handshake</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The handshake has been accepted.</span>
+
+<span class="sd">        :param xml: The reply handshake stanza.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session_started_event</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">event</span><span class="p">(</span><span class="s">&quot;session_start&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_handle_probe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">presence</span><span class="p">):</span>
+        <span class="n">pto</span> <span class="o">=</span> <span class="n">presence</span><span class="p">[</span><span class="s">&#39;to&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">bare</span>
+        <span class="n">pfrom</span> <span class="o">=</span> <span class="n">presence</span><span class="p">[</span><span class="s">&#39;from&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">bare</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">roster</span><span class="p">[</span><span class="n">pto</span><span class="p">][</span><span class="n">pfrom</span><span class="p">]</span><span class="o">.</span><span class="n">handle_probe</span><span class="p">(</span><span class="n">presence</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">1.0RC3 Documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Nathan Fritz, Lance Stout.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

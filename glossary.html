@@ -1,0 +1,142 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Glossary &mdash; SleekXMPP</title>
+    
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.0RC3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="SleekXMPP" href="index.html" />
+    <link rel="next" title="License (MIT)" href="license.html" />
+    <link rel="prev" title="Python 2.6 File Socket Shims" href="api/xmlstream/filesocket.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="license.html" title="License (MIT)"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="api/xmlstream/filesocket.html" title="Python 2.6 File Socket Shims"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">1.0RC3 Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="glossary">
+<span id="id1"></span><h1>Glossary<a class="headerlink" href="#glossary" title="Permalink to this headline">¶</a></h1>
+<dl class="glossary docutils">
+<dt id="term-event-handler">event handler</dt>
+<dd>A callback function that responds to events raised by
+<tt class="docutils literal"><span class="pre">XMLStream.event</span></tt>. An event handler may be marked as
+threaded, allowing it to execute outside of the main processing
+loop.</dd>
+<dt id="term-stanza-object">stanza object</dt>
+<dd><p class="first">Informally may refer both to classes which extend <tt class="docutils literal"><span class="pre">ElementBase</span></tt>
+or <tt class="docutils literal"><span class="pre">StanzaBase</span></tt>, and to objects of such classes.</p>
+<p class="last">A stanza object is a wrapper for an XML object which exposes <tt class="docutils literal"><span class="pre">dict</span></tt>
+like interfaces which may be assigned to, read from, or deleted.</p>
+</dd>
+<dt id="term-stanza-plugin">stanza plugin</dt>
+<dd>A <a class="reference internal" href="#term-stanza-object"><em class="xref std std-term">stanza object</em></a> which has been registered as a potential child
+of another stanza object. The plugin stanza may accessed through the
+parent stanza using the plugin&#8217;s <tt class="docutils literal"><span class="pre">plugin_attrib</span></tt> as an interface.</dd>
+<dt id="term-stream-handler">stream handler</dt>
+<dd>A callback function that accepts stanza objects pulled directly
+from the XML stream. A stream handler is encapsulated in a
+object that includes a <em class="xref std std-term">Matcher</em> object, and which provides
+additional semantics. For example, the <tt class="docutils literal"><span class="pre">Waiter</span></tt> handler wrapper
+blocks thread execution until a matching stanza is received.</dd>
+<dt id="term-substanza">substanza</dt>
+<dd>See <a class="reference internal" href="#term-stanza-plugin"><em class="xref std std-term">stanza plugin</em></a></dd>
+</dl>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="api/xmlstream/filesocket.html"
+                        title="previous chapter">Python 2.6 File Socket Shims</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="license.html"
+                        title="next chapter">License (MIT)</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/glossary.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="license.html" title="License (MIT)"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="api/xmlstream/filesocket.html" title="Python 2.6 File Socket Shims"
+             >previous</a> |</li>
+        <li><a href="index.html">1.0RC3 Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Nathan Fritz, Lance Stout.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

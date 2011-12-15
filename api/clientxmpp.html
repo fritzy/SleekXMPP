@@ -1,0 +1,400 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ClientXMPP &mdash; SleekXMPP</title>
+    
+    <link rel="stylesheet" href="../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0RC3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="SleekXMPP" href="../index.html" />
+    <link rel="next" title="ComponentXMPP" href="componentxmpp.html" />
+    <link rel="prev" title="Event Index" href="../event_index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="componentxmpp.html" title="ComponentXMPP"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../event_index.html" title="Event Index"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">1.0RC3 Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-sleekxmpp.clientxmpp">
+<span id="clientxmpp"></span><h1>ClientXMPP<a class="headerlink" href="#module-sleekxmpp.clientxmpp" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="sleekxmpp.clientxmpp.ClientXMPP">
+<em class="property">class </em><tt class="descclassname">sleekxmpp.clientxmpp.</tt><tt class="descname">ClientXMPP</tt><big>(</big><em>jid</em>, <em>password</em>, <em>ssl=False</em>, <em>plugin_config={}</em>, <em>plugin_whitelist=</em><span class="optional">[</span><span class="optional">]</span>, <em>escape_quotes=True</em>, <em>sasl_mech=None</em><big>)</big><a class="reference internal" href="../_modules/sleekxmpp/clientxmpp.html#ClientXMPP"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.clientxmpp.ClientXMPP" title="Permalink to this definition">¶</a></dt>
+<dd><p>SleekXMPP&#8217;s client class. (Use only for good, not for evil.)</p>
+<p>Typical use pattern:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">xmpp</span> <span class="o">=</span> <span class="n">ClientXMPP</span><span class="p">(</span><span class="s">&#39;user@server.tld/resource&#39;</span><span class="p">,</span> <span class="s">&#39;password&#39;</span><span class="p">)</span>
+<span class="c"># ... Register plugins and event handlers ...</span>
+<span class="n">xmpp</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+<span class="n">xmpp</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span> <span class="c"># block=True will block the current</span>
+                          <span class="c"># thread. By default, block=False</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>jid</strong> &#8211; The JID of the XMPP user account.</li>
+<li><strong>password</strong> &#8211; The password for the XMPP user account.</li>
+<li><strong>ssl</strong> &#8211; <strong>Deprecated.</strong></li>
+<li><strong>plugin_config</strong> &#8211; A dictionary of plugin configurations.</li>
+<li><strong>plugin_whitelist</strong> &#8211; A list of approved plugins that 
+will be loaded when calling 
+<a class="reference internal" href="basexmpp.html#sleekxmpp.basexmpp.BaseXMPP.register_plugins" title="sleekxmpp.basexmpp.BaseXMPP.register_plugins"><tt class="xref py py-meth docutils literal"><span class="pre">register_plugins()</span></tt></a>.</li>
+<li><strong>escape_quotes</strong> &#8211; <strong>Deprecated.</strong></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="sleekxmpp.clientxmpp.ClientXMPP.connect">
+<tt class="descname">connect</tt><big>(</big><em>address=()</em>, <em>reattempt=True</em>, <em>use_tls=True</em>, <em>use_ssl=False</em><big>)</big><a class="reference internal" href="../_modules/sleekxmpp/clientxmpp.html#ClientXMPP.connect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.clientxmpp.ClientXMPP.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connect to the XMPP server.</p>
+<p>When no address is given, a SRV lookup for the server will
+be attempted. If that fails, the server user in the JID
+will be used.</p>
+<p>:param address   &#8211; A tuple containing the server&#8217;s host and port.
+:param reattempt: If <tt class="docutils literal"><span class="pre">True</span></tt>, repeat attempting to connect if an</p>
+<blockquote>
+<div>error occurs. Defaults to <tt class="docutils literal"><span class="pre">True</span></tt>.</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>use_tls</strong> &#8211; Indicates if TLS should be used for the
+connection. Defaults to <tt class="docutils literal"><span class="pre">True</span></tt>.</li>
+<li><strong>use_ssl</strong> &#8211; Indicates if the older SSL connection method
+should be used. Defaults to <tt class="docutils literal"><span class="pre">False</span></tt>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.clientxmpp.ClientXMPP.delRosterItem">
+<tt class="descname">delRosterItem</tt><big>(</big><em>jid</em><big>)</big><a class="headerlink" href="#sleekxmpp.clientxmpp.ClientXMPP.delRosterItem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove an item from the roster.</p>
+<p>This is done by setting its subscription status to <tt class="docutils literal"><span class="pre">'remove'</span></tt>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>jid</strong> &#8211; The JID of the item to remove.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.clientxmpp.ClientXMPP.del_roster_item">
+<tt class="descname">del_roster_item</tt><big>(</big><em>jid</em><big>)</big><a class="reference internal" href="../_modules/sleekxmpp/clientxmpp.html#ClientXMPP.del_roster_item"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.clientxmpp.ClientXMPP.del_roster_item" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove an item from the roster.</p>
+<p>This is done by setting its subscription status to <tt class="docutils literal"><span class="pre">'remove'</span></tt>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>jid</strong> &#8211; The JID of the item to remove.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.clientxmpp.ClientXMPP.getRoster">
+<tt class="descname">getRoster</tt><big>(</big><em>block=True</em>, <em>timeout=None</em>, <em>callback=None</em><big>)</big><a class="headerlink" href="#sleekxmpp.clientxmpp.ClientXMPP.getRoster" title="Permalink to this definition">¶</a></dt>
+<dd><p>Request the roster from the server.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>block</strong> &#8211; Specify if the roster request will block until a
+response is received, or a timeout occurs.
+Defaults to <tt class="docutils literal"><span class="pre">True</span></tt>.</li>
+<li><strong>timeout</strong> &#8211; <dl class="docutils">
+<dt>The length of time (in seconds) to wait for a response</dt>
+<dd>before continuing if blocking is used.
+Defaults to</dd>
+</dl>
+<p><a class="reference internal" href="xmlstream/xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream.response_timeout" title="sleekxmpp.xmlstream.xmlstream.XMLStream.response_timeout"><tt class="xref py py-attr docutils literal"><span class="pre">response_timeout</span></tt></a>.</p>
+</li>
+<li><strong>callback</strong> &#8211; Optional reference to a stream handler function. Will
+be executed when the roster is received.
+Implies <tt class="docutils literal"><span class="pre">block=False</span></tt>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.clientxmpp.ClientXMPP.get_dns_records">
+<tt class="descname">get_dns_records</tt><big>(</big><em>domain</em>, <em>port=None</em><big>)</big><a class="reference internal" href="../_modules/sleekxmpp/clientxmpp.html#ClientXMPP.get_dns_records"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.clientxmpp.ClientXMPP.get_dns_records" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the DNS records for a domain, including SRV records.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>domain</strong> &#8211; The domain in question.</li>
+<li><strong>port</strong> &#8211; If the results don&#8217;t include a port, use this one.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.clientxmpp.ClientXMPP.get_roster">
+<tt class="descname">get_roster</tt><big>(</big><em>block=True</em>, <em>timeout=None</em>, <em>callback=None</em><big>)</big><a class="reference internal" href="../_modules/sleekxmpp/clientxmpp.html#ClientXMPP.get_roster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.clientxmpp.ClientXMPP.get_roster" title="Permalink to this definition">¶</a></dt>
+<dd><p>Request the roster from the server.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>block</strong> &#8211; Specify if the roster request will block until a
+response is received, or a timeout occurs.
+Defaults to <tt class="docutils literal"><span class="pre">True</span></tt>.</li>
+<li><strong>timeout</strong> &#8211; <dl class="docutils">
+<dt>The length of time (in seconds) to wait for a response</dt>
+<dd>before continuing if blocking is used.
+Defaults to</dd>
+</dl>
+<p><a class="reference internal" href="xmlstream/xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream.response_timeout" title="sleekxmpp.xmlstream.xmlstream.XMLStream.response_timeout"><tt class="xref py py-attr docutils literal"><span class="pre">response_timeout</span></tt></a>.</p>
+</li>
+<li><strong>callback</strong> &#8211; Optional reference to a stream handler function. Will
+be executed when the roster is received.
+Implies <tt class="docutils literal"><span class="pre">block=False</span></tt>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.clientxmpp.ClientXMPP.registerFeature">
+<tt class="descname">registerFeature</tt><big>(</big><em>name</em>, <em>handler</em>, <em>restart=False</em>, <em>order=5000</em><big>)</big><a class="headerlink" href="#sleekxmpp.clientxmpp.ClientXMPP.registerFeature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register a stream feature handler.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> &#8211; The name of the stream feature.</li>
+<li><strong>handler</strong> &#8211; The function to execute if the feature is received.</li>
+<li><strong>restart</strong> &#8211; Indicates if feature processing should halt with
+this feature. Defaults to <tt class="docutils literal"><span class="pre">False</span></tt>.</li>
+<li><strong>order</strong> &#8211; The relative ordering in which the feature should
+be negotiated. Lower values will be attempted
+earlier when available.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.clientxmpp.ClientXMPP.register_feature">
+<tt class="descname">register_feature</tt><big>(</big><em>name</em>, <em>handler</em>, <em>restart=False</em>, <em>order=5000</em><big>)</big><a class="reference internal" href="../_modules/sleekxmpp/clientxmpp.html#ClientXMPP.register_feature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.clientxmpp.ClientXMPP.register_feature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register a stream feature handler.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> &#8211; The name of the stream feature.</li>
+<li><strong>handler</strong> &#8211; The function to execute if the feature is received.</li>
+<li><strong>restart</strong> &#8211; Indicates if feature processing should halt with
+this feature. Defaults to <tt class="docutils literal"><span class="pre">False</span></tt>.</li>
+<li><strong>order</strong> &#8211; The relative ordering in which the feature should
+be negotiated. Lower values will be attempted
+earlier when available.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.clientxmpp.ClientXMPP.updateRoster">
+<tt class="descname">updateRoster</tt><big>(</big><em>jid</em>, <em>name=None</em>, <em>subscription=None</em>, <em>groups=</em><span class="optional">[</span><span class="optional">]</span>, <em>block=True</em>, <em>timeout=None</em>, <em>callback=None</em><big>)</big><a class="headerlink" href="#sleekxmpp.clientxmpp.ClientXMPP.updateRoster" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add or change a roster item.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>jid</strong> &#8211; The JID of the entry to modify.</li>
+<li><strong>name</strong> &#8211; The user&#8217;s nickname for this JID.</li>
+<li><strong>subscription</strong> &#8211; The subscription status. May be one of
+<tt class="docutils literal"><span class="pre">'to'</span></tt>, <tt class="docutils literal"><span class="pre">'from'</span></tt>, <tt class="docutils literal"><span class="pre">'both'</span></tt>, or
+<tt class="docutils literal"><span class="pre">'none'</span></tt>. If set to <tt class="docutils literal"><span class="pre">'remove'</span></tt>,
+the entry will be deleted.</li>
+<li><strong>groups</strong> &#8211; The roster groups that contain this item.</li>
+<li><strong>block</strong> &#8211; Specify if the roster request will block
+until a response is received, or a timeout
+occurs. Defaults to <tt class="docutils literal"><span class="pre">True</span></tt>.</li>
+<li><strong>timeout</strong> &#8211; <dl class="docutils">
+<dt>The length of time (in seconds) to wait</dt>
+<dd>for a response before continuing if blocking
+is used. Defaults to</dd>
+</dl>
+<p><a class="reference internal" href="xmlstream/xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream.response_timeout" title="sleekxmpp.xmlstream.xmlstream.XMLStream.response_timeout"><tt class="xref py py-attr docutils literal"><span class="pre">response_timeout</span></tt></a>.</p>
+</li>
+<li><strong>callback</strong> &#8211; Optional reference to a stream handler function.
+Will be executed when the roster is received.
+Implies <tt class="docutils literal"><span class="pre">block=False</span></tt>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sleekxmpp.clientxmpp.ClientXMPP.update_roster">
+<tt class="descname">update_roster</tt><big>(</big><em>jid</em>, <em>name=None</em>, <em>subscription=None</em>, <em>groups=</em><span class="optional">[</span><span class="optional">]</span>, <em>block=True</em>, <em>timeout=None</em>, <em>callback=None</em><big>)</big><a class="reference internal" href="../_modules/sleekxmpp/clientxmpp.html#ClientXMPP.update_roster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.clientxmpp.ClientXMPP.update_roster" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add or change a roster item.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>jid</strong> &#8211; The JID of the entry to modify.</li>
+<li><strong>name</strong> &#8211; The user&#8217;s nickname for this JID.</li>
+<li><strong>subscription</strong> &#8211; The subscription status. May be one of
+<tt class="docutils literal"><span class="pre">'to'</span></tt>, <tt class="docutils literal"><span class="pre">'from'</span></tt>, <tt class="docutils literal"><span class="pre">'both'</span></tt>, or
+<tt class="docutils literal"><span class="pre">'none'</span></tt>. If set to <tt class="docutils literal"><span class="pre">'remove'</span></tt>,
+the entry will be deleted.</li>
+<li><strong>groups</strong> &#8211; The roster groups that contain this item.</li>
+<li><strong>block</strong> &#8211; Specify if the roster request will block
+until a response is received, or a timeout
+occurs. Defaults to <tt class="docutils literal"><span class="pre">True</span></tt>.</li>
+<li><strong>timeout</strong> &#8211; <dl class="docutils">
+<dt>The length of time (in seconds) to wait</dt>
+<dd>for a response before continuing if blocking
+is used. Defaults to</dd>
+</dl>
+<p><a class="reference internal" href="xmlstream/xmlstream.html#sleekxmpp.xmlstream.xmlstream.XMLStream.response_timeout" title="sleekxmpp.xmlstream.xmlstream.XMLStream.response_timeout"><tt class="xref py py-attr docutils literal"><span class="pre">response_timeout</span></tt></a>.</p>
+</li>
+<li><strong>callback</strong> &#8211; Optional reference to a stream handler function.
+Will be executed when the roster is received.
+Implies <tt class="docutils literal"><span class="pre">block=False</span></tt>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../event_index.html"
+                        title="previous chapter">Event Index</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="componentxmpp.html"
+                        title="next chapter">ComponentXMPP</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/api/clientxmpp.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="componentxmpp.html" title="ComponentXMPP"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../event_index.html" title="Event Index"
+             >previous</a> |</li>
+        <li><a href="../index.html">1.0RC3 Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Nathan Fritz, Lance Stout.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

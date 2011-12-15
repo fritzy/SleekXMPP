@@ -1,0 +1,179 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>sleekxmpp.xmlstream.matcher.xpath &mdash; SleekXMPP</title>
+    
+    <link rel="stylesheet" href="../../../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '1.0RC3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="SleekXMPP" href="../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">1.0RC3 Documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for sleekxmpp.xmlstream.matcher.xpath</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    sleekxmpp.xmlstream.matcher.xpath</span>
+<span class="sd">    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+
+<span class="sd">    Part of SleekXMPP: The Sleek XMPP Library</span>
+
+<span class="sd">    :copyright: (c) 2011 Nathanael C. Fritz</span>
+<span class="sd">    :license: MIT, see LICENSE for more details</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">sleekxmpp.xmlstream.stanzabase</span> <span class="kn">import</span> <span class="n">ET</span>
+<span class="kn">from</span> <span class="nn">sleekxmpp.xmlstream.matcher.base</span> <span class="kn">import</span> <span class="n">MatcherBase</span>
+
+
+<span class="c"># Flag indicating if the builtin XPath matcher should be used, which</span>
+<span class="c"># uses namespaces, or a custom matcher that ignores namespaces.</span>
+<span class="c"># Changing this will affect ALL XPath matchers.</span>
+<span class="n">IGNORE_NS</span> <span class="o">=</span> <span class="bp">False</span>
+
+
+<div class="viewcode-block" id="MatchXPath"><a class="viewcode-back" href="../../../../api/xmlstream/matcher.html#sleekxmpp.xmlstream.matcher.xpath.MatchXPath">[docs]</a><span class="k">class</span> <span class="nc">MatchXPath</span><span class="p">(</span><span class="n">MatcherBase</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The XPath matcher selects stanzas whose XML contents matches a given</span>
+<span class="sd">    XPath expression.</span>
+
+<span class="sd">    .. warning::</span>
+
+<span class="sd">        Using this matcher may not produce expected behavior when using</span>
+<span class="sd">        attribute selectors. For Python 2.6 and 3.1, the ElementTree</span>
+<span class="sd">        :meth:`~xml.etree.ElementTree.Element.find()` method does</span>
+<span class="sd">        not support the use of attribute selectors. If you need to</span>
+<span class="sd">        support Python 2.6 or 3.1, it might be more useful to use a</span>
+<span class="sd">        :class:`~sleekxmpp.xmlstream.matcher.stanzapath.StanzaPath` matcher.</span>
+
+<span class="sd">    If the value of :data:`IGNORE_NS` is set to ``True``, then XPath</span>
+<span class="sd">    expressions will be matched without using namespaces.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="MatchXPath.match"><a class="viewcode-back" href="../../../../api/xmlstream/matcher.html#sleekxmpp.xmlstream.matcher.xpath.MatchXPath.match">[docs]</a>    <span class="k">def</span> <span class="nf">match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compare a stanza&#39;s XML contents to an XPath expression.</span>
+
+<span class="sd">        If the value of :data:`IGNORE_NS` is set to ``True``, then XPath</span>
+<span class="sd">        expressions will be matched without using namespaces.</span>
+
+<span class="sd">        .. warning::</span>
+
+<span class="sd">            In Python 2.6 and 3.1 the ElementTree</span>
+<span class="sd">            :meth:`~xml.etree.ElementTree.Element.find()` method does not</span>
+<span class="sd">            support attribute selectors in the XPath expression.</span>
+
+<span class="sd">        :param xml: The :class:`~sleekxmpp.xmlstream.stanzabase.ElementBase`</span>
+<span class="sd">                    stanza to compare against.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">xml</span><span class="p">,</span> <span class="s">&#39;xml&#39;</span><span class="p">):</span>
+            <span class="n">xml</span> <span class="o">=</span> <span class="n">xml</span><span class="o">.</span><span class="n">xml</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">)</span>
+        <span class="n">x</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">IGNORE_NS</span><span class="p">:</span>
+            <span class="c"># Use builtin, namespace respecting, XPath matcher.</span>
+            <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_criteria</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">True</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># Remove namespaces from the XPath expression.</span>
+            <span class="n">criteria</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">ns_block</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_criteria</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;{&#39;</span><span class="p">):</span>
+                <span class="n">criteria</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">ns_block</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;}&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">))</span>
+
+            <span class="c"># Walk the XPath expression.</span>
+            <span class="n">xml</span> <span class="o">=</span> <span class="n">x</span>
+            <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">criteria</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">tag</span><span class="p">:</span>
+                    <span class="c"># Skip empty tag name artifacts from the cleanup phase.</span>
+                    <span class="k">continue</span>
+
+                <span class="n">children</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;}&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">xml</span><span class="o">.</span><span class="n">getchildren</span><span class="p">()]</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">index</span> <span class="o">=</span> <span class="n">children</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="bp">False</span>
+                <span class="n">xml</span> <span class="o">=</span> <span class="n">xml</span><span class="o">.</span><span class="n">getchildren</span><span class="p">()[</span><span class="n">index</span><span class="p">]</span>
+            <span class="k">return</span> <span class="bp">True</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">1.0RC3 Documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Nathan Fritz, Lance Stout.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

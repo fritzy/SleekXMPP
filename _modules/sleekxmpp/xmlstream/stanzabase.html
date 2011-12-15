@@ -1,0 +1,1409 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>sleekxmpp.xmlstream.stanzabase &mdash; SleekXMPP</title>
+    
+    <link rel="stylesheet" href="../../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0RC3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="SleekXMPP" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">1.0RC3 Documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for sleekxmpp.xmlstream.stanzabase</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    sleekxmpp.xmlstream.stanzabase</span>
+<span class="sd">    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+
+<span class="sd">    This module implements a wrapper layer for XML objects</span>
+<span class="sd">    that allows them to be treated like dictionaries.</span>
+
+<span class="sd">    Part of SleekXMPP: The Sleek XMPP Library</span>
+
+<span class="sd">    :copyright: (c) 2011 Nathanael C. Fritz</span>
+<span class="sd">    :license: MIT, see LICENSE for more details</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">weakref</span>
+<span class="kn">from</span> <span class="nn">xml.etree</span> <span class="kn">import</span> <span class="n">cElementTree</span> <span class="k">as</span> <span class="n">ET</span>
+
+<span class="kn">from</span> <span class="nn">sleekxmpp.xmlstream</span> <span class="kn">import</span> <span class="n">JID</span>
+<span class="kn">from</span> <span class="nn">sleekxmpp.xmlstream.tostring</span> <span class="kn">import</span> <span class="n">tostring</span>
+<span class="kn">from</span> <span class="nn">sleekxmpp.thirdparty</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+
+<span class="c"># Used to check if an argument is an XML object.</span>
+<span class="n">XML_TYPE</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">ET</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s">&#39;xml&#39;</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="register_stanza_plugin"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.register_stanza_plugin">[docs]</a><span class="k">def</span> <span class="nf">register_stanza_plugin</span><span class="p">(</span><span class="n">stanza</span><span class="p">,</span> <span class="n">plugin</span><span class="p">,</span> <span class="n">iterable</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">overrides</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Associate a stanza object as a plugin for another stanza.</span>
+
+<span class="sd">    &gt;&gt;&gt; from sleekxmpp.xmlstream import register_stanza_plugin</span>
+<span class="sd">    &gt;&gt;&gt; register_stanza_plugin(Iq, CustomStanza)</span>
+
+<span class="sd">    :param class stanza: The class of the parent stanza.</span>
+<span class="sd">    :param class plugin: The class of the plugin stanza.</span>
+<span class="sd">    :param bool iterable: Indicates if the plugin stanza should be</span>
+<span class="sd">                          included in the parent stanza&#39;s iterable</span>
+<span class="sd">                          ``&#39;substanzas&#39;`` interface results.</span>
+<span class="sd">    :param bool overrides: Indicates if the plugin should be allowed</span>
+<span class="sd">                           to override the interface handlers for</span>
+<span class="sd">                           the parent stanza, based on the plugin&#39;s</span>
+<span class="sd">                           ``overrides`` field.</span>
+
+<span class="sd">    .. versionadded:: 1.0-Beta1</span>
+<span class="sd">        Made ``register_stanza_plugin`` the default name. The prior</span>
+<span class="sd">        ``registerStanzaPlugin`` function name remains as an alias.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tag</span> <span class="o">=</span> <span class="s">&quot;{</span><span class="si">%s</span><span class="s">}</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">plugin</span><span class="o">.</span><span class="n">namespace</span><span class="p">,</span> <span class="n">plugin</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="c"># Prevent weird memory reference gotchas by ensuring</span>
+    <span class="c"># that the parent stanza class has its own set of</span>
+    <span class="c"># plugin info maps and is not using the mappings from</span>
+    <span class="c"># an ancestor class (like ElementBase).</span>
+    <span class="n">plugin_info</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;plugin_attrib_map&#39;</span><span class="p">,</span> <span class="s">&#39;plugin_tag_map&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;plugin_iterables&#39;</span><span class="p">,</span> <span class="s">&#39;plugin_overrides&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">plugin_info</span><span class="p">:</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">stanza</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="n">stanza</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">info</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+
+    <span class="n">stanza</span><span class="o">.</span><span class="n">plugin_attrib_map</span><span class="p">[</span><span class="n">plugin</span><span class="o">.</span><span class="n">plugin_attrib</span><span class="p">]</span> <span class="o">=</span> <span class="n">plugin</span>
+    <span class="n">stanza</span><span class="o">.</span><span class="n">plugin_tag_map</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span> <span class="o">=</span> <span class="n">plugin</span>
+
+    <span class="k">if</span> <span class="n">iterable</span><span class="p">:</span>
+        <span class="n">stanza</span><span class="o">.</span><span class="n">plugin_iterables</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">plugin</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">overrides</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">interface</span> <span class="ow">in</span> <span class="n">plugin</span><span class="o">.</span><span class="n">overrides</span><span class="p">:</span>
+            <span class="n">stanza</span><span class="o">.</span><span class="n">plugin_overrides</span><span class="p">[</span><span class="n">interface</span><span class="p">]</span> <span class="o">=</span> <span class="n">plugin</span><span class="o">.</span><span class="n">plugin_attrib</span>
+
+
+<span class="c"># To maintain backwards compatibility for now, preserve the camel case name.</span></div>
+<span class="n">registerStanzaPlugin</span> <span class="o">=</span> <span class="n">register_stanza_plugin</span>
+
+
+<div class="viewcode-block" id="ElementBase"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase">[docs]</a><span class="k">class</span> <span class="nc">ElementBase</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The core of SleekXMPP&#39;s stanza XML manipulation and handling is provided</span>
+<span class="sd">    by ElementBase. ElementBase wraps XML cElementTree objects and enables</span>
+<span class="sd">    access to the XML contents through dictionary syntax, similar in style</span>
+<span class="sd">    to the Ruby XMPP library Blather&#39;s stanza implementation.</span>
+
+<span class="sd">    Stanzas are defined by their name, namespace, and interfaces. For</span>
+<span class="sd">    example, a simplistic Message stanza could be defined as::</span>
+
+<span class="sd">        &gt;&gt;&gt; class Message(ElementBase):</span>
+<span class="sd">        ...     name = &quot;message&quot;</span>
+<span class="sd">        ...     namespace = &quot;jabber:client&quot;</span>
+<span class="sd">        ...     interfaces = set((&#39;to&#39;, &#39;from&#39;, &#39;type&#39;, &#39;body&#39;))</span>
+<span class="sd">        ...     sub_interfaces = set((&#39;body&#39;,))</span>
+
+<span class="sd">    The resulting Message stanza&#39;s contents may be accessed as so::</span>
+
+<span class="sd">        &gt;&gt;&gt; message[&#39;to&#39;] = &quot;user@example.com&quot;</span>
+<span class="sd">        &gt;&gt;&gt; message[&#39;body&#39;] = &quot;Hi!&quot;</span>
+<span class="sd">        &gt;&gt;&gt; message[&#39;body&#39;]</span>
+<span class="sd">        &quot;Hi!&quot;</span>
+<span class="sd">        &gt;&gt;&gt; del message[&#39;body&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; message[&#39;body&#39;]</span>
+<span class="sd">        &quot;&quot;</span>
+
+<span class="sd">    The interface values map to either custom access methods, stanza</span>
+<span class="sd">    XML attributes, or (if the interface is also in sub_interfaces) the</span>
+<span class="sd">    text contents of a stanza&#39;s subelement.</span>
+
+<span class="sd">    Custom access methods may be created by adding methods of the</span>
+<span class="sd">    form &quot;getInterface&quot;, &quot;setInterface&quot;, or &quot;delInterface&quot;, where</span>
+<span class="sd">    &quot;Interface&quot; is the titlecase version of the interface name.</span>
+
+<span class="sd">    Stanzas may be extended through the use of plugins. A plugin</span>
+<span class="sd">    is simply a stanza that has a plugin_attrib value. For example::</span>
+
+<span class="sd">        &gt;&gt;&gt; class MessagePlugin(ElementBase):</span>
+<span class="sd">        ...     name = &quot;custom_plugin&quot;</span>
+<span class="sd">        ...     namespace = &quot;custom&quot;</span>
+<span class="sd">        ...     interfaces = set((&#39;useful_thing&#39;, &#39;custom&#39;))</span>
+<span class="sd">        ...     plugin_attrib = &quot;custom&quot;</span>
+
+<span class="sd">    The plugin stanza class must be associated with its intended</span>
+<span class="sd">    container stanza by using register_stanza_plugin as so::</span>
+
+<span class="sd">        &gt;&gt;&gt; register_stanza_plugin(Message, MessagePlugin)</span>
+
+<span class="sd">    The plugin may then be accessed as if it were built-in to the parent</span>
+<span class="sd">    stanza::</span>
+
+<span class="sd">        &gt;&gt;&gt; message[&#39;custom&#39;][&#39;useful_thing&#39;] = &#39;foo&#39;</span>
+
+<span class="sd">    If a plugin provides an interface that is the same as the plugin&#39;s</span>
+<span class="sd">    plugin_attrib value, then the plugin&#39;s interface may be assigned</span>
+<span class="sd">    directly from the parent stanza, as shown below, but retrieving</span>
+<span class="sd">    information will require all interfaces to be used, as so::</span>
+
+<span class="sd">        &gt;&gt;&gt; message[&#39;custom&#39;] = &#39;bar&#39; # Same as using message[&#39;custom&#39;][&#39;custom&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; message[&#39;custom&#39;][&#39;custom&#39;] # Must use all interfaces</span>
+<span class="sd">        &#39;bar&#39;</span>
+
+<span class="sd">    If the plugin sets :attr:`is_extension` to ``True``, then both setting</span>
+<span class="sd">    and getting an interface value that is the same as the plugin&#39;s</span>
+<span class="sd">    plugin_attrib value will work, as so::</span>
+
+<span class="sd">        &gt;&gt;&gt; message[&#39;custom&#39;] = &#39;bar&#39;  # Using is_extension=True</span>
+<span class="sd">        &gt;&gt;&gt; message[&#39;custom&#39;]</span>
+<span class="sd">        &#39;bar&#39;</span>
+
+
+<span class="sd">    :param xml: Initialize the stanza object with an existing XML object.</span>
+<span class="sd">    :param parent: Optionally specify a parent stanza object will will</span>
+<span class="sd">                   contain this substanza.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c">#: The XML tag name of the element, not including any namespace</span>
+    <span class="c">#: prefixes. For example, an :class:`ElementBase` object for ``&lt;message /&gt;``</span>
+    <span class="c">#: would use ``name = &#39;message&#39;``.</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s">&#39;stanza&#39;</span>
+
+    <span class="c">#: The XML namespace for the element. Given ``&lt;foo xmlns=&quot;bar&quot; /&gt;``,</span>
+    <span class="c">#: then ``namespace = &quot;bar&quot;`` should be used. The default namespace</span>
+    <span class="c">#: is ``jabber:client`` since this is being used in an XMPP library.</span>
+    <span class="n">namespace</span> <span class="o">=</span> <span class="s">&#39;jabber:client&#39;</span>
+
+    <span class="c">#: For :class:`ElementBase` subclasses which are intended to be used</span>
+    <span class="c">#: as plugins, the ``plugin_attrib`` value defines the plugin name.</span>
+    <span class="c">#: Plugins may be accessed by using the ``plugin_attrib`` value as</span>
+    <span class="c">#: the interface. An example using ``plugin_attrib = &#39;foo&#39;``:</span>
+    <span class="c">#:</span>
+    <span class="c">#:     register_stanza_plugin(Message, FooPlugin)</span>
+    <span class="c">#:     msg = Message()</span>
+    <span class="c">#:     msg[&#39;foo&#39;][&#39;an_interface_from_the_foo_plugin&#39;]</span>
+    <span class="n">plugin_attrib</span> <span class="o">=</span> <span class="s">&#39;plugin&#39;</span>
+
+    <span class="c">#: The set of keys that the stanza provides for accessing and</span>
+    <span class="c">#: manipulating the underlying XML object. This set may be augmented</span>
+    <span class="c">#: with the :attr:`plugin_attrib` value of any registered</span>
+    <span class="c">#: stanza plugins.</span>
+    <span class="n">interfaces</span> <span class="o">=</span> <span class="nb">set</span><span class="p">((</span><span class="s">&#39;type&#39;</span><span class="p">,</span> <span class="s">&#39;to&#39;</span><span class="p">,</span> <span class="s">&#39;from&#39;</span><span class="p">,</span> <span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="s">&#39;payload&#39;</span><span class="p">))</span>
+
+    <span class="c">#: A subset of :attr:`interfaces` which maps interfaces to direct</span>
+    <span class="c">#: subelements of the underlying XML object. Using this set, the text</span>
+    <span class="c">#: of these subelements may be set, retrieved, or removed without</span>
+    <span class="c">#: needing to define custom methods.</span>
+    <span class="n">sub_interfaces</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">()</span>
+
+    <span class="c">#: In some cases you may wish to override the behaviour of one of the</span>
+    <span class="c">#: parent stanza&#39;s interfaces. The ``overrides`` list specifies the</span>
+    <span class="c">#: interface name and access method to be overridden. For example,</span>
+    <span class="c">#: to override setting the parent&#39;s ``&#39;condition&#39;`` interface you</span>
+    <span class="c">#: would use::</span>
+    <span class="c">#:</span>
+    <span class="c">#:     overrides = [&#39;set_condition&#39;]</span>
+    <span class="c">#:</span>
+    <span class="c">#: Getting and deleting the ``&#39;condition&#39;`` interface would not</span>
+    <span class="c">#: be affected.</span>
+    <span class="c">#:</span>
+    <span class="c">#: .. versionadded:: 1.0-Beta5</span>
+    <span class="n">overrides</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c">#: If you need to add a new interface to an existing stanza, you</span>
+    <span class="c">#: can create a plugin and set ``is_extension = True``. Be sure</span>
+    <span class="c">#: to set the :attr:`plugin_attrib` value to the desired interface</span>
+    <span class="c">#: name, and that it is the only interface listed in</span>
+    <span class="c">#: :attr:`interfaces`. Requests for the new interface from the</span>
+    <span class="c">#: parent stanza will be passed to the plugin directly.</span>
+    <span class="c">#:</span>
+    <span class="c">#: .. versionadded:: 1.0-Beta5</span>
+    <span class="n">is_extension</span> <span class="o">=</span> <span class="bp">False</span>
+
+    <span class="c">#: A map of interface operations to the overriding functions.</span>
+    <span class="c">#: For example, after overriding the ``set`` operation for</span>
+    <span class="c">#: the interface ``body``, :attr:`plugin_overrides` would be::</span>
+    <span class="c">#:</span>
+    <span class="c">#:     {&#39;set_body&#39;: &lt;some function&gt;}</span>
+    <span class="c">#:</span>
+    <span class="c">#: .. versionadded: 1.0-Beta5</span>
+    <span class="n">plugin_overrides</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c">#: A mapping of the :attr:`plugin_attrib` values of registered</span>
+    <span class="c">#: plugins to their respective classes.</span>
+    <span class="n">plugin_attrib_map</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c">#: A mapping of root element tag names (in ``&#39;{namespace}elementname&#39;``</span>
+    <span class="c">#: format) to the plugin classes responsible for them.</span>
+    <span class="n">plugin_tag_map</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c">#: The set of stanza classes that can be iterated over using</span>
+    <span class="c">#: the &#39;substanzas&#39; interface. Classes are added to this set</span>
+    <span class="c">#: when registering a plugin with ``iterable=True``::</span>
+    <span class="c">#:</span>
+    <span class="c">#:     register_stanza_plugin(DiscoInfo, DiscoItem, iterable=True)</span>
+    <span class="c">#:</span>
+    <span class="c">#: .. versionadded:: 1.0-Beta5</span>
+    <span class="n">plugin_iterables</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+    <span class="c">#: A deprecated version of :attr:`plugin_iterables` that remains</span>
+    <span class="c">#: for backward compatibility. It required a parent stanza to</span>
+    <span class="c">#: know beforehand what stanza classes would be iterable::</span>
+    <span class="c">#:</span>
+    <span class="c">#:     class DiscoItem(ElementBase):</span>
+    <span class="c">#:         ...</span>
+    <span class="c">#:</span>
+    <span class="c">#:     class DiscoInfo(ElementBase):</span>
+    <span class="c">#:         subitem = (DiscoItem, )</span>
+    <span class="c">#:         ...</span>
+    <span class="c">#:</span>
+    <span class="c">#: .. deprecated:: 1.0-Beta5</span>
+    <span class="n">subitem</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+    <span class="c">#: The default XML namespace: ``http://www.w3.org/XML/1998/namespace``.</span>
+    <span class="n">xml_ns</span> <span class="o">=</span> <span class="s">&#39;http://www.w3.org/XML/1998/namespace&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_index</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c">#: The underlying XML object for the stanza. It is a standard</span>
+        <span class="c">#: :class:`xml.etree.cElementTree` object.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xml</span> <span class="o">=</span> <span class="n">xml</span>
+
+        <span class="c">#: An ordered dictionary of plugin stanzas, mapped by their</span>
+        <span class="c">#: :attr:`plugin_attrib` value.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+
+        <span class="c">#: A list of child stanzas whose class is included in</span>
+        <span class="c">#: :attr:`plugin_iterables`.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">iterables</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c">#: The name of the tag for the stanza&#39;s root element. It is the</span>
+        <span class="c">#: same as calling :meth:`tag_name()` and is formatted as</span>
+        <span class="c">#: ``&#39;{namespace}elementname&#39;``.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tag_name</span><span class="p">()</span>
+
+        <span class="c">#: A :class:`weakref.weakref` to the parent stanza, if there is one.</span>
+        <span class="c">#: If not, then :attr:`parent` is ``None``.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="n">parent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">subitem</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">sub</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">subitem</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">plugin_iterables</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">sub</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="n">xml</span><span class="p">):</span>
+            <span class="c"># If we generated our own XML, then everything is ready.</span>
+            <span class="k">return</span>
+
+        <span class="c"># Initialize values using provided XML</span>
+        <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span><span class="n">getchildren</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">child</span><span class="o">.</span><span class="n">tag</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugin_tag_map</span><span class="p">:</span>
+                <span class="n">plugin_class</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugin_tag_map</span><span class="p">[</span><span class="n">child</span><span class="o">.</span><span class="n">tag</span><span class="p">]</span>
+                <span class="n">plugin</span> <span class="o">=</span> <span class="n">plugin_class</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">[</span><span class="n">plugin</span><span class="o">.</span><span class="n">plugin_attrib</span><span class="p">]</span> <span class="o">=</span> <span class="n">plugin</span>
+                <span class="k">if</span> <span class="n">plugin_class</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugin_iterables</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">iterables</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">plugin</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ElementBase.setup"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase.setup">[docs]</a>    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize the stanza&#39;s XML contents.</span>
+
+<span class="sd">        Will return ``True`` if XML was generated according to the stanza&#39;s</span>
+<span class="sd">        definition instead of building a stanza object from an existing</span>
+<span class="sd">        XML object.</span>
+
+<span class="sd">        :param xml: An existing XML object to use for the stanza&#39;s content</span>
+<span class="sd">                    instead of generating new XML.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">xml</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">xml</span> <span class="o">=</span> <span class="n">xml</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">xml</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c"># Generate XML from the stanza definition</span>
+            <span class="k">for</span> <span class="n">ename</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">):</span>
+                <span class="n">new</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s">&quot;{</span><span class="si">%s</span><span class="s">}</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">namespace</span><span class="p">,</span> <span class="n">ename</span><span class="p">))</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">xml</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">xml</span> <span class="o">=</span> <span class="n">new</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">last_xml</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new</span><span class="p">)</span>
+                <span class="n">last_xml</span> <span class="o">=</span> <span class="n">new</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="p">()</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xml</span><span class="p">)</span>
+
+            <span class="c"># We had to generate XML</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># We did not generate XML</span>
+            <span class="k">return</span> <span class="bp">False</span>
+</div>
+<div class="viewcode-block" id="ElementBase.enable"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase.enable">[docs]</a>    <span class="k">def</span> <span class="nf">enable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attrib</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Enable and initialize a stanza plugin.</span>
+
+<span class="sd">        Alias for :meth:`init_plugin`.</span>
+
+<span class="sd">        :param string attrib: The :attr:`plugin_attrib` value of the</span>
+<span class="sd">                              plugin to enable.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_plugin</span><span class="p">(</span><span class="n">attrib</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ElementBase.init_plugin"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase.init_plugin">[docs]</a>    <span class="k">def</span> <span class="nf">init_plugin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attrib</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Enable and initialize a stanza plugin.</span>
+
+<span class="sd">        :param string attrib: The :attr:`plugin_attrib` value of the</span>
+<span class="sd">                              plugin to enable.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">attrib</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">:</span>
+            <span class="n">plugin_class</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugin_attrib_map</span><span class="p">[</span><span class="n">attrib</span><span class="p">]</span>
+            <span class="n">plugin</span> <span class="o">=</span> <span class="n">plugin_class</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">[</span><span class="n">attrib</span><span class="p">]</span> <span class="o">=</span> <span class="n">plugin</span>
+            <span class="k">if</span> <span class="n">plugin_class</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugin_iterables</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">iterables</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">plugin</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span>
+</div>
+<div class="viewcode-block" id="ElementBase._get_stanza_values"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase._get_stanza_values">[docs]</a>    <span class="k">def</span> <span class="nf">_get_stanza_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return A JSON/dictionary version of the XML content</span>
+<span class="sd">        exposed through the stanza&#39;s interfaces::</span>
+
+<span class="sd">            &gt;&gt;&gt; msg = Message()</span>
+<span class="sd">            &gt;&gt;&gt; msg.values</span>
+<span class="sd">            {&#39;body&#39;: &#39;&#39;, &#39;from&#39;: , &#39;mucnick&#39;: &#39;&#39;, &#39;mucroom&#39;: &#39;&#39;,</span>
+<span class="sd">            &#39;to&#39;: , &#39;type&#39;: &#39;normal&#39;, &#39;id&#39;: &#39;&#39;, &#39;subject&#39;: &#39;&#39;}</span>
+
+<span class="sd">        Likewise, assigning to :attr:`values` will change the XML</span>
+<span class="sd">        content::</span>
+
+<span class="sd">            &gt;&gt;&gt; msg = Message()</span>
+<span class="sd">            &gt;&gt;&gt; msg.values = {&#39;body&#39;: &#39;Hi!&#39;, &#39;to&#39;: &#39;user@example.com&#39;}</span>
+<span class="sd">            &gt;&gt;&gt; msg</span>
+<span class="sd">            &#39;&lt;message to=&quot;user@example.com&quot;&gt;&lt;body&gt;Hi!&lt;/body&gt;&lt;/message&gt;&#39;</span>
+
+<span class="sd">        .. versionadded:: 1.0-Beta1</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">interface</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">interfaces</span><span class="p">:</span>
+            <span class="n">values</span><span class="p">[</span><span class="n">interface</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">interface</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">plugin</span><span class="p">,</span> <span class="n">stanza</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">values</span><span class="p">[</span><span class="n">plugin</span><span class="p">]</span> <span class="o">=</span> <span class="n">stanza</span><span class="o">.</span><span class="n">values</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">iterables</span><span class="p">:</span>
+            <span class="n">iterables</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">stanza</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iterables</span><span class="p">:</span>
+                <span class="n">iterables</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">stanza</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+                <span class="n">iterables</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s">&#39;__childtag__&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stanza</span><span class="o">.</span><span class="n">tag</span>
+            <span class="n">values</span><span class="p">[</span><span class="s">&#39;substanzas&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">iterables</span>
+        <span class="k">return</span> <span class="n">values</span>
+</div>
+<div class="viewcode-block" id="ElementBase._set_stanza_values"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase._set_stanza_values">[docs]</a>    <span class="k">def</span> <span class="nf">_set_stanza_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set multiple stanza interface values using a dictionary.</span>
+
+<span class="sd">        Stanza plugin values may be set using nested dictionaries.</span>
+
+<span class="sd">        :param values: A dictionary mapping stanza interface with values.</span>
+<span class="sd">                       Plugin interfaces may accept a nested dictionary that</span>
+<span class="sd">                       will be used recursively.</span>
+
+<span class="sd">        .. versionadded:: 1.0-Beta1</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">iterable_interfaces</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">plugin_attrib</span> <span class="k">for</span> \
+                                    <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugin_iterables</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">interface</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">values</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">interface</span> <span class="o">==</span> <span class="s">&#39;substanzas&#39;</span><span class="p">:</span>
+                <span class="c"># Remove existing substanzas</span>
+                <span class="k">for</span> <span class="n">stanza</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iterables</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">stanza</span><span class="o">.</span><span class="n">xml</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">iterables</span> <span class="o">=</span> <span class="p">[]</span>
+
+                <span class="c"># Add new substanzas</span>
+                <span class="k">for</span> <span class="n">subdict</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="s">&#39;__childtag__&#39;</span> <span class="ow">in</span> <span class="n">subdict</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">subclass</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugin_iterables</span><span class="p">:</span>
+                            <span class="n">child_tag</span> <span class="o">=</span> <span class="s">&quot;{</span><span class="si">%s</span><span class="s">}</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">subclass</span><span class="o">.</span><span class="n">namespace</span><span class="p">,</span>
+                                                    <span class="n">subclass</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="n">subdict</span><span class="p">[</span><span class="s">&#39;__childtag__&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">child_tag</span><span class="p">:</span>
+                                <span class="n">sub</span> <span class="o">=</span> <span class="n">subclass</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+                                <span class="n">sub</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">subdict</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">iterables</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sub</span><span class="p">)</span>
+                                <span class="k">break</span>
+            <span class="k">elif</span> <span class="n">interface</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">interfaces</span><span class="p">:</span>
+                <span class="bp">self</span><span class="p">[</span><span class="n">interface</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="k">elif</span> <span class="n">interface</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugin_attrib_map</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">interface</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">iterable_interfaces</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">interface</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">init_plugin</span><span class="p">(</span><span class="n">interface</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">[</span><span class="n">interface</span><span class="p">]</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">return</span> <span class="bp">self</span>
+</div>
+<div class="viewcode-block" id="ElementBase.__getitem__"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase.__getitem__">[docs]</a>    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attrib</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the value of a stanza interface using dict-like syntax.</span>
+
+<span class="sd">        Example::</span>
+
+<span class="sd">            &gt;&gt;&gt; msg[&#39;body&#39;]</span>
+<span class="sd">            &#39;Message contents&#39;</span>
+
+<span class="sd">        Stanza interfaces are typically mapped directly to the underlying XML</span>
+<span class="sd">        object, but can be overridden by the presence of a ``get_attrib``</span>
+<span class="sd">        method (or ``get_foo`` where the interface is named ``&#39;foo&#39;``, etc).</span>
+
+<span class="sd">        The search order for interface value retrieval for an interface</span>
+<span class="sd">        named ``&#39;foo&#39;`` is:</span>
+
+<span class="sd">            1. The list of substanzas (``&#39;substanzas&#39;``)</span>
+<span class="sd">            2. The result of calling the ``get_foo`` override handler.</span>
+<span class="sd">            3. The result of calling ``get_foo``.</span>
+<span class="sd">            4. The result of calling ``getFoo``.</span>
+<span class="sd">            5. The contents of the ``foo`` subelement, if ``foo`` is listed</span>
+<span class="sd">               in :attr:`sub_interfaces`.</span>
+<span class="sd">            6. The value of the ``foo`` attribute of the XML object.</span>
+<span class="sd">            7. The plugin named ``&#39;foo&#39;``</span>
+<span class="sd">            8. An empty string.</span>
+
+<span class="sd">        :param string attrib: The name of the requested stanza interface.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">attrib</span> <span class="o">==</span> <span class="s">&#39;substanzas&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">iterables</span>
+        <span class="k">elif</span> <span class="n">attrib</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">interfaces</span><span class="p">:</span>
+            <span class="n">get_method</span> <span class="o">=</span> <span class="s">&quot;get_</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">attrib</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="n">get_method2</span> <span class="o">=</span> <span class="s">&quot;get</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">attrib</span><span class="o">.</span><span class="n">title</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugin_overrides</span><span class="p">:</span>
+                <span class="n">plugin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugin_overrides</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">get_method</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">plugin</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">plugin</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">init_plugin</span><span class="p">(</span><span class="n">plugin</span><span class="p">)</span>
+                    <span class="n">handler</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">[</span><span class="n">plugin</span><span class="p">],</span> <span class="n">get_method</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">handler</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="n">handler</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">get_method</span><span class="p">):</span>
+                <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">get_method</span><span class="p">)()</span>
+            <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">get_method2</span><span class="p">):</span>
+                <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">get_method2</span><span class="p">)()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">attrib</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sub_interfaces</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_sub_text</span><span class="p">(</span><span class="n">attrib</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_attr</span><span class="p">(</span><span class="n">attrib</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">attrib</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugin_attrib_map</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">attrib</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">init_plugin</span><span class="p">(</span><span class="n">attrib</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">[</span><span class="n">attrib</span><span class="p">]</span><span class="o">.</span><span class="n">is_extension</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">[</span><span class="n">attrib</span><span class="p">][</span><span class="n">attrib</span><span class="p">]</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">[</span><span class="n">attrib</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&#39;&#39;</span>
+</div>
+<div class="viewcode-block" id="ElementBase.__setitem__"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase.__setitem__">[docs]</a>    <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attrib</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the value of a stanza interface using dictionary-like syntax.</span>
+
+<span class="sd">        Example::</span>
+
+<span class="sd">            &gt;&gt;&gt; msg[&#39;body&#39;] = &quot;Hi!&quot;</span>
+<span class="sd">            &gt;&gt;&gt; msg[&#39;body&#39;]</span>
+<span class="sd">            &#39;Hi!&#39;</span>
+
+<span class="sd">        Stanza interfaces are typically mapped directly to the underlying XML</span>
+<span class="sd">        object, but can be overridden by the presence of a ``set_attrib``</span>
+<span class="sd">        method (or ``set_foo`` where the interface is named ``&#39;foo&#39;``, etc).</span>
+
+<span class="sd">        The effect of interface value assignment for an interface</span>
+<span class="sd">        named ``&#39;foo&#39;`` will be one of:</span>
+
+<span class="sd">            1. Delete the interface&#39;s contents if the value is None.</span>
+<span class="sd">            2. Call the ``set_foo`` override handler, if it exists.</span>
+<span class="sd">            3. Call ``set_foo``, if it exists.</span>
+<span class="sd">            4. Call ``setFoo``, if it exists.</span>
+<span class="sd">            5. Set the text of a ``foo`` element, if ``&#39;foo&#39;`` is</span>
+<span class="sd">               in :attr:`sub_interfaces`.</span>
+<span class="sd">            6. Set the value of a top level XML attribute named ``foo``.</span>
+<span class="sd">            7. Attempt to pass the value to a plugin named ``&#39;foo&#39;`` using</span>
+<span class="sd">               the plugin&#39;s ``&#39;foo&#39;`` interface.</span>
+<span class="sd">            8. Do nothing.</span>
+
+<span class="sd">        :param string attrib: The name of the stanza interface to modify.</span>
+<span class="sd">        :param value: The new value of the stanza interface.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">attrib</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">interfaces</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">set_method</span> <span class="o">=</span> <span class="s">&quot;set_</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">attrib</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+                <span class="n">set_method2</span> <span class="o">=</span> <span class="s">&quot;set</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">attrib</span><span class="o">.</span><span class="n">title</span><span class="p">()</span>
+
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugin_overrides</span><span class="p">:</span>
+                    <span class="n">plugin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugin_overrides</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">set_method</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">plugin</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">plugin</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">init_plugin</span><span class="p">(</span><span class="n">plugin</span><span class="p">)</span>
+                        <span class="n">handler</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">[</span><span class="n">plugin</span><span class="p">],</span>
+                                          <span class="n">set_method</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">handler</span><span class="p">:</span>
+                            <span class="k">return</span> <span class="n">handler</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">set_method</span><span class="p">):</span>
+                    <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">set_method</span><span class="p">)(</span><span class="n">value</span><span class="p">,)</span>
+                <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">set_method2</span><span class="p">):</span>
+                    <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">set_method2</span><span class="p">)(</span><span class="n">value</span><span class="p">,)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">attrib</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sub_interfaces</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_sub_text</span><span class="p">(</span><span class="n">attrib</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_set_attr</span><span class="p">(</span><span class="n">attrib</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__delitem__</span><span class="p">(</span><span class="n">attrib</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">attrib</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugin_attrib_map</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">attrib</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">init_plugin</span><span class="p">(</span><span class="n">attrib</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">[</span><span class="n">attrib</span><span class="p">][</span><span class="n">attrib</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">return</span> <span class="bp">self</span>
+</div>
+<div class="viewcode-block" id="ElementBase.__delitem__"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase.__delitem__">[docs]</a>    <span class="k">def</span> <span class="nf">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attrib</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Delete the value of a stanza interface using dict-like syntax.</span>
+
+<span class="sd">        Example::</span>
+
+<span class="sd">            &gt;&gt;&gt; msg[&#39;body&#39;] = &quot;Hi!&quot;</span>
+<span class="sd">            &gt;&gt;&gt; msg[&#39;body&#39;]</span>
+<span class="sd">            &#39;Hi!&#39;</span>
+<span class="sd">            &gt;&gt;&gt; del msg[&#39;body&#39;]</span>
+<span class="sd">            &gt;&gt;&gt; msg[&#39;body&#39;]</span>
+<span class="sd">            &#39;&#39;</span>
+
+<span class="sd">        Stanza interfaces are typically mapped directly to the underlyig XML</span>
+<span class="sd">        object, but can be overridden by the presence of a ``del_attrib``</span>
+<span class="sd">        method (or ``del_foo`` where the interface is named ``&#39;foo&#39;``, etc).</span>
+
+<span class="sd">        The effect of deleting a stanza interface value named ``foo`` will be</span>
+<span class="sd">        one of:</span>
+
+<span class="sd">            1. Call ``del_foo`` override handler, if it exists.</span>
+<span class="sd">            2. Call ``del_foo``, if it exists.</span>
+<span class="sd">            3. Call ``delFoo``, if it exists.</span>
+<span class="sd">            4. Delete ``foo`` element, if ``&#39;foo&#39;`` is in</span>
+<span class="sd">               :attr:`sub_interfaces`.</span>
+<span class="sd">            5. Delete top level XML attribute named ``foo``.</span>
+<span class="sd">            6. Remove the ``foo`` plugin, if it was loaded.</span>
+<span class="sd">            7. Do nothing.</span>
+
+<span class="sd">        :param attrib: The name of the affected stanza interface.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">attrib</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">interfaces</span><span class="p">:</span>
+            <span class="n">del_method</span> <span class="o">=</span> <span class="s">&quot;del_</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">attrib</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="n">del_method2</span> <span class="o">=</span> <span class="s">&quot;del</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">attrib</span><span class="o">.</span><span class="n">title</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugin_overrides</span><span class="p">:</span>
+                <span class="n">plugin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugin_overrides</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">del_method</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">plugin</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">plugin</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">init_plugin</span><span class="p">(</span><span class="n">plugin</span><span class="p">)</span>
+                    <span class="n">handler</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">[</span><span class="n">plugin</span><span class="p">],</span> <span class="n">del_method</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">handler</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="n">handler</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">del_method</span><span class="p">):</span>
+                <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">del_method</span><span class="p">)()</span>
+            <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">del_method2</span><span class="p">):</span>
+                <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">del_method2</span><span class="p">)()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">attrib</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sub_interfaces</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_del_sub</span><span class="p">(</span><span class="n">attrib</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_del_attr</span><span class="p">(</span><span class="n">attrib</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">attrib</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugin_attrib_map</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">attrib</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">:</span>
+                <span class="n">xml</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">[</span><span class="n">attrib</span><span class="p">]</span><span class="o">.</span><span class="n">xml</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">[</span><span class="n">attrib</span><span class="p">]</span><span class="o">.</span><span class="n">is_extension</span><span class="p">:</span>
+                    <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">[</span><span class="n">attrib</span><span class="p">][</span><span class="n">attrib</span><span class="p">]</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">[</span><span class="n">attrib</span><span class="p">]</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="k">pass</span>
+        <span class="k">return</span> <span class="bp">self</span>
+</div>
+<div class="viewcode-block" id="ElementBase._set_attr"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase._set_attr">[docs]</a>    <span class="k">def</span> <span class="nf">_set_attr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the value of a top level attribute of the XML object.</span>
+
+<span class="sd">        If the new value is None or an empty string, then the attribute will</span>
+<span class="sd">        be removed.</span>
+
+<span class="sd">        :param name: The name of the attribute.</span>
+<span class="sd">        :param value: The new value of the attribute, or None or &#39;&#39; to</span>
+<span class="sd">                      remove it.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">value</span> <span class="o">==</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__delitem__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+</div>
+<div class="viewcode-block" id="ElementBase._del_attr"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase._del_attr">[docs]</a>    <span class="k">def</span> <span class="nf">_del_attr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Remove a top level attribute of the XML object.</span>
+
+<span class="sd">        :param name: The name of the attribute.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span><span class="n">attrib</span><span class="p">:</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="ElementBase._get_attr"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase._get_attr">[docs]</a>    <span class="k">def</span> <span class="nf">_get_attr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the value of a top level attribute of the XML object.</span>
+
+<span class="sd">        In case the attribute has not been set, a default value can be</span>
+<span class="sd">        returned instead. An empty string is returned if no other default</span>
+<span class="sd">        is supplied.</span>
+
+<span class="sd">        :param name: The name of the attribute.</span>
+<span class="sd">        :param default: Optional value to return if the attribute has not</span>
+<span class="sd">                        been set. An empty string is returned otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span><span class="n">attrib</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ElementBase._get_sub_text"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase._get_sub_text">[docs]</a>    <span class="k">def</span> <span class="nf">_get_sub_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the text contents of a sub element.</span>
+
+<span class="sd">        In case the element does not exist, or it has no textual content,</span>
+<span class="sd">        a default value can be returned instead. An empty string is returned</span>
+<span class="sd">        if no other default is supplied.</span>
+
+<span class="sd">        :param name: The name or XPath expression of the element.</span>
+<span class="sd">        :param default: Optional default to return if the element does</span>
+<span class="sd">                        not exists. An empty string is returned otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fix_ns</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">stanza</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">stanza</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">stanza</span><span class="o">.</span><span class="n">text</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">default</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">stanza</span><span class="o">.</span><span class="n">text</span>
+</div>
+<div class="viewcode-block" id="ElementBase._set_sub_text"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase._set_sub_text">[docs]</a>    <span class="k">def</span> <span class="nf">_set_sub_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">keep</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the text contents of a sub element.</span>
+
+<span class="sd">        In case the element does not exist, a element will be created,</span>
+<span class="sd">        and its text contents will be set.</span>
+
+<span class="sd">        If the text is set to an empty string, or None, then the</span>
+<span class="sd">        element will be removed, unless keep is set to True.</span>
+
+<span class="sd">        :param name: The name or XPath expression of the element.</span>
+<span class="sd">        :param text: The new textual content of the element. If the text</span>
+<span class="sd">                     is an empty string or None, the element will be removed</span>
+<span class="sd">                     unless the parameter keep is True.</span>
+<span class="sd">        :param keep: Indicates if the element should be kept if its text is</span>
+<span class="sd">                     removed. Defaults to False.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fix_ns</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">element</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">text</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">keep</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_del_sub</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">element</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c"># We need to add the element. If the provided name was</span>
+            <span class="c"># an XPath expression, some of the intermediate elements</span>
+            <span class="c"># may already exist. If so, we want to use those instead</span>
+            <span class="c"># of generating new elements.</span>
+            <span class="n">last_xml</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xml</span>
+            <span class="n">walked</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">ename</span> <span class="ow">in</span> <span class="n">path</span><span class="p">:</span>
+                <span class="n">walked</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ename</span><span class="p">)</span>
+                <span class="n">element</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;/&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">walked</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">element</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="n">element</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="n">ename</span><span class="p">)</span>
+                    <span class="n">last_xml</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+                <span class="n">last_xml</span> <span class="o">=</span> <span class="n">element</span>
+            <span class="n">element</span> <span class="o">=</span> <span class="n">last_xml</span>
+
+        <span class="n">element</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">text</span>
+        <span class="k">return</span> <span class="n">element</span>
+</div>
+<div class="viewcode-block" id="ElementBase._del_sub"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase._del_sub">[docs]</a>    <span class="k">def</span> <span class="nf">_del_sub</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="nb">all</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Remove sub elements that match the given name or XPath.</span>
+
+<span class="sd">        If the element is in a path, then any parent elements that become</span>
+<span class="sd">        empty after deleting the element may also be deleted if requested</span>
+<span class="sd">        by setting all=True.</span>
+
+<span class="sd">        :param name: The name or XPath expression for the element(s) to remove.</span>
+<span class="sd">        :param bool all: If True, remove all empty elements in the path to the</span>
+<span class="sd">                         deleted element. Defaults to False.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fix_ns</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">original_target</span> <span class="o">=</span> <span class="n">path</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">level</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="c"># Generate the paths to the target elements and their parent.</span>
+            <span class="n">element_path</span> <span class="o">=</span> <span class="s">&quot;/&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">-</span> <span class="n">level</span><span class="p">])</span>
+            <span class="n">parent_path</span> <span class="o">=</span> <span class="s">&quot;/&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">-</span> <span class="n">level</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span>
+
+            <span class="n">elements</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">element_path</span><span class="p">)</span>
+            <span class="n">parent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">parent_path</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">elements</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">parent</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="n">parent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xml</span>
+                <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">element</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="n">original_target</span> <span class="ow">or</span> \
+                        <span class="ow">not</span> <span class="n">element</span><span class="o">.</span><span class="n">getchildren</span><span class="p">():</span>
+                        <span class="c"># Only delete the originally requested elements, and</span>
+                        <span class="c"># any parent elements that have become empty.</span>
+                        <span class="n">parent</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">:</span>
+                <span class="c"># If we don&#39;t want to delete elements up the tree, stop</span>
+                <span class="c"># after deleting the first level of elements.</span>
+                <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="ElementBase.match"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase.match">[docs]</a>    <span class="k">def</span> <span class="nf">match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xpath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compare a stanza object with an XPath-like expression.</span>
+
+<span class="sd">        If the XPath matches the contents of the stanza object, the match</span>
+<span class="sd">        is successful.</span>
+
+<span class="sd">        The XPath expression may include checks for stanza attributes.</span>
+<span class="sd">        For example::</span>
+
+<span class="sd">            &#39;presence@show=xa@priority=2/status&#39;</span>
+
+<span class="sd">        Would match a presence stanza whose show value is set to ``&#39;xa&#39;``,</span>
+<span class="sd">        has a priority value of ``&#39;2&#39;``, and has a status element.</span>
+
+<span class="sd">        :param string xpath: The XPath expression to check against. It</span>
+<span class="sd">                             may be either a string or a list of element</span>
+<span class="sd">                             names with attribute checks.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">xpath</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">xpath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fix_ns</span><span class="p">(</span><span class="n">xpath</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">propagate_ns</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+        <span class="c"># Extract the tag name and attribute checks for the first XPath node.</span>
+        <span class="n">components</span> <span class="o">=</span> <span class="n">xpath</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;@&#39;</span><span class="p">)</span>
+        <span class="n">tag</span> <span class="o">=</span> <span class="n">components</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">attributes</span> <span class="o">=</span> <span class="n">components</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+
+        <span class="k">if</span> <span class="n">tag</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s">&quot;{</span><span class="si">%s</span><span class="s">}</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">namespace</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span> <span class="ow">and</span> \
+            <span class="n">tag</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span> <span class="ow">and</span> <span class="n">tag</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugin_attrib</span><span class="p">:</span>
+            <span class="c"># The requested tag is not in this stanza, so no match.</span>
+            <span class="k">return</span> <span class="bp">False</span>
+
+        <span class="c"># Check the rest of the XPath against any substanzas.</span>
+        <span class="n">matched_substanzas</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">for</span> <span class="n">substanza</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iterables</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">xpath</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">==</span> <span class="p">[]:</span>
+                <span class="k">break</span>
+            <span class="n">matched_substanzas</span> <span class="o">=</span> <span class="n">substanza</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">xpath</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+            <span class="k">if</span> <span class="n">matched_substanzas</span><span class="p">:</span>
+                <span class="k">break</span>
+
+        <span class="c"># Check attribute values.</span>
+        <span class="k">for</span> <span class="n">attribute</span> <span class="ow">in</span> <span class="n">attributes</span><span class="p">:</span>
+            <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="n">attribute</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;=&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">!=</span> <span class="n">value</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">False</span>
+
+        <span class="c"># Check sub interfaces.</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">xpath</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">next_tag</span> <span class="o">=</span> <span class="n">xpath</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">next_tag</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sub_interfaces</span> <span class="ow">and</span> <span class="bp">self</span><span class="p">[</span><span class="n">next_tag</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="bp">True</span>
+
+        <span class="c"># Attempt to continue matching the XPath using the stanza&#39;s plugins.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">matched_substanzas</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">xpath</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c"># Convert {namespace}tag@attribs to just tag</span>
+            <span class="n">next_tag</span> <span class="o">=</span> <span class="n">xpath</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;@&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;}&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">next_tag</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">[</span><span class="n">next_tag</span><span class="p">]</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">xpath</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">False</span>
+
+        <span class="c"># Everything matched.</span>
+        <span class="k">return</span> <span class="bp">True</span>
+</div>
+<div class="viewcode-block" id="ElementBase.find"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase.find">[docs]</a>    <span class="k">def</span> <span class="nf">find</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xpath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Find an XML object in this stanza given an XPath expression.</span>
+
+<span class="sd">        Exposes ElementTree interface for backwards compatibility.</span>
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">            Matching on attribute values is not supported in Python 2.6</span>
+<span class="sd">            or Python 3.1</span>
+
+<span class="sd">        :param string xpath: An XPath expression matching a single</span>
+<span class="sd">                             desired element.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">xpath</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ElementBase.findall"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase.findall">[docs]</a>    <span class="k">def</span> <span class="nf">findall</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xpath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Find multiple XML objects in this stanza given an XPath expression.</span>
+
+<span class="sd">        Exposes ElementTree interface for backwards compatibility.</span>
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">            Matching on attribute values is not supported in Python 2.6</span>
+<span class="sd">            or Python 3.1.</span>
+
+<span class="sd">        :param string xpath: An XPath expression matching multiple</span>
+<span class="sd">                             desired elements.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">xpath</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ElementBase.get"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the value of a stanza interface.</span>
+
+<span class="sd">        If the found value is None or an empty string, return the supplied</span>
+<span class="sd">        default value.</span>
+
+<span class="sd">        Allows stanza objects to be used like dictionaries.</span>
+
+<span class="sd">        :param string key: The name of the stanza interface to check.</span>
+<span class="sd">        :param default: Value to return if the stanza interface has a value</span>
+<span class="sd">                        of ``None`` or ``&quot;&quot;``. Will default to returning None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">value</span> <span class="o">==</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">default</span>
+        <span class="k">return</span> <span class="n">value</span>
+</div>
+<div class="viewcode-block" id="ElementBase.keys"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase.keys">[docs]</a>    <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the names of all stanza interfaces provided by the</span>
+<span class="sd">        stanza object.</span>
+
+<span class="sd">        Allows stanza objects to be used like dictionaries.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">out</span> <span class="o">+=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">interfaces</span><span class="p">]</span>
+        <span class="n">out</span> <span class="o">+=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">iterables</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;substanzas&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span>
+</div>
+<div class="viewcode-block" id="ElementBase.append"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase.append">[docs]</a>    <span class="k">def</span> <span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Append either an XML object or a substanza to this stanza object.</span>
+
+<span class="sd">        If a substanza object is appended, it will be added to the list</span>
+<span class="sd">        of iterable stanzas.</span>
+
+<span class="sd">        Allows stanza objects to be used like lists.</span>
+
+<span class="sd">        :param item: Either an XML object or a stanza object to add to</span>
+<span class="sd">                     this stanza&#39;s contents.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">ElementBase</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="o">==</span> <span class="n">XML_TYPE</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">appendxml</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">xml</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">iterables</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span>
+</div>
+<div class="viewcode-block" id="ElementBase.appendxml"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase.appendxml">[docs]</a>    <span class="k">def</span> <span class="nf">appendxml</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Append an XML object to the stanza&#39;s XML.</span>
+
+<span class="sd">        The added XML will not be included in the list of</span>
+<span class="sd">        iterable substanzas.</span>
+
+<span class="sd">        :param XML xml: The XML object to add to the stanza.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span>
+</div>
+<div class="viewcode-block" id="ElementBase.pop"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase.pop">[docs]</a>    <span class="k">def</span> <span class="nf">pop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Remove and return the last substanza in the list of</span>
+<span class="sd">        iterable substanzas.</span>
+
+<span class="sd">        Allows stanza objects to be used like lists.</span>
+
+<span class="sd">        :param int index: The index of the substanza to remove.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">substanza</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">iterables</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">substanza</span><span class="o">.</span><span class="n">xml</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">substanza</span>
+</div>
+<div class="viewcode-block" id="ElementBase.next"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase.next">[docs]</a>    <span class="k">def</span> <span class="nf">next</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the next iterable substanza.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__next__</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="ElementBase.clear"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase.clear">[docs]</a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Remove all XML element contents and plugins.</span>
+
+<span class="sd">        Any attribute values will be preserved.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span><span class="n">getchildren</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">plugin</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">[</span><span class="n">plugin</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span>
+</div>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="ElementBase.tag_name"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase.tag_name">[docs]</a>    <span class="k">def</span> <span class="nf">tag_name</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the namespaced name of the stanza&#39;s root element.</span>
+
+<span class="sd">        The format for the tag name is::</span>
+
+<span class="sd">            &#39;{namespace}elementname&#39;</span>
+
+<span class="sd">        For example, for the stanza ``&lt;foo xmlns=&quot;bar&quot; /&gt;``,</span>
+<span class="sd">        ``stanza.tag_name()`` would return ``&quot;{bar}foo&quot;``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s">&quot;{</span><span class="si">%s</span><span class="s">}</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cls</span><span class="o">.</span><span class="n">namespace</span><span class="p">,</span> <span class="n">cls</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+</div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="ElementBase.attrib"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase.attrib">[docs]</a>    <span class="k">def</span> <span class="nf">attrib</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the stanza object itself.</span>
+
+<span class="sd">        Older implementations of stanza objects used XML objects directly,</span>
+<span class="sd">        requiring the use of ``.attrib`` to access attribute values.</span>
+
+<span class="sd">        Use of the dictionary syntax with the stanza object itself for</span>
+<span class="sd">        accessing stanza interfaces is preferred.</span>
+
+<span class="sd">        .. deprecated:: 1.0</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span>
+</div>
+<div class="viewcode-block" id="ElementBase._fix_ns"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase._fix_ns">[docs]</a>    <span class="k">def</span> <span class="nf">_fix_ns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xpath</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">propagate_ns</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Apply the stanza&#39;s namespace to elements in an XPath expression.</span>
+
+<span class="sd">        :param string xpath: The XPath expression to fix with namespaces.</span>
+<span class="sd">        :param bool split: Indicates if the fixed XPath should be left as a</span>
+<span class="sd">                           list of element names with namespaces. Defaults to</span>
+<span class="sd">                           False, which returns a flat string path.</span>
+<span class="sd">        :param bool propagate_ns: Overrides propagating parent element</span>
+<span class="sd">                                  namespaces to child elements. Useful if</span>
+<span class="sd">                                  you wish to simply split an XPath that has</span>
+<span class="sd">                                  non-specified namespaces, and child and</span>
+<span class="sd">                                  parent namespaces are known not to always</span>
+<span class="sd">                                  match. Defaults to True.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">fixed</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c"># Split the XPath into a series of blocks, where a block</span>
+        <span class="c"># is started by an element with a namespace.</span>
+        <span class="n">ns_blocks</span> <span class="o">=</span> <span class="n">xpath</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;{&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ns_block</span> <span class="ow">in</span> <span class="n">ns_blocks</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s">&#39;}&#39;</span> <span class="ow">in</span> <span class="n">ns_block</span><span class="p">:</span>
+                <span class="c"># Apply the found namespace to following elements</span>
+                <span class="c"># that do not have namespaces.</span>
+                <span class="n">namespace</span> <span class="o">=</span> <span class="n">ns_block</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;}&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">elements</span> <span class="o">=</span> <span class="n">ns_block</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;}&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c"># Apply the stanza&#39;s namespace to the following</span>
+                <span class="c"># elements since no namespace was provided.</span>
+                <span class="n">namespace</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">namespace</span>
+                <span class="n">elements</span> <span class="o">=</span> <span class="n">ns_block</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">element</span><span class="p">:</span>
+                    <span class="c"># Skip empty entry artifacts from splitting.</span>
+                    <span class="k">if</span> <span class="n">propagate_ns</span><span class="p">:</span>
+                        <span class="n">tag</span> <span class="o">=</span> <span class="s">&#39;{</span><span class="si">%s</span><span class="s">}</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">namespace</span><span class="p">,</span> <span class="n">element</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">tag</span> <span class="o">=</span> <span class="n">element</span>
+                    <span class="n">fixed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">split</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">fixed</span>
+        <span class="k">return</span> <span class="s">&#39;/&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">fixed</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ElementBase.__eq__"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase.__eq__">[docs]</a>    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compare the stanza object with another to test for equality.</span>
+
+<span class="sd">        Stanzas are equal if their interfaces return the same values,</span>
+<span class="sd">        and if they are both instances of ElementBase.</span>
+
+<span class="sd">        :param ElementBase other: The stanza object to compare against.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">ElementBase</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">False</span>
+
+        <span class="c"># Check that this stanza is a superset of the other stanza.</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">other</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">values</span> <span class="ow">or</span> <span class="n">values</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">!=</span> <span class="n">other</span><span class="p">[</span><span class="n">key</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="bp">False</span>
+
+        <span class="c"># Check that the other stanza is a superset of this stanza.</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">values</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">values</span> <span class="ow">or</span> <span class="n">values</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="bp">False</span>
+
+        <span class="c"># Both stanzas are supersets of each other, therefore they</span>
+        <span class="c"># must be equal.</span>
+        <span class="k">return</span> <span class="bp">True</span>
+</div>
+<div class="viewcode-block" id="ElementBase.__ne__"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase.__ne__">[docs]</a>    <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compare the stanza object with another to test for inequality.</span>
+
+<span class="sd">        Stanzas are not equal if their interfaces return different values,</span>
+<span class="sd">        or if they are not both instances of ElementBase.</span>
+
+<span class="sd">        :param ElementBase other: The stanza object to compare against.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ElementBase.__bool__"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase.__bool__">[docs]</a>    <span class="k">def</span> <span class="nf">__bool__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Stanza objects should be treated as True in boolean contexts.</span>
+
+<span class="sd">        Python 3.x version.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">True</span>
+</div>
+<div class="viewcode-block" id="ElementBase.__nonzero__"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase.__nonzero__">[docs]</a>    <span class="k">def</span> <span class="nf">__nonzero__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Stanza objects should be treated as True in boolean contexts.</span>
+
+<span class="sd">        Python 2.x version.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">True</span>
+</div>
+<div class="viewcode-block" id="ElementBase.__len__"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase.__len__">[docs]</a>    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the number of iterable substanzas in this stanza.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iterables</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ElementBase.__iter__"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase.__iter__">[docs]</a>    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return an iterator object for the stanza&#39;s substanzas.</span>
+
+<span class="sd">        The iterator is the stanza object itself. Attempting to use two</span>
+<span class="sd">        iterators on the same stanza at the same time is discouraged.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_index</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">return</span> <span class="bp">self</span>
+</div>
+<div class="viewcode-block" id="ElementBase.__next__"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase.__next__">[docs]</a>    <span class="k">def</span> <span class="nf">__next__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the next iterable substanza.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_index</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_index</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iterables</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_index</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">raise</span> <span class="ne">StopIteration</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">iterables</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_index</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="ElementBase.__copy__"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase.__copy__">[docs]</a>    <span class="k">def</span> <span class="nf">__copy__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a copy of the stanza object that does not share the same</span>
+<span class="sd">        underlying XML object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">(</span><span class="n">xml</span><span class="o">=</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xml</span><span class="p">),</span> <span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ElementBase.__str__"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase.__str__">[docs]</a>    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">top_level_ns</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a string serialization of the underlying XML object.</span>
+
+<span class="sd">        .. seealso:: :ref:`tostring`</span>
+
+<span class="sd">        :param bool top_level_ns: Display the top-most namespace.</span>
+<span class="sd">                                  Defaults to True.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">stanza_ns</span> <span class="o">=</span> <span class="s">&#39;&#39;</span> <span class="k">if</span> <span class="n">top_level_ns</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">namespace</span>
+        <span class="k">return</span> <span class="n">tostring</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xml</span><span class="p">,</span> <span class="n">xmlns</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+                        <span class="n">stanza_ns</span><span class="o">=</span><span class="n">stanza_ns</span><span class="p">,</span>
+                        <span class="n">top_level</span><span class="o">=</span><span class="ow">not</span> <span class="n">top_level_ns</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ElementBase.__repr__"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase.__repr__">[docs]</a>    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Use the stanza&#39;s serialized XML as its representation.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__str__</span><span class="p">()</span>
+
+</div></div>
+<div class="viewcode-block" id="StanzaBase"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.StanzaBase">[docs]</a><span class="k">class</span> <span class="nc">StanzaBase</span><span class="p">(</span><span class="n">ElementBase</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    StanzaBase provides the foundation for all other stanza objects used</span>
+<span class="sd">    by SleekXMPP, and defines a basic set of interfaces common to nearly</span>
+<span class="sd">    all stanzas. These interfaces are the ``&#39;id&#39;``, ``&#39;type&#39;``, ``&#39;to&#39;``,</span>
+<span class="sd">    and ``&#39;from&#39;`` attributes. An additional interface, ``&#39;payload&#39;``, is</span>
+<span class="sd">    available to access the XML contents of the stanza. Most stanza objects</span>
+<span class="sd">    will provided more specific interfaces, however.</span>
+
+<span class="sd">    **Stanza Interfaces:**</span>
+
+<span class="sd">        :id: An optional id value that can be used to associate stanzas</span>
+<span class="sd">        :to: A JID object representing the recipient&#39;s JID.</span>
+<span class="sd">        :from: A JID object representing the sender&#39;s JID.</span>
+<span class="sd">               with their replies.</span>
+<span class="sd">        :type: The type of stanza, typically will be ``&#39;normal&#39;``,</span>
+<span class="sd">               ``&#39;error&#39;``, ``&#39;get&#39;``, or ``&#39;set&#39;``, etc.</span>
+<span class="sd">        :payload: The XML contents of the stanza.</span>
+
+<span class="sd">    :param XMLStream stream: Optional :class:`sleekxmpp.xmlstream.XMLStream`</span>
+<span class="sd">                             object responsible for sending this stanza.</span>
+<span class="sd">    :param XML xml: Optional XML contents to initialize stanza values.</span>
+<span class="sd">    :param string stype: Optional stanza type value.</span>
+<span class="sd">    :param sto: Optional string or :class:`sleekxmpp.xmlstream.JID`</span>
+<span class="sd">                object of the recipient&#39;s JID.</span>
+<span class="sd">    :param sfrom: Optional string or :class:`sleekxmpp.xmlstream.JID`</span>
+<span class="sd">                  object of the sender&#39;s JID.</span>
+<span class="sd">    :param string sid: Optional ID value for the stanza.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c">#: The default XMPP client namespace</span>
+    <span class="n">namespace</span> <span class="o">=</span> <span class="s">&#39;jabber:client&#39;</span>
+
+    <span class="c">#: There is a small set of attributes which apply to all XMPP stanzas:</span>
+    <span class="c">#: the stanza type, the to and from JIDs, the stanza ID, and, especially</span>
+    <span class="c">#: in the case of an Iq stanza, a payload.</span>
+    <span class="n">interfaces</span> <span class="o">=</span> <span class="nb">set</span><span class="p">((</span><span class="s">&#39;type&#39;</span><span class="p">,</span> <span class="s">&#39;to&#39;</span><span class="p">,</span> <span class="s">&#39;from&#39;</span><span class="p">,</span> <span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="s">&#39;payload&#39;</span><span class="p">))</span>
+
+    <span class="c">#: A basic set of allowed values for the ``&#39;type&#39;`` interface.</span>
+    <span class="n">types</span> <span class="o">=</span> <span class="nb">set</span><span class="p">((</span><span class="s">&#39;get&#39;</span><span class="p">,</span> <span class="s">&#39;set&#39;</span><span class="p">,</span> <span class="s">&#39;error&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;unavailable&#39;</span><span class="p">,</span> <span class="s">&#39;normal&#39;</span><span class="p">,</span> <span class="s">&#39;chat&#39;</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">xml</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">stype</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">sto</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">sfrom</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">sid</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stream</span> <span class="o">=</span> <span class="n">stream</span>
+        <span class="k">if</span> <span class="n">stream</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">namespace</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">default_ns</span>
+        <span class="n">ElementBase</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">stype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stype</span>
+        <span class="k">if</span> <span class="n">sto</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">[</span><span class="s">&#39;to&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sto</span>
+        <span class="k">if</span> <span class="n">sfrom</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">[</span><span class="s">&#39;from&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sfrom</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tag</span> <span class="o">=</span> <span class="s">&quot;{</span><span class="si">%s</span><span class="s">}</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">namespace</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+<div class="viewcode-block" id="StanzaBase.set_type"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.StanzaBase.set_type">[docs]</a>    <span class="k">def</span> <span class="nf">set_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the stanza&#39;s ``&#39;type&#39;`` attribute.</span>
+
+<span class="sd">        Only type values contained in :attr:`types` are accepted.</span>
+
+<span class="sd">        :param string value: One of the values contained in :attr:`types`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">types</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">return</span> <span class="bp">self</span>
+</div>
+<div class="viewcode-block" id="StanzaBase.get_to"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.StanzaBase.get_to">[docs]</a>    <span class="k">def</span> <span class="nf">get_to</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the value of the stanza&#39;s ``&#39;to&#39;`` attribute.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">JID</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_attr</span><span class="p">(</span><span class="s">&#39;to&#39;</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="StanzaBase.set_to"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.StanzaBase.set_to">[docs]</a>    <span class="k">def</span> <span class="nf">set_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the ``&#39;to&#39;`` attribute of the stanza.</span>
+
+<span class="sd">        :param value: A string or :class:`sleekxmpp.xmlstream.JID` object</span>
+<span class="sd">               representing the recipient&#39;s JID.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_attr</span><span class="p">(</span><span class="s">&#39;to&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="StanzaBase.get_from"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.StanzaBase.get_from">[docs]</a>    <span class="k">def</span> <span class="nf">get_from</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the value of the stanza&#39;s ``&#39;from&#39;`` attribute.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">JID</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_attr</span><span class="p">(</span><span class="s">&#39;from&#39;</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="StanzaBase.set_from"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.StanzaBase.set_from">[docs]</a>    <span class="k">def</span> <span class="nf">set_from</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the &#39;from&#39; attribute of the stanza.</span>
+
+<span class="sd">        Arguments:</span>
+<span class="sd">            from -- A string or JID object representing the sender&#39;s JID.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_attr</span><span class="p">(</span><span class="s">&#39;from&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="StanzaBase.get_payload"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.StanzaBase.get_payload">[docs]</a>    <span class="k">def</span> <span class="nf">get_payload</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a list of XML objects contained in the stanza.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span><span class="n">getchildren</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="StanzaBase.set_payload"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.StanzaBase.set_payload">[docs]</a>    <span class="k">def</span> <span class="nf">set_payload</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add XML content to the stanza.</span>
+
+<span class="sd">        :param value: Either an XML or a stanza object, or a list</span>
+<span class="sd">                      of XML or stanza objects.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span>
+</div>
+<div class="viewcode-block" id="StanzaBase.del_payload"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.StanzaBase.del_payload">[docs]</a>    <span class="k">def</span> <span class="nf">del_payload</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Remove the XML contents of the stanza.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span>
+</div>
+<div class="viewcode-block" id="StanzaBase.reply"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.StanzaBase.reply">[docs]</a>    <span class="k">def</span> <span class="nf">reply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">clear</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Prepare the stanza for sending a reply.</span>
+
+<span class="sd">        Swaps the ``&#39;from&#39;`` and ``&#39;to&#39;`` attributes.</span>
+
+<span class="sd">        If ``clear=True``, then also remove the stanza&#39;s</span>
+<span class="sd">        contents to make room for the reply content.</span>
+
+<span class="sd">        For client streams, the ``&#39;from&#39;`` attribute is removed.</span>
+
+<span class="sd">        :param bool clear: Indicates if the stanza&#39;s contents should be</span>
+<span class="sd">                           removed. Defaults to ``True``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># if it&#39;s a component, use from</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="p">,</span> <span class="s">&quot;is_component&quot;</span><span class="p">)</span> <span class="ow">and</span> \
+            <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">is_component</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">[</span><span class="s">&#39;from&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="p">[</span><span class="s">&#39;to&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="s">&#39;to&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="p">[</span><span class="s">&#39;from&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">[</span><span class="s">&#39;to&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="s">&#39;from&#39;</span><span class="p">]</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="p">[</span><span class="s">&#39;from&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">clear</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span>
+</div>
+<div class="viewcode-block" id="StanzaBase.error"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.StanzaBase.error">[docs]</a>    <span class="k">def</span> <span class="nf">error</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the stanza&#39;s type to ``&#39;error&#39;``.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;error&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span>
+</div>
+<div class="viewcode-block" id="StanzaBase.unhandled"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.StanzaBase.unhandled">[docs]</a>    <span class="k">def</span> <span class="nf">unhandled</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Called if no handlers have been registered to process this stanza.</span>
+
+<span class="sd">        Meant to be overridden.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="StanzaBase.exception"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.StanzaBase.exception">[docs]</a>    <span class="k">def</span> <span class="nf">exception</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Handle exceptions raised during stanza processing.</span>
+
+<span class="sd">        Meant to be overridden.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s">&#39;Error handling {</span><span class="si">%s</span><span class="s">}</span><span class="si">%s</span><span class="s"> stanza&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">namespace</span><span class="p">,</span>
+                                                      <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="StanzaBase.send"><a class="viewcode-back" href="../../../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.StanzaBase.send">[docs]</a>    <span class="k">def</span> <span class="nf">send</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">now</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Queue the stanza to be sent on the XML stream.</span>
+
+<span class="sd">        :param bool now: Indicates if the queue should be skipped and the</span>
+<span class="sd">                         stanza sent immediately. Useful for stream</span>
+<span class="sd">                         initialization. Defaults to ``False``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">send_raw</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__str__</span><span class="p">(),</span> <span class="n">now</span><span class="o">=</span><span class="n">now</span><span class="p">)</span>
+</div>
+    <span class="k">def</span> <span class="nf">__copy__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a copy of the stanza object that does not share the</span>
+<span class="sd">        same underlying XML object, but does share the same XML stream.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">(</span><span class="n">xml</span><span class="o">=</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xml</span><span class="p">),</span>
+                              <span class="n">stream</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">top_level_ns</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Serialize the stanza&#39;s XML to a string.</span>
+
+<span class="sd">        :param bool top_level_ns: Display the top-most namespace.</span>
+<span class="sd">                                  Defaults to ``False``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">stanza_ns</span> <span class="o">=</span> <span class="s">&#39;&#39;</span> <span class="k">if</span> <span class="n">top_level_ns</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">namespace</span>
+        <span class="k">return</span> <span class="n">tostring</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xml</span><span class="p">,</span> <span class="n">xmlns</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+                        <span class="n">stanza_ns</span><span class="o">=</span><span class="n">stanza_ns</span><span class="p">,</span>
+                        <span class="n">stream</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="p">,</span>
+                        <span class="n">top_level</span><span class="o">=</span><span class="ow">not</span> <span class="n">top_level_ns</span><span class="p">)</span>
+
+
+<span class="c">#: A JSON/dictionary version of the XML content exposed through</span>
+<span class="c">#: the stanza interfaces::</span>
+<span class="c">#:</span>
+<span class="c">#:     &gt;&gt;&gt; msg = Message()</span>
+<span class="c">#:     &gt;&gt;&gt; msg.values</span>
+<span class="c">#:    {&#39;body&#39;: &#39;&#39;, &#39;from&#39;: , &#39;mucnick&#39;: &#39;&#39;, &#39;mucroom&#39;: &#39;&#39;,</span>
+<span class="c">#:     &#39;to&#39;: , &#39;type&#39;: &#39;normal&#39;, &#39;id&#39;: &#39;&#39;, &#39;subject&#39;: &#39;&#39;}</span>
+<span class="c">#:</span>
+<span class="c">#: Likewise, assigning to the :attr:`values` will change the XML</span>
+<span class="c">#: content::</span>
+<span class="c">#:</span>
+<span class="c">#:     &gt;&gt;&gt; msg = Message()</span>
+<span class="c">#:     &gt;&gt;&gt; msg.values = {&#39;body&#39;: &#39;Hi!&#39;, &#39;to&#39;: &#39;user@example.com&#39;}</span>
+<span class="c">#:     &gt;&gt;&gt; msg</span>
+<span class="c">#:     &#39;&lt;message to=&quot;user@example.com&quot;&gt;&lt;body&gt;Hi!&lt;/body&gt;&lt;/message&gt;&#39;</span>
+<span class="c">#:</span>
+<span class="c">#: Child stanzas are exposed as nested dictionaries.</span></div>
+<span class="n">ElementBase</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">ElementBase</span><span class="o">.</span><span class="n">_get_stanza_values</span><span class="p">,</span>
+                              <span class="n">ElementBase</span><span class="o">.</span><span class="n">_set_stanza_values</span><span class="p">)</span>
+
+
+<span class="c"># To comply with PEP8, method names now use underscores.</span>
+<span class="c"># Deprecated method names are re-mapped for backwards compatibility.</span>
+<span class="n">ElementBase</span><span class="o">.</span><span class="n">initPlugin</span> <span class="o">=</span> <span class="n">ElementBase</span><span class="o">.</span><span class="n">init_plugin</span>
+<span class="n">ElementBase</span><span class="o">.</span><span class="n">_getAttr</span> <span class="o">=</span> <span class="n">ElementBase</span><span class="o">.</span><span class="n">_get_attr</span>
+<span class="n">ElementBase</span><span class="o">.</span><span class="n">_setAttr</span> <span class="o">=</span> <span class="n">ElementBase</span><span class="o">.</span><span class="n">_set_attr</span>
+<span class="n">ElementBase</span><span class="o">.</span><span class="n">_delAttr</span> <span class="o">=</span> <span class="n">ElementBase</span><span class="o">.</span><span class="n">_del_attr</span>
+<span class="n">ElementBase</span><span class="o">.</span><span class="n">_getSubText</span> <span class="o">=</span> <span class="n">ElementBase</span><span class="o">.</span><span class="n">_get_sub_text</span>
+<span class="n">ElementBase</span><span class="o">.</span><span class="n">_setSubText</span> <span class="o">=</span> <span class="n">ElementBase</span><span class="o">.</span><span class="n">_set_sub_text</span>
+<span class="n">ElementBase</span><span class="o">.</span><span class="n">_delSub</span> <span class="o">=</span> <span class="n">ElementBase</span><span class="o">.</span><span class="n">_del_sub</span>
+<span class="n">ElementBase</span><span class="o">.</span><span class="n">getStanzaValues</span> <span class="o">=</span> <span class="n">ElementBase</span><span class="o">.</span><span class="n">_get_stanza_values</span>
+<span class="n">ElementBase</span><span class="o">.</span><span class="n">setStanzaValues</span> <span class="o">=</span> <span class="n">ElementBase</span><span class="o">.</span><span class="n">_set_stanza_values</span>
+
+<span class="n">StanzaBase</span><span class="o">.</span><span class="n">setType</span> <span class="o">=</span> <span class="n">StanzaBase</span><span class="o">.</span><span class="n">set_type</span>
+<span class="n">StanzaBase</span><span class="o">.</span><span class="n">getTo</span> <span class="o">=</span> <span class="n">StanzaBase</span><span class="o">.</span><span class="n">get_to</span>
+<span class="n">StanzaBase</span><span class="o">.</span><span class="n">setTo</span> <span class="o">=</span> <span class="n">StanzaBase</span><span class="o">.</span><span class="n">set_to</span>
+<span class="n">StanzaBase</span><span class="o">.</span><span class="n">getFrom</span> <span class="o">=</span> <span class="n">StanzaBase</span><span class="o">.</span><span class="n">get_from</span>
+<span class="n">StanzaBase</span><span class="o">.</span><span class="n">setFrom</span> <span class="o">=</span> <span class="n">StanzaBase</span><span class="o">.</span><span class="n">set_from</span>
+<span class="n">StanzaBase</span><span class="o">.</span><span class="n">getPayload</span> <span class="o">=</span> <span class="n">StanzaBase</span><span class="o">.</span><span class="n">get_payload</span>
+<span class="n">StanzaBase</span><span class="o">.</span><span class="n">setPayload</span> <span class="o">=</span> <span class="n">StanzaBase</span><span class="o">.</span><span class="n">set_payload</span>
+<span class="n">StanzaBase</span><span class="o">.</span><span class="n">delPayload</span> <span class="o">=</span> <span class="n">StanzaBase</span><span class="o">.</span><span class="n">del_payload</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">1.0RC3 Documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Nathan Fritz, Lance Stout.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

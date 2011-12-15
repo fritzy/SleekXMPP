@@ -1276,8 +1276,6 @@ class XMLStream(object):
         :param xml: The :class:`~sleekxmpp.xmlstream.stanzabase.ElementBase`
                     stanza to analyze.
         """
-        log.debug("RECV: %s", tostring(xml, xmlns=self.default_ns,
-                                            stream=self))
         # Apply any preprocessing filters.
         xml = self.incoming_filter(xml)
 
@@ -1290,6 +1288,9 @@ class XMLStream(object):
                 stanza = filter(stanza)
         if stanza is None:
             return
+
+        log.debug("RECV: %s", tostring(xml, xmlns=self.default_ns,
+                                            stream=self))
 
         # Match the stanza against registered handlers. Handlers marked
         # to run "in stream" will be executed immediately; the rest will

@@ -105,7 +105,7 @@ def _xml2py(value):
     if value.find('{%s}int' % namespace) is not None:
         return int(value.find('{%s}int' % namespace).text)
     if value.find('{%s}boolean' % namespace) is not None:
-        return bool(value.find('{%s}boolean' % namespace).text)
+        return bool(int(value.find('{%s}boolean' % namespace).text))
     if value.find('{%s}string' % namespace) is not None:
         return value.find('{%s}string' % namespace).text
     if value.find('{%s}double' % namespace) is not None:

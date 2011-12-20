@@ -22,7 +22,7 @@ class PubsubErrorCondition(ElementBase):
                       'max-items-exceeded', 'max-nodes-exceeded',
                       'nodeid-required', 'not-in-roster-group',
                       'not-subscribed', 'payload-too-big',
-                      'payload-required' 'pending-subscription',
+                      'payload-required', 'pending-subscription',
                       'presence-subscription-required', 'subid-required',
                       'too-many-subscriptions', 'unsupported'))
     condition_ns = 'http://jabber.org/protocol/pubsub#errors'

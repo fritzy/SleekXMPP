@@ -67,7 +67,7 @@ class TestJabberRPC(SleekTest):
                 </param>
             </params>
         """)
-        self.failUnless(self.compare(expected_xml, params_xml),
+        self.assertTrue(self.compare(expected_xml, params_xml),
                         "Nil to XML conversion\nExpected: %s\nGot: %s" % (
                             tostring(expected_xml), tostring(params_xml)))
         self.assertEqual(params, xml2py(expected_xml),
@@ -90,7 +90,7 @@ class TestJabberRPC(SleekTest):
                 </param>
             </params>
         """)
-        self.failUnless(self.compare(expected_xml, params_xml),
+        self.assertTrue(self.compare(expected_xml, params_xml),
                         "Boolean to XML conversion\nExpected: %s\nGot: %s" % (
                             tostring(expected_xml), tostring(params_xml)))
         self.assertEqual(params, xml2py(expected_xml),
@@ -108,7 +108,7 @@ class TestJabberRPC(SleekTest):
                 </param>
             </params>
         """)
-        self.failUnless(self.compare(expected_xml, params_xml),
+        self.assertTrue(self.compare(expected_xml, params_xml),
                         "String to XML conversion\nExpected: %s\nGot: %s" % (
                             tostring(expected_xml), tostring(params_xml)))
         self.assertEqual(params, xml2py(expected_xml),
@@ -145,7 +145,7 @@ class TestJabberRPC(SleekTest):
                 </param>
             </params>
         """)
-        self.failUnless(self.compare(expected_xml, params_xml),
+        self.assertTrue(self.compare(expected_xml, params_xml),
                         "Integer to XML conversion\nExpected: %s\nGot: %s" % (
                             tostring(expected_xml), tostring(params_xml)))
         self.assertEqual(params, xml2py(expected_xml),
@@ -166,14 +166,14 @@ class TestJabberRPC(SleekTest):
                 </param>
             </params>
         """)
-        self.failUnless(self.compare(expected_xml, params_xml),
+        self.assertTrue(self.compare(expected_xml, params_xml),
                         "Double to XML conversion\nExpected: %s\nGot: %s" % (
                             tostring(expected_xml), tostring(params_xml)))
         self.assertEqual(params, xml2py(expected_xml),
                          "XML to double conversion")
 
     def testConvertBase64(self):
-        params = [rpcbase64(base64.encodestring("Hello, world!"))]
+        params = [rpcbase64(base64.b64encode(b"Hello, world!"))]
         params_xml = py2xml(*params)
         expected_xml = self.parse_xml("""
             <params xmlns="jabber:iq:rpc">
@@ -193,14 +193,14 @@ class TestJabberRPC(SleekTest):
                 </param>
             </params>
         """)
-        self.failUnless(self.compare(expected_xml, params_xml),
+        self.assertTrue(self.compare(expected_xml, params_xml),
                         "Base64 to XML conversion\nExpected: %s\nGot: %s" % (
                             tostring(expected_xml), tostring(params_xml)))
-        self.assertEqual(map(lambda x: x.decode(), params),
-                         map(lambda x: x.decode(), xml2py(expected_xml)),
+        self.assertEqual(list(map(lambda x: x.decode(), params)),
+                         list(map(lambda x: x.decode(), xml2py(expected_xml))),
                          "XML to base64 conversion")
-        self.assertEqual(map(lambda x: x.decode(), params),
-                         map(lambda x: x.decode(), xml2py(alternate_xml)),
+        self.assertEqual(list(map(lambda x: x.decode(), params)),
+                         list(map(lambda x: x.decode(), xml2py(alternate_xml))),
                          "Alternate XML to base64 conversion")
 
     def testConvertDateTime(self):
@@ -215,11 +215,11 @@ class TestJabberRPC(SleekTest):
                 </param>
             </params>
         """)
-        self.failUnless(self.compare(expected_xml, params_xml),
+        self.assertTrue(self.compare(expected_xml, params_xml),
                         "DateTime to XML conversion\nExpected: %s\nGot: %s" % (
                             tostring(expected_xml), tostring(params_xml)))
-        self.assertEqual(map(lambda x: x.iso8601(), params),
-                         map(lambda x: x.iso8601(), xml2py(expected_xml)),
+        self.assertEqual(list(map(lambda x: x.iso8601(), params)),
+                         list(map(lambda x: x.iso8601(), xml2py(expected_xml))),
                          None)
 
     def testConvertArray(self):
@@ -251,10 +251,10 @@ class TestJabberRPC(SleekTest):
                 </param>
             </params>
         """)
-        self.failUnless(self.compare(expected_xml, params_xml),
+        self.assertTrue(self.compare(expected_xml, params_xml),
                         "Array to XML conversion\nExpected: %s\nGot: %s" % (
                             tostring(expected_xml), tostring(params_xml)))
-        self.assertEqual(map(list, params), xml2py(expected_xml),
+        self.assertEqual(list(map(list, params)), xml2py(expected_xml),
                          "XML to array conversion")
 
     def testConvertStruct(self):
@@ -278,7 +278,7 @@ class TestJabberRPC(SleekTest):
                 </param>
             </params>
         """)
-        self.failUnless(self.compare(expected_xml, params_xml),
+        self.assertTrue(self.compare(expected_xml, params_xml),
                         "Struct to XML conversion\nExpected: %s\nGot: %s" % (
                             tostring(expected_xml), tostring(params_xml)))
         self.assertEqual(params, xml2py(expected_xml),

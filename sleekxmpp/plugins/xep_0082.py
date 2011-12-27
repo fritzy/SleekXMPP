@@ -76,7 +76,7 @@ def format_datetime(time_obj):
         return '%sZ' % timestamp
     return timestamp
 
-def date(year=None, month=None, day=None):
+def date(year=None, month=None, day=None, obj=False):
     """
     Create a date only timestamp for the given instant.
 
@@ -86,6 +86,8 @@ def date(year=None, month=None, day=None):
         year   -- Integer value of the year (4 digits)
         month  -- Integer value of the month
         day    -- Integer value of the day of the month.
+        obj    -- If True, return the date object instead
+                  of a formatted string. Defaults to False.
     """
     today = dt.datetime.utcnow()
     if year is None:
@@ -94,9 +96,12 @@ def date(year=None, month=None, day=None):
         month = today.month
     if day is None:
         day = today.day
-    return format_date(dt.date(year, month, day))
+    value = dt.date(year, month, day)
+    if obj:
+        return value 
+    return format_date(value)
 
-def time(hour=None, min=None, sec=None, micro=None, offset=None):
+def time(hour=None, min=None, sec=None, micro=None, offset=None, obj=False):
     """
     Create a time only timestamp for the given instant.
 
@@ -110,6 +115,8 @@ def time(hour=None, min=None, sec=None, micro=None, offset=None):
         offset -- Either a positive or negative number of seconds
                   to offset from UTC to match a desired timezone,
                   or a tzinfo object.
+        obj    -- If True, return the time object instead
+                  of a formatted string. Defaults to False.
     """
     now = dt.datetime.utcnow()
     if hour is None:
@@ -124,12 +131,14 @@ def time(hour=None, min=None, sec=None, micro=None, offset=None):
         offset = tzutc()
     elif not isinstance(offset, dt.tzinfo):
         offset = tzoffset(None, offset)
-    time = dt.time(hour, min, sec, micro, offset)
-    return format_time(time)
+    value = dt.time(hour, min, sec, micro, offset)
+    if obj:
+        return value
+    return format_time(value)
 
 def datetime(year=None, month=None, day=None, hour=None,
              min=None, sec=None, micro=None, offset=None,
-             separators=True):
+             separators=True, obj=False):
     """
     Create a datetime timestamp for the given instant.
 
@@ -146,6 +155,8 @@ def datetime(year=None, month=None, day=None, hour=None,
         offset -- Either a positive or negative number of seconds
                   to offset from UTC to match a desired timezone,
                   or a tzinfo object.
+        obj    -- If True, return the datetime object instead
+                  of a formatted string. Defaults to False.
     """
     now = dt.datetime.utcnow()
     if year is None:
@@ -167,9 +178,11 @@ def datetime(year=None, month=None, day=None, hour=None,
     elif not isinstance(offset, dt.tzinfo):
         offset = tzoffset(None, offset)
 
-    date = dt.datetime(year, month, day, hour,
+    value = dt.datetime(year, month, day, hour,
                        min, sec, micro, offset)
-    return format_datetime(date)
+    if obj:
+        return value 
+    return format_datetime(value)
 
 class xep_0082(base_plugin):
 

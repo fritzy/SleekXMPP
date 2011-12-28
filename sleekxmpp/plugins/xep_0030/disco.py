@@ -111,12 +111,12 @@ class xep_0030(base_plugin):
         self.use_cache = self.config.get('use_cache', True)
         self.wrap_results = self.config.get('wrap_results', False)
 
-        self._disco_ops = ['get_info', 'set_identities', 'set_features',
-                           'get_items', 'set_items', 'del_items',
-                           'add_identity', 'del_identity', 'add_feature',
-                           'del_feature', 'add_item', 'del_item',
-                           'del_identities', 'del_features', 
-                           'cache_info', 'get_cached_info']
+        self._disco_ops = [
+                'get_info', 'set_info', 'set_identities', 'set_features',
+                'get_items', 'set_items', 'del_items', 'add_identity',
+                'del_identity', 'add_feature', 'del_feature', 'add_item',
+                'del_item', 'del_identities', 'del_features', 'cache_info',
+                'get_cached_info']
         
         self.default_handlers = {}
         self._handlers = {}
@@ -343,6 +343,15 @@ class xep_0030(base_plugin):
         return iq.send(timeout=kwargs.get('timeout', None),
                        block=kwargs.get('block', True),
                        callback=kwargs.get('callback', None))
+
+    def set_info(self, jid=None, node=None, info=None):
+        """
+        Set the disco#info data for a JID/node based on an existing
+        disco#info stanza.
+        """
+        if isinstance(info, Iq):
+            info = info['disco_info']
+        self._run_node_handler('set_info', jid, node, None, info)
 
     def get_items(self, jid=None, node=None, local=False, **kwargs):
         """

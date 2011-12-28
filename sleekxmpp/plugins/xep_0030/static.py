@@ -134,7 +134,17 @@ class StaticDisco(object):
             else:
                 return self.get_node(jid, node)['info']
 
-    def del_info(self, jid, node, data):
+    def set_info(self, jid, node, ifrom, data):
+        """
+        Set the entire info stanza for a JID/node at once.
+
+        The data parameter is a disco#info substanza.
+        """
+        with self.lock:
+            self.add_node(jid, node)
+            self.get_node(jid, node)['info'] = data
+
+    def del_info(self, jid, node, ifrom, data):
         """
         Reset the info stanza for a given JID/node combination.
 
@@ -163,7 +173,7 @@ class StaticDisco(object):
         """
         Replace the stored items data for a JID/node combination.
 
-        The data parameter may provided:
+        The data parameter may provide:
             items -- A set of items in tuple format.
         """
         with self.lock:

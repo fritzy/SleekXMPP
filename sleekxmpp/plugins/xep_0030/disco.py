@@ -644,10 +644,14 @@ class xep_0030(base_plugin):
             if self.use_cache:
                 log.debug("Caching disco info result from " \
                       "<%s> to <%s>.", iq['from'], iq['to'])
+                if self.xmpp.is_component:
+                    ito = iq['to'].full
+                else:
+                    ito = None
                 self._run_node_handler('cache_info',
                                        iq['from'].full,
                                        iq['disco_info']['node'],
-                                       iq['to'].full,
+                                       ito,
                                        iq)
             self.xmpp.event('disco_info', iq)
 

@@ -122,7 +122,7 @@ class TestStreamDisco(SleekTest):
         self.stream_start(mode='client',
                           plugins=['xep_0030'])
 
-        def dynamic_jid(jid, node, iq):
+        def dynamic_jid(jid, node, ifrom, iq):
             result = self.xmpp['xep_0030'].stanza.DiscoInfo()
             result['node'] = node
             result.add_identity('client', 'console', name='Dynamic Info')
@@ -158,7 +158,7 @@ class TestStreamDisco(SleekTest):
                           jid='tester.localhost',
                           plugins=['xep_0030'])
 
-        def dynamic_global(jid, node, iq):
+        def dynamic_global(jid, node, ifrom, iq):
             result = self.xmpp['xep_0030'].stanza.DiscoInfo()
             result['node'] = node
             result.add_identity('component', 'generic', name='Dynamic Info')
@@ -194,7 +194,7 @@ class TestStreamDisco(SleekTest):
         self.stream_start(mode='client',
                           plugins=['xep_0030'])
 
-        def dynamic_jid(jid, node, iq):
+        def dynamic_jid(jid, node, ifrom, iq):
             result = self.xmpp['xep_0030'].stanza.DiscoInfo()
             result['node'] = node
             result.add_identity('client', 'console', name='Dynamic Info')
@@ -236,7 +236,7 @@ class TestStreamDisco(SleekTest):
                           jid='tester.localhost',
                           plugins=['xep_0030'])
 
-        def dynamic_global(jid, node, iq):
+        def dynamic_global(jid, node, ifrom, iq):
             result = self.xmpp['xep_0030'].stanza.DiscoInfo()
             result['node'] = node
             result.add_identity('component', 'generic', name='Dynamic Info')
@@ -325,7 +325,7 @@ class TestStreamDisco(SleekTest):
         self.stream_start(mode='client',
                           plugins=['xep_0030'])
 
-        def dynamic_jid(jid, node, iq):
+        def dynamic_jid(jid, node, ifrom, iq):
             result = self.xmpp['xep_0030'].stanza.DiscoItems()
             result['node'] = node
             result.add_item('tester@localhost', node='foo', name='JID')
@@ -359,7 +359,7 @@ class TestStreamDisco(SleekTest):
                           jid='tester.localhost',
                           plugins=['xep_0030'])
 
-        def dynamic_global(jid, node, iq):
+        def dynamic_global(jid, node, ifrom, iq):
             result = self.xmpp['xep_0030'].stanza.DiscoItems()
             result['node'] = node
             result.add_item('tester@localhost', node='foo', name='Global')
@@ -393,7 +393,7 @@ class TestStreamDisco(SleekTest):
         self.stream_start(mode='client',
                           plugins=['xep_0030'])
 
-        def dynamic_jid(jid, node, iq):
+        def dynamic_jid(jid, node, ifrom, iq):
             result = self.xmpp['xep_0030'].stanza.DiscoItems()
             result['node'] = node
             result.add_item('tester@localhost', node='foo', name='Global')
@@ -435,7 +435,7 @@ class TestStreamDisco(SleekTest):
                           jid='tester.localhost',
                           plugins=['xep_0030'])
 
-        def dynamic_global(jid, node, iq):
+        def dynamic_global(jid, node, ifrom, iq):
             result = self.xmpp['xep_0030'].stanza.DiscoItems()
             result['node'] = node
             result.add_item('tester.localhost', node='foo', name='Global')

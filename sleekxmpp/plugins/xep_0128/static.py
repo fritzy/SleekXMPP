@@ -31,42 +31,43 @@ class StaticExtendedDisco(object):
         """
         self.static = static
 
-    def set_extended_info(self, jid, node, data):
+    def set_extended_info(self, jid, node, ifrom, data):
         """
         Replace the extended identity data for a JID/node combination.
 
         The data parameter may provide:
             data -- Either a single data form, or a list of data forms.
         """
-        self.del_extended_info(jid, node, data)
-        self.add_extended_info(jid, node, data)
+        with self.static.lock:
+            self.del_extended_info(jid, node, ifrom, data)
+            self.add_extended_info(jid, node, ifrom, data)
 
-    def add_extended_info(self, jid, node, data):
+    def add_extended_info(self, jid, node, ifrom, data):
         """
         Add additional extended identity data for a JID/node combination.
 
         The data parameter may provide:
             data -- Either a single data form, or a list of data forms.
         """
-        self.static.add_node(jid, node)
+        with self.static.lock:
+            self.static.add_node(jid, node)
 
-        forms = data.get('data', [])
-        if not isinstance(forms, list):
-            forms = [forms]
+            forms = data.get('data', [])
+            if not isinstance(forms, list):
+                forms = [forms]
 
-        for form in forms:
-            self.static.nodes[(jid, node)]['info'].append(form)
+            info = self.static.get_node(jid, node)['info']
+            for form in forms:
+                info.append(form)
 
-    def del_extended_info(self, jid, node, data):
+    def del_extended_info(self, jid, node, ifrom, data):
         """
         Replace the extended identity data for a JID/node combination.
 
         The data parameter is not used.
         """
-        if (jid, node) not in self.static.nodes:
-            return
-
-        info = self.static.nodes[(jid, node)]['info']
-
-        for form in info['substanza']:
-            info.xml.remove(form.xml)
+        with self.static.lock:
+            if self.static.node_exists(jid, node):
+                info = self.static.get_node(jid, node)['info']
+                for form in info['substanza']:
+                    info.xml.remove(form.xml)

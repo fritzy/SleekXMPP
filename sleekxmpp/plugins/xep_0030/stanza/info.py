@@ -146,7 +146,7 @@ class DiscoInfo(ElementBase):
                     return True
         return False
 
-    def get_identities(self, lang=None):
+    def get_identities(self, lang=None, dedupe=True):
         """
         Return a set of all identities in tuple form as so:
             (category, type, lang, name)
@@ -155,17 +155,25 @@ class DiscoInfo(ElementBase):
         that language.
 
         Arguments:
-            lang -- Optional, standard xml:lang value.
+            lang   -- Optional, standard xml:lang value.
+            dedupe -- If True, de-duplicate identities, otherwise
+                      return a list of all identities.
         """
-        identities = set()
+        if dedupe:
+            identities = set()
+        else:
+            identities = []
         for id_xml in self.findall('{%s}identity' % self.namespace):
             xml_lang = id_xml.attrib.get('{%s}lang' % self.xml_ns, None)
             if lang is None or xml_lang == lang:
-                identities.add((
-                    id_xml.attrib['category'],
-                    id_xml.attrib['type'],
-                    id_xml.attrib.get('{%s}lang' % self.xml_ns, None),
-                    id_xml.attrib.get('name', None)))
+                id = (id_xml.attrib['category'],
+                      id_xml.attrib['type'],
+                      id_xml.attrib.get('{%s}lang' % self.xml_ns, None),
+                      id_xml.attrib.get('name', None))
+                if dedupe:
+                    identities.add(id)
+                else:
+                    identities.append(id)
         return identities
 
     def set_identities(self, identities, lang=None):
@@ -237,11 +245,17 @@ class DiscoInfo(ElementBase):
                     return True
         return False
 
-    def get_features(self):
+    def get_features(self, dedupe=True):
         """Return the set of all supported features."""
-        features = set()
+        if dedupe:
+            features = set()
+        else:
+            features = []
         for feature_xml in self.findall('{%s}feature' % self.namespace):
-            features.add(feature_xml.attrib['var'])
+            if dedupe:
+                features.add(feature_xml.attrib['var'])
+            else:
+                features.append(feature_xml.attrib['var'])
         return features
 
     def set_features(self, features):

@@ -11,7 +11,6 @@
 
 import sys
 import logging
-import time
 from optparse import OptionParser
 
 import sleekxmpp

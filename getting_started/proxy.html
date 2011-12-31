@@ -54,7 +54,206 @@
           <div class="body">
             
   <div class="section" id="enable-http-proxy-support">
-<h1>Enable HTTP Proxy Support<a class="headerlink" href="#enable-http-proxy-support" title="Permalink to this headline">¶</a></h1>
+<span id="proxy"></span><h1>Enable HTTP Proxy Support<a class="headerlink" href="#enable-http-proxy-support" title="Permalink to this headline">¶</a></h1>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you have any issues working through this quickstart guide
+or the other tutorials here, please either send a message to the
+<a class="reference external" href="http://groups.google.com/group/sleekxmpp-discussion">mailing list</a>
+or join the chat room at <a class="reference external" href="xmpp:sleek&#64;conference.jabber.org?join">sleek&#64;conference.jabber.org</a>.</p>
+</div>
+<p>In some instances, you may wish to route XMPP traffic through
+an HTTP proxy, probably to get around restrictive firewalls.
+SleekXMPP provides support for basic HTTP proxying with DIGEST
+authentication.</p>
+<p>Enabling proxy support is done in two steps. The first is to instruct SleekXMPP
+to use a proxy, and the second is to configure the proxy details:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">xmpp</span> <span class="o">=</span> <span class="n">ClientXMPP</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="n">xmpp</span><span class="o">.</span><span class="n">use_proxy</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="n">xmpp</span><span class="o">.</span><span class="n">proxy_config</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;host&#39;</span><span class="p">:</span> <span class="s">&#39;proxy.example.com&#39;</span><span class="p">,</span>
+    <span class="s">&#39;port&#39;</span><span class="p">:</span> <span class="mi">5555</span><span class="p">,</span>
+    <span class="s">&#39;username&#39;</span><span class="p">:</span> <span class="s">&#39;example_user&#39;</span><span class="p">,</span>
+    <span class="s">&#39;password&#39;</span><span class="p">:</span> <span class="s">&#39;******&#39;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The <tt class="docutils literal"><span class="pre">'username'</span></tt> and <tt class="docutils literal"><span class="pre">'password'</span></tt> fields are optional if the proxy does not
+require authentication.</p>
+<div class="section" id="the-final-product">
+<h2>The Final Product<a class="headerlink" href="#the-final-product" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre><span class="c">#!/usr/bin/env python</span>
+<span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    SleekXMPP: The Sleek XMPP Library</span>
+<span class="sd">    Copyright (C) 2010  Nathanael C. Fritz</span>
+<span class="sd">    This file is part of SleekXMPP.</span>
+
+<span class="sd">    See the file LICENSE for copying permission.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">getpass</span>
+<span class="kn">from</span> <span class="nn">optparse</span> <span class="kn">import</span> <span class="n">OptionParser</span>
+
+<span class="kn">import</span> <span class="nn">sleekxmpp</span>
+
+<span class="c"># Python versions before 3.0 do not use UTF-8 encoding</span>
+<span class="c"># by default. To ensure that Unicode is handled properly</span>
+<span class="c"># throughout SleekXMPP, we will set the default encoding</span>
+<span class="c"># ourselves to UTF-8.</span>
+<span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&lt;</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span>
+    <span class="nb">reload</span><span class="p">(</span><span class="n">sys</span><span class="p">)</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">setdefaultencoding</span><span class="p">(</span><span class="s">&#39;utf8&#39;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">raw_input</span> <span class="o">=</span> <span class="nb">input</span>
+
+
+<span class="k">class</span> <span class="nc">EchoBot</span><span class="p">(</span><span class="n">sleekxmpp</span><span class="o">.</span><span class="n">ClientXMPP</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A simple SleekXMPP bot that will echo messages it</span>
+<span class="sd">    receives, along with a short thank you message.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jid</span><span class="p">,</span> <span class="n">password</span><span class="p">):</span>
+        <span class="n">sleekxmpp</span><span class="o">.</span><span class="n">ClientXMPP</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jid</span><span class="p">,</span> <span class="n">password</span><span class="p">)</span>
+
+        <span class="c"># The session_start event will be triggered when</span>
+        <span class="c"># the bot establishes its connection with the server</span>
+        <span class="c"># and the XML streams are ready for use. We want to</span>
+        <span class="c"># listen for this event so that we we can intialize</span>
+        <span class="c"># our roster.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_event_handler</span><span class="p">(</span><span class="s">&quot;session_start&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">)</span>
+
+        <span class="c"># The message event is triggered whenever a message</span>
+        <span class="c"># stanza is received. Be aware that that includes</span>
+        <span class="c"># MUC messages and error messages.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_event_handler</span><span class="p">(</span><span class="s">&quot;message&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Process the session_start event.</span>
+
+<span class="sd">        Typical actions for the session_start event are</span>
+<span class="sd">        requesting the roster and broadcasting an intial</span>
+<span class="sd">        presence stanza.</span>
+
+<span class="sd">        Arguments:</span>
+<span class="sd">            event -- An empty dictionary. The session_start</span>
+<span class="sd">                     event does not provide any additional</span>
+<span class="sd">                     data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">send_presence</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_roster</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Process incoming message stanzas. Be aware that this also</span>
+<span class="sd">        includes MUC messages and error messages. It is usually</span>
+<span class="sd">        a good idea to check the messages&#39;s type before processing</span>
+<span class="sd">        or sending replies.</span>
+
+<span class="sd">        Arguments:</span>
+<span class="sd">            msg -- The received message stanza. See the documentation</span>
+<span class="sd">                   for stanza objects and the Message stanza to see</span>
+<span class="sd">                   how it may be used.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">msg</span><span class="o">.</span><span class="n">reply</span><span class="p">(</span><span class="s">&quot;Thanks for sending</span><span class="se">\n</span><span class="si">%(body)s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">msg</span><span class="p">)</span><span class="o">.</span><span class="n">send</span><span class="p">()</span>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="c"># Setup the command line arguments.</span>
+    <span class="n">optp</span> <span class="o">=</span> <span class="n">OptionParser</span><span class="p">()</span>
+
+    <span class="c"># Output verbosity options.</span>
+    <span class="n">optp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&#39;-q&#39;</span><span class="p">,</span> <span class="s">&#39;--quiet&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&#39;set logging to ERROR&#39;</span><span class="p">,</span>
+                    <span class="n">action</span><span class="o">=</span><span class="s">&#39;store_const&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s">&#39;loglevel&#39;</span><span class="p">,</span>
+                    <span class="n">const</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+    <span class="n">optp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&#39;-d&#39;</span><span class="p">,</span> <span class="s">&#39;--debug&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&#39;set logging to DEBUG&#39;</span><span class="p">,</span>
+                    <span class="n">action</span><span class="o">=</span><span class="s">&#39;store_const&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s">&#39;loglevel&#39;</span><span class="p">,</span>
+                    <span class="n">const</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+    <span class="n">optp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&#39;-v&#39;</span><span class="p">,</span> <span class="s">&#39;--verbose&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&#39;set logging to COMM&#39;</span><span class="p">,</span>
+                    <span class="n">action</span><span class="o">=</span><span class="s">&#39;store_const&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s">&#39;loglevel&#39;</span><span class="p">,</span>
+                    <span class="n">const</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+
+    <span class="c"># JID and password options.</span>
+    <span class="n">optp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&quot;-j&quot;</span><span class="p">,</span> <span class="s">&quot;--jid&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s">&quot;jid&quot;</span><span class="p">,</span>
+                    <span class="n">help</span><span class="o">=</span><span class="s">&quot;JID to use&quot;</span><span class="p">)</span>
+    <span class="n">optp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&quot;-p&quot;</span><span class="p">,</span> <span class="s">&quot;--password&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s">&quot;password&quot;</span><span class="p">,</span>
+                    <span class="n">help</span><span class="o">=</span><span class="s">&quot;password to use&quot;</span><span class="p">)</span>
+    <span class="n">optp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&quot;--phost&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s">&quot;proxy_host&quot;</span><span class="p">,</span>
+                    <span class="n">help</span><span class="o">=</span><span class="s">&quot;Proxy hostname&quot;</span><span class="p">)</span>
+    <span class="n">optp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&quot;--pport&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s">&quot;proxy_port&quot;</span><span class="p">,</span>
+                    <span class="n">help</span><span class="o">=</span><span class="s">&quot;Proxy port&quot;</span><span class="p">)</span>
+    <span class="n">optp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&quot;--puser&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s">&quot;proxy_user&quot;</span><span class="p">,</span>
+                    <span class="n">help</span><span class="o">=</span><span class="s">&quot;Proxy username&quot;</span><span class="p">)</span>
+    <span class="n">optp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&quot;--ppass&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s">&quot;proxy_pass&quot;</span><span class="p">,</span>
+                    <span class="n">help</span><span class="o">=</span><span class="s">&quot;Proxy password&quot;</span><span class="p">)</span>
+
+
+
+    <span class="n">opts</span><span class="p">,</span> <span class="n">args</span> <span class="o">=</span> <span class="n">optp</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="c"># Setup logging.</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">opts</span><span class="o">.</span><span class="n">loglevel</span><span class="p">,</span>
+                        <span class="n">format</span><span class="o">=</span><span class="s">&#39;</span><span class="si">%(levelname)-8s</span><span class="s"> </span><span class="si">%(message)s</span><span class="s">&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">opts</span><span class="o">.</span><span class="n">jid</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">opts</span><span class="o">.</span><span class="n">jid</span> <span class="o">=</span> <span class="nb">raw_input</span><span class="p">(</span><span class="s">&quot;Username: &quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">opts</span><span class="o">.</span><span class="n">password</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">opts</span><span class="o">.</span><span class="n">password</span> <span class="o">=</span> <span class="n">getpass</span><span class="o">.</span><span class="n">getpass</span><span class="p">(</span><span class="s">&quot;Password: &quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">opts</span><span class="o">.</span><span class="n">proxy_host</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">opts</span><span class="o">.</span><span class="n">proxy_host</span> <span class="o">=</span> <span class="nb">raw_input</span><span class="p">(</span><span class="s">&quot;Proxy host: &quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">opts</span><span class="o">.</span><span class="n">proxy_port</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">opts</span><span class="o">.</span><span class="n">proxy_port</span> <span class="o">=</span> <span class="nb">raw_input</span><span class="p">(</span><span class="s">&quot;Proxy port: &quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">opts</span><span class="o">.</span><span class="n">proxy_user</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">opts</span><span class="o">.</span><span class="n">proxy_user</span> <span class="o">=</span> <span class="nb">raw_input</span><span class="p">(</span><span class="s">&quot;Proxy username: &quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">opts</span><span class="o">.</span><span class="n">proxy_pass</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">opts</span><span class="o">.</span><span class="n">proxy_user</span><span class="p">:</span>
+        <span class="n">opts</span><span class="o">.</span><span class="n">proxy_pass</span> <span class="o">=</span> <span class="n">getpass</span><span class="o">.</span><span class="n">getpass</span><span class="p">(</span><span class="s">&quot;Proxy password: &quot;</span><span class="p">)</span>
+
+    <span class="c"># Setup the EchoBot and register plugins. Note that while plugins may</span>
+    <span class="c"># have interdependencies, the order in which you register them does</span>
+    <span class="c"># not matter.</span>
+    <span class="n">xmpp</span> <span class="o">=</span> <span class="n">EchoBot</span><span class="p">(</span><span class="n">opts</span><span class="o">.</span><span class="n">jid</span><span class="p">,</span> <span class="n">opts</span><span class="o">.</span><span class="n">password</span><span class="p">)</span>
+    <span class="n">xmpp</span><span class="o">.</span><span class="n">register_plugin</span><span class="p">(</span><span class="s">&#39;xep_0030&#39;</span><span class="p">)</span> <span class="c"># Service Discovery</span>
+    <span class="n">xmpp</span><span class="o">.</span><span class="n">register_plugin</span><span class="p">(</span><span class="s">&#39;xep_0004&#39;</span><span class="p">)</span> <span class="c"># Data Forms</span>
+    <span class="n">xmpp</span><span class="o">.</span><span class="n">register_plugin</span><span class="p">(</span><span class="s">&#39;xep_0060&#39;</span><span class="p">)</span> <span class="c"># PubSub</span>
+    <span class="n">xmpp</span><span class="o">.</span><span class="n">register_plugin</span><span class="p">(</span><span class="s">&#39;xep_0199&#39;</span><span class="p">)</span> <span class="c"># XMPP Ping</span>
+
+    <span class="c"># If you are working with an OpenFire server, you may need</span>
+    <span class="c"># to adjust the SSL version used:</span>
+    <span class="c"># xmpp.ssl_version = ssl.PROTOCOL_SSLv3</span>
+
+    <span class="c"># If you want to verify the SSL certificates offered by a server:</span>
+    <span class="c"># xmpp.ca_certs = &quot;path/to/ca/cert&quot;</span>
+
+    <span class="n">xmpp</span><span class="o">.</span><span class="n">use_proxy</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="n">xmpp</span><span class="o">.</span><span class="n">proxy_config</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;host&#39;</span><span class="p">:</span> <span class="n">opts</span><span class="o">.</span><span class="n">proxy_host</span><span class="p">,</span>
+        <span class="s">&#39;port&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">opts</span><span class="o">.</span><span class="n">proxy_port</span><span class="p">),</span>
+        <span class="s">&#39;username&#39;</span><span class="p">:</span> <span class="n">opts</span><span class="o">.</span><span class="n">proxy_user</span><span class="p">,</span>
+        <span class="s">&#39;password&#39;</span><span class="p">:</span> <span class="n">opts</span><span class="o">.</span><span class="n">proxy_pass</span><span class="p">}</span>
+
+    <span class="c"># Connect to the XMPP server and start processing XMPP stanzas.</span>
+    <span class="k">if</span> <span class="n">xmpp</span><span class="o">.</span><span class="n">connect</span><span class="p">():</span>
+        <span class="c"># If you do not have the dnspython library installed, you will need</span>
+        <span class="c"># to manually specify the name of the server if it does not match</span>
+        <span class="c"># the one in the JID. For example, to use Google Talk you would</span>
+        <span class="c"># need to use:</span>
+        <span class="c">#</span>
+        <span class="c"># if xmpp.connect((&#39;talk.google.com&#39;, 5222)):</span>
+        <span class="c">#     ...</span>
+        <span class="n">xmpp</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;Done&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;Unable to connect.&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
 </div>
 
 
@@ -63,6 +262,14 @@
       </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Enable HTTP Proxy Support</a><ul>
+<li><a class="reference internal" href="#the-final-product">The Final Product</a></li>
+</ul>
+</li>
+</ul>
+
   <h4>Previous topic</h4>
   <p class="topless"><a href="muc.html"
                         title="previous chapter">Mulit-User Chat (MUC) Bot</a></p>

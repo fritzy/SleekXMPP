@@ -575,7 +575,7 @@ class xep_0030(base_plugin):
         """
         self._run_node_handler('del_features', jid, node, None, kwargs)
 
-    def _run_node_handler(self, htype, jid, node, ifrom, data={}):
+    def _run_node_handler(self, htype, jid, node=None, ifrom=None, data={}):
         """
         Execute the most specific node handler for the given
         JID/node combination.
@@ -586,7 +586,7 @@ class xep_0030(base_plugin):
             node  -- The node requested.
             data  -- Optional, custom data to pass to the handler.
         """
-        if jid is None:
+        if jid in (None, ''):
             if self.xmpp.is_component:
                 jid = self.xmpp.boundjid.full
             else:

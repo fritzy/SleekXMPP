@@ -318,7 +318,16 @@ class xep_0030(base_plugin):
                         received instead of blocking and waiting for
                         the reply.
         """
-        if local or jid is None:
+        if jid is not None and not isinstance(jid, JID):
+            jid = JID(jid)
+            if self.xmpp.is_component:
+                if jid.domain == self.xmpp.boundjid.domain:
+                    local = True
+            else:
+                if str(jid) == str(self.xmpp.boundjid):
+                    local = True
+
+        if local or jid in (None, ''):
             log.debug("Looking up local disco#info data " + \
                       "for %s, node %s.", jid, node)
             info = self._run_node_handler('get_info', 

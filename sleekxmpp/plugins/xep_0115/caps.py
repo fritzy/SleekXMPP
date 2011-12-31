@@ -11,7 +11,7 @@ import hashlib
 import base64
 
 import sleekxmpp
-from sleekxmpp import Presence, Iq
+from sleekxmpp.stanza import StreamFeatures, Presence, Iq
 from sleekxmpp.xmlstream import register_stanza_plugin
 from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.xmlstream.matcher import StanzaPath
@@ -46,6 +46,7 @@ class xep_0115(base_plugin):
             self.caps_node = 'http://sleekxmpp.com/ver/%s' % ver
 
         register_stanza_plugin(Presence, stanza.Capabilities)
+        register_stanza_plugin(StreamFeatures, stanza.Capabilities)
 
         self._disco_ops = ['cache_caps',
                            'get_caps',
@@ -63,6 +64,11 @@ class xep_0115(base_plugin):
 
         self.xmpp.add_event_handler('entity_caps', self._process_caps,
                                     threaded=True)
+
+        self.xmpp.register_feature('caps',
+                self._handle_caps_feature,
+                restart=False,
+                order=10010)
 
     def post_init(self):
         base_plugin.post_init(self)
@@ -95,6 +101,16 @@ class xep_0115(base_plugin):
             if presence['from'] == self.xmpp.boundjid:
                 return
         self.xmpp.event('entity_caps', presence)
+
+    def _handle_caps_feature(self, features):
+        # We already have a method to process presence with
+        # caps, so wrap things up and use that.
+        p = Presence()
+        p['from'] = self.xmpp.boundjid.domain
+        p.append(features['caps'])
+        self.xmpp.features.add('caps')
+
+        self.xmpp.event('entity_caps', p)
 
     def _process_caps(self, pres):
         if not pres['caps']['hash']:

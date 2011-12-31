@@ -265,14 +265,14 @@ then you will also see the <tt class="docutils literal"><span class="pre">SendMs
 
     <span class="c"># Connect to the XMPP server and start processing XMPP stanzas.</span>
     <span class="k">if</span> <span class="n">xmpp</span><span class="o">.</span><span class="n">connect</span><span class="p">():</span>
-        <span class="c"># If you do not have the pydns library installed, you will need</span>
+        <span class="c"># If you do not have the dnspython library installed, you will need</span>
         <span class="c"># to manually specify the name of the server if it does not match</span>
         <span class="c"># the one in the JID. For example, to use Google Talk you would</span>
         <span class="c"># need to use:</span>
         <span class="c">#</span>
         <span class="c"># if xmpp.connect((&#39;talk.google.com&#39;, 5222)):</span>
         <span class="c">#     ...</span>
-        <span class="n">xmpp</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">threaded</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="n">xmpp</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&quot;Done&quot;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&quot;Unable to connect.&quot;</span><span class="p">)</span>

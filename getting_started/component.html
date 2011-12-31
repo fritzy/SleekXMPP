@@ -54,7 +54,184 @@
           <div class="body">
             
   <div class="section" id="create-and-run-a-server-component">
-<h1>Create and Run a Server Component<a class="headerlink" href="#create-and-run-a-server-component" title="Permalink to this headline">¶</a></h1>
+<span id="echocomponent"></span><h1>Create and Run a Server Component<a class="headerlink" href="#create-and-run-a-server-component" title="Permalink to this headline">¶</a></h1>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you have any issues working through this quickstart guide
+or the other tutorials here, please either send a message to the
+<a class="reference external" href="http://groups.google.com/group/sleekxmpp-discussion">mailing list</a>
+or join the chat room at <a class="reference external" href="xmpp:sleek&#64;conference.jabber.org?join">sleek&#64;conference.jabber.org</a>.</p>
+</div>
+<p>If you have not yet installed SleekXMPP, do so now by either checking out a version
+from <a class="reference external" href="http://github.com/fritzy/SleekXMPP">Github</a>, or installing it using <tt class="docutils literal"><span class="pre">pip</span></tt>
+or <tt class="docutils literal"><span class="pre">easy_install</span></tt>.</p>
+<div class="highlight-sh"><div class="highlight"><pre>pip install sleekxmpp  <span class="c"># Or: easy_install sleekxmpp</span>
+</pre></div>
+</div>
+<p>Many XMPP applications eventually graduate to requiring to run as a server
+component in order to meet scalability requirements. To demonstrate how to
+turn an XMPP client bot into a component, we&#8217;ll turn the echobot example
+(<a class="reference internal" href="echobot.html#echobot"><em>SleekXMPP Quickstart - Echo Bot</em></a>) into a component version.</p>
+<p>The first difference is that we will add an additional import statement:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sleekxmpp.componentxmpp</span> <span class="kn">import</span> <span class="n">ComponentXMPP</span>
+</pre></div>
+</div>
+<p>Likewise, we will change the bot&#8217;s class definition to match:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">EchoComponent</span><span class="p">(</span><span class="n">ComponentXMPP</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jid</span><span class="p">,</span> <span class="n">secret</span><span class="p">,</span> <span class="n">server</span><span class="p">,</span> <span class="n">port</span><span class="p">):</span>
+        <span class="n">ComponentXMPP</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jid</span><span class="p">,</span> <span class="n">secret</span><span class="p">,</span> <span class="n">server</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>A component instance requires two extra parameters compared to a client
+instance: <tt class="docutils literal"><span class="pre">server</span></tt> and <tt class="docutils literal"><span class="pre">port</span></tt>. These specifiy the name and port of
+the XMPP server that will be accepting the component. For example, for
+a MUC component, the following could be used:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">muc</span> <span class="o">=</span> <span class="n">ComponentXMPP</span><span class="p">(</span><span class="s">&#39;muc.sleekxmpp.com&#39;</span><span class="p">,</span> <span class="s">&#39;******&#39;</span><span class="p">,</span> <span class="s">&#39;sleekxmpp.com&#39;</span><span class="p">,</span> <span class="mi">5555</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <tt class="docutils literal"><span class="pre">server</span></tt> value is <strong>NOT</strong> derived from the provided JID for the
+component, unlike with client connections.</p>
+</div>
+<p>One difference with the component version is that we do not have
+to handle the <a class="reference internal" href="../event_index.html#term-session-start"><em class="xref std std-term">session_start</em></a> event if we don&#8217;t wish to deal
+with presence.</p>
+<p>The other, main difference with components is that the
+<tt class="docutils literal"><span class="pre">'from'</span></tt> value for every stanza must be explicitly set, since
+components may send stanzas from multiple JIDs. To do so,
+the <a class="reference internal" href="../api/basexmpp.html#sleekxmpp.basexmpp.BaseXMPP.send_message" title="sleekxmpp.basexmpp.BaseXMPP.send_message"><tt class="xref py py-meth docutils literal"><span class="pre">send_message()</span></tt></a> and
+<a class="reference internal" href="../api/basexmpp.html#sleekxmpp.basexmpp.BaseXMPP.send_presence" title="sleekxmpp.basexmpp.BaseXMPP.send_presence"><tt class="xref py py-meth docutils literal"><span class="pre">send_presence()</span></tt></a> accept the parameters
+<tt class="docutils literal"><span class="pre">mfrom</span></tt> and <tt class="docutils literal"><span class="pre">pfrom</span></tt>, respectively. For any method that uses
+<tt class="xref py py-class docutils literal"><span class="pre">Iq</span></tt> stanzas, <tt class="docutils literal"><span class="pre">ifrom</span></tt> may be used.</p>
+<div class="section" id="final-product">
+<h2>Final Product<a class="headerlink" href="#final-product" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre><span class="c">#!/usr/bin/env python</span>
+<span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    SleekXMPP: The Sleek XMPP Library</span>
+<span class="sd">    Copyright (C) 2010  Nathanael C. Fritz</span>
+<span class="sd">    This file is part of SleekXMPP.</span>
+
+<span class="sd">    See the file LICENSE for copying permission.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">optparse</span> <span class="kn">import</span> <span class="n">OptionParser</span>
+
+<span class="kn">import</span> <span class="nn">sleekxmpp</span>
+<span class="kn">from</span> <span class="nn">sleekxmpp.componentxmpp</span> <span class="kn">import</span> <span class="n">ComponentXMPP</span>
+
+<span class="c"># Python versions before 3.0 do not use UTF-8 encoding</span>
+<span class="c"># by default. To ensure that Unicode is handled properly</span>
+<span class="c"># throughout SleekXMPP, we will set the default encoding</span>
+<span class="c"># ourselves to UTF-8.</span>
+<span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&lt;</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span>
+    <span class="nb">reload</span><span class="p">(</span><span class="n">sys</span><span class="p">)</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">setdefaultencoding</span><span class="p">(</span><span class="s">&#39;utf8&#39;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">raw_input</span> <span class="o">=</span> <span class="nb">input</span>
+
+
+<span class="k">class</span> <span class="nc">EchoComponent</span><span class="p">(</span><span class="n">ComponentXMPP</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A simple SleekXMPP component that echoes messages.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jid</span><span class="p">,</span> <span class="n">secret</span><span class="p">,</span> <span class="n">server</span><span class="p">,</span> <span class="n">port</span><span class="p">):</span>
+        <span class="n">ComponentXMPP</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jid</span><span class="p">,</span> <span class="n">secret</span><span class="p">,</span> <span class="n">server</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
+
+        <span class="c"># You don&#39;t need a session_start handler, but that is</span>
+        <span class="c"># where you would broadcast initial presence.</span>
+
+        <span class="c"># The message event is triggered whenever a message</span>
+        <span class="c"># stanza is received. Be aware that that includes</span>
+        <span class="c"># MUC messages and error messages.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_event_handler</span><span class="p">(</span><span class="s">&quot;message&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Process incoming message stanzas. Be aware that this also</span>
+<span class="sd">        includes MUC messages and error messages. It is usually</span>
+<span class="sd">        a good idea to check the messages&#39;s type before processing</span>
+<span class="sd">        or sending replies.</span>
+
+<span class="sd">        Since a component may send messages from any number of JIDs,</span>
+<span class="sd">        it is best to always include a from JID.</span>
+
+<span class="sd">        Arguments:</span>
+<span class="sd">            msg -- The received message stanza. See the documentation</span>
+<span class="sd">                   for stanza objects and the Message stanza to see</span>
+<span class="sd">                   how it may be used.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># The reply method will use the messages &#39;to&#39; JID as the</span>
+        <span class="c"># outgoing reply&#39;s &#39;from&#39; JID.</span>
+        <span class="n">msg</span><span class="o">.</span><span class="n">reply</span><span class="p">(</span><span class="s">&quot;Thanks for sending</span><span class="se">\n</span><span class="si">%(body)s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">msg</span><span class="p">)</span><span class="o">.</span><span class="n">send</span><span class="p">()</span>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="c"># Setup the command line arguments.</span>
+    <span class="n">optp</span> <span class="o">=</span> <span class="n">OptionParser</span><span class="p">()</span>
+
+    <span class="c"># Output verbosity options.</span>
+    <span class="n">optp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&#39;-q&#39;</span><span class="p">,</span> <span class="s">&#39;--quiet&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&#39;set logging to ERROR&#39;</span><span class="p">,</span>
+                    <span class="n">action</span><span class="o">=</span><span class="s">&#39;store_const&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s">&#39;loglevel&#39;</span><span class="p">,</span>
+                    <span class="n">const</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+    <span class="n">optp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&#39;-d&#39;</span><span class="p">,</span> <span class="s">&#39;--debug&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&#39;set logging to DEBUG&#39;</span><span class="p">,</span>
+                    <span class="n">action</span><span class="o">=</span><span class="s">&#39;store_const&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s">&#39;loglevel&#39;</span><span class="p">,</span>
+                    <span class="n">const</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+    <span class="n">optp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&#39;-v&#39;</span><span class="p">,</span> <span class="s">&#39;--verbose&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&#39;set logging to COMM&#39;</span><span class="p">,</span>
+                    <span class="n">action</span><span class="o">=</span><span class="s">&#39;store_const&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s">&#39;loglevel&#39;</span><span class="p">,</span>
+                    <span class="n">const</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+
+    <span class="c"># JID and password options.</span>
+    <span class="n">optp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&quot;-j&quot;</span><span class="p">,</span> <span class="s">&quot;--jid&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s">&quot;jid&quot;</span><span class="p">,</span>
+                    <span class="n">help</span><span class="o">=</span><span class="s">&quot;JID to use&quot;</span><span class="p">)</span>
+    <span class="n">optp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&quot;-p&quot;</span><span class="p">,</span> <span class="s">&quot;--password&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s">&quot;password&quot;</span><span class="p">,</span>
+                    <span class="n">help</span><span class="o">=</span><span class="s">&quot;password to use&quot;</span><span class="p">)</span>
+    <span class="n">optp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&quot;-s&quot;</span><span class="p">,</span> <span class="s">&quot;--server&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s">&quot;server&quot;</span><span class="p">,</span>
+                    <span class="n">help</span><span class="o">=</span><span class="s">&quot;server to connect to&quot;</span><span class="p">)</span>
+    <span class="n">optp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&quot;-P&quot;</span><span class="p">,</span> <span class="s">&quot;--port&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s">&quot;port&quot;</span><span class="p">,</span>
+                    <span class="n">help</span><span class="o">=</span><span class="s">&quot;port to connect to&quot;</span><span class="p">)</span>
+
+    <span class="n">opts</span><span class="p">,</span> <span class="n">args</span> <span class="o">=</span> <span class="n">optp</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">opts</span><span class="o">.</span><span class="n">jid</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">opts</span><span class="o">.</span><span class="n">jid</span> <span class="o">=</span> <span class="nb">raw_input</span><span class="p">(</span><span class="s">&quot;Component JID: &quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">opts</span><span class="o">.</span><span class="n">password</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">opts</span><span class="o">.</span><span class="n">password</span> <span class="o">=</span> <span class="n">getpass</span><span class="o">.</span><span class="n">getpass</span><span class="p">(</span><span class="s">&quot;Password: &quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">opts</span><span class="o">.</span><span class="n">server</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">opts</span><span class="o">.</span><span class="n">server</span> <span class="o">=</span> <span class="nb">raw_input</span><span class="p">(</span><span class="s">&quot;Server: &quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">opts</span><span class="o">.</span><span class="n">port</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">opts</span><span class="o">.</span><span class="n">port</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">raw_input</span><span class="p">(</span><span class="s">&quot;Port: &quot;</span><span class="p">))</span>
+
+    <span class="c"># Setup logging.</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">opts</span><span class="o">.</span><span class="n">loglevel</span><span class="p">,</span>
+                        <span class="n">format</span><span class="o">=</span><span class="s">&#39;</span><span class="si">%(levelname)-8s</span><span class="s"> </span><span class="si">%(message)s</span><span class="s">&#39;</span><span class="p">)</span>
+
+    <span class="c"># Setup the EchoComponent and register plugins. Note that while plugins</span>
+    <span class="c"># may have interdependencies, the order in which you register them does</span>
+    <span class="c"># not matter.</span>
+    <span class="n">xmpp</span> <span class="o">=</span> <span class="n">EchoComponent</span><span class="p">(</span><span class="n">opts</span><span class="o">.</span><span class="n">jid</span><span class="p">,</span> <span class="n">opts</span><span class="o">.</span><span class="n">password</span><span class="p">,</span> <span class="n">opts</span><span class="o">.</span><span class="n">server</span><span class="p">,</span> <span class="n">opts</span><span class="o">.</span><span class="n">port</span><span class="p">)</span>
+    <span class="n">xmpp</span><span class="o">.</span><span class="n">registerPlugin</span><span class="p">(</span><span class="s">&#39;xep_0030&#39;</span><span class="p">)</span> <span class="c"># Service Discovery</span>
+    <span class="n">xmpp</span><span class="o">.</span><span class="n">registerPlugin</span><span class="p">(</span><span class="s">&#39;xep_0004&#39;</span><span class="p">)</span> <span class="c"># Data Forms</span>
+    <span class="n">xmpp</span><span class="o">.</span><span class="n">registerPlugin</span><span class="p">(</span><span class="s">&#39;xep_0060&#39;</span><span class="p">)</span> <span class="c"># PubSub</span>
+    <span class="n">xmpp</span><span class="o">.</span><span class="n">registerPlugin</span><span class="p">(</span><span class="s">&#39;xep_0199&#39;</span><span class="p">)</span> <span class="c"># XMPP Ping</span>
+
+    <span class="c"># Connect to the XMPP server and start processing XMPP stanzas.</span>
+    <span class="k">if</span> <span class="n">xmpp</span><span class="o">.</span><span class="n">connect</span><span class="p">():</span>
+        <span class="n">xmpp</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;Done&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;Unable to connect.&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
 </div>
 
 
@@ -63,6 +240,14 @@
       </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Create and Run a Server Component</a><ul>
+<li><a class="reference internal" href="#final-product">Final Product</a></li>
+</ul>
+</li>
+</ul>
+
   <h4>Previous topic</h4>
   <p class="topless"><a href="sendlogout.html"
                         title="previous chapter">Sign in, Send a Message, and Disconnect</a></p>

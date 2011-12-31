@@ -51,6 +51,7 @@ class StaticDisco(object):
         """
         self.nodes = {}
         self.xmpp = xmpp
+        self.disco = xmpp['xep_0030']
         self.lock = threading.RLock()
 
     def add_node(self, jid=None, node=None, ifrom=None):
@@ -118,6 +119,89 @@ class StaticDisco(object):
     # This implementation does not allow different responses based on
     # the requester's JID, except for cached results. To do that, 
     # register a custom node handler.
+
+    def supports(self, jid, node, ifrom, data):
+        """
+        Check if a JID supports a given feature.
+
+        The data parameter may provide:
+            feature  -- The feature to check for support.
+            local    -- If true, then the query is for a JID/node
+                        combination handled by this Sleek instance and
+                        no stanzas need to be sent.
+                        Otherwise, a disco stanza must be sent to the
+                        remove JID to retrieve the info.
+            cached   -- If true, then look for the disco info data from
+                        the local cache system. If no results are found,
+                        send the query as usual. The self.use_cache
+                        setting must be set to true for this option to
+                        be useful. If set to false, then the cache will
+                        be skipped, even if a result has already been
+                        cached. Defaults to false.
+        """
+        feature = data.get('feature', None)
+
+        data = {'local': data.get('local', False),
+                'cached': data.get('cached', True)}
+
+        if not feature:
+            return False
+
+        try:
+            info = self.disco.get_info(jid=jid, node=node, 
+                                       ifrom=ifrom, **data)
+            info = self.disco._wrap(ifrom, jid, info, True)
+            features = info['disco_info']['features']
+            return feature in features
+        except IqError:
+            return False
+        except IqTimeout:
+            return None
+
+    def has_identity(self, jid, node, ifrom, data):
+        """
+        Check if a JID has a given identity.
+
+        The data parameter may provide:
+            category -- The category of the identity to check.
+            itype    -- The type of the identity to check.
+            lang     -- The language of the identity to check.
+            local    -- If true, then the query is for a JID/node
+                        combination handled by this Sleek instance and
+                        no stanzas need to be sent.
+                        Otherwise, a disco stanza must be sent to the
+                        remove JID to retrieve the info.
+            cached   -- If true, then look for the disco info data from
+                        the local cache system. If no results are found,
+                        send the query as usual. The self.use_cache
+                        setting must be set to true for this option to
+                        be useful. If set to false, then the cache will
+                        be skipped, even if a result has already been
+                        cached. Defaults to false.
+        """
+        identity = (data.get('category', None), 
+                    data.get('itype', None),
+                    data.get('lang', None))
+
+        data = {'local': data.get('local', False),
+                'cached': data.get('cached', True)}
+
+        if node in (None, ''):
+            info = self.caps.get_caps(jid)
+            if info and identity in info['identities']:
+                return True
+
+        try:
+            info = self.disco.get_info(jid=jid, node=node, 
+                                       ifrom=ifrom, **data)
+            info = self.disco._wrap(ifrom, jid, info, True)
+            trunc = lambda i: (i[0], i[1], i[2])
+            return identity in map(trunc, info['disco_info']['identities'])
+        except IqError:
+            return False
+        except IqTimeout:
+            return None
+
 
     def get_info(self, jid, node, ifrom, data):
         """
@@ -348,6 +432,9 @@ class StaticDisco(object):
         The data parameter is not used.
         """
         with self.lock:
+            if isinstance(jid, JID):
+                jid = jid.full
+
             if not self.node_exists(jid, node, ifrom):
                 return None
             else:

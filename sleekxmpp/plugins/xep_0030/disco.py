@@ -116,7 +116,7 @@ class xep_0030(base_plugin):
                 'get_items', 'set_items', 'del_items', 'add_identity',
                 'del_identity', 'add_feature', 'del_feature', 'add_item',
                 'del_item', 'del_identities', 'del_features', 'cache_info',
-                'get_cached_info']
+                'get_cached_info', 'supports', 'has_identity']
         
         self.default_handlers = {}
         self._handlers = {}
@@ -270,17 +270,48 @@ class xep_0030(base_plugin):
                         cached. Defaults to false.
             ifrom    -- Specifiy the sender's JID.
         """
-        try:
-            info = self.get_info(jid=jid, node=node, local=local,
-                                 cached=cached, ifrom=ifrom)
-            info = self._wrap(ifrom, jid, info, True)
-            features = info['disco_info']['features']
-            return feature in features
-        except IqError:
-            return False
-        except IqTimeout:
-            return None
+        data = {'feature': feature,
+                'local': local,
+                'cached': cached}
+        return self._run_node_handler('supports', jid, node, ifrom, data)
+ 
+    def has_identity(self, jid=None, node=None, category=None, itype=None,
+                     lang=None, local=False, cached=True, ifrom=None):
+        """
+        Check if a JID provides a given identity.
 
+        Return values:
+            True  -- The identity is provided 
+            False -- The identity is not listed
+            None  -- Nothing could be found due to a timeout
+
+        Arguments:
+            jid      -- Request info from this JID.
+            node     -- The particular node to query.
+            category -- The category of the identity to check.
+            itype    -- The type of the identity to check.
+            lang     -- The language of the identity to check.
+            local    -- If true, then the query is for a JID/node
+                        combination handled by this Sleek instance and
+                        no stanzas need to be sent.
+                        Otherwise, a disco stanza must be sent to the
+                        remove JID to retrieve the info.
+            cached   -- If true, then look for the disco info data from
+                        the local cache system. If no results are found,
+                        send the query as usual. The self.use_cache
+                        setting must be set to true for this option to
+                        be useful. If set to false, then the cache will
+                        be skipped, even if a result has already been
+                        cached. Defaults to false.
+            ifrom    -- Specifiy the sender's JID.
+        """
+        data = {'category': category,
+                'itype': itype,
+                'lang': lang,
+                'local': local,
+                'cached': cached}
+        return self._run_node_handler('has_identity', jid, node, ifrom, data)
+            
     def get_info(self, jid=None, node=None, local=False, 
                        cached=None, **kwargs):
         """

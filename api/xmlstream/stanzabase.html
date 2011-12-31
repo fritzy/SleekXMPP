@@ -1110,10 +1110,11 @@ If not, then <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase
 as plugins, the <tt class="docutils literal"><span class="pre">plugin_attrib</span></tt> value defines the plugin name.
 Plugins may be accessed by using the <tt class="docutils literal"><span class="pre">plugin_attrib</span></tt> value as
 the interface. An example using <tt class="docutils literal"><span class="pre">plugin_attrib</span> <span class="pre">=</span> <span class="pre">'foo'</span></tt>:</p>
-<blockquote>
-<div>register_stanza_plugin(Message, FooPlugin)
-msg = Message()
-msg[&#8216;foo&#8217;][&#8216;an_interface_from_the_foo_plugin&#8217;]</div></blockquote>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">register_stanza_plugin</span><span class="p">(</span><span class="n">Message</span><span class="p">,</span> <span class="n">FooPlugin</span><span class="p">)</span>
+<span class="n">msg</span> <span class="o">=</span> <span class="n">Message</span><span class="p">()</span>
+<span class="n">msg</span><span class="p">[</span><span class="s">&#39;foo&#39;</span><span class="p">][</span><span class="s">&#39;an_interface_from_the_foo_plugin&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="attribute">

@@ -1209,6 +1209,7 @@
                 <span class="n">shutdown</span> <span class="o">=</span> <span class="bp">True</span>
             <span class="k">except</span> <span class="ne">SyntaxError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                 <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Error reading from XML stream.&quot;</span><span class="p">)</span>
+                <span class="n">shutdown</span> <span class="o">=</span> <span class="bp">True</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
             <span class="k">except</span> <span class="n">Socket</span><span class="o">.</span><span class="n">error</span> <span class="k">as</span> <span class="n">serr</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">event</span><span class="p">(</span><span class="s">&#39;socket_error&#39;</span><span class="p">,</span> <span class="n">serr</span><span class="p">)</span>

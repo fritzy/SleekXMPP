@@ -55,6 +55,173 @@
             
   <div class="section" id="send-receive-iq-stanzas">
 <h1>Send/Receive IQ Stanzas<a class="headerlink" href="#send-receive-iq-stanzas" title="Permalink to this headline">¶</a></h1>
+<p>Unlike <tt class="xref py py-class docutils literal"><span class="pre">Message</span></tt> and
+<tt class="xref py py-class docutils literal"><span class="pre">Presence</span></tt> stanzas which only use
+text data for basic usage, <tt class="xref py py-class docutils literal"><span class="pre">Iq</span></tt> stanzas
+require using XML payloads, and generally entail creating a new
+SleekXMPP plugin to provide the necessary convenience methods to
+make working with them easier.</p>
+<div class="section" id="basic-use">
+<h2>Basic Use<a class="headerlink" href="#basic-use" title="Permalink to this headline">¶</a></h2>
+<p>XMPP&#8217;s use of <tt class="xref py py-class docutils literal"><span class="pre">Iq</span></tt> stanzas is built around
+namespaced <tt class="docutils literal"><span class="pre">&lt;query</span> <span class="pre">/&gt;</span></tt> elements. For clients, just sending the
+empty <tt class="docutils literal"><span class="pre">&lt;query</span> <span class="pre">/&gt;</span></tt> element will suffice for retrieving information. For
+example, a very basic implementation of service discovery would just
+need to be able to send:</p>
+<div class="highlight-xml"><div class="highlight"><pre><span class="nt">&lt;iq</span> <span class="na">to=</span><span class="s">&quot;user@example.com&quot;</span> <span class="na">type=</span><span class="s">&quot;get&quot;</span> <span class="na">id=</span><span class="s">&quot;1&quot;</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;query</span> <span class="na">xmlns=</span><span class="s">&quot;http://jabber.org/protocol/disco#info&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/iq&gt;</span>
+</pre></div>
+</div>
+<div class="section" id="creating-iq-stanzas">
+<h3>Creating Iq Stanzas<a class="headerlink" href="#creating-iq-stanzas" title="Permalink to this headline">¶</a></h3>
+<p>SleekXMPP provides built-in support for creating basic <tt class="xref py py-class docutils literal"><span class="pre">Iq</span></tt>
+stanzas this way. The relevant methods are:</p>
+<ul class="simple">
+<li><a class="reference internal" href="../api/basexmpp.html#sleekxmpp.basexmpp.BaseXMPP.make_iq" title="sleekxmpp.basexmpp.BaseXMPP.make_iq"><tt class="xref py py-meth docutils literal"><span class="pre">make_iq()</span></tt></a></li>
+<li><a class="reference internal" href="../api/basexmpp.html#sleekxmpp.basexmpp.BaseXMPP.make_iq_get" title="sleekxmpp.basexmpp.BaseXMPP.make_iq_get"><tt class="xref py py-meth docutils literal"><span class="pre">make_iq_get()</span></tt></a></li>
+<li><a class="reference internal" href="../api/basexmpp.html#sleekxmpp.basexmpp.BaseXMPP.make_iq_set" title="sleekxmpp.basexmpp.BaseXMPP.make_iq_set"><tt class="xref py py-meth docutils literal"><span class="pre">make_iq_set()</span></tt></a></li>
+<li><a class="reference internal" href="../api/basexmpp.html#sleekxmpp.basexmpp.BaseXMPP.make_iq_result" title="sleekxmpp.basexmpp.BaseXMPP.make_iq_result"><tt class="xref py py-meth docutils literal"><span class="pre">make_iq_result()</span></tt></a></li>
+<li><a class="reference internal" href="../api/basexmpp.html#sleekxmpp.basexmpp.BaseXMPP.make_iq_error" title="sleekxmpp.basexmpp.BaseXMPP.make_iq_error"><tt class="xref py py-meth docutils literal"><span class="pre">make_iq_error()</span></tt></a></li>
+<li><a class="reference internal" href="../api/basexmpp.html#sleekxmpp.basexmpp.BaseXMPP.make_iq_query" title="sleekxmpp.basexmpp.BaseXMPP.make_iq_query"><tt class="xref py py-meth docutils literal"><span class="pre">make_iq_query()</span></tt></a></li>
+</ul>
+<p>These methods all follow the same pattern: create or modify an existing
+<tt class="xref py py-class docutils literal"><span class="pre">Iq</span></tt> stanza, set the <tt class="docutils literal"><span class="pre">'type'</span></tt> value based
+on the method name, and finally add a <tt class="docutils literal"><span class="pre">&lt;query</span> <span class="pre">/&gt;</span></tt> element with the given
+namespace. For example, to produce the query above, you would use:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="bp">self</span><span class="o">.</span><span class="n">make_iq_get</span><span class="p">(</span><span class="n">queryxmlns</span><span class="o">=</span><span class="s">&#39;http://jabber.org/protocol/disco#info&#39;</span><span class="p">,</span>
+                 <span class="n">ito</span><span class="o">=</span><span class="s">&#39;user@example.com&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="sending-iq-stanzas">
+<h3>Sending Iq Stanzas<a class="headerlink" href="#sending-iq-stanzas" title="Permalink to this headline">¶</a></h3>
+<p>Once an <tt class="xref py py-class docutils literal"><span class="pre">Iq</span></tt> stanza is created, sending it
+over the wire is done using its <tt class="xref py py-meth docutils literal"><span class="pre">send()</span></tt>
+method, like any other stanza object. However, there are a few extra
+options to control how to wait for the query&#8217;s response.</p>
+<p>These options are:</p>
+<ul>
+<li><p class="first"><tt class="docutils literal"><span class="pre">block</span></tt>: The default behaviour is that <tt class="xref py py-meth docutils literal"><span class="pre">send()</span></tt>
+will block until a response is received and the response stanza will be the
+return value. Setting <tt class="docutils literal"><span class="pre">block</span></tt> to <tt class="docutils literal"><span class="pre">False</span></tt> will cause the call to return
+immediately. In which case, you will need to arrange some way to capture
+the response stanza if you need it.</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">timeout</span></tt>: When using the blocking behaviour, the call will eventually
+timeout with an error. The default timeout is 30 seconds, but this may
+be overidden two ways. To change the timeout globally, set:</p>
+<blockquote>
+<div><div class="highlight-python"><div class="highlight"><pre><span class="bp">self</span><span class="o">.</span><span class="n">response_timeout</span> <span class="o">=</span> <span class="mi">10</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>To change the timeout for a single call, the <tt class="docutils literal"><span class="pre">timeout</span></tt> parameter works:</p>
+<blockquote>
+<div><div class="highlight-python"><div class="highlight"><pre><span class="n">iq</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">callback</span></tt>: When not using a blocking call, using the <tt class="docutils literal"><span class="pre">callback</span></tt>
+argument is a simple way to register a handler that will execute
+whenever a response is finally received. Using this method, there
+is no timeout limit. In case you need to remove the callback, the
+name of the newly created callback is returned.</p>
+<blockquote>
+<div><div class="highlight-python"><div class="highlight"><pre><span class="n">cb_name</span> <span class="o">=</span> <span class="n">iq</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">a_callback</span><span class="p">)</span>
+
+<span class="c"># ... later if we need to cancel</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">remove_handler</span><span class="p">(</span><span class="n">cb_name</span><span class="p">)</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ul>
+<p>Properly working with <tt class="xref py py-class docutils literal"><span class="pre">Iq</span></tt> stanzas requires
+handling the intended, normal flow, error responses, and timed out
+requests. To make this easier, two exceptions may be thrown by
+<tt class="xref py py-meth docutils literal"><span class="pre">send()</span></tt>: <a class="reference internal" href="../api/exceptions.html#sleekxmpp.exceptions.IqError" title="sleekxmpp.exceptions.IqError"><tt class="xref py py-exc docutils literal"><span class="pre">IqError</span></tt></a>
+and <a class="reference internal" href="../api/exceptions.html#sleekxmpp.exceptions.IqTimeout" title="sleekxmpp.exceptions.IqTimeout"><tt class="xref py py-exc docutils literal"><span class="pre">IqTimeout</span></tt></a>. These exceptions only
+apply to the default, blocking calls.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">try</span><span class="p">:</span>
+    <span class="n">resp</span> <span class="o">=</span> <span class="n">iq</span><span class="o">.</span><span class="n">send</span><span class="p">()</span>
+    <span class="c"># ... do stuff with expected Iq result</span>
+<span class="k">except</span> <span class="n">IqError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="n">err_resp</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">iq</span>
+    <span class="c"># ... handle error case</span>
+<span class="k">except</span> <span class="n">IqTimeout</span><span class="p">:</span>
+    <span class="c"># ... no response received in time</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+<p>If you do not care to distinguish between errors and timeouts, then you
+can combine both cases with a generic <a class="reference internal" href="../api/exceptions.html#sleekxmpp.exceptions.XMPPError" title="sleekxmpp.exceptions.XMPPError"><tt class="xref py py-exc docutils literal"><span class="pre">XMPPError</span></tt></a>
+exception:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">try</span><span class="p">:</span>
+    <span class="n">resp</span> <span class="o">=</span> <span class="n">iq</span><span class="o">.</span><span class="n">send</span><span class="p">()</span>
+<span class="k">except</span> <span class="n">XMPPError</span><span class="p">:</span>
+    <span class="c"># ... Don&#39;t care about the response</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="advanced-use">
+<h2>Advanced Use<a class="headerlink" href="#advanced-use" title="Permalink to this headline">¶</a></h2>
+<p>Going beyond the basics provided by SleekXMPP requires building at least a
+rudimentary SleekXMPP plugin to create a <a class="reference internal" href="../glossary.html#term-stanza-object"><em class="xref std std-term">stanza object</em></a> for
+interfacting with the <tt class="xref py py-class docutils literal"><span class="pre">Iq</span></tt> payload.</p>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<ul class="last simple">
+<li><a class="reference internal" href="../create_plugin.html#create-plugin"><em>Creating a SleekXMPP Plugin</em></a></li>
+<li><a class="reference internal" href="../howto/stanzas.html#work-with-stanzas"><em>How to Work with Stanza Objects</em></a></li>
+<li><a class="reference internal" href="../handlersmatchers.html#using-handlers-matchers"><em>Using Stream Handlers and Matchers</em></a></li>
+</ul>
+</div>
+<p>The typical way to respond to <tt class="xref py py-class docutils literal"><span class="pre">Iq</span></tt> requests is
+to register stream handlers. As an example, suppose we create a stanza class
+named <tt class="docutils literal"><span class="pre">CustomXEP</span></tt> which uses the XML element <tt class="docutils literal"><span class="pre">&lt;query</span> <span class="pre">xmlns=&quot;custom-xep&quot;</span> <span class="pre">/&gt;</span></tt>,
+and has a <a class="reference internal" href="../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib" title="sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib"><tt class="xref py py-attr docutils literal"><span class="pre">plugin_attrib</span></tt></a> value
+of <tt class="docutils literal"><span class="pre">custom_xep</span></tt>.</p>
+<p>There are two types of incoming <tt class="xref py py-class docutils literal"><span class="pre">Iq</span></tt> requests:
+<tt class="docutils literal"><span class="pre">get</span></tt> and <tt class="docutils literal"><span class="pre">set</span></tt>. You can register a handler that will accept both and then
+filter by type as needed, as so:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="bp">self</span><span class="o">.</span><span class="n">register_handler</span><span class="p">(</span><span class="n">Callback</span><span class="p">(</span>
+    <span class="s">&#39;CustomXEP Handler&#39;</span><span class="p">,</span>
+    <span class="n">StanzaPath</span><span class="p">(</span><span class="s">&#39;iq/custom_xep&#39;</span><span class="p">),</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_handle_custom_iq</span><span class="p">))</span>
+
+<span class="c"># ...</span>
+
+<span class="k">def</span> <span class="nf">_handle_custom_iq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iq</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">iq</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;get&#39;</span><span class="p">:</span>
+        <span class="c"># ...</span>
+        <span class="k">pass</span>
+    <span class="k">elif</span> <span class="n">iq</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;set&#39;</span><span class="p">:</span>
+        <span class="c"># ...</span>
+        <span class="k">pass</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c"># ... This will capture error responses too</span>
+        <span class="k">pass</span>
+</pre></div>
+</div>
+<p>If you want to filter out query types beforehand, you can adjust the matching
+filter by using <tt class="docutils literal"><span class="pre">&#64;type=get</span></tt> or <tt class="docutils literal"><span class="pre">&#64;type=set</span></tt> if you are using the recommended
+<a class="reference internal" href="../api/xmlstream/matcher.html#sleekxmpp.xmlstream.matcher.stanzapath.StanzaPath" title="sleekxmpp.xmlstream.matcher.stanzapath.StanzaPath"><tt class="xref py py-class docutils literal"><span class="pre">StanzaPath</span></tt></a> matcher.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="bp">self</span><span class="o">.</span><span class="n">register_handler</span><span class="p">(</span><span class="n">Callback</span><span class="p">(</span>
+    <span class="s">&#39;CustomXEP Handler&#39;</span><span class="p">,</span>
+    <span class="n">StanzaPath</span><span class="p">(</span><span class="s">&#39;iq@type=get/custom_xep&#39;</span><span class="p">),</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_handle_custom_iq_get</span><span class="p">))</span>
+
+<span class="c"># ...</span>
+
+<span class="k">def</span> <span class="nf">_handle_custom_iq_get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iq</span><span class="p">):</span>
+    <span class="k">assert</span><span class="p">(</span><span class="n">iq</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;get&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
 </div>
 
 
@@ -63,6 +230,19 @@
       </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Send/Receive IQ Stanzas</a><ul>
+<li><a class="reference internal" href="#basic-use">Basic Use</a><ul>
+<li><a class="reference internal" href="#creating-iq-stanzas">Creating Iq Stanzas</a></li>
+<li><a class="reference internal" href="#sending-iq-stanzas">Sending Iq Stanzas</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#advanced-use">Advanced Use</a></li>
+</ul>
+</li>
+</ul>
+
   <h4>Previous topic</h4>
   <p class="topless"><a href="scheduler.html"
                         title="previous chapter">Send a Message Every 5 Minutes</a></p>

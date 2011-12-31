@@ -167,7 +167,7 @@ class ElementBase(object):
     #: For :class:`ElementBase` subclasses which are intended to be used
     #: as plugins, the ``plugin_attrib`` value defines the plugin name.
     #: Plugins may be accessed by using the ``plugin_attrib`` value as
-    #: the interface. An example using ``plugin_attrib = 'foo'``:
+    #: the interface. An example using ``plugin_attrib = 'foo'``::
     #:
     #:     register_stanza_plugin(Message, FooPlugin)
     #:     msg = Message()

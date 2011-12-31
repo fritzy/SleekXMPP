@@ -1,3 +1,5 @@
+.. _work-with-stanzas:
+
 How to Work with Stanza Objects
 ===============================
 

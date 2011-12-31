@@ -693,7 +693,7 @@ class xep_0030(base_plugin):
                     iq.set_payload(items.xml)
                 iq.send()
         elif iq['type'] == 'result':
-            log.debug("Received disco items result from" + \
+            log.debug("Received disco items result from " + \
                       "%s to %s.", iq['from'], iq['to'])
             self.xmpp.event('disco_items', iq)
 
@@ -714,15 +714,15 @@ class xep_0030(base_plugin):
         if not info['node']:
             if not info['identities']:
                 if self.xmpp.is_component:
-                    log.debug("No identity found for this entity." + \
+                    log.debug("No identity found for this entity. " + \
                               "Using default component identity.")
                     info.add_identity('component', 'generic')
                 else:
-                    log.debug("No identity found for this entity." + \
+                    log.debug("No identity found for this entity. " + \
                               "Using default client identity.")
                     info.add_identity('client', 'bot')
             if not info['features']:
-                log.debug("No features found for this entity." + \
+                log.debug("No features found for this entity. " + \
                           "Using default disco#info feature.")
                 info.add_feature(info.namespace)
         return result

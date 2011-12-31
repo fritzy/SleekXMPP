@@ -1,3 +1,5 @@
+.. _create-plugin:
+
 Creating a SleekXMPP Plugin
 ===========================
 

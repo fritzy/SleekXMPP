@@ -79,7 +79,7 @@ class Message(RootStanza):
         return self
 
     def normal(self):
-        """Set the message type to 'chat'."""
+        """Set the message type to 'normal'."""
         self['type'] = 'normal'
         return self
 

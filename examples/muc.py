@@ -11,7 +11,7 @@
 
 import sys
 import logging
-import time
+import getpass
 from optparse import OptionParser
 
 import sleekxmpp
@@ -161,9 +161,14 @@ if __name__ == '__main__':
     logging.basicConfig(level=opts.loglevel,
                         format='%(levelname)-8s %(message)s')
 
-    if None in [opts.jid, opts.password, opts.room, opts.nick]:
-        optp.print_help()
-        sys.exit(1)
+    if opts.jid is None:
+        opts.jid = raw_input("Username: ")
+    if opts.password is None:
+        opts.password = getpass.getpass("Password: ")
+    if opts.room is None:
+        opts.room = raw_input("MUC room: ")
+    if opts.nick is None:
+        opts.nick = raw_input("MUC nickname: ")
 
     # Setup the MUCBot and register plugins. Note that while plugins may
     # have interdependencies, the order in which you register them does

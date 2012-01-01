@@ -245,14 +245,23 @@ class xep_0115(base_plugin):
         return base64.b64encode(binary)
 
     def update_caps(self, jid=None, node=None):
-        info = self.disco.get_info(jid, node, local=True)
-        if isinstance(info, Iq):
-            info = info['disco_info']
-        ver = self.generate_verstring(info, self.hash)
-        self.cache_caps(ver, info)
-        self.assign_verstring(jid, ver)
+        try:
+            info = self.disco.get_info(jid, node, local=True)
+            if isinstance(info, Iq):
+                info = info['disco_info']
+            ver = self.generate_verstring(info, self.hash)
+            self.disco.set_info(
+                    jid=jid, 
+                    node='%s#%s' % (self.caps_node, ver),
+                    info=info)
+            self.cache_caps(ver, info)
+            self.assign_verstring(jid, ver)
+        except XMPPError:
+            return
 
     def get_verstring(self, jid=None):
+        if jid in ('', None):
+            jid = self.xmpp.boundjid.full
         return self._run_node_handler('get_verstring', jid)
 
     def assign_verstring(self, jid=None, verstring=None):

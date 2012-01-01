@@ -12,7 +12,7 @@ import base64
 
 import sleekxmpp
 from sleekxmpp.stanza import StreamFeatures, Presence, Iq
-from sleekxmpp.xmlstream import register_stanza_plugin
+from sleekxmpp.xmlstream import register_stanza_plugin, JID
 from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.xmlstream.matcher import StanzaPath
 from sleekxmpp.exceptions import XMPPError, IqError, IqTimeout
@@ -74,18 +74,18 @@ class xep_0115(base_plugin):
         base_plugin.post_init(self)
         self.xmpp['xep_0030'].add_feature(stanza.Capabilities.namespace)
 
-        self.disco = self.xmpp['xep_0030']
-        self.static = StaticCaps(self.xmpp, self.disco.static)
+        disco = self.xmpp['xep_0030']
+        self.static = StaticCaps(self.xmpp, disco.static)
 
         for op in self._disco_ops:
-            self.disco._add_disco_op(op, getattr(self.static, op))
+            disco._add_disco_op(op, getattr(self.static, op))
 
-        self._run_node_handler = self.disco._run_node_handler
+        self._run_node_handler = disco._run_node_handler
 
-        self.disco.cache_caps = self.cache_caps
-        self.disco.update_caps = self.update_caps
-        self.disco.assign_verstring = self.assign_verstring
-        self.disco.get_verstring = self.get_verstring
+        disco.cache_caps = self.cache_caps
+        disco.update_caps = self.update_caps
+        disco.assign_verstring = self.assign_verstring
+        disco.get_verstring = self.get_verstring
 
     def _filter_add_caps(self, stanza):
         if isinstance(stanza, Presence) and self.broadcast:
@@ -125,15 +125,15 @@ class xep_0115(base_plugin):
         if pres['caps']['hash'] not in self.hashes:
             try:
                 log.debug("Unknown caps hash: %s", pres['caps']['hash'])
-                self.disco.get_info(jid=pres['from'])
+                self.xmpp['xep_003'].get_info(jid=pres['from'].full)
                 return
             except XMPPError:
                 return
    
         log.debug("New caps verification string: %s", pres['caps']['ver'])
         try:
-            caps = self.disco.get_info(
-                    jid=pres['from'],
+            caps = self.xmpp['xep_0030'].get_info(
+                    jid=pres['from'].full,
                     node='%s#%s' % (pres['caps']['node'],
                                     pres['caps']['ver']))
                     
@@ -242,15 +242,15 @@ class xep_0115(base_plugin):
                         S += '<'.join(sorted(vals)) + '<'
 
         binary = hash(S.encode('utf8')).digest()
-        return base64.b64encode(binary)
+        return base64.b64encode(binary).decode('utf-8')
 
     def update_caps(self, jid=None, node=None):
         try:
-            info = self.disco.get_info(jid, node, local=True)
+            info = self.xmpp['xep_0030'].get_info(jid, node, local=True)
             if isinstance(info, Iq):
                 info = info['disco_info']
             ver = self.generate_verstring(info, self.hash)
-            self.disco.set_info(
+            self.xmpp['xep_0030'].set_info(
                     jid=jid, 
                     node='%s#%s' % (self.caps_node, ver),
                     info=info)
@@ -262,11 +262,15 @@ class xep_0115(base_plugin):
     def get_verstring(self, jid=None):
         if jid in ('', None):
             jid = self.xmpp.boundjid.full
+        if isinstance(jid, JID):
+            jid = jid.full
         return self._run_node_handler('get_verstring', jid)
 
     def assign_verstring(self, jid=None, verstring=None):
         if jid in (None, ''):
             jid = self.xmpp.boundjid.full
+        if isinstance(jid, JID):
+            jid = jid.full
         return self._run_node_handler('assign_verstring', jid, 
                                       data={'verstring': verstring})
 
@@ -280,6 +284,7 @@ class xep_0115(base_plugin):
                 verstring = self.get_verstring(jid)
             else:
                 return None
-
+        if isinstance(jid, JID):
+            jid = jid.full
         data = {'verstring': verstring}
         return self._run_node_handler('get_caps', jid, None, None, data)

@@ -40,7 +40,7 @@ class CommandBot(sleekxmpp.ClientXMPP):
         # The session_start event will be triggered when
         # the bot establishes its connection with the server
         # and the XML streams are ready for use. We want to
-        # listen for this event so that we we can intialize
+        # listen for this event so that we we can initialize
         # our roster.
         self.add_event_handler("session_start", self.start)
 
@@ -49,7 +49,7 @@ class CommandBot(sleekxmpp.ClientXMPP):
         Process the session_start event.
 
         Typical actions for the session_start event are
-        requesting the roster and broadcasting an intial
+        requesting the roster and broadcasting an initial
         presence stanza.
 
         Arguments:
@@ -71,7 +71,7 @@ class CommandBot(sleekxmpp.ClientXMPP):
 
     def _handle_command(self, iq, session):
         """
-        Respond to the intial request for a command.
+        Respond to the initial request for a command.
 
         Arguments:
             iq      -- The iq stanza containing the command request.

@@ -147,7 +147,7 @@ class xep_0050(base_plugin):
         Access control may be implemented in the provided handler.
 
         Command workflow is done across a sequence of command handlers. The
-        first handler is given the intial Iq stanza of the request in order
+        first handler is given the initial Iq stanza of the request in order
         to support access control. Subsequent handlers are given only the
         payload items of the command. All handlers will receive the command's
         session data.

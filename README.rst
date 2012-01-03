@@ -44,7 +44,13 @@ The latest source code for SleekXMPP may be found on `Github
 ``master`` branch, while the latest development version is in the
 ``develop`` branch.
 
-**Stable Releases**
+**Latest Release**
+    - `1.0 <http://github.com/fritzy/SleekXMPP/zipball/1.0>`_
+
+**Develop Releases**
+    - `Latest Develop Version <http://github.com/fritzy/SleekXMPP/zipball/develop>`_
+
+**Older Stable Releases**
     - `1.0 RC3 <http://github.com/fritzy/SleekXMPP/zipball/1.0-RC3>`_  
     - `1.0 RC2 <http://github.com/fritzy/SleekXMPP/zipball/1.0-RC2>`_  
     - `1.0 RC1 <http://github.com/fritzy/SleekXMPP/zipball/1.0-RC1>`_  
@@ -54,9 +60,6 @@ The latest source code for SleekXMPP may be found on `Github
     - `1.0 Beta3 <http://github.com/fritzy/SleekXMPP/zipball/1.0-Beta3>`_
     - `1.0 Beta2 <http://github.com/fritzy/SleekXMPP/zipball/1.0-Beta2>`_
     - `1.0 Beta1 <http://github.com/fritzy/SleekXMPP/zipball/1.0-Beta1>`_
-
-**Develop Releases**
-    - `Latest Develop Version <http://github.com/fritzy/SleekXMPP/zipball/develop>`_
 
 Installing DNSPython
 ---------------------
@@ -162,8 +165,8 @@ Credits
     `@fritzy <http://twitter.com/fritzy>`_
 
     Nathan is also the author of XMPPHP and `Seesmic-AS3-XMPP
-    <http://code.google.com/p/seesmic-as3-xmpp/>`_, and a member of the XMPP
-    Council.
+    <http://code.google.com/p/seesmic-as3-xmpp/>`_, and a former member of 
+    the XMPP Council.
 
 **Co-Author:** Lance Stout
     `lancestout@gmail.com <xmpp:lancestout@gmail.com?message>`_, 

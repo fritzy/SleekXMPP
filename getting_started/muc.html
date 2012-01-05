@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -9,13 +10,14 @@
     
     <title>Mulit-User Chat (MUC) Bot &mdash; SleekXMPP</title>
     
-    <link rel="stylesheet" href="../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/print.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.0RC3',
+        VERSION:     '1.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,91 +26,417 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/theme_extras.js"></script>
     <link rel="top" title="SleekXMPP" href="../index.html" />
     <link rel="next" title="Enable HTTP Proxy Support" href="proxy.html" />
     <link rel="prev" title="Manage Presence Subscriptions" href="presence.html" /> 
   </head>
   <body>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="proxy.html" title="Enable HTTP Proxy Support"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="presence.html" title="Manage Presence Subscriptions"
-             accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">1.0RC3 Documentation</a> &raquo;</li> 
-      </ul>
-    </div>  
+      <div class="header"><h1 class="heading"><a href="../index.html">
+          <span>Mulit-User Chat (MUC) Bot</span></a></h1>
+        <h2 class="heading"><span>1.0 Documentation</span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        «&#160;&#160;<a href="presence.html">Manage Presence Subscriptions</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="proxy.html">Enable HTTP Proxy Support</a>&#160;&#160;»
+        </p>
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body">
-            
+      </div>
+      <div class="content">
+        
+        
   <div class="section" id="mulit-user-chat-muc-bot">
-<h1>Mulit-User Chat (MUC) Bot<a class="headerlink" href="#mulit-user-chat-muc-bot" title="Permalink to this headline">¶</a></h1>
+<span id="mucbot"></span><h1>Mulit-User Chat (MUC) Bot<a class="headerlink" href="#mulit-user-chat-muc-bot" title="Permalink to this headline">¶</a></h1>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you have any issues working through this quickstart guide
+or the other tutorials here, please either send a message to the
+<a class="reference external" href="http://groups.google.com/group/sleekxmpp-discussion">mailing list</a>
+or join the chat room at <a class="reference external" href="xmpp:sleek&#64;conference.jabber.org?join">sleek&#64;conference.jabber.org</a>.</p>
+</div>
+<p>If you have not yet installed SleekXMPP, do so now by either checking out a version
+from <a class="reference external" href="http://github.com/fritzy/SleekXMPP">Github</a>, or installing it using <tt class="docutils literal"><span class="pre">pip</span></tt>
+or <tt class="docutils literal"><span class="pre">easy_install</span></tt>.</p>
+<div class="highlight-sh"><div class="highlight"><pre>pip install sleekxmpp  <span class="c"># Or: easy_install sleekxmpp</span>
+</pre></div>
+</div>
+<p>Now that you&#8217;ve got the basic gist of using SleekXMPP by following the
+echobot example (<a class="reference internal" href="echobot.html#echobot"><em>SleekXMPP Quickstart - Echo Bot</em></a>), we can use one of the bundled plugins
+to create a very popular XMPP starter project: a <a class="reference external" href="http://xmpp.org/extensions/xep-0045.html">Multi-User Chat</a>
+(MUC) bot. Our bot will login to an XMPP server, join an MUC chat room
+and &#8220;lurk&#8221; indefinitely, responding with a generic message to anyone
+that mentions its nickname. It will also greet members as they join the
+chat room.</p>
+<div class="section" id="joining-the-room">
+<h2>Joining The Room<a class="headerlink" href="#joining-the-room" title="Permalink to this headline">¶</a></h2>
+<p>As usual, our code will be based on the pattern explained in <a class="reference internal" href="echobot.html#echobot"><em>SleekXMPP Quickstart - Echo Bot</em></a>.
+To start, we create an <tt class="docutils literal"><span class="pre">MUCBot</span></tt> class based on
+<a class="reference internal" href="../api/clientxmpp.html#sleekxmpp.clientxmpp.ClientXMPP" title="sleekxmpp.clientxmpp.ClientXMPP"><tt class="xref py py-class docutils literal"><span class="pre">ClientXMPP</span></tt></a> and which accepts
+parameters for the JID of the MUC room to join, and the nick that the
+bot will use inside the chat room.  We also register an
+<a class="reference internal" href="../glossary.html#term-event-handler"><em class="xref std std-term">event handler</em></a> for the <a class="reference internal" href="../event_index.html#term-session-start"><em class="xref std std-term">session_start</em></a> event.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">sleekxmpp</span>
+
+<span class="k">class</span> <span class="nc">MUCBot</span><span class="p">(</span><span class="n">sleekxmpp</span><span class="o">.</span><span class="n">ClientXMPP</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jid</span><span class="p">,</span> <span class="n">password</span><span class="p">,</span> <span class="n">room</span><span class="p">,</span> <span class="n">nick</span><span class="p">):</span>
+        <span class="n">sleekxmpp</span><span class="o">.</span><span class="n">ClientXMPP</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jid</span><span class="p">,</span> <span class="n">password</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">room</span> <span class="o">=</span> <span class="n">room</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nick</span> <span class="o">=</span> <span class="n">nick</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_event_handler</span><span class="p">(</span><span class="s">&quot;session_start&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>After initialization, we also need to register the MUC (XEP-0045) plugin
+so that we can make use of the group chat plugin&#8217;s methods and events.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">xmpp</span><span class="o">.</span><span class="n">register_plugin</span><span class="p">(</span><span class="s">&#39;xep_0045&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Finally, we can make our bot join the chat room once an XMPP session
+has been established:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">get_roster</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">send_presence</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">plugin</span><span class="p">[</span><span class="s">&#39;xep_0045&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">joinMUC</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">room</span><span class="p">,</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">nick</span><span class="p">,</span>
+                                    <span class="n">wait</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note that as in <a class="reference internal" href="echobot.html#echobot"><em>SleekXMPP Quickstart - Echo Bot</em></a>, we need to include send an initial presence and request
+the roster. Next, we want to join the group chat, so we call the
+<tt class="docutils literal"><span class="pre">joinMUC</span></tt> method of the MUC plugin.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <a class="reference internal" href="../api/basexmpp.html#sleekxmpp.basexmpp.BaseXMPP.plugin" title="sleekxmpp.basexmpp.BaseXMPP.plugin"><tt class="xref py py-attr docutils literal"><span class="pre">plugin</span></tt></a> attribute is
+dictionary that maps to instances of plugins that we have previously
+registered, by their names.</p>
+</div>
+</div>
+<div class="section" id="adding-functionality">
+<h2>Adding Functionality<a class="headerlink" href="#adding-functionality" title="Permalink to this headline">¶</a></h2>
+<p>Currently, our bot just sits dormantly inside the chat room, but we
+would like it to respond to two distinct events by issuing a generic
+message in each case to the chat room. In particular, when a member
+mentions the bot&#8217;s nickname inside the chat room, and when a member
+joins the chat room.</p>
+<div class="section" id="responding-to-mentions">
+<h3>Responding to Mentions<a class="headerlink" href="#responding-to-mentions" title="Permalink to this headline">¶</a></h3>
+<p>Whenever a user mentions our bot&#8217;s nickname in chat, our bot will
+respond with a generic message resembling <em>&#8220;I heard that, user.&#8221;</em> We do
+this by examining all of the messages sent inside the chat and looking
+for the ones which contain the nickname string.</p>
+<p>First, we register an event handler for the <a class="reference internal" href="../event_index.html#term-groupchat-message"><em class="xref std std-term">groupchat_message</em></a>
+event inside the bot&#8217;s <tt class="docutils literal"><span class="pre">__init__</span></tt> function.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">We do not register a handler for the <a class="reference internal" href="../event_index.html#term-message"><em class="xref std std-term">message</em></a> event in this
+bot, but if we did, the group chat message would have been sent to
+both handlers.</p>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jid</span><span class="p">,</span> <span class="n">password</span><span class="p">,</span> <span class="n">room</span><span class="p">,</span> <span class="n">nick</span><span class="p">):</span>
+    <span class="n">sleekxmpp</span><span class="o">.</span><span class="n">ClientXMPP</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jid</span><span class="p">,</span> <span class="n">password</span><span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">room</span> <span class="o">=</span> <span class="n">room</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">nick</span> <span class="o">=</span> <span class="n">nick</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">add_event_handler</span><span class="p">(</span><span class="s">&quot;session_start&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">add_event_handler</span><span class="p">(</span><span class="s">&quot;groupchat_message&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">muc_message</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Then, we can send our generic message whenever the bot&#8217;s nickname gets
+mentioned.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Always check that a message is not from yourself,
+otherwise you will create an infinite loop responding
+to your own messages.</p>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">muc_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">msg</span><span class="p">[</span><span class="s">&#39;mucnick&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nick</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">nick</span> <span class="ow">in</span> <span class="n">msg</span><span class="p">[</span><span class="s">&#39;body&#39;</span><span class="p">]:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">mto</span><span class="o">=</span><span class="n">msg</span><span class="p">[</span><span class="s">&#39;from&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">bare</span><span class="p">,</span>
+                          <span class="n">mbody</span><span class="o">=</span><span class="s">&quot;I heard that, </span><span class="si">%s</span><span class="s">.&quot;</span> <span class="o">%</span> <span class="n">msg</span><span class="p">[</span><span class="s">&#39;mucnick&#39;</span><span class="p">],</span>
+                          <span class="n">mtype</span><span class="o">=</span><span class="s">&#39;groupchat&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="greeting-members">
+<h3>Greeting Members<a class="headerlink" href="#greeting-members" title="Permalink to this headline">¶</a></h3>
+<p>Now we want to greet member whenever they join the group chat. To
+do this we will use the dynamic <tt class="docutils literal"><span class="pre">muc::room&#64;server::got_online</span></tt> <a class="footnote-reference" href="#id2" id="id1">[1]</a>
+event so it&#8217;s a good idea to register an event handler for it.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The groupchat_presence event is triggered whenever a
+presence stanza is received from any chat room, including
+any presences you send yourself. To limit event handling
+to a single room, use the events <tt class="docutils literal"><span class="pre">muc::room&#64;server::presence</span></tt>,
+<tt class="docutils literal"><span class="pre">muc::room&#64;server::got_online</span></tt>, or <tt class="docutils literal"><span class="pre">muc::room&#64;server::got_offline</span></tt>.</p>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jid</span><span class="p">,</span> <span class="n">password</span><span class="p">,</span> <span class="n">room</span><span class="p">,</span> <span class="n">nick</span><span class="p">):</span>
+    <span class="n">sleekxmpp</span><span class="o">.</span><span class="n">ClientXMPP</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jid</span><span class="p">,</span> <span class="n">password</span><span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">room</span> <span class="o">=</span> <span class="n">room</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">nick</span> <span class="o">=</span> <span class="n">nick</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">add_event_handler</span><span class="p">(</span><span class="s">&quot;session_start&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">add_event_handler</span><span class="p">(</span><span class="s">&quot;groupchat_message&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">muc_message</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">add_event_handler</span><span class="p">(</span><span class="s">&quot;muc::</span><span class="si">%s</span><span class="s">::got_online&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">room</span><span class="p">,</span>
+                           <span class="bp">self</span><span class="o">.</span><span class="n">muc_online</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now all that&#8217;s left to do is to greet them:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">muc_online</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">presence</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">presence</span><span class="p">[</span><span class="s">&#39;muc&#39;</span><span class="p">][</span><span class="s">&#39;nick&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nick</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">mto</span><span class="o">=</span><span class="n">presence</span><span class="p">[</span><span class="s">&#39;from&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">bare</span><span class="p">,</span>
+                          <span class="n">mbody</span><span class="o">=</span><span class="s">&quot;Hello, </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">presence</span><span class="p">[</span><span class="s">&#39;muc&#39;</span><span class="p">][</span><span class="s">&#39;role&#39;</span><span class="p">],</span>
+                                                  <span class="n">presence</span><span class="p">[</span><span class="s">&#39;muc&#39;</span><span class="p">][</span><span class="s">&#39;nick&#39;</span><span class="p">]),</span>
+                          <span class="n">mtype</span><span class="o">=</span><span class="s">&#39;groupchat&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<table class="docutils footnote" frame="void" id="id2" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>this is similar to the <a class="reference internal" href="../event_index.html#term-got-online"><em class="xref std std-term">got_online</em></a> event and is sent by
+the xep_0045 plugin whenever a member joins the referenced
+MUC chat room.</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="final-product">
+<h2>Final Product<a class="headerlink" href="#final-product" title="Permalink to this headline">¶</a></h2>
+<div class="compound">
+<p class="compound-first">The final step is to create a small runner script for initialising our <tt class="docutils literal"><span class="pre">MUCBot</span></tt> class and adding some
+basic configuration options. By following the basic boilerplate pattern in <a class="reference internal" href="echobot.html#echobot"><em>SleekXMPP Quickstart - Echo Bot</em></a>, we arrive
+at the code below. To experiment with this example, you can use:</p>
+<div class="compound-middle highlight-sh"><div class="highlight"><pre>python muc.py -d -j jid@example.com -r room@muc.example.net -n lurkbot
+</pre></div>
+</div>
+<p class="compound-last">which will prompt for the password, log in, and join the group chat. To test, open
+your regular IM client and join the same group chat that you sent the bot to. You
+will see <tt class="docutils literal"><span class="pre">lurkbot</span></tt> as one of the members in the group chat, and that it greeted
+you upon entry. Send a message with the string &#8220;lurkbot&#8221; inside the body text, and you
+will also see that it responds with our pre-programmed customized message.</p>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="c">#!/usr/bin/env python</span>
+<span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    SleekXMPP: The Sleek XMPP Library</span>
+<span class="sd">    Copyright (C) 2010  Nathanael C. Fritz</span>
+<span class="sd">    This file is part of SleekXMPP.</span>
+
+<span class="sd">    See the file LICENSE for copying permission.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">getpass</span>
+<span class="kn">from</span> <span class="nn">optparse</span> <span class="kn">import</span> <span class="n">OptionParser</span>
+
+<span class="kn">import</span> <span class="nn">sleekxmpp</span>
+
+<span class="c"># Python versions before 3.0 do not use UTF-8 encoding</span>
+<span class="c"># by default. To ensure that Unicode is handled properly</span>
+<span class="c"># throughout SleekXMPP, we will set the default encoding</span>
+<span class="c"># ourselves to UTF-8.</span>
+<span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&lt;</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span>
+    <span class="nb">reload</span><span class="p">(</span><span class="n">sys</span><span class="p">)</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">setdefaultencoding</span><span class="p">(</span><span class="s">&#39;utf8&#39;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">raw_input</span> <span class="o">=</span> <span class="nb">input</span>
+
+
+<span class="k">class</span> <span class="nc">MUCBot</span><span class="p">(</span><span class="n">sleekxmpp</span><span class="o">.</span><span class="n">ClientXMPP</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A simple SleekXMPP bot that will greets those</span>
+<span class="sd">    who enter the room, and acknowledge any messages</span>
+<span class="sd">    that mentions the bot&#39;s nickname.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jid</span><span class="p">,</span> <span class="n">password</span><span class="p">,</span> <span class="n">room</span><span class="p">,</span> <span class="n">nick</span><span class="p">):</span>
+        <span class="n">sleekxmpp</span><span class="o">.</span><span class="n">ClientXMPP</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jid</span><span class="p">,</span> <span class="n">password</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">room</span> <span class="o">=</span> <span class="n">room</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nick</span> <span class="o">=</span> <span class="n">nick</span>
+
+        <span class="c"># The session_start event will be triggered when</span>
+        <span class="c"># the bot establishes its connection with the server</span>
+        <span class="c"># and the XML streams are ready for use. We want to</span>
+        <span class="c"># listen for this event so that we we can initialize</span>
+        <span class="c"># our roster.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_event_handler</span><span class="p">(</span><span class="s">&quot;session_start&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">)</span>
+
+        <span class="c"># The groupchat_message event is triggered whenever a message</span>
+        <span class="c"># stanza is received from any chat room. If you also also</span>
+        <span class="c"># register a handler for the &#39;message&#39; event, MUC messages</span>
+        <span class="c"># will be processed by both handlers.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_event_handler</span><span class="p">(</span><span class="s">&quot;groupchat_message&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">muc_message</span><span class="p">)</span>
+
+        <span class="c"># The groupchat_presence event is triggered whenever a</span>
+        <span class="c"># presence stanza is received from any chat room, including</span>
+        <span class="c"># any presences you send yourself. To limit event handling</span>
+        <span class="c"># to a single room, use the events muc::room@server::presence,</span>
+        <span class="c"># muc::room@server::got_online, or muc::room@server::got_offline.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_event_handler</span><span class="p">(</span><span class="s">&quot;muc::</span><span class="si">%s</span><span class="s">::got_online&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">room</span><span class="p">,</span>
+                               <span class="bp">self</span><span class="o">.</span><span class="n">muc_online</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Process the session_start event.</span>
+
+<span class="sd">        Typical actions for the session_start event are</span>
+<span class="sd">        requesting the roster and broadcasting an initial</span>
+<span class="sd">        presence stanza.</span>
+
+<span class="sd">        Arguments:</span>
+<span class="sd">            event -- An empty dictionary. The session_start</span>
+<span class="sd">                     event does not provide any additional</span>
+<span class="sd">                     data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_roster</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">send_presence</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plugin</span><span class="p">[</span><span class="s">&#39;xep_0045&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">joinMUC</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">room</span><span class="p">,</span>
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">nick</span><span class="p">,</span>
+                                        <span class="c"># If a room password is needed, use:</span>
+                                        <span class="c"># password=the_room_password,</span>
+                                        <span class="n">wait</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">muc_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Process incoming message stanzas from any chat room. Be aware</span>
+<span class="sd">        that if you also have any handlers for the &#39;message&#39; event,</span>
+<span class="sd">        message stanzas may be processed by both handlers, so check</span>
+<span class="sd">        the &#39;type&#39; attribute when using a &#39;message&#39; event handler.</span>
+
+<span class="sd">        Whenever the bot&#39;s nickname is mentioned, respond to</span>
+<span class="sd">        the message.</span>
+
+<span class="sd">        IMPORTANT: Always check that a message is not from yourself,</span>
+<span class="sd">                   otherwise you will create an infinite loop responding</span>
+<span class="sd">                   to your own messages.</span>
+
+<span class="sd">        This handler will reply to messages that mention</span>
+<span class="sd">        the bot&#39;s nickname.</span>
+
+<span class="sd">        Arguments:</span>
+<span class="sd">            msg -- The received message stanza. See the documentation</span>
+<span class="sd">                   for stanza objects and the Message stanza to see</span>
+<span class="sd">                   how it may be used.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">msg</span><span class="p">[</span><span class="s">&#39;mucnick&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nick</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">nick</span> <span class="ow">in</span> <span class="n">msg</span><span class="p">[</span><span class="s">&#39;body&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">mto</span><span class="o">=</span><span class="n">msg</span><span class="p">[</span><span class="s">&#39;from&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">bare</span><span class="p">,</span>
+                              <span class="n">mbody</span><span class="o">=</span><span class="s">&quot;I heard that, </span><span class="si">%s</span><span class="s">.&quot;</span> <span class="o">%</span> <span class="n">msg</span><span class="p">[</span><span class="s">&#39;mucnick&#39;</span><span class="p">],</span>
+                              <span class="n">mtype</span><span class="o">=</span><span class="s">&#39;groupchat&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">muc_online</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">presence</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Process a presence stanza from a chat room. In this case,</span>
+<span class="sd">        presences from users that have just come online are</span>
+<span class="sd">        handled by sending a welcome message that includes</span>
+<span class="sd">        the user&#39;s nickname and role in the room.</span>
+
+<span class="sd">        Arguments:</span>
+<span class="sd">            presence -- The received presence stanza. See the</span>
+<span class="sd">                        documentation for the Presence stanza</span>
+<span class="sd">                        to see how else it may be used.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">presence</span><span class="p">[</span><span class="s">&#39;muc&#39;</span><span class="p">][</span><span class="s">&#39;nick&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nick</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">mto</span><span class="o">=</span><span class="n">presence</span><span class="p">[</span><span class="s">&#39;from&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">bare</span><span class="p">,</span>
+                              <span class="n">mbody</span><span class="o">=</span><span class="s">&quot;Hello, </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">presence</span><span class="p">[</span><span class="s">&#39;muc&#39;</span><span class="p">][</span><span class="s">&#39;role&#39;</span><span class="p">],</span>
+                                                      <span class="n">presence</span><span class="p">[</span><span class="s">&#39;muc&#39;</span><span class="p">][</span><span class="s">&#39;nick&#39;</span><span class="p">]),</span>
+                              <span class="n">mtype</span><span class="o">=</span><span class="s">&#39;groupchat&#39;</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="c"># Setup the command line arguments.</span>
+    <span class="n">optp</span> <span class="o">=</span> <span class="n">OptionParser</span><span class="p">()</span>
+
+    <span class="c"># Output verbosity options.</span>
+    <span class="n">optp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&#39;-q&#39;</span><span class="p">,</span> <span class="s">&#39;--quiet&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&#39;set logging to ERROR&#39;</span><span class="p">,</span>
+                    <span class="n">action</span><span class="o">=</span><span class="s">&#39;store_const&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s">&#39;loglevel&#39;</span><span class="p">,</span>
+                    <span class="n">const</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+    <span class="n">optp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&#39;-d&#39;</span><span class="p">,</span> <span class="s">&#39;--debug&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&#39;set logging to DEBUG&#39;</span><span class="p">,</span>
+                    <span class="n">action</span><span class="o">=</span><span class="s">&#39;store_const&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s">&#39;loglevel&#39;</span><span class="p">,</span>
+                    <span class="n">const</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+    <span class="n">optp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&#39;-v&#39;</span><span class="p">,</span> <span class="s">&#39;--verbose&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&#39;set logging to COMM&#39;</span><span class="p">,</span>
+                    <span class="n">action</span><span class="o">=</span><span class="s">&#39;store_const&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s">&#39;loglevel&#39;</span><span class="p">,</span>
+                    <span class="n">const</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+
+    <span class="c"># JID and password options.</span>
+    <span class="n">optp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&quot;-j&quot;</span><span class="p">,</span> <span class="s">&quot;--jid&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s">&quot;jid&quot;</span><span class="p">,</span>
+                    <span class="n">help</span><span class="o">=</span><span class="s">&quot;JID to use&quot;</span><span class="p">)</span>
+    <span class="n">optp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&quot;-p&quot;</span><span class="p">,</span> <span class="s">&quot;--password&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s">&quot;password&quot;</span><span class="p">,</span>
+                    <span class="n">help</span><span class="o">=</span><span class="s">&quot;password to use&quot;</span><span class="p">)</span>
+    <span class="n">optp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&quot;-r&quot;</span><span class="p">,</span> <span class="s">&quot;--room&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s">&quot;room&quot;</span><span class="p">,</span>
+                    <span class="n">help</span><span class="o">=</span><span class="s">&quot;MUC room to join&quot;</span><span class="p">)</span>
+    <span class="n">optp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&quot;-n&quot;</span><span class="p">,</span> <span class="s">&quot;--nick&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s">&quot;nick&quot;</span><span class="p">,</span>
+                    <span class="n">help</span><span class="o">=</span><span class="s">&quot;MUC nickname&quot;</span><span class="p">)</span>
+
+    <span class="n">opts</span><span class="p">,</span> <span class="n">args</span> <span class="o">=</span> <span class="n">optp</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="c"># Setup logging.</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">opts</span><span class="o">.</span><span class="n">loglevel</span><span class="p">,</span>
+                        <span class="n">format</span><span class="o">=</span><span class="s">&#39;</span><span class="si">%(levelname)-8s</span><span class="s"> </span><span class="si">%(message)s</span><span class="s">&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">opts</span><span class="o">.</span><span class="n">jid</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">opts</span><span class="o">.</span><span class="n">jid</span> <span class="o">=</span> <span class="nb">raw_input</span><span class="p">(</span><span class="s">&quot;Username: &quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">opts</span><span class="o">.</span><span class="n">password</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">opts</span><span class="o">.</span><span class="n">password</span> <span class="o">=</span> <span class="n">getpass</span><span class="o">.</span><span class="n">getpass</span><span class="p">(</span><span class="s">&quot;Password: &quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">opts</span><span class="o">.</span><span class="n">room</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">opts</span><span class="o">.</span><span class="n">room</span> <span class="o">=</span> <span class="nb">raw_input</span><span class="p">(</span><span class="s">&quot;MUC room: &quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">opts</span><span class="o">.</span><span class="n">nick</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">opts</span><span class="o">.</span><span class="n">nick</span> <span class="o">=</span> <span class="nb">raw_input</span><span class="p">(</span><span class="s">&quot;MUC nickname: &quot;</span><span class="p">)</span>
+
+    <span class="c"># Setup the MUCBot and register plugins. Note that while plugins may</span>
+    <span class="c"># have interdependencies, the order in which you register them does</span>
+    <span class="c"># not matter.</span>
+    <span class="n">xmpp</span> <span class="o">=</span> <span class="n">MUCBot</span><span class="p">(</span><span class="n">opts</span><span class="o">.</span><span class="n">jid</span><span class="p">,</span> <span class="n">opts</span><span class="o">.</span><span class="n">password</span><span class="p">,</span> <span class="n">opts</span><span class="o">.</span><span class="n">room</span><span class="p">,</span> <span class="n">opts</span><span class="o">.</span><span class="n">nick</span><span class="p">)</span>
+    <span class="n">xmpp</span><span class="o">.</span><span class="n">register_plugin</span><span class="p">(</span><span class="s">&#39;xep_0030&#39;</span><span class="p">)</span> <span class="c"># Service Discovery</span>
+    <span class="n">xmpp</span><span class="o">.</span><span class="n">register_plugin</span><span class="p">(</span><span class="s">&#39;xep_0045&#39;</span><span class="p">)</span> <span class="c"># Multi-User Chat</span>
+    <span class="n">xmpp</span><span class="o">.</span><span class="n">register_plugin</span><span class="p">(</span><span class="s">&#39;xep_0199&#39;</span><span class="p">)</span> <span class="c"># XMPP Ping</span>
+
+    <span class="c"># Connect to the XMPP server and start processing XMPP stanzas.</span>
+    <span class="k">if</span> <span class="n">xmpp</span><span class="o">.</span><span class="n">connect</span><span class="p">():</span>
+        <span class="c"># If you do not have the dnspython library installed, you will need</span>
+        <span class="c"># to manually specify the name of the server if it does not match</span>
+        <span class="c"># the one in the JID. For example, to use Google Talk you would</span>
+        <span class="c"># need to use:</span>
+        <span class="c">#</span>
+        <span class="c"># if xmpp.connect((&#39;talk.google.com&#39;, 5222)):</span>
+        <span class="c">#     ...</span>
+        <span class="n">xmpp</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;Done&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;Unable to connect.&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
 </div>
 
 
-          </div>
-        </div>
       </div>
-      <div class="sphinxsidebar">
-        <div class="sphinxsidebarwrapper">
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="presence.html"
-                        title="previous chapter">Manage Presence Subscriptions</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="proxy.html"
-                        title="next chapter">Enable HTTP Proxy Support</a></p>
-  <h3>This Page</h3>
-  <ul class="this-page-menu">
-    <li><a href="../_sources/getting_started/muc.txt"
-           rel="nofollow">Show Source</a></li>
-  </ul>
-<div id="searchbox" style="display: none">
-  <h3>Quick search</h3>
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
+      <div class="bottomnav">
+      
+        <p>
+        «&#160;&#160;<a href="presence.html">Manage Presence Subscriptions</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="proxy.html">Enable HTTP Proxy Support</a>&#160;&#160;»
+        </p>
+
       </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="proxy.html" title="Enable HTTP Proxy Support"
-             >next</a> |</li>
-        <li class="right" >
-          <a href="presence.html" title="Manage Presence Subscriptions"
-             >previous</a> |</li>
-        <li><a href="../index.html">1.0RC3 Documentation</a> &raquo;</li> 
-      </ul>
-    </div>
+      <a id="from_andyet" href="http://andyet.net"><h2>From &amp;yet</h2></a>
+
     <div class="footer">
         &copy; Copyright 2011, Nathan Fritz, Lance Stout.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.

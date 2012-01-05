@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -9,13 +10,14 @@
     
     <title>sleekxmpp.exceptions &mdash; SleekXMPP</title>
     
-    <link rel="stylesheet" href="../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/print.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '1.0RC3',
+        VERSION:     '1.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,39 +26,32 @@
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/theme_extras.js"></script>
     <link rel="top" title="SleekXMPP" href="../../index.html" />
     <link rel="up" title="Module code" href="../index.html" /> 
   </head>
   <body>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li><a href="../../index.html">1.0RC3 Documentation</a> &raquo;</li>
-          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
-      </ul>
-    </div>  
+      <div class="header"><h1 class="heading"><a href="../../index.html">
+          <span>sleekxmpp.exceptions</span></a></h1>
+        <h2 class="heading"><span>1.0 Documentation</span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        <a class="uplink" href="../../index.html">Contents</a>
+        </p>
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body">
-            
+      </div>
+      <div class="content">
+        
+        
   <h1>Source code for sleekxmpp.exceptions</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    sleekxmpp.exceptions</span>
-<span class="sd">    ~~~~~~~~~~~~~~~~~~~~</span>
+<span class="sd">    SleekXMPP: The Sleek XMPP Library</span>
+<span class="sd">    Copyright (C) 2010  Nathanael C. Fritz</span>
+<span class="sd">    This file is part of SleekXMPP.</span>
 
-<span class="sd">    Part of SleekXMPP: The Sleek XMPP Library</span>
-
-<span class="sd">    :copyright: (c) 2011 Nathanael C. Fritz</span>
-<span class="sd">    :license: MIT, see LICENSE for more details</span>
+<span class="sd">    See the file LICENSE for copying permission.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 
@@ -66,35 +61,37 @@
 <span class="sd">    A generic exception that may be raised while processing an XMPP stanza</span>
 <span class="sd">    to indicate that an error response stanza should be sent.</span>
 
-<span class="sd">    The exception method for stanza objects extending</span>
-<span class="sd">    :class:`~sleekxmpp.stanza.rootstanza.RootStanza` will create an error</span>
-<span class="sd">    stanza and initialize any additional substanzas using the extension</span>
-<span class="sd">    information included in the exception.</span>
+<span class="sd">    The exception method for stanza objects extending RootStanza will create</span>
+<span class="sd">    an error stanza and initialize any additional substanzas using the</span>
+<span class="sd">    extension information included in the exception.</span>
 
 <span class="sd">    Meant for use in SleekXMPP plugins and applications using SleekXMPP.</span>
-
-<span class="sd">    Extension information can be included to add additional XML elements</span>
-<span class="sd">    to the generated error stanza.</span>
-
-<span class="sd">    :param condition: The XMPP defined error condition.</span>
-<span class="sd">                      Defaults to ``&#39;undefined-condition&#39;``.</span>
-<span class="sd">    :param text: Human readable text describing the error.</span>
-<span class="sd">    :param etype: The XMPP error type, such as ``&#39;cancel&#39;`` or ``&#39;modify&#39;``.</span>
-<span class="sd">                  Defaults to ``&#39;cancel&#39;``.</span>
-<span class="sd">    :param extension: Tag name of the extension&#39;s XML content.</span>
-<span class="sd">    :param extension_ns: XML namespace of the extensions&#39; XML content.</span>
-<span class="sd">    :param extension_args: Content and attributes for the extension</span>
-<span class="sd">                           element. Same as the additional arguments to</span>
-<span class="sd">                           the :class:`~xml.etree.ElementTree.Element`</span>
-<span class="sd">                           constructor.</span>
-<span class="sd">    :param clear: Indicates if the stanza&#39;s contents should be</span>
-<span class="sd">                  removed before replying with an error.</span>
-<span class="sd">                  Defaults to ``True``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">condition</span><span class="o">=</span><span class="s">&#39;undefined-condition&#39;</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                 <span class="n">etype</span><span class="o">=</span><span class="s">&#39;cancel&#39;</span><span class="p">,</span> <span class="n">extension</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">extension_ns</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                 <span class="n">extension_args</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">clear</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a new XMPPError exception.</span>
+
+<span class="sd">        Extension information can be included to add additional XML elements</span>
+<span class="sd">        to the generated error stanza.</span>
+
+<span class="sd">        Arguments:</span>
+<span class="sd">            condition      -- The XMPP defined error condition.</span>
+<span class="sd">                              Defaults to &#39;undefined-condition&#39;.</span>
+<span class="sd">            text           -- Human readable text describing the error.</span>
+<span class="sd">            etype          -- The XMPP error type, such as cancel or modify.</span>
+<span class="sd">                              Defaults to &#39;cancel&#39;.</span>
+<span class="sd">            extension      -- Tag name of the extension&#39;s XML content.</span>
+<span class="sd">            extension_ns   -- XML namespace of the extensions&#39; XML content.</span>
+<span class="sd">            extension_args -- Content and attributes for the extension</span>
+<span class="sd">                              element. Same as the additional arguments to</span>
+<span class="sd">                              the ET.Element constructor.</span>
+<span class="sd">            clear          -- Indicates if the stanza&#39;s contents should be</span>
+<span class="sd">                              removed before replying with an error.</span>
+<span class="sd">                              Defaults to True.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">extension_args</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">extension_args</span> <span class="o">=</span> <span class="p">{}</span>
 
@@ -119,8 +116,6 @@
                 <span class="n">condition</span><span class="o">=</span><span class="s">&#39;remote-server-timeout&#39;</span><span class="p">,</span>
                 <span class="n">etype</span><span class="o">=</span><span class="s">&#39;cancel&#39;</span><span class="p">)</span>
 
-        <span class="c">#: The :class:`~sleekxmpp.stanza.iq.Iq` stanza whose response </span>
-        <span class="c">#: did not arrive before the timeout expired.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">iq</span> <span class="o">=</span> <span class="n">iq</span>
 </div>
 <div class="viewcode-block" id="IqError"><a class="viewcode-back" href="../../api/exceptions.html#sleekxmpp.exceptions.IqError">[docs]</a><span class="k">class</span> <span class="nc">IqError</span><span class="p">(</span><span class="n">XMPPError</span><span class="p">):</span>
@@ -136,45 +131,19 @@
                 <span class="n">text</span><span class="o">=</span><span class="n">iq</span><span class="p">[</span><span class="s">&#39;error&#39;</span><span class="p">][</span><span class="s">&#39;text&#39;</span><span class="p">],</span>
                 <span class="n">etype</span><span class="o">=</span><span class="n">iq</span><span class="p">[</span><span class="s">&#39;error&#39;</span><span class="p">][</span><span class="s">&#39;type&#39;</span><span class="p">])</span>
 
-        <span class="c">#: The :class:`~sleekxmpp.stanza.iq.Iq` error result stanza.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">iq</span> <span class="o">=</span> <span class="n">iq</span></div>
 </pre></div>
 
-          </div>
-        </div>
       </div>
-      <div class="sphinxsidebar">
-        <div class="sphinxsidebarwrapper">
-<div id="searchbox" style="display: none">
-  <h3>Quick search</h3>
-    <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
+      <div class="bottomnav">
+      
+        <p>
+        <a class="uplink" href="../../index.html">Contents</a>
+        </p>
+
       </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li><a href="../../index.html">1.0RC3 Documentation</a> &raquo;</li>
-          <li><a href="../index.html" >Module code</a> &raquo;</li> 
-      </ul>
-    </div>
+      <a id="from_andyet" href="http://andyet.net"><h2>From &amp;yet</h2></a>
+
     <div class="footer">
         &copy; Copyright 2011, Nathan Fritz, Lance Stout.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.

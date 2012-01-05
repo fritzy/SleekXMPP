@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -9,13 +10,14 @@
     
     <title>sleekxmpp.xmlstream.scheduler &mdash; SleekXMPP</title>
     
-    <link rel="stylesheet" href="../../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/print.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '1.0RC3',
+        VERSION:     '1.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,42 +26,32 @@
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/theme_extras.js"></script>
     <link rel="top" title="SleekXMPP" href="../../../index.html" />
     <link rel="up" title="Module code" href="../../index.html" /> 
   </head>
   <body>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li><a href="../../../index.html">1.0RC3 Documentation</a> &raquo;</li>
-          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
-      </ul>
-    </div>  
+      <div class="header"><h1 class="heading"><a href="../../../index.html">
+          <span>sleekxmpp.xmlstream.scheduler</span></a></h1>
+        <h2 class="heading"><span>1.0 Documentation</span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        <a class="uplink" href="../../../index.html">Contents</a>
+        </p>
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body">
-            
+      </div>
+      <div class="content">
+        
+        
   <h1>Source code for sleekxmpp.xmlstream.scheduler</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    sleekxmpp.xmlstream.scheduler</span>
-<span class="sd">    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+<span class="sd">    SleekXMPP: The Sleek XMPP Library</span>
+<span class="sd">    Copyright (C) 2010  Nathanael C. Fritz</span>
+<span class="sd">    This file is part of SleekXMPP.</span>
 
-<span class="sd">    This module provides a task scheduler that works better</span>
-<span class="sd">    with SleekXMPP&#39;s threading usage than the stock version.</span>
-
-<span class="sd">    Part of SleekXMPP: The Sleek XMPP Library</span>
-
-<span class="sd">    :copyright: (c) 2011 Nathanael C. Fritz</span>
-<span class="sd">    :license: MIT, see LICENSE for more details</span>
+<span class="sd">    See the file LICENSE for copying permission.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">time</span>
@@ -80,47 +72,50 @@
 <span class="sd">    A scheduled task that will be executed by the scheduler</span>
 <span class="sd">    after a given time interval has passed.</span>
 
-<span class="sd">    :param string name: The name of the task.</span>
-<span class="sd">    :param int seconds: The number of seconds to wait before executing.</span>
-<span class="sd">    :param callback: The function to execute.</span>
-<span class="sd">    :param tuple args: The arguments to pass to the callback.</span>
-<span class="sd">    :param dict kwargs: The keyword arguments to pass to the callback.</span>
-<span class="sd">    :param bool repeat: Indicates if the task should repeat.</span>
-<span class="sd">                        Defaults to ``False``.</span>
-<span class="sd">    :param pointer: A pointer to an event queue for queuing callback</span>
+<span class="sd">    Attributes:</span>
+<span class="sd">        name     -- The name of the task.</span>
+<span class="sd">        seconds  -- The number of seconds to wait before executing.</span>
+<span class="sd">        callback -- The function to execute.</span>
+<span class="sd">        args     -- The arguments to pass to the callback.</span>
+<span class="sd">        kwargs   -- The keyword arguments to pass to the callback.</span>
+<span class="sd">        repeat   -- Indicates if the task should repeat.</span>
+<span class="sd">                    Defaults to False.</span>
+<span class="sd">        qpointer -- A pointer to an event queue for queuing callback</span>
 <span class="sd">                    execution instead of executing immediately.</span>
+
+<span class="sd">    Methods:</span>
+<span class="sd">        run   -- Either queue or execute the callback.</span>
+<span class="sd">        reset -- Reset the task&#39;s timer.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">seconds</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                  <span class="n">kwargs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">repeat</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">qpointer</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="c">#: The name of the task.</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a new task.</span>
+
+<span class="sd">        Arguments:</span>
+<span class="sd">            name     -- The name of the task.</span>
+<span class="sd">            seconds  -- The number of seconds to wait before executing.</span>
+<span class="sd">            callback -- The function to execute.</span>
+<span class="sd">            args     -- The arguments to pass to the callback.</span>
+<span class="sd">            kwargs   -- The keyword arguments to pass to the callback.</span>
+<span class="sd">            repeat   -- Indicates if the task should repeat.</span>
+<span class="sd">                        Defaults to False.</span>
+<span class="sd">            qpointer -- A pointer to an event queue for queuing callback</span>
+<span class="sd">                        execution instead of executing immediately.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
-
-        <span class="c">#: The number of seconds to wait before executing.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">seconds</span> <span class="o">=</span> <span class="n">seconds</span>
-
-        <span class="c">#: The function to execute once enough time has passed.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">callback</span> <span class="o">=</span> <span class="n">callback</span>
-
-        <span class="c">#: The arguments to pass to :attr:`callback`.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="n">args</span> <span class="ow">or</span> <span class="nb">tuple</span><span class="p">()</span>
-
-        <span class="c">#: The keyword arguments to pass to :attr:`callback`.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span> <span class="o">=</span> <span class="n">kwargs</span> <span class="ow">or</span> <span class="p">{}</span>
-        
-        <span class="c">#: Indicates if the task should repeat after executing,</span>
-        <span class="c">#: using the same :attr:`seconds` delay.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">repeat</span> <span class="o">=</span> <span class="n">repeat</span>
-
-        <span class="c">#: The time when the task should execute next.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">next</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">seconds</span>
-
-        <span class="c">#: The main event queue, which allows for callbacks to</span>
-        <span class="c">#: be queued for execution instead of executing immediately.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">qpointer</span> <span class="o">=</span> <span class="n">qpointer</span>
 
 <div class="viewcode-block" id="Task.run"><a class="viewcode-back" href="../../../api/xmlstream/scheduler.html#sleekxmpp.xmlstream.scheduler.Task.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Execute the task&#39;s callback.</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Execute the task&#39;s callback.</span>
 
 <span class="sd">        If an event queue was supplied, place the callback in the queue;</span>
 <span class="sd">        otherwise, execute the callback immediately.</span>
@@ -134,7 +129,9 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">repeat</span>
 </div>
 <div class="viewcode-block" id="Task.reset"><a class="viewcode-back" href="../../../api/xmlstream/scheduler.html#sleekxmpp.xmlstream.scheduler.Task.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Reset the task&#39;s timer so that it will repeat.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reset the task&#39;s timer so that it will repeat.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">next</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">seconds</span>
 
 </div></div>
@@ -144,41 +141,46 @@
 <span class="sd">    A threaded scheduler that allows for updates mid-execution unlike the</span>
 <span class="sd">    scheduler in the standard library.</span>
 
-<span class="sd">    Based on: http://docs.python.org/library/sched.html#module-sched</span>
+<span class="sd">    http://docs.python.org/library/sched.html#module-sched</span>
 
-<span class="sd">    :param parentstop: An :class:`~threading.Event` to signal stopping</span>
-<span class="sd">                       the scheduler.</span>
+<span class="sd">    Attributes:</span>
+<span class="sd">        addq     -- A queue storing added tasks.</span>
+<span class="sd">        schedule -- A list of tasks in order of execution times.</span>
+<span class="sd">        thread   -- If threaded, the thread processing the schedule.</span>
+<span class="sd">        run      -- Indicates if the scheduler is running.</span>
+<span class="sd">        stop     -- Threading event indicating if the main process</span>
+<span class="sd">                    has been stopped.</span>
+<span class="sd">    Methods:</span>
+<span class="sd">        add     -- Add a new task to the schedule.</span>
+<span class="sd">        process -- Process and schedule tasks.</span>
+<span class="sd">        quit    -- Stop the scheduler.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parentstop</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="c">#: A queue for storing tasks</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a new scheduler.</span>
+
+<span class="sd">        Arguments:</span>
+<span class="sd">            parentstop -- A threading event indicating if the main process has</span>
+<span class="sd">                          been stopped.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">addq</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
-        
-        <span class="c">#: A list of tasks in order of execution time.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">schedule</span> <span class="o">=</span> <span class="p">[]</span>
-
-        <span class="c">#: If running in threaded mode, this will be the thread processing</span>
-        <span class="c">#: the schedule.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">thread</span> <span class="o">=</span> <span class="bp">None</span>
-
-        <span class="c">#: A flag indicating that the scheduler is running.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">run</span> <span class="o">=</span> <span class="bp">False</span>
-
-        <span class="c">#: An :class:`~threading.Event` instance for signalling to stop</span>
-        <span class="c">#: the scheduler.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">stop</span> <span class="o">=</span> <span class="n">parentstop</span>
-
-        <span class="c">#: Lock for accessing the task queue.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">schedule_lock</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">RLock</span><span class="p">()</span>
 
 <div class="viewcode-block" id="Scheduler.process"><a class="viewcode-back" href="../../../api/xmlstream/scheduler.html#sleekxmpp.xmlstream.scheduler.Scheduler.process">[docs]</a>    <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threaded</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Begin accepting and processing scheduled tasks.</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Begin accepting and processing scheduled tasks.</span>
 
-<span class="sd">        :param bool threaded: Indicates if the scheduler should execute</span>
-<span class="sd">                              in its own thread. Defaults to ``True``.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            threaded -- Indicates if the scheduler should execute in its own</span>
+<span class="sd">                        thread. Defaults to True.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">threaded</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">thread</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;scheduler_process&#39;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">thread</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;sheduler_process&#39;</span><span class="p">,</span>
                                            <span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_process</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
@@ -229,16 +231,18 @@
 
 <div class="viewcode-block" id="Scheduler.add"><a class="viewcode-back" href="../../../api/xmlstream/scheduler.html#sleekxmpp.xmlstream.scheduler.Scheduler.add">[docs]</a>    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">seconds</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
             <span class="n">kwargs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">repeat</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">qpointer</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Schedule a new task.</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Schedule a new task.</span>
 
-<span class="sd">        :param string name: The name of the task.</span>
-<span class="sd">        :param int seconds: The number of seconds to wait before executing.</span>
-<span class="sd">        :param callback: The function to execute.</span>
-<span class="sd">        :param tuple args: The arguments to pass to the callback.</span>
-<span class="sd">        :param dict kwargs: The keyword arguments to pass to the callback.</span>
-<span class="sd">        :param bool repeat: Indicates if the task should repeat.</span>
-<span class="sd">                            Defaults to ``False``.</span>
-<span class="sd">        :param pointer: A pointer to an event queue for queuing callback</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            name     -- The name of the task.</span>
+<span class="sd">            seconds  -- The number of seconds to wait before executing.</span>
+<span class="sd">            callback -- The function to execute.</span>
+<span class="sd">            args     -- The arguments to pass to the callback.</span>
+<span class="sd">            kwargs   -- The keyword arguments to pass to the callback.</span>
+<span class="sd">            repeat   -- Indicates if the task should repeat.</span>
+<span class="sd">                        Defaults to False.</span>
+<span class="sd">            qpointer -- A pointer to an event queue for queuing callback</span>
 <span class="sd">                        execution instead of executing immediately.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
@@ -255,10 +259,12 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">schedule_lock</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
 </div>
 <div class="viewcode-block" id="Scheduler.remove"><a class="viewcode-back" href="../../../api/xmlstream/scheduler.html#sleekxmpp.xmlstream.scheduler.Scheduler.remove">[docs]</a>    <span class="k">def</span> <span class="nf">remove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Remove a scheduled task ahead of schedule, and without</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Remove a scheduled task ahead of schedule, and without</span>
 <span class="sd">        executing it.</span>
 
-<span class="sd">        :param string name: The name of the task to remove.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            name -- The name of the task to remove.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">schedule_lock</span><span class="o">.</span><span class="n">acquire</span><span class="p">()</span>
@@ -278,41 +284,16 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">run</span> <span class="o">=</span> <span class="bp">False</span></div></div>
 </pre></div>
 
-          </div>
-        </div>
       </div>
-      <div class="sphinxsidebar">
-        <div class="sphinxsidebarwrapper">
-<div id="searchbox" style="display: none">
-  <h3>Quick search</h3>
-    <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
+      <div class="bottomnav">
+      
+        <p>
+        <a class="uplink" href="../../../index.html">Contents</a>
+        </p>
+
       </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../../genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="../../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li><a href="../../../index.html">1.0RC3 Documentation</a> &raquo;</li>
-          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
-      </ul>
-    </div>
+      <a id="from_andyet" href="http://andyet.net"><h2>From &amp;yet</h2></a>
+
     <div class="footer">
         &copy; Copyright 2011, Nathan Fritz, Lance Stout.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.

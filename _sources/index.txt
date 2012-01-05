@@ -13,7 +13,7 @@ SleekXMPP
     ``develop`` branch.
 
     **Latest Stable Release**
-        - `1.0 RC3 <http://github.com/fritzy/SleekXMPP/zipball/1.0-RC3>`_  
+        - `1.0 <http://github.com/fritzy/SleekXMPP/zipball/1.0>`_  
 
     **Develop Releases**
         - `Latest Develop Version <http://github.com/fritzy/SleekXMPP/zipball/develop>`_
@@ -156,17 +156,23 @@ Additional Info
 
 Credits
 -------
-**Main Author:** Nathan Fritz
+**Main Author:** `Nathan Fritz <http://andyet.net/team/fritzy>`_
     `fritzy@netflint.net <xmpp:fritzy@netflint.net?message>`_, 
     `@fritzy <http://twitter.com/fritzy>`_
 
     Nathan is also the author of XMPPHP and `Seesmic-AS3-XMPP
-    <http://code.google.com/p/seesmic-as3-xmpp/>`_, and a member of the XMPP
+    <http://code.google.com/p/seesmic-as3-xmpp/>`_, and a former member of the XMPP
     Council.
 
-**Co-Author:** Lance Stout
+**Co-Author:** `Lance Stout <http://andyet.net/team/lance>`_
     `lancestout@gmail.com <xmpp:lancestout@gmail.com?message>`_, 
     `@lancestout <http://twitter.com/lancestout>`_
+
+Both Fritzy and Lance work for `&yet <http://andyet.net>`_, which specializes in
+realtime web and XMPP applications. 
+
+- `contact@andyet.net <mailto:contact@andyet.net>`_
+- `XMPP Consulting <http://xmppconsulting.com>`_
 
 **Contributors:**
     - Brian Beggs (`macdiesel <http://github.com/macdiesel>`_)

@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -9,13 +10,14 @@
     
     <title>Enable HTTP Proxy Support &mdash; SleekXMPP</title>
     
-    <link rel="stylesheet" href="../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/print.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.0RC3',
+        VERSION:     '1.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,35 +26,30 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/theme_extras.js"></script>
     <link rel="top" title="SleekXMPP" href="../index.html" />
     <link rel="next" title="Send a Message Every 5 Minutes" href="scheduler.html" />
     <link rel="prev" title="Mulit-User Chat (MUC) Bot" href="muc.html" /> 
   </head>
   <body>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="scheduler.html" title="Send a Message Every 5 Minutes"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="muc.html" title="Mulit-User Chat (MUC) Bot"
-             accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">1.0RC3 Documentation</a> &raquo;</li> 
-      </ul>
-    </div>  
+      <div class="header"><h1 class="heading"><a href="../index.html">
+          <span>Enable HTTP Proxy Support</span></a></h1>
+        <h2 class="heading"><span>1.0 Documentation</span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        «&#160;&#160;<a href="muc.html">Mulit-User Chat (MUC) Bot</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="scheduler.html">Send a Message Every 5 Minutes</a>&#160;&#160;»
+        </p>
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body">
-            
+      </div>
+      <div class="content">
+        
+        
   <div class="section" id="enable-http-proxy-support">
 <span id="proxy"></span><h1>Enable HTTP Proxy Support<a class="headerlink" href="#enable-http-proxy-support" title="Permalink to this headline">¶</a></h1>
 <div class="admonition note">
@@ -95,7 +92,6 @@ require authentication.</p>
 
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">getpass</span>
 <span class="kn">from</span> <span class="nn">optparse</span> <span class="kn">import</span> <span class="n">OptionParser</span>
 
@@ -125,7 +121,7 @@ require authentication.</p>
         <span class="c"># The session_start event will be triggered when</span>
         <span class="c"># the bot establishes its connection with the server</span>
         <span class="c"># and the XML streams are ready for use. We want to</span>
-        <span class="c"># listen for this event so that we we can intialize</span>
+        <span class="c"># listen for this event so that we we can initialize</span>
         <span class="c"># our roster.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">add_event_handler</span><span class="p">(</span><span class="s">&quot;session_start&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">)</span>
 
@@ -139,7 +135,7 @@ require authentication.</p>
 <span class="sd">        Process the session_start event.</span>
 
 <span class="sd">        Typical actions for the session_start event are</span>
-<span class="sd">        requesting the roster and broadcasting an intial</span>
+<span class="sd">        requesting the roster and broadcasting an initial</span>
 <span class="sd">        presence stanza.</span>
 
 <span class="sd">        Arguments:</span>
@@ -257,65 +253,20 @@ require authentication.</p>
 </div>
 
 
-          </div>
-        </div>
       </div>
-      <div class="sphinxsidebar">
-        <div class="sphinxsidebarwrapper">
-  <h3><a href="../index.html">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">Enable HTTP Proxy Support</a><ul>
-<li><a class="reference internal" href="#the-final-product">The Final Product</a></li>
-</ul>
-</li>
-</ul>
+      <div class="bottomnav">
+      
+        <p>
+        «&#160;&#160;<a href="muc.html">Mulit-User Chat (MUC) Bot</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="scheduler.html">Send a Message Every 5 Minutes</a>&#160;&#160;»
+        </p>
 
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="muc.html"
-                        title="previous chapter">Mulit-User Chat (MUC) Bot</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="scheduler.html"
-                        title="next chapter">Send a Message Every 5 Minutes</a></p>
-  <h3>This Page</h3>
-  <ul class="this-page-menu">
-    <li><a href="../_sources/getting_started/proxy.txt"
-           rel="nofollow">Show Source</a></li>
-  </ul>
-<div id="searchbox" style="display: none">
-  <h3>Quick search</h3>
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
       </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="scheduler.html" title="Send a Message Every 5 Minutes"
-             >next</a> |</li>
-        <li class="right" >
-          <a href="muc.html" title="Mulit-User Chat (MUC) Bot"
-             >previous</a> |</li>
-        <li><a href="../index.html">1.0RC3 Documentation</a> &raquo;</li> 
-      </ul>
-    </div>
+      <a id="from_andyet" href="http://andyet.net"><h2>From &amp;yet</h2></a>
+
     <div class="footer">
         &copy; Copyright 2011, Nathan Fritz, Lance Stout.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.

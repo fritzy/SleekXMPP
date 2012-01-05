@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -9,13 +10,14 @@
     
     <title>sleekxmpp.xmlstream.jid &mdash; SleekXMPP</title>
     
-    <link rel="stylesheet" href="../../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/print.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '1.0RC3',
+        VERSION:     '1.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,49 +26,38 @@
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/theme_extras.js"></script>
     <link rel="top" title="SleekXMPP" href="../../../index.html" />
     <link rel="up" title="Module code" href="../../index.html" /> 
   </head>
   <body>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li><a href="../../../index.html">1.0RC3 Documentation</a> &raquo;</li>
-          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
-      </ul>
-    </div>  
+      <div class="header"><h1 class="heading"><a href="../../../index.html">
+          <span>sleekxmpp.xmlstream.jid</span></a></h1>
+        <h2 class="heading"><span>1.0 Documentation</span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        <a class="uplink" href="../../../index.html">Contents</a>
+        </p>
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body">
-            
+      </div>
+      <div class="content">
+        
+        
   <h1>Source code for sleekxmpp.xmlstream.jid</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    sleekxmpp.xmlstream.jid</span>
-<span class="sd">    ~~~~~~~~~~~~~~~~~~~~~~~</span>
+<span class="sd">    SleekXMPP: The Sleek XMPP Library</span>
+<span class="sd">    Copyright (C) 2010  Nathanael C. Fritz</span>
+<span class="sd">    This file is part of SleekXMPP.</span>
 
-<span class="sd">    This module allows for working with Jabber IDs (JIDs) by</span>
-<span class="sd">    providing accessors for the various components of a JID.</span>
-
-<span class="sd">    Part of SleekXMPP: The Sleek XMPP Library</span>
-
-<span class="sd">    :copyright: (c) 2011 Nathanael C. Fritz</span>
-<span class="sd">    :license: MIT, see LICENSE for more details</span>
+<span class="sd">    See the file LICENSE for copying permission.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">unicode_literals</span>
 
 
 <div class="viewcode-block" id="JID"><a class="viewcode-back" href="../../../api/xmlstream/jid.html#sleekxmpp.xmlstream.jid.JID">[docs]</a><span class="k">class</span> <span class="nc">JID</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A representation of a Jabber ID, or JID.</span>
 
@@ -76,16 +67,18 @@
 <span class="sd">    When a resource is not used, the JID is called a bare JID.</span>
 <span class="sd">    The JID is a full JID otherwise.</span>
 
-<span class="sd">    **JID Properties:**</span>
-<span class="sd">        :jid: Alias for ``full``.</span>
-<span class="sd">        :full: The value of the full JID.</span>
-<span class="sd">        :bare: The value of the bare JID.</span>
-<span class="sd">        :user: The username portion of the JID.</span>
-<span class="sd">        :domain: The domain name portion of the JID.</span>
-<span class="sd">        :server: Alias for ``domain``.</span>
-<span class="sd">        :resource: The resource portion of the JID.</span>
+<span class="sd">    Attributes:</span>
+<span class="sd">        jid      -- Alias for &#39;full&#39;.</span>
+<span class="sd">        full     -- The value of the full JID.</span>
+<span class="sd">        bare     -- The value of the bare JID.</span>
+<span class="sd">        user     -- The username portion of the JID.</span>
+<span class="sd">        domain   -- The domain name portion of the JID.</span>
+<span class="sd">        server   -- Alias for &#39;domain&#39;.</span>
+<span class="sd">        resource -- The resource portion of the JID.</span>
 
-<span class="sd">    :param string jid: A string of the form ``&#39;[user@]domain[/resource]&#39;``.</span>
+<span class="sd">    Methods:</span>
+<span class="sd">        reset      -- Use a new JID value.</span>
+<span class="sd">        regenerate -- Recreate the JID from its components.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jid</span><span class="p">):</span>
@@ -93,9 +86,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">jid</span><span class="p">)</span>
 
 <div class="viewcode-block" id="JID.reset"><a class="viewcode-back" href="../../../api/xmlstream/jid.html#sleekxmpp.xmlstream.jid.JID.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jid</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Start fresh from a new JID string.</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Start fresh from a new JID string.</span>
 
-<span class="sd">        :param string jid: A string of the form ``&#39;[user@]domain[/resource]&#39;``.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            jid - The new JID value.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">jid</span><span class="p">,</span> <span class="n">JID</span><span class="p">):</span>
             <span class="n">jid</span> <span class="o">=</span> <span class="n">jid</span><span class="o">.</span><span class="n">full</span>
@@ -106,10 +101,12 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_bare</span> <span class="o">=</span> <span class="bp">None</span>
 </div>
     <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Handle getting the JID values, using cache if available.</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Handle getting the JID values, using cache if available.</span>
 
-<span class="sd">        :param name: One of: user, server, domain, resource,</span>
-<span class="sd">                     full, or bare.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            name -- One of: user, server, domain, resource,</span>
+<span class="sd">                    full, or bare.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s">&#39;resource&#39;</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resource</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="s">&#39;/&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jid</span><span class="p">:</span>
@@ -134,7 +131,8 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bare</span> <span class="ow">or</span> <span class="s">&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Edit a JID by updating it&#39;s individual values, resetting the</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Edit a JID by updating it&#39;s individual values, resetting the</span>
 <span class="sd">        generated JID in the end.</span>
 
 <span class="sd">        Arguments:</span>
@@ -187,45 +185,22 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">full</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">full</span>
 
     <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Two JIDs are considered unequal if they are not equal.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Two JIDs are considered unequal if they are not equal.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span> <span class="o">==</span> <span class="n">other</span></div>
 </pre></div>
 
-          </div>
-        </div>
       </div>
-      <div class="sphinxsidebar">
-        <div class="sphinxsidebarwrapper">
-<div id="searchbox" style="display: none">
-  <h3>Quick search</h3>
-    <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
+      <div class="bottomnav">
+      
+        <p>
+        <a class="uplink" href="../../../index.html">Contents</a>
+        </p>
+
       </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../../genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="../../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li><a href="../../../index.html">1.0RC3 Documentation</a> &raquo;</li>
-          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
-      </ul>
-    </div>
+      <a id="from_andyet" href="http://andyet.net"><h2>From &amp;yet</h2></a>
+
     <div class="footer">
         &copy; Copyright 2011, Nathan Fritz, Lance Stout.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.

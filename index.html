@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -9,13 +10,14 @@
     
     <title>SleekXMPP &mdash; SleekXMPP</title>
     
-    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/print.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '1.0RC3',
+        VERSION:     '1.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,31 +26,27 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/theme_extras.js"></script>
     <link rel="top" title="SleekXMPP" href="#" />
     <link rel="next" title="SleekXMPP Quickstart - Echo Bot" href="getting_started/echobot.html" /> 
   </head>
   <body>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="getting_started/echobot.html" title="SleekXMPP Quickstart - Echo Bot"
-             accesskey="N">next</a> |</li>
-        <li><a href="#">1.0RC3 Documentation</a> &raquo;</li> 
-      </ul>
-    </div>  
+      <div class="header"><h1 class="heading"><a href="#">
+          <span>SleekXMPP</span></a></h1>
+        <h2 class="heading"><span>1.0 Documentation</span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        <a class="uplink" href="#">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="getting_started/echobot.html">SleekXMPP Quickstart - Echo Bot</a>&#160;&#160;»
+        </p>
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body">
-            
+      </div>
+      <div class="content">
+        
+        
   <div class="section" id="sleekxmpp">
 <h1>SleekXMPP<a class="headerlink" href="#sleekxmpp" title="Permalink to this headline">¶</a></h1>
 <div class="sidebar">
@@ -62,7 +60,7 @@
 <dl class="docutils">
 <dt><strong>Latest Stable Release</strong></dt>
 <dd><ul class="first last simple">
-<li><a class="reference external" href="http://github.com/fritzy/SleekXMPP/zipball/1.0-RC3">1.0 RC3</a></li>
+<li><a class="reference external" href="http://github.com/fritzy/SleekXMPP/zipball/1.0">1.0</a></li>
 </ul>
 </dd>
 <dt><strong>Develop Releases</strong></dt>
@@ -233,15 +231,23 @@ with, but it doesn&#8217;t have to be that way.</dd>
 <div class="section" id="credits">
 <h2>Credits<a class="headerlink" href="#credits" title="Permalink to this headline">¶</a></h2>
 <dl class="docutils">
-<dt><strong>Main Author:</strong> Nathan Fritz</dt>
+<dt><strong>Main Author:</strong> <a class="reference external" href="http://andyet.net/team/fritzy">Nathan Fritz</a></dt>
 <dd><p class="first"><a class="reference external" href="xmpp:fritzy&#64;netflint.net?message">fritzy&#64;netflint.net</a>,
 <a class="reference external" href="http://twitter.com/fritzy">&#64;fritzy</a></p>
-<p class="last">Nathan is also the author of XMPPHP and <a class="reference external" href="http://code.google.com/p/seesmic-as3-xmpp/">Seesmic-AS3-XMPP</a>, and a member of the XMPP
+<p class="last">Nathan is also the author of XMPPHP and <a class="reference external" href="http://code.google.com/p/seesmic-as3-xmpp/">Seesmic-AS3-XMPP</a>, and a former member of the XMPP
 Council.</p>
 </dd>
-<dt><strong>Co-Author:</strong> Lance Stout</dt>
+<dt><strong>Co-Author:</strong> <a class="reference external" href="http://andyet.net/team/lance">Lance Stout</a></dt>
 <dd><a class="reference external" href="xmpp:lancestout&#64;gmail.com?message">lancestout&#64;gmail.com</a>,
 <a class="reference external" href="http://twitter.com/lancestout">&#64;lancestout</a></dd>
+</dl>
+<p>Both Fritzy and Lance work for <a class="reference external" href="http://andyet.net">&amp;yet</a>, which specializes in
+realtime web and XMPP applications.</p>
+<ul class="simple">
+<li><a class="reference external" href="mailto:contact&#37;&#52;&#48;andyet&#46;net">contact<span>&#64;</span>andyet<span>&#46;</span>net</a></li>
+<li><a class="reference external" href="http://xmppconsulting.com">XMPP Consulting</a></li>
+</ul>
+<dl class="docutils">
 <dt><strong>Contributors:</strong></dt>
 <dd><ul class="first last simple">
 <li>Brian Beggs (<a class="reference external" href="http://github.com/macdiesel">macdiesel</a>)</li>
@@ -258,83 +264,18 @@ Council.</p>
 </div>
 
 
-          </div>
-        </div>
       </div>
-      <div class="sphinxsidebar">
-        <div class="sphinxsidebarwrapper">
-  <h3><a href="#">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">SleekXMPP</a><ul>
-<li><a class="reference internal" href="#getting-started-with-examples">Getting Started (with Examples)</a><ul>
-</ul>
-</li>
-<li><a class="reference internal" href="#tutorials-faqs-and-how-to-guides">Tutorials, FAQs, and How To Guides</a><ul>
-<li><a class="reference internal" href="#plugin-guides">Plugin Guides</a><ul>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#sleekxmpp-architecture-and-design">SleekXMPP Architecture and Design</a><ul>
-</ul>
-</li>
-<li><a class="reference internal" href="#api-reference">API Reference</a><ul>
-<li><a class="reference internal" href="#core-stanzas">Core Stanzas</a><ul>
-</ul>
-</li>
-<li><a class="reference internal" href="#plugins">Plugins</a><ul>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#additional-info">Additional Info</a><ul>
-</ul>
-</li>
-<li><a class="reference internal" href="#credits">Credits</a></li>
-</ul>
-</li>
-</ul>
+      <div class="bottomnav">
+      
+        <p>
+        <a class="uplink" href="#">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="getting_started/echobot.html">SleekXMPP Quickstart - Echo Bot</a>&#160;&#160;»
+        </p>
 
-  <h4>Next topic</h4>
-  <p class="topless"><a href="getting_started/echobot.html"
-                        title="next chapter">SleekXMPP Quickstart - Echo Bot</a></p>
-  <h3>This Page</h3>
-  <ul class="this-page-menu">
-    <li><a href="_sources/index.txt"
-           rel="nofollow">Show Source</a></li>
-  </ul>
-<div id="searchbox" style="display: none">
-  <h3>Quick search</h3>
-    <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
       </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="getting_started/echobot.html" title="SleekXMPP Quickstart - Echo Bot"
-             >next</a> |</li>
-        <li><a href="#">1.0RC3 Documentation</a> &raquo;</li> 
-      </ul>
-    </div>
+      <a id="from_andyet" href="http://andyet.net"><h2>From &amp;yet</h2></a>
+
     <div class="footer">
         &copy; Copyright 2011, Nathan Fritz, Lance Stout.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.

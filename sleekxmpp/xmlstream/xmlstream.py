@@ -35,7 +35,7 @@ except ImportError:
 import sleekxmpp
 from sleekxmpp.thirdparty.statemachine import StateMachine
 from sleekxmpp.xmlstream import Scheduler, tostring
-from sleekxmpp.xmlstream.stanzabase import StanzaBase, ET
+from sleekxmpp.xmlstream.stanzabase import StanzaBase, ET, ElementBase
 from sleekxmpp.xmlstream.handler import Waiter, XMLCallback
 from sleekxmpp.xmlstream.matcher import MatchXMLMask
 
@@ -268,6 +268,7 @@ class XMLStream(object):
         self.__handlers = []
         self.__event_handlers = {}
         self.__event_handlers_lock = threading.Lock()
+        self.__filters = {'in': [], 'out': []}
 
         self._id = 0
         self._id_lock = threading.Lock()
@@ -743,6 +744,28 @@ class XMLStream(object):
         """
         del self.__root_stanza[stanza_class]
 
+    def add_filter(self, mode, handler, order=None):
+        """Add a filter for incoming or outgoing stanzas.
+
+        These filters are applied before incoming stanzas are
+        passed to any handlers, and before outgoing stanzas
+        are put in the send queue.
+
+        Each filter must accept a single stanza, and return
+        either a stanza or ``None``. If the filter returns
+        ``None``, then the stanza will be dropped from being
+        processed for events or from being sent.
+
+        :param mode: One of ``'in'`` or ``'out'``.
+        :param handler: The filter function.
+        :param int order: The position to insert the filter in
+                          the list of active filters.
+        """
+        if order:
+            self.__filters[mode].insert(order, handler)
+        else:
+            self.__filters[mode].append(handler)
+
     def add_handler(self, mask, pointer, name=None, disposable=False,
                     threaded=False, filter=False, instream=False):
         """A shortcut method for registering a handler using XML masks.
@@ -994,6 +1017,14 @@ class XMLStream(object):
             timeout = self.response_timeout
         if hasattr(mask, 'xml'):
             mask = mask.xml
+
+        if isinstance(data, ElementBase):
+            for filter in self.__filters['out']:
+                if data is not None:
+                    data = filter(data)
+            if data is None:
+                return
+
         data = str(data)
         if mask is not None:
             log.warning("Use of send mask waiters is deprecated.")
@@ -1246,14 +1277,21 @@ class XMLStream(object):
         :param xml: The :class:`~sleekxmpp.xmlstream.stanzabase.ElementBase`
                     stanza to analyze.
         """
-        log.debug("RECV: %s", tostring(xml, xmlns=self.default_ns,
-                                            stream=self))
         # Apply any preprocessing filters.
         xml = self.incoming_filter(xml)
 
         # Convert the raw XML object into a stanza object. If no registered
         # stanza type applies, a generic StanzaBase stanza will be used.
         stanza = self._build_stanza(xml)
+
+        for filter in self.__filters['in']:
+            if stanza is not None:
+                stanza = filter(stanza)
+        if stanza is None:
+            return
+
+        log.debug("RECV: %s", tostring(xml, xmlns=self.default_ns,
+                                            stream=self))
 
         # Match the stanza against registered handlers. Handlers marked
         # to run "in stream" will be executed immediately; the rest will

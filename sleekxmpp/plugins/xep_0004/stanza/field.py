@@ -79,19 +79,21 @@ class FormField(ElementBase):
         reqXML = self.xml.find('{%s}required' % self.namespace)
         return reqXML is not None
 
-    def get_value(self):
+    def get_value(self, convert=True):
         valsXML = self.xml.findall('{%s}value' % self.namespace)
         if len(valsXML) == 0:
             return None
         elif self._type == 'boolean':
-            return valsXML[0].text in self.true_values
+            if convert:
+                return valsXML[0].text in self.true_values
+            return valsXML[0].text
         elif self._type in self.multi_value_types or len(valsXML) > 1:
             values = []
             for valXML in valsXML:
                 if valXML.text is None:
                     valXML.text = ''
                 values.append(valXML.text)
-            if self._type == 'text-multi':
+            if self._type == 'text-multi' and condense:
                 values = "\n".join(values)
             return values
         else:

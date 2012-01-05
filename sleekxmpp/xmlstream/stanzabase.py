@@ -345,7 +345,8 @@ class ElementBase(object):
         """
         if attrib not in self.plugins:
             plugin_class = self.plugin_attrib_map[attrib]
-            plugin = plugin_class(parent=self)
+            existing_xml = self.xml.find(plugin_class.tag_name())
+            plugin = plugin_class(parent=self, xml=existing_xml)
             self.plugins[attrib] = plugin
             if plugin_class in self.plugin_iterables:
                 self.iterables.append(plugin)
@@ -1251,7 +1252,7 @@ class StanzaBase(ElementBase):
                          stanza sent immediately. Useful for stream
                          initialization. Defaults to ``False``.
         """
-        self.stream.send_raw(self.__str__(), now=now)
+        self.stream.send(self, now=now)
 
     def __copy__(self):
         """Return a copy of the stanza object that does not share the

@@ -409,3 +409,24 @@ div.viewcode-block:target {
     padding: 0 12px;
 }
 
+
+#from_andyet {
+    -webkit-box-shadow: #CCC 0px 0px 3px;
+    background: rgba(255, 255, 255, 1);
+    bottom: 0px;
+    right: 17px;
+    padding: 3px 10px;
+    position: fixed;
+}
+
+#from_andyet h2 {
+    background-image: url("images/from_&yet.png");
+    background-repeat: no-repeat;
+    height: 29px;
+    line-height: 0;
+    text-indent: -9999em;
+    width: 79px;
+    margin-top: 0;
+    margin: 0px;
+    padding: 0px;
+}

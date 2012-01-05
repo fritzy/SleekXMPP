@@ -59,9 +59,10 @@ body {
     margin: auto;
     padding: 0px;
     font-family: "Helvetica Neueu", Helvetica, sans-serif;
-    min-width: 59em;
+    min-width: 30em;
     max-width: 70em;
     color: #444;
+    text-align: center;
 }
 
 div.footer {
@@ -124,21 +125,25 @@ a.headerlink:hover {
 /* basic text elements */
 
 div.content {
+    margin: auto;
     margin-top: 20px;
-    margin-left: 40px;
-    margin-right: 40px;
     margin-bottom: 50px;
     font-size: 0.9em;
+    width: 700px;
+    text-align: left;
 }
 
 /* heading and navigation */
 
 div.header {
     position: relative;
+    margin: auto;
     margin-top: 125px;
     height: 85px;
     padding: 0 40px;
     font-family: "Yanone Kaffeesatz";
+    text-align: left;
+    width: 750px;
 }
 div.header h1 {
     font-size: 2.6em;
@@ -185,12 +190,12 @@ div.topnav {
     z-index: 0;
 }
 div.topnav p {
+    margin: auto;
     margin-top: 0;
-    margin-left: 40px;
-    margin-right: 40px;
     margin-bottom: 0px;
     text-align: right;
     font-size: 0.8em;
+    width: 750px;
 }
 div.bottomnav {
     background: #eeeeee;

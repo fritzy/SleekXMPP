@@ -13,7 +13,7 @@ SleekXMPP
     ``develop`` branch.
 
     **Latest Stable Release**
-        - `1.0 RC3 <http://github.com/fritzy/SleekXMPP/zipball/1.0-RC3>`_  
+        - `1.0 <http://github.com/fritzy/SleekXMPP/zipball/1.0>`_  
 
     **Develop Releases**
         - `Latest Develop Version <http://github.com/fritzy/SleekXMPP/zipball/develop>`_

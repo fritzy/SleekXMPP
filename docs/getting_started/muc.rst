@@ -92,7 +92,7 @@ Adding Functionality
 Currently, our bot just sits dormantly inside the chat room, but we
 would like it to respond to two distinct events by issuing a generic
 message in each case to the chat room. In particular, when a member
-mention's the bot's nickname inside the chat room, and when a member
+mentions the bot's nickname inside the chat room, and when a member
 joins the chat room.
 
 Responding to Mentions
@@ -100,7 +100,7 @@ Responding to Mentions
 
 Whenever a user mentions our bot's nickname in chat, our bot will
 respond with a generic message resembling *"I heard that, user."* We do
-this by examining all of the messages sent inside the chat, and looking
+this by examining all of the messages sent inside the chat and looking
 for the ones which contain the nickname string.
 
 First, we register an event handler for the :term:`groupchat_message`

@@ -39,6 +39,8 @@ class feature_mechanisms(base_plugin):
                 values['username'] = self.xmpp.boundjid.user
             if 'password' in values:
                 values['password'] = self.xmpp.password
+            if 'access_token' in values:
+                values['access_token'] = self.xmpp.password
             mech.fulfill(values)
 
         sasl_callback = self.config.get('sasl_callback', None)

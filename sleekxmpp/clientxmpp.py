@@ -97,6 +97,7 @@ class ClientXMPP(BaseXMPP):
         self.bindfail = False
 
         self.add_event_handler('connected', self._handle_connected)
+        self.add_event_handler('session_bind', self._handle_session_bind)
 
         self.register_stanza(StreamFeatures)
 
@@ -287,6 +288,14 @@ class ClientXMPP(BaseXMPP):
             iq.enable('roster')
             iq.send()
         return True
+
+    def _handle_session_bind(self, jid):
+        """Set the client roster to the JID set by the server.
+
+        :param :class:`sleekxmpp.xmlstream.jid.JID` jid: The bound JID as
+            dictated by the server. The same as :attr:`boundjid`.
+        """
+        self.client_roster = self.roster[jid]
 
 
 # To comply with PEP8, method names now use underscores.

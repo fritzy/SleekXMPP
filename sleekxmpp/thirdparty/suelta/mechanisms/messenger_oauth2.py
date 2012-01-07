@@ -1,6 +1,5 @@
-from sleekxmpp.thirdparty.suelta.util import hash, bytes
+from sleekxmpp.thirdparty.suelta.util import bytes
 from sleekxmpp.thirdparty.suelta.sasl import Mechanism, register_mechanism
-from sleekxmpp.thirdparty.suelta.exceptions import SASLError, SASLCancelled
 
 
 class X_MESSENGER_OAUTH2(Mechanism):
@@ -10,7 +9,7 @@ class X_MESSENGER_OAUTH2(Mechanism):
         self.check_values(['access_token'])
 
     def process(self, challenge=None):
-        return self.values['access_token']
+        return bytes(self.values['access_token'])
 
     def okay(self):
         return True

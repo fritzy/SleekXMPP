@@ -237,9 +237,13 @@ class ClientXMPP(BaseXMPP):
         iq = self.Iq()
         iq['type'] = 'get'
         iq.enable('roster')
+
+        if not block and callback is None:
+            callback = lambda resp: self._handle_roster(resp, request=True)
+
         response = iq.send(block, timeout, callback)
 
-        if callback is None:
+        if block: 
             return self._handle_roster(response, request=True)
 
     def _handle_connected(self, event=None):

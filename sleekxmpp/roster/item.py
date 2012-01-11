@@ -482,3 +482,6 @@ class RosterItem(object):
         a roster reset request.
         """
         self.resources = {}
+
+    def __repr__(self):
+        return repr(self._state)

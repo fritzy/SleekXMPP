@@ -182,3 +182,6 @@ class Roster(object):
         self._auto_subscribe = value
         for node in self._rosters:
             self._rosters[node].auto_subscribe = value
+
+    def __repr__(self):
+        return repr(self._rosters)

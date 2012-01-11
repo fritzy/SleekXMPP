@@ -285,3 +285,6 @@ class RosterNode(object):
             if not self.xmpp.sentpresence:
                 self.xmpp.event('sent_presence')
                 self.xmpp.sentpresence = True
+
+    def __repr__(self):
+        return repr(self._jids)

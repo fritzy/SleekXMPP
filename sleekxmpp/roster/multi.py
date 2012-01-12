@@ -68,6 +68,8 @@ class Roster(object):
         """
         if isinstance(key, JID):
             key = key.bare
+        if key is None:
+            key = self.xmpp.boundjid.bare
         if key not in self._rosters:
             self.add(key)
             self._rosters[key].auto_authorize = self.auto_authorize

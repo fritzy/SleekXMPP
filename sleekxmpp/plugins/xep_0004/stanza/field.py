@@ -93,7 +93,7 @@ class FormField(ElementBase):
                 if valXML.text is None:
                     valXML.text = ''
                 values.append(valXML.text)
-            if self._type == 'text-multi' and condense:
+            if self._type == 'text-multi' and convert:
                 values = "\n".join(values)
             return values
         else:

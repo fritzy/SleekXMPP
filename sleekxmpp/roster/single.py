@@ -286,5 +286,16 @@ class RosterNode(object):
                 self.xmpp.event('sent_presence')
                 self.xmpp.sentpresence = True
 
+    def send_last_presence(self):
+        if self.last_status is None:
+            self.send_presence()
+        else:
+            pres = self.last_status
+            if self.xmpp.is_component:
+                pres['from'] = self.jid
+            else:
+                del pres['from']
+            pres.send()
+
     def __repr__(self):
         return repr(self._jids)

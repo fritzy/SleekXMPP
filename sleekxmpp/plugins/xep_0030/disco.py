@@ -357,6 +357,7 @@ class xep_0030(base_plugin):
             else:
                 if str(jid) == str(self.xmpp.boundjid):
                     local = True
+            jid = jid.full
 
         if local or jid in (None, ''):
             log.debug("Looking up local disco#info data " + \
@@ -626,6 +627,9 @@ class xep_0030(base_plugin):
             node  -- The node requested.
             data  -- Optional, custom data to pass to the handler.
         """
+        if isinstance(jid, JID):
+            jid = jid.full
+
         if jid in (None, ''):
             if self.xmpp.is_component:
                 jid = self.xmpp.boundjid.full

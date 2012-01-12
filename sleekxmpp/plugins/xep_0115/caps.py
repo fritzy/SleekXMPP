@@ -65,10 +65,11 @@ class xep_0115(base_plugin):
         self.xmpp.add_event_handler('entity_caps', self._process_caps,
                                     threaded=True)
 
-        self.xmpp.register_feature('caps',
-                self._handle_caps_feature,
-                restart=False,
-                order=10010)
+        if not self.xmpp.is_component:
+            self.xmpp.register_feature('caps',
+                    self._handle_caps_feature,
+                    restart=False,
+                    order=10010)
 
     def post_init(self):
         base_plugin.post_init(self)
@@ -256,6 +257,21 @@ class xep_0115(base_plugin):
                     info=info)
             self.cache_caps(ver, info)
             self.assign_verstring(jid, ver)
+
+            if self.broadcast:
+                # Check if we've sent directed presence. If we haven't, we
+                # can just send a normal presence stanza. If we have, then
+                # we will send presence to each contact individually so
+                # that we don't clobber existing statuses.
+                directed = False
+                for contact in self.xmpp.roster[jid]:
+                    if self.xmpp.roster[jid][contact].last_status is not None:
+                        directed = True
+                if not directed:
+                    self.xmpp.roster[jid].send_last_presence()
+                else:
+                    for contact in self.xmpp.roster[jid]:
+                        self.xmpp.roster[jid][contact].send_last_presence()
         except XMPPError:
             return
 

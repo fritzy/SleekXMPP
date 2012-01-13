@@ -244,7 +244,8 @@ class ClientXMPP(BaseXMPP):
         response = iq.send(block, timeout, callback)
 
         if block: 
-            return self._handle_roster(response, request=True)
+            self._handle_roster(response, request=True)
+            return response
 
     def _handle_connected(self, event=None):
         #TODO: Use stream state here
@@ -291,7 +292,6 @@ class ClientXMPP(BaseXMPP):
             iq.reply()
             iq.enable('roster')
             iq.send()
-        return True
 
     def _handle_session_bind(self, jid):
         """Set the client roster to the JID set by the server.

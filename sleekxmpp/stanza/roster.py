@@ -55,20 +55,10 @@ class Roster(ElementBase):
         """
         self.del_items()
         for jid in items:
-            ijid = str(jid)
-            item = ET.Element('{jabber:iq:roster}item', {'jid': ijid})
-            if 'subscription' in items[jid]:
-                item.attrib['subscription'] = items[jid]['subscription']
-            if 'name' in items[jid]:
-                name = items[jid]['name']
-                if name is not None:
-                    item.attrib['name'] = name
-            if 'groups' in items[jid]:
-                for group in items[jid]['groups']:
-                    groupxml = ET.Element('{jabber:iq:roster}group')
-                    groupxml.text = group
-                    item.append(groupxml)
-            self.xml.append(item)
+            item = RosterItem()
+            item.values = items[jid]
+            item['jid'] = jid
+            self.append(item)
         return self
 
     def get_items(self):
@@ -83,31 +73,52 @@ class Roster(ElementBase):
                             been assigned.
         """
         items = {}
-        itemsxml = self.xml.findall('{jabber:iq:roster}item')
-        if itemsxml is not None:
-            for itemxml in itemsxml:
-                item = {}
-                item['name'] = itemxml.get('name', '')
-                item['subscription'] = itemxml.get('subscription', '')
-                item['ask'] = itemxml.get('ask', '')
-                item['approved'] = itemxml.get('approved', '')
-                item['groups'] = []
-                groupsxml = itemxml.findall('{jabber:iq:roster}group')
-                if groupsxml is not None:
-                    for groupxml in groupsxml:
-                        item['groups'].append(groupxml.text)
-                items[itemxml.get('jid')] = item
+        for item in self['substanzas']:
+            if isinstance(item, RosterItem):
+                items[item['jid']] = item.values
+                # Remove extra JID reference to keep everything
+                # backward compatible
+                del items[item['jid']]['jid'] 
         return items
 
     def del_items(self):
         """
         Remove all <item> elements from the roster stanza.
         """
-        for child in self.xml.getchildren():
-            self.xml.remove(child)
+        for item in self['substanzas']:
+            if isinstance(item, RosterItem):
+                self.xml.remove(item.xml)
+
+
+class RosterItem(ElementBase):
+    namespace = 'jabber:iq:roster'
+    name = 'item'
+    plugin_attrib = 'item'
+    interfaces = set(('jid', 'name', 'subscription', 'ask',
+                      'approved', 'groups'))
+
+    def get_groups(self):
+        groups = []
+        for group in self.xml.findall('{%s}group' % self.namespace):
+            groups.append(group.text)
+        return groups
+
+    def set_groups(self, values):
+        self.del_groups()
+        for group in values:
+            group_xml = ET.Element('{%s}group' % self.namespace)
+            group_xml.text = group
+            self.xml.append(group_xml)
+
+    def del_groups(self):
+        for group in self.xml.findall('{%s}group' % self.namespace):
+            self.xmp.remove(group)
+
+
 
 
 register_stanza_plugin(Iq, Roster)
+register_stanza_plugin(Roster, RosterItem, iterable=True)
 
 # To comply with PEP8, method names now use underscores.
 # Deprecated method names are re-mapped for backwards compatibility.

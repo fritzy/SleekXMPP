@@ -763,6 +763,11 @@ class BaseXMPP(XMLStream):
             iq = exception.iq
             log.error('Request timed out: %s', iq)
             log.warning('You should catch IqTimeout exceptions')
+        elif isinstance(exception, SyntaxError):
+            # Hide stream parsing errors that occur when the
+            # stream is disconnected (they've been handled, we
+            # don't need to make a mess in the logs).
+            pass
         else:
             log.exception(exception)
 

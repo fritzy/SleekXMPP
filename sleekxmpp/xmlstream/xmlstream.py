@@ -1290,8 +1290,7 @@ class XMLStream(object):
         if stanza is None:
             return
 
-        log.debug("RECV: %s", tostring(xml, xmlns=self.default_ns,
-                                            stream=self))
+        log.debug("RECV: %s", stanza)
 
         # Match the stanza against registered handlers. Handlers marked
         # to run "in stream" will be executed immediately; the rest will

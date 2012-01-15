@@ -106,7 +106,7 @@ class xep_0030(base_plugin):
         register_stanza_plugin(Iq, DiscoInfo)
         register_stanza_plugin(Iq, DiscoItems)
 
-        self.static = StaticDisco(self.xmpp)
+        self.static = StaticDisco(self.xmpp, self)
 
         self.use_cache = self.config.get('use_cache', True)
         self.wrap_results = self.config.get('wrap_results', False)

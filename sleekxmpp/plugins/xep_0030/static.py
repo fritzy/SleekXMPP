@@ -39,7 +39,7 @@ class StaticDisco(object):
         xmpp  -- The main SleekXMPP object.
     """
 
-    def __init__(self, xmpp):
+    def __init__(self, xmpp, disco):
         """
         Create a static disco interface. Sets of disco#info and
         disco#items are maintained for every given JID and node
@@ -51,7 +51,7 @@ class StaticDisco(object):
         """
         self.nodes = {}
         self.xmpp = xmpp
-        self.disco = xmpp['xep_0030']
+        self.disco = disco
         self.lock = threading.RLock()
 
     def add_node(self, jid=None, node=None, ifrom=None):

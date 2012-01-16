@@ -152,11 +152,11 @@ class RosterNode(object):
                  'pending_out': pending_out,
                  'whitelisted': whitelisted,
                  'subscription': 'none'}
-        self._jids[jid] = RosterItem(self.xmpp, jid, self.jid,
+        self._jids[key] = RosterItem(self.xmpp, jid, self.jid,
                                      state=state, db=self.db,
                                      roster=self)
         if save:
-            self._jids[jid].save()
+            self._jids[key].save()
 
     def subscribe(self, jid):
         """

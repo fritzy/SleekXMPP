@@ -5,9 +5,32 @@
 
     See the file LICENSE for copying permission.
 """
-__all__ = ['xep_0004', 'xep_0009', 'xep_0012', 'xep_0030', 'xep_0033',
-           'xep_0045', 'xep_0050', 'xep_0060', 'xep_0066', 'xep_0082',
-           'xep_0085', 'xep_0086', 'xep_0092', 'xep_0128', 'xep_0199',
-           'xep_0203', 'xep_0224', 'xep_0249', 'gmail_notify']
 
-# Don't automatically load xep_0078
+__all__ = [
+    # Non-standard
+    'gmail_notify',  # Gmail searching and notifications
+
+    # XEPS
+    'xep_0004',  # Data Forms
+    'xep_0009',  # Jabber-RPC
+    'xep_0012',  # Last Activity
+    'xep_0030',  # Service Discovery
+    'xep_0033',  # Extended Stanza Addresses
+    'xep_0045',  # Multi-User Chat (Client)
+    'xep_0050',  # Ad-hoc Commands
+    'xep_0059',  # Result Set Management
+    'xep_0060',  # Pubsub (Client)
+    'xep_0066',  # Out-of-band Transfer
+#   'xep_0078',  # Non-SASL auth. Don't automatically load
+    'xep_0082',  # XMPP Date and Time Profiles
+    'xep_0085',  # Chat State Notifications
+    'xep_0086',  # Legacy Error Codes
+    'xep_0092',  # Software Version
+    'xep_0115',  # Entity Capabilities
+    'xep_0128',  # Extended Service Discovery
+    'xep_0199',  # Ping
+    'xep_0202',  # Entity Time
+    'xep_0203',  # Delayed Delivery
+    'xep_0224',  # Attention
+    'xep_0249',  # Direct MUC Invitations
+]

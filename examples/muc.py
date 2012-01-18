@@ -76,8 +76,13 @@ class MUCBot(sleekxmpp.ClientXMPP):
                      event does not provide any additional
                      data.
         """
+<<<<<<< HEAD
         self.getRoster()
         self.sendPresence()
+=======
+        self.get_roster()
+        self.send_presence()
+>>>>>>> docs
         self.plugin['xep_0045'].joinMUC(self.room,
                                         self.nick,
                                         # If a room password is needed, use:

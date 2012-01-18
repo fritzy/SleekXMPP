@@ -13,7 +13,7 @@ SleekXMPP
     ``develop`` branch.
 
     **Latest Stable Release**
-        - `1.0 RC3 <http://github.com/fritzy/SleekXMPP/zipball/1.0-RC3>`_  
+        - `1.0 <http://github.com/fritzy/SleekXMPP/zipball/1.0>`_
 
     **Develop Releases**
         - `Latest Develop Version <http://github.com/fritzy/SleekXMPP/zipball/develop>`_
@@ -240,10 +240,6 @@ realtime web and XMPP applications.
 
     - `contact@andyet.net <mailto:contact@andyet.net>`_
     - `XMPP Consulting <http://xmppconsulting.com>`_
-
-**Co-Author:** Lance Stout
-    `lancestout@gmail.com <xmpp:lancestout@gmail.com?message>`_, 
-    `@lancestout <http://twitter.com/lancestout>`_
 
 **Contributors:**
     - Brian Beggs (`macdiesel <http://github.com/macdiesel>`_)

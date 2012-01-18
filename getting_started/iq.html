@@ -180,7 +180,7 @@ interfacting with the <tt class="xref py py-class docutils literal"><span class=
 <p>The typical way to respond to <tt class="xref py py-class docutils literal"><span class="pre">Iq</span></tt> requests is
 to register stream handlers. As an example, suppose we create a stanza class
 named <tt class="docutils literal"><span class="pre">CustomXEP</span></tt> which uses the XML element <tt class="docutils literal"><span class="pre">&lt;query</span> <span class="pre">xmlns=&quot;custom-xep&quot;</span> <span class="pre">/&gt;</span></tt>,
-and has a <a class="reference internal" href="../api/xmlstream/stanzabase.html#sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib" title="sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib"><tt class="xref py py-attr docutils literal"><span class="pre">plugin_attrib</span></tt></a> value
+and has a <tt class="xref py py-attr docutils literal"><span class="pre">plugin_attrib</span></tt> value
 of <tt class="docutils literal"><span class="pre">custom_xep</span></tt>.</p>
 <p>There are two types of incoming <tt class="xref py py-class docutils literal"><span class="pre">Iq</span></tt> requests:
 <tt class="docutils literal"><span class="pre">get</span></tt> and <tt class="docutils literal"><span class="pre">set</span></tt>. You can register a handler that will accept both and then

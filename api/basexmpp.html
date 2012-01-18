@@ -101,22 +101,6 @@ If <tt class="docutils literal"><span class="pre">None</span></tt>, don&#8217;t 
 <p>If <tt class="docutils literal"><span class="pre">True</span></tt>, auto send mutual subscription requests.</p>
 </dd></dl>
 
-<dl class="attribute">
-<dt id="sleekxmpp.basexmpp.BaseXMPP.boundjid">
-<tt class="descname">boundjid</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.boundjid" title="Permalink to this definition">¶</a></dt>
-<dd><p>The JabberID (JID) used by this connection.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sleekxmpp.basexmpp.BaseXMPP.client_roster">
-<tt class="descname">client_roster</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.client_roster" title="Permalink to this definition">¶</a></dt>
-<dd><p>The single roster for the bound JID. This is the
-equivalent of:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="bp">self</span><span class="o">.</span><span class="n">roster</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">boundjid</span><span class="o">.</span><span class="n">bare</span><span class="p">]</span>
-</pre></div>
-</div>
-</dd></dl>
-
 <dl class="method">
 <dt id="sleekxmpp.basexmpp.BaseXMPP.exception">
 <tt class="descname">exception</tt><big>(</big><em>exception</em><big>)</big><a class="reference internal" href="../_modules/sleekxmpp/basexmpp.html#BaseXMPP.exception"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.exception" title="Permalink to this definition">¶</a></dt>
@@ -143,14 +127,6 @@ equivalent of:</p>
 <dt id="sleekxmpp.basexmpp.BaseXMPP.get">
 <tt class="descname">get</tt><big>(</big><em>key</em>, <em>default</em><big>)</big><a class="reference internal" href="../_modules/sleekxmpp/basexmpp.html#BaseXMPP.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.get" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a plugin given its name, if it has been registered.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sleekxmpp.basexmpp.BaseXMPP.is_component">
-<tt class="descname">is_component</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.is_component" title="Permalink to this definition">¶</a></dt>
-<dd><p>The distinction between clients and components can be
-important, primarily for choosing how to handle the
-<tt class="docutils literal"><span class="pre">'to'</span></tt> and <tt class="docutils literal"><span class="pre">'from'</span></tt> JIDs of stanzas.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -601,27 +577,6 @@ of generating a new one.</td>
 </table>
 </dd></dl>
 
-<dl class="attribute">
-<dt id="sleekxmpp.basexmpp.BaseXMPP.plugin">
-<tt class="descname">plugin</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.plugin" title="Permalink to this definition">¶</a></dt>
-<dd><p>A dictionary mapping plugin names to plugins.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sleekxmpp.basexmpp.BaseXMPP.plugin_config">
-<tt class="descname">plugin_config</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.plugin_config" title="Permalink to this definition">¶</a></dt>
-<dd><p>Configuration options for whitelisted plugins.
-If a plugin is registered without any configuration,
-and there is an entry here, it will be used.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sleekxmpp.basexmpp.BaseXMPP.plugin_whitelist">
-<tt class="descname">plugin_whitelist</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.plugin_whitelist" title="Permalink to this definition">¶</a></dt>
-<dd><p>A list of plugins that will be loaded if
-<a class="reference internal" href="#sleekxmpp.basexmpp.BaseXMPP.register_plugins" title="sleekxmpp.basexmpp.BaseXMPP.register_plugins"><tt class="xref py py-meth docutils literal"><span class="pre">register_plugins()</span></tt></a> is called.</p>
-</dd></dl>
-
 <dl class="method">
 <dt id="sleekxmpp.basexmpp.BaseXMPP.process">
 <tt class="descname">process</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/sleekxmpp/basexmpp.html#BaseXMPP.process"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.process" title="Permalink to this definition">¶</a></dt>
@@ -707,22 +662,14 @@ class if using custom plugins.</li>
 <tt class="descname">register_plugins</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/sleekxmpp/basexmpp.html#BaseXMPP.register_plugins"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.register_plugins" title="Permalink to this definition">¶</a></dt>
 <dd><p>Register and initialize all built-in plugins.</p>
 <p>Optionally, the list of plugins loaded may be limited to those
-contained in <a class="reference internal" href="#sleekxmpp.basexmpp.BaseXMPP.plugin_whitelist" title="sleekxmpp.basexmpp.BaseXMPP.plugin_whitelist"><tt class="xref py py-attr docutils literal"><span class="pre">plugin_whitelist</span></tt></a>.</p>
-<p>Plugin configurations stored in <a class="reference internal" href="#sleekxmpp.basexmpp.BaseXMPP.plugin_config" title="sleekxmpp.basexmpp.BaseXMPP.plugin_config"><tt class="xref py py-attr docutils literal"><span class="pre">plugin_config</span></tt></a> will be used.</p>
+contained in <tt class="xref py py-attr docutils literal"><span class="pre">plugin_whitelist</span></tt>.</p>
+<p>Plugin configurations stored in <tt class="xref py py-attr docutils literal"><span class="pre">plugin_config</span></tt> will be used.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="sleekxmpp.basexmpp.BaseXMPP.resource">
 <tt class="descname">resource</tt><a class="reference internal" href="../_modules/sleekxmpp/basexmpp.html#BaseXMPP.resource"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.resource" title="Permalink to this definition">¶</a></dt>
 <dd><p>Attribute accessor for jid resource</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sleekxmpp.basexmpp.BaseXMPP.roster">
-<tt class="descname">roster</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.roster" title="Permalink to this definition">¶</a></dt>
-<dd><p>The main roster object. This roster supports multiple
-owner JIDs, as in the case for components. For clients
-which only have a single JID, see <a class="reference internal" href="#sleekxmpp.basexmpp.BaseXMPP.client_roster" title="sleekxmpp.basexmpp.BaseXMPP.client_roster"><tt class="xref py py-attr docutils literal"><span class="pre">client_roster</span></tt></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -872,14 +819,6 @@ type <tt class="docutils literal"><span class="pre">'subscribe'</span></tt>.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="sleekxmpp.basexmpp.BaseXMPP.sentpresence">
-<tt class="descname">sentpresence</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.sentpresence" title="Permalink to this definition">¶</a></dt>
-<dd><p>Flag indicating that the initial presence broadcast has
-been sent. Until this happens, some servers may not
-behave as expected when sending stanzas.</p>
-</dd></dl>
-
-<dl class="attribute">
 <dt id="sleekxmpp.basexmpp.BaseXMPP.server">
 <tt class="descname">server</tt><a class="reference internal" href="../_modules/sleekxmpp/basexmpp.html#BaseXMPP.server"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.server" title="Permalink to this definition">¶</a></dt>
 <dd><p>Attribute accessor for jid host</p>
@@ -889,13 +828,6 @@ behave as expected when sending stanzas.</p>
 <dt id="sleekxmpp.basexmpp.BaseXMPP.set_jid">
 <tt class="descname">set_jid</tt><big>(</big><em>jid</em><big>)</big><a class="reference internal" href="../_modules/sleekxmpp/basexmpp.html#BaseXMPP.set_jid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.set_jid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Rip a JID apart and claim it as our own.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sleekxmpp.basexmpp.BaseXMPP.stanza">
-<tt class="descname">stanza</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.stanza" title="Permalink to this definition">¶</a></dt>
-<dd><p>A reference to <tt class="xref py py-mod docutils literal"><span class="pre">sleekxmpp.stanza</span></tt> to make accessing
-stanza classes easier.</p>
 </dd></dl>
 
 <dl class="method">
@@ -910,12 +842,6 @@ stanza classes easier.</p>
 </tr>
 </tbody>
 </table>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sleekxmpp.basexmpp.BaseXMPP.stream_id">
-<tt class="descname">stream_id</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.basexmpp.BaseXMPP.stream_id" title="Permalink to this definition">¶</a></dt>
-<dd><p>An identifier for the stream as given by the server.</p>
 </dd></dl>
 
 <dl class="attribute">

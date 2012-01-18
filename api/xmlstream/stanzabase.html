@@ -117,7 +117,7 @@ plugin stanza object. Here is an example:</p>
 <p>We can can arrange this stanza into two objects: an outer, wrapper object for
 dealing with the <tt class="docutils literal"><span class="pre">&lt;iq</span> <span class="pre">/&gt;</span></tt> element and its attributes, and a plugin object to
 control the <tt class="docutils literal"><span class="pre">&lt;query</span> <span class="pre">/&gt;</span></tt> payload element. If we give the plugin object the
-name <tt class="docutils literal"><span class="pre">'disco_info'</span></tt> (using its <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib" title="sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib"><tt class="xref py py-attr docutils literal"><span class="pre">ElementBase.plugin_attrib</span></tt></a> value), then
+name <tt class="docutils literal"><span class="pre">'disco_info'</span></tt> (using its <tt class="xref py py-attr docutils literal"><span class="pre">ElementBase.plugin_attrib</span></tt> value), then
 we can access the plugin as so:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">iq</span><span class="p">[</span><span class="s">&#39;disco_info&#39;</span><span class="p">]</span>
 <span class="go">&#39;&lt;query xmlns=&quot;http://jabber.org/protocol/disco#info&quot;&gt;</span>
@@ -239,7 +239,7 @@ information will require all interfaces to be used, as so:</p>
 <span class="go">&#39;bar&#39;</span>
 </pre></div>
 </div>
-<p>If the plugin sets <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.is_extension" title="sleekxmpp.xmlstream.stanzabase.ElementBase.is_extension"><tt class="xref py py-attr docutils literal"><span class="pre">is_extension</span></tt></a> to <tt class="docutils literal"><span class="pre">True</span></tt>, then both setting
+<p>If the plugin sets <tt class="xref py py-attr docutils literal"><span class="pre">is_extension</span></tt> to <tt class="docutils literal"><span class="pre">True</span></tt>, then both setting
 and getting an interface value that is the same as the plugin&#8217;s
 plugin_attrib value will work, as so:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">message</span><span class="p">[</span><span class="s">&#39;custom&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;bar&#39;</span>  <span class="c"># Using is_extension=True</span>
@@ -298,7 +298,7 @@ one of:</p>
 <li>Call <tt class="docutils literal"><span class="pre">del_foo</span></tt>, if it exists.</li>
 <li>Call <tt class="docutils literal"><span class="pre">delFoo</span></tt>, if it exists.</li>
 <li>Delete <tt class="docutils literal"><span class="pre">foo</span></tt> element, if <tt class="docutils literal"><span class="pre">'foo'</span></tt> is in
-<a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.sub_interfaces" title="sleekxmpp.xmlstream.stanzabase.ElementBase.sub_interfaces"><tt class="xref py py-attr docutils literal"><span class="pre">sub_interfaces</span></tt></a>.</li>
+<tt class="xref py py-attr docutils literal"><span class="pre">sub_interfaces</span></tt>.</li>
 <li>Delete top level XML attribute named <tt class="docutils literal"><span class="pre">foo</span></tt>.</li>
 <li>Remove the <tt class="docutils literal"><span class="pre">foo</span></tt> plugin, if it was loaded.</li>
 <li>Do nothing.</li>
@@ -351,7 +351,7 @@ named <tt class="docutils literal"><span class="pre">'foo'</span></tt> is:</p>
 <li>The result of calling <tt class="docutils literal"><span class="pre">get_foo</span></tt>.</li>
 <li>The result of calling <tt class="docutils literal"><span class="pre">getFoo</span></tt>.</li>
 <li>The contents of the <tt class="docutils literal"><span class="pre">foo</span></tt> subelement, if <tt class="docutils literal"><span class="pre">foo</span></tt> is listed
-in <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.sub_interfaces" title="sleekxmpp.xmlstream.stanzabase.ElementBase.sub_interfaces"><tt class="xref py py-attr docutils literal"><span class="pre">sub_interfaces</span></tt></a>.</li>
+in <tt class="xref py py-attr docutils literal"><span class="pre">sub_interfaces</span></tt>.</li>
 <li>The value of the <tt class="docutils literal"><span class="pre">foo</span></tt> attribute of the XML object.</li>
 <li>The plugin named <tt class="docutils literal"><span class="pre">'foo'</span></tt></li>
 <li>An empty string.</li>
@@ -438,7 +438,7 @@ named <tt class="docutils literal"><span class="pre">'foo'</span></tt> will be o
 <li>Call <tt class="docutils literal"><span class="pre">set_foo</span></tt>, if it exists.</li>
 <li>Call <tt class="docutils literal"><span class="pre">setFoo</span></tt>, if it exists.</li>
 <li>Set the text of a <tt class="docutils literal"><span class="pre">foo</span></tt> element, if <tt class="docutils literal"><span class="pre">'foo'</span></tt> is
-in <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.sub_interfaces" title="sleekxmpp.xmlstream.stanzabase.ElementBase.sub_interfaces"><tt class="xref py py-attr docutils literal"><span class="pre">sub_interfaces</span></tt></a>.</li>
+in <tt class="xref py py-attr docutils literal"><span class="pre">sub_interfaces</span></tt>.</li>
 <li>Set the value of a top level XML attribute named <tt class="docutils literal"><span class="pre">foo</span></tt>.</li>
 <li>Attempt to pass the value to a plugin named <tt class="docutils literal"><span class="pre">'foo'</span></tt> using
 the plugin&#8217;s <tt class="docutils literal"><span class="pre">'foo'</span></tt> interface.</li>
@@ -842,7 +842,7 @@ accessing stanza interfaces is preferred.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>attrib</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/string.html#string" title="(in Python v3.2)"><em>string</em></a>) &#8211; The <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib" title="sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib"><tt class="xref py py-attr docutils literal"><span class="pre">plugin_attrib</span></tt></a> value of the
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>attrib</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/string.html#string" title="(in Python v3.2)"><em>string</em></a>) &#8211; The <tt class="xref py py-attr docutils literal"><span class="pre">plugin_attrib</span></tt> value of the
 plugin to enable.</td>
 </tr>
 </tbody>
@@ -944,7 +944,7 @@ content:</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>attrib</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/string.html#string" title="(in Python v3.2)"><em>string</em></a>) &#8211; The <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib" title="sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib"><tt class="xref py py-attr docutils literal"><span class="pre">plugin_attrib</span></tt></a> value of the
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>attrib</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/string.html#string" title="(in Python v3.2)"><em>string</em></a>) &#8211; The <tt class="xref py py-attr docutils literal"><span class="pre">plugin_attrib</span></tt> value of the
 plugin to enable.</td>
 </tr>
 </tbody>
@@ -959,40 +959,11 @@ plugin to enable.</td>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>attrib</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/string.html#string" title="(in Python v3.2)"><em>string</em></a>) &#8211; The <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib" title="sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib"><tt class="xref py py-attr docutils literal"><span class="pre">plugin_attrib</span></tt></a> value of the
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>attrib</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/string.html#string" title="(in Python v3.2)"><em>string</em></a>) &#8211; The <tt class="xref py py-attr docutils literal"><span class="pre">plugin_attrib</span></tt> value of the
 plugin to enable.</td>
 </tr>
 </tbody>
 </table>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.interfaces">
-<tt class="descname">interfaces</tt><em class="property"> = set(['to', 'payload', 'type', 'id', 'from'])</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.interfaces" title="Permalink to this definition">¶</a></dt>
-<dd><p>The set of keys that the stanza provides for accessing and
-manipulating the underlying XML object. This set may be augmented
-with the <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib" title="sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib"><tt class="xref py py-attr docutils literal"><span class="pre">plugin_attrib</span></tt></a> value of any registered
-stanza plugins.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.is_extension">
-<tt class="descname">is_extension</tt><em class="property"> = False</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.is_extension" title="Permalink to this definition">¶</a></dt>
-<dd><p>If you need to add a new interface to an existing stanza, you
-can create a plugin and set <tt class="docutils literal"><span class="pre">is_extension</span> <span class="pre">=</span> <span class="pre">True</span></tt>. Be sure
-to set the <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib" title="sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib"><tt class="xref py py-attr docutils literal"><span class="pre">plugin_attrib</span></tt></a> value to the desired interface
-name, and that it is the only interface listed in
-<a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.interfaces" title="sleekxmpp.xmlstream.stanzabase.ElementBase.interfaces"><tt class="xref py py-attr docutils literal"><span class="pre">interfaces</span></tt></a>. Requests for the new interface from the
-parent stanza will be passed to the plugin directly.</p>
-<p class="versionadded">
-<span class="versionmodified">New in version 1.0-Beta5.</span></p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.iterables">
-<tt class="descname">iterables</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.iterables" title="Permalink to this definition">¶</a></dt>
-<dd><p>A list of child stanzas whose class is included in
-<a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_iterables" title="sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_iterables"><tt class="xref py py-attr docutils literal"><span class="pre">plugin_iterables</span></tt></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1028,108 +999,10 @@ names with attribute checks.</td>
 </table>
 </dd></dl>
 
-<dl class="attribute">
-<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.name">
-<tt class="descname">name</tt><em class="property"> = 'stanza'</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.name" title="Permalink to this definition">¶</a></dt>
-<dd><p>The XML tag name of the element, not including any namespace
-prefixes. For example, an <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase" title="sleekxmpp.xmlstream.stanzabase.ElementBase"><tt class="xref py py-class docutils literal"><span class="pre">ElementBase</span></tt></a> object for <tt class="docutils literal"><span class="pre">&lt;message</span> <span class="pre">/&gt;</span></tt>
-would use <tt class="docutils literal"><span class="pre">name</span> <span class="pre">=</span> <span class="pre">'message'</span></tt>.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.namespace">
-<tt class="descname">namespace</tt><em class="property"> = 'jabber:client'</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.namespace" title="Permalink to this definition">¶</a></dt>
-<dd><p>The XML namespace for the element. Given <tt class="docutils literal"><span class="pre">&lt;foo</span> <span class="pre">xmlns=&quot;bar&quot;</span> <span class="pre">/&gt;</span></tt>,
-then <tt class="docutils literal"><span class="pre">namespace</span> <span class="pre">=</span> <span class="pre">&quot;bar&quot;</span></tt> should be used. The default namespace
-is <tt class="docutils literal"><span class="pre">jabber:client</span></tt> since this is being used in an XMPP library.</p>
-</dd></dl>
-
 <dl class="method">
 <dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.next">
 <tt class="descname">next</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#ElementBase.next"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.next" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the next iterable substanza.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.overrides">
-<tt class="descname">overrides</tt><em class="property"> = []</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.overrides" title="Permalink to this definition">¶</a></dt>
-<dd><p>In some cases you may wish to override the behaviour of one of the
-parent stanza&#8217;s interfaces. The <tt class="docutils literal"><span class="pre">overrides</span></tt> list specifies the
-interface name and access method to be overridden. For example,
-to override setting the parent&#8217;s <tt class="docutils literal"><span class="pre">'condition'</span></tt> interface you
-would use:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">overrides</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;set_condition&#39;</span><span class="p">]</span>
-</pre></div>
-</div>
-<p>Getting and deleting the <tt class="docutils literal"><span class="pre">'condition'</span></tt> interface would not
-be affected.</p>
-<p class="versionadded">
-<span class="versionmodified">New in version 1.0-Beta5.</span></p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.parent">
-<tt class="descname">parent</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.parent" title="Permalink to this definition">¶</a></dt>
-<dd><p>A <tt class="xref py py-class docutils literal"><span class="pre">weakref.weakref</span></tt> to the parent stanza, if there is one.
-If not, then <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.parent" title="sleekxmpp.xmlstream.stanzabase.ElementBase.parent"><tt class="xref py py-attr docutils literal"><span class="pre">parent</span></tt></a> is <tt class="docutils literal"><span class="pre">None</span></tt>.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib">
-<tt class="descname">plugin_attrib</tt><em class="property"> = 'plugin'</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib" title="Permalink to this definition">¶</a></dt>
-<dd><p>For <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase" title="sleekxmpp.xmlstream.stanzabase.ElementBase"><tt class="xref py py-class docutils literal"><span class="pre">ElementBase</span></tt></a> subclasses which are intended to be used
-as plugins, the <tt class="docutils literal"><span class="pre">plugin_attrib</span></tt> value defines the plugin name.
-Plugins may be accessed by using the <tt class="docutils literal"><span class="pre">plugin_attrib</span></tt> value as
-the interface. An example using <tt class="docutils literal"><span class="pre">plugin_attrib</span> <span class="pre">=</span> <span class="pre">'foo'</span></tt>:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">register_stanza_plugin</span><span class="p">(</span><span class="n">Message</span><span class="p">,</span> <span class="n">FooPlugin</span><span class="p">)</span>
-<span class="n">msg</span> <span class="o">=</span> <span class="n">Message</span><span class="p">()</span>
-<span class="n">msg</span><span class="p">[</span><span class="s">&#39;foo&#39;</span><span class="p">][</span><span class="s">&#39;an_interface_from_the_foo_plugin&#39;</span><span class="p">]</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib_map">
-<tt class="descname">plugin_attrib_map</tt><em class="property"> = {}</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib_map" title="Permalink to this definition">¶</a></dt>
-<dd><p>A mapping of the <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib" title="sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib"><tt class="xref py py-attr docutils literal"><span class="pre">plugin_attrib</span></tt></a> values of registered
-plugins to their respective classes.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_iterables">
-<tt class="descname">plugin_iterables</tt><em class="property"> = set([])</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_iterables" title="Permalink to this definition">¶</a></dt>
-<dd><p>The set of stanza classes that can be iterated over using
-the &#8216;substanzas&#8217; interface. Classes are added to this set
-when registering a plugin with <tt class="docutils literal"><span class="pre">iterable=True</span></tt>:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">register_stanza_plugin</span><span class="p">(</span><span class="n">DiscoInfo</span><span class="p">,</span> <span class="n">DiscoItem</span><span class="p">,</span> <span class="n">iterable</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-</pre></div>
-</div>
-<p class="versionadded">
-<span class="versionmodified">New in version 1.0-Beta5.</span></p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_overrides">
-<tt class="descname">plugin_overrides</tt><em class="property"> = {}</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_overrides" title="Permalink to this definition">¶</a></dt>
-<dd><p>A map of interface operations to the overriding functions.
-For example, after overriding the <tt class="docutils literal"><span class="pre">set</span></tt> operation for
-the interface <tt class="docutils literal"><span class="pre">body</span></tt>, <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_overrides" title="sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_overrides"><tt class="xref py py-attr docutils literal"><span class="pre">plugin_overrides</span></tt></a> would be:</p>
-<div class="highlight-python"><pre>{'set_body': &lt;some function&gt;}</pre>
-</div>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_tag_map">
-<tt class="descname">plugin_tag_map</tt><em class="property"> = {}</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_tag_map" title="Permalink to this definition">¶</a></dt>
-<dd><p>A mapping of root element tag names (in <tt class="docutils literal"><span class="pre">'{namespace}elementname'</span></tt>
-format) to the plugin classes responsible for them.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.plugins">
-<tt class="descname">plugins</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.plugins" title="Permalink to this definition">¶</a></dt>
-<dd><p>An ordered dictionary of plugin stanzas, mapped by their
-<a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib" title="sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_attrib"><tt class="xref py py-attr docutils literal"><span class="pre">plugin_attrib</span></tt></a> value.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1185,41 +1058,6 @@ instead of generating new XML.</td>
 </table>
 </dd></dl>
 
-<dl class="attribute">
-<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.sub_interfaces">
-<tt class="descname">sub_interfaces</tt><em class="property"> = ()</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.sub_interfaces" title="Permalink to this definition">¶</a></dt>
-<dd><p>A subset of <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.interfaces" title="sleekxmpp.xmlstream.stanzabase.ElementBase.interfaces"><tt class="xref py py-attr docutils literal"><span class="pre">interfaces</span></tt></a> which maps interfaces to direct
-subelements of the underlying XML object. Using this set, the text
-of these subelements may be set, retrieved, or removed without
-needing to define custom methods.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.subitem">
-<tt class="descname">subitem</tt><em class="property"> = set([])</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.subitem" title="Permalink to this definition">¶</a></dt>
-<dd><p>A deprecated version of <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_iterables" title="sleekxmpp.xmlstream.stanzabase.ElementBase.plugin_iterables"><tt class="xref py py-attr docutils literal"><span class="pre">plugin_iterables</span></tt></a> that remains
-for backward compatibility. It required a parent stanza to
-know beforehand what stanza classes would be iterable:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">DiscoItem</span><span class="p">(</span><span class="n">ElementBase</span><span class="p">):</span>
-    <span class="o">...</span>
-
-<span class="k">class</span> <span class="nc">DiscoInfo</span><span class="p">(</span><span class="n">ElementBase</span><span class="p">):</span>
-    <span class="n">subitem</span> <span class="o">=</span> <span class="p">(</span><span class="n">DiscoItem</span><span class="p">,</span> <span class="p">)</span>
-    <span class="o">...</span>
-</pre></div>
-</div>
-<p class="deprecated">
-<span class="versionmodified">Deprecated since version 1.0-Beta5.</span></p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.tag">
-<tt class="descname">tag</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.tag" title="Permalink to this definition">¶</a></dt>
-<dd><p>The name of the tag for the stanza&#8217;s root element. It is the
-same as calling <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.tag_name" title="sleekxmpp.xmlstream.stanzabase.ElementBase.tag_name"><tt class="xref py py-meth docutils literal"><span class="pre">tag_name()</span></tt></a> and is formatted as
-<tt class="docutils literal"><span class="pre">'{namespace}elementname'</span></tt>.</p>
-</dd></dl>
-
 <dl class="classmethod">
 <dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.tag_name">
 <em class="property">classmethod </em><tt class="descname">tag_name</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#ElementBase.tag_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.tag_name" title="Permalink to this definition">¶</a></dt>
@@ -1253,19 +1091,6 @@ content:</p>
 </div>
 <p class="versionadded">
 <span class="versionmodified">New in version 1.0-Beta1.</span></p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.xml">
-<tt class="descname">xml</tt><em class="property"> = None</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.xml" title="Permalink to this definition">¶</a></dt>
-<dd><p>The underlying XML object for the stanza. It is a standard
-<tt class="xref py py-class docutils literal"><span class="pre">xml.etree.cElementTree</span></tt> object.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase.xml_ns">
-<tt class="descname">xml_ns</tt><em class="property"> = 'http://www.w3.org/XML/1998/namespace'</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase.xml_ns" title="Permalink to this definition">¶</a></dt>
-<dd><p>The default XML namespace: <tt class="docutils literal"><span class="pre">http://www.w3.org/XML/1998/namespace</span></tt>.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1383,20 +1208,6 @@ object of the sender&#8217;s JID.</li>
 <dd><p>Return the value of the stanza&#8217;s <tt class="docutils literal"><span class="pre">'to'</span></tt> attribute.</p>
 </dd></dl>
 
-<dl class="attribute">
-<dt id="sleekxmpp.xmlstream.stanzabase.StanzaBase.interfaces">
-<tt class="descname">interfaces</tt><em class="property"> = set(['to', 'payload', 'type', 'id', 'from'])</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.StanzaBase.interfaces" title="Permalink to this definition">¶</a></dt>
-<dd><p>There is a small set of attributes which apply to all XMPP stanzas:
-the stanza type, the to and from JIDs, the stanza ID, and, especially
-in the case of an Iq stanza, a payload.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sleekxmpp.xmlstream.stanzabase.StanzaBase.namespace">
-<tt class="descname">namespace</tt><em class="property"> = 'jabber:client'</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.StanzaBase.namespace" title="Permalink to this definition">¶</a></dt>
-<dd><p>The default XMPP client namespace</p>
-</dd></dl>
-
 <dl class="method">
 <dt id="sleekxmpp.xmlstream.stanzabase.StanzaBase.reply">
 <tt class="descname">reply</tt><big>(</big><em>clear=True</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#StanzaBase.reply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.StanzaBase.reply" title="Permalink to this definition">¶</a></dt>
@@ -1476,12 +1287,12 @@ representing the recipient&#8217;s JID.</td>
 <dt id="sleekxmpp.xmlstream.stanzabase.StanzaBase.setType">
 <tt class="descname">setType</tt><big>(</big><em>value</em><big>)</big><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.StanzaBase.setType" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set the stanza&#8217;s <tt class="docutils literal"><span class="pre">'type'</span></tt> attribute.</p>
-<p>Only type values contained in <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.StanzaBase.types" title="sleekxmpp.xmlstream.stanzabase.StanzaBase.types"><tt class="xref py py-attr docutils literal"><span class="pre">types</span></tt></a> are accepted.</p>
+<p>Only type values contained in <tt class="xref py py-attr docutils literal"><span class="pre">types</span></tt> are accepted.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/string.html#string" title="(in Python v3.2)"><em>string</em></a>) &#8211; One of the values contained in <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.StanzaBase.types" title="sleekxmpp.xmlstream.stanzabase.StanzaBase.types"><tt class="xref py py-attr docutils literal"><span class="pre">types</span></tt></a></td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/string.html#string" title="(in Python v3.2)"><em>string</em></a>) &#8211; One of the values contained in <tt class="xref py py-attr docutils literal"><span class="pre">types</span></tt></td>
 </tr>
 </tbody>
 </table>
@@ -1531,21 +1342,15 @@ representing the recipient&#8217;s JID.</td>
 <dt id="sleekxmpp.xmlstream.stanzabase.StanzaBase.set_type">
 <tt class="descname">set_type</tt><big>(</big><em>value</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#StanzaBase.set_type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.StanzaBase.set_type" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set the stanza&#8217;s <tt class="docutils literal"><span class="pre">'type'</span></tt> attribute.</p>
-<p>Only type values contained in <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.StanzaBase.types" title="sleekxmpp.xmlstream.stanzabase.StanzaBase.types"><tt class="xref py py-attr docutils literal"><span class="pre">types</span></tt></a> are accepted.</p>
+<p>Only type values contained in <tt class="xref py py-attr docutils literal"><span class="pre">types</span></tt> are accepted.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/string.html#string" title="(in Python v3.2)"><em>string</em></a>) &#8211; One of the values contained in <a class="reference internal" href="#sleekxmpp.xmlstream.stanzabase.StanzaBase.types" title="sleekxmpp.xmlstream.stanzabase.StanzaBase.types"><tt class="xref py py-attr docutils literal"><span class="pre">types</span></tt></a></td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/string.html#string" title="(in Python v3.2)"><em>string</em></a>) &#8211; One of the values contained in <tt class="xref py py-attr docutils literal"><span class="pre">types</span></tt></td>
 </tr>
 </tbody>
 </table>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sleekxmpp.xmlstream.stanzabase.StanzaBase.types">
-<tt class="descname">types</tt><em class="property"> = set(['set', 'unavailable', 'normal', None, 'get', 'chat', 'error'])</em><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.StanzaBase.types" title="Permalink to this definition">¶</a></dt>
-<dd><p>A basic set of allowed values for the <tt class="docutils literal"><span class="pre">'type'</span></tt> interface.</p>
 </dd></dl>
 
 <dl class="method">

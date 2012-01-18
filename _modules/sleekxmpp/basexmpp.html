@@ -46,12 +46,18 @@
         
         
   <h1>Source code for sleekxmpp.basexmpp</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    SleekXMPP: The Sleek XMPP Library</span>
-<span class="sd">    Copyright (C) 2010  Nathanael C. Fritz</span>
-<span class="sd">    This file is part of SleekXMPP.</span>
+<span class="sd">    sleekxmpp.basexmpp</span>
+<span class="sd">    ~~~~~~~~~~~~~~~~~~</span>
 
-<span class="sd">    See the file LICENSE for copying permission.</span>
+<span class="sd">    This module provides the common XMPP functionality</span>
+<span class="sd">    for both clients and components.</span>
+
+<span class="sd">    Part of SleekXMPP: The Sleek XMPP Library</span>
+
+<span class="sd">    :copyright: (c) 2011 Nathanael C. Fritz</span>
+<span class="sd">    :license: MIT, see LICENSE for more details</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">with_statement</span><span class="p">,</span> <span class="n">unicode_literals</span>
@@ -91,85 +97,77 @@
 <span class="sd">    with XMPP. It also provides a plugin mechanism to easily extend</span>
 <span class="sd">    and add support for new XMPP features.</span>
 
-<span class="sd">    Attributes:</span>
-<span class="sd">       auto_authorize   -- Manage automatically accepting roster</span>
-<span class="sd">                           subscriptions.</span>
-<span class="sd">       auto_subscribe   -- Manage automatically requesting mutual</span>
-<span class="sd">                           subscriptions.</span>
-<span class="sd">       is_component     -- Indicates if this stream is for an XMPP component.</span>
-<span class="sd">       jid              -- The XMPP JID for this stream.</span>
-<span class="sd">       plugin           -- A dictionary of loaded plugins.</span>
-<span class="sd">       plugin_config    -- A dictionary of plugin configurations.</span>
-<span class="sd">       plugin_whitelist -- A list of approved plugins.</span>
-<span class="sd">       sentpresence     -- Indicates if an initial presence has been sent.</span>
-<span class="sd">       roster           -- A dictionary containing subscribed JIDs and</span>
-<span class="sd">                           their presence statuses.</span>
-
-<span class="sd">    Methods:</span>
-<span class="sd">       Iq                      -- Factory for creating an Iq stanzas.</span>
-<span class="sd">       Message                 -- Factory for creating Message stanzas.</span>
-<span class="sd">       Presence                -- Factory for creating Presence stanzas.</span>
-<span class="sd">       get                     -- Return a plugin given its name.</span>
-<span class="sd">       make_iq                 -- Create and initialize an Iq stanza.</span>
-<span class="sd">       make_iq_error           -- Create an Iq stanza of type &#39;error&#39;.</span>
-<span class="sd">       make_iq_get             -- Create an Iq stanza of type &#39;get&#39;.</span>
-<span class="sd">       make_iq_query           -- Create an Iq stanza with a given query.</span>
-<span class="sd">       make_iq_result          -- Create an Iq stanza of type &#39;result&#39;.</span>
-<span class="sd">       make_iq_set             -- Create an Iq stanza of type &#39;set&#39;.</span>
-<span class="sd">       make_message            -- Create and initialize a Message stanza.</span>
-<span class="sd">       make_presence           -- Create and initialize a Presence stanza.</span>
-<span class="sd">       make_query_roster       -- Create a roster query.</span>
-<span class="sd">       process                 -- Overrides XMLStream.process.</span>
-<span class="sd">       register_plugin         -- Load and configure a plugin.</span>
-<span class="sd">       register_plugins        -- Load and configure multiple plugins.</span>
-<span class="sd">       send_message            -- Create and send a Message stanza.</span>
-<span class="sd">       send_presence           -- Create and send a Presence stanza.</span>
-<span class="sd">       send_presence_subscribe -- Send a subscription request.</span>
+<span class="sd">    :param default_ns: Ensure that the correct default XML namespace</span>
+<span class="sd">                       is used during initialization.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jid</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">default_ns</span><span class="o">=</span><span class="s">&#39;jabber:client&#39;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Adapt an XML stream for use with XMPP.</span>
-
-<span class="sd">        Arguments:</span>
-<span class="sd">            default_ns -- Ensure that the correct default XML namespace</span>
-<span class="sd">                          is used during initialization.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">XMLStream</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
-        <span class="c"># To comply with PEP8, method names now use underscores.</span>
-        <span class="c"># Deprecated method names are re-mapped for backwards compatibility.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">default_ns</span> <span class="o">=</span> <span class="n">default_ns</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">stream_ns</span> <span class="o">=</span> <span class="s">&#39;http://etherx.jabber.org/streams&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">namespace_map</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">stream_ns</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;stream&#39;</span>
 
+        <span class="c">#: An identifier for the stream as given by the server.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stream_id</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="c">#: The JabberID (JID) used by this connection. </span>
         <span class="bp">self</span><span class="o">.</span><span class="n">boundjid</span> <span class="o">=</span> <span class="n">JID</span><span class="p">(</span><span class="n">jid</span><span class="p">)</span>
 
+        <span class="c">#: A dictionary mapping plugin names to plugins.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">plugin</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c">#: Configuration options for whitelisted plugins.</span>
+        <span class="c">#: If a plugin is registered without any configuration,</span>
+        <span class="c">#: and there is an entry here, it will be used.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">plugin_config</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c">#: A list of plugins that will be loaded if</span>
+        <span class="c">#: :meth:`register_plugins` is called.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">plugin_whitelist</span> <span class="o">=</span> <span class="p">[]</span>
 
+        <span class="c">#: The main roster object. This roster supports multiple</span>
+        <span class="c">#: owner JIDs, as in the case for components. For clients</span>
+        <span class="c">#: which only have a single JID, see :attr:`client_roster`.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">roster</span> <span class="o">=</span> <span class="n">roster</span><span class="o">.</span><span class="n">Roster</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">roster</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">boundjid</span><span class="o">.</span><span class="n">bare</span><span class="p">)</span>
+
+        <span class="c">#: The single roster for the bound JID. This is the</span>
+        <span class="c">#: equivalent of::</span>
+        <span class="c">#:</span>
+        <span class="c">#:     self.roster[self.boundjid.bare]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">client_roster</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">roster</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">boundjid</span><span class="o">.</span><span class="n">bare</span><span class="p">]</span>
 
+        <span class="c">#: The distinction between clients and components can be</span>
+        <span class="c">#: important, primarily for choosing how to handle the</span>
+        <span class="c">#: ``&#39;to&#39;`` and ``&#39;from&#39;`` JIDs of stanzas.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">is_component</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="c">#: Flag indicating that the initial presence broadcast has</span>
+        <span class="c">#: been sent. Until this happens, some servers may not</span>
+        <span class="c">#: behave as expected when sending stanzas.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sentpresence</span> <span class="o">=</span> <span class="bp">False</span>
 
+        <span class="c">#: A reference to :mod:`sleekxmpp.stanza` to make accessing</span>
+        <span class="c">#: stanza classes easier.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">stanza</span> <span class="o">=</span> <span class="n">sleekxmpp</span><span class="o">.</span><span class="n">stanza</span>
 
+        <span class="c">#self.register_handler(</span>
+        <span class="c">#    Callback(&#39;IM&#39;,</span>
+        <span class="c">#             MatchXPath(&#39;{%s}message/{%s}body&#39; % (self.default_ns,</span>
+        <span class="c">#                                                  self.default_ns)),</span>
+        <span class="c">#             self._handle_message))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">register_handler</span><span class="p">(</span>
             <span class="n">Callback</span><span class="p">(</span><span class="s">&#39;IM&#39;</span><span class="p">,</span>
-                     <span class="n">MatchXPath</span><span class="p">(</span><span class="s">&#39;{</span><span class="si">%s</span><span class="s">}message/{</span><span class="si">%s</span><span class="s">}body&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">default_ns</span><span class="p">,</span>
-                                                          <span class="bp">self</span><span class="o">.</span><span class="n">default_ns</span><span class="p">)),</span>
+                     <span class="n">StanzaPath</span><span class="p">(</span><span class="s">&#39;message/body&#39;</span><span class="p">),</span>
                      <span class="bp">self</span><span class="o">.</span><span class="n">_handle_message</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">register_handler</span><span class="p">(</span>
             <span class="n">Callback</span><span class="p">(</span><span class="s">&#39;Presence&#39;</span><span class="p">,</span>
-                     <span class="n">MatchXPath</span><span class="p">(</span><span class="s">&quot;{</span><span class="si">%s</span><span class="s">}presence&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_ns</span><span class="p">),</span>
+                     <span class="n">StanzaPath</span><span class="p">(</span><span class="s">&#39;presence&#39;</span><span class="p">),</span>
                      <span class="bp">self</span><span class="o">.</span><span class="n">_handle_presence</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">register_handler</span><span class="p">(</span>
             <span class="n">Callback</span><span class="p">(</span><span class="s">&#39;Stream Error&#39;</span><span class="p">,</span>
-                     <span class="n">MatchXPath</span><span class="p">(</span><span class="s">&quot;{</span><span class="si">%s</span><span class="s">}error&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream_ns</span><span class="p">),</span>
+                     <span class="n">StanzaPath</span><span class="p">(</span><span class="s">&#39;error&#39;</span><span class="p">),</span>
                      <span class="bp">self</span><span class="o">.</span><span class="n">_handle_stream_error</span><span class="p">))</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">add_event_handler</span><span class="p">(</span><span class="s">&#39;disconnected&#39;</span><span class="p">,</span>
@@ -209,40 +207,36 @@
         <span class="n">register_stanza_plugin</span><span class="p">(</span><span class="n">Message</span><span class="p">,</span> <span class="n">HTMLIM</span><span class="p">)</span>
 
 <div class="viewcode-block" id="BaseXMPP.start_stream_handler"><a class="viewcode-back" href="../../api/basexmpp.html#sleekxmpp.basexmpp.BaseXMPP.start_stream_handler">[docs]</a>    <span class="k">def</span> <span class="nf">start_stream_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Save the stream ID once the streams have been established.</span>
+        <span class="sd">&quot;&quot;&quot;Save the stream ID once the streams have been established.</span>
 
-<span class="sd">        Overrides XMLStream.start_stream_handler.</span>
-
-<span class="sd">        Arguments:</span>
-<span class="sd">            xml -- The incoming stream&#39;s root element.</span>
+<span class="sd">        :param xml: The incoming stream&#39;s root element.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">stream_id</span> <span class="o">=</span> <span class="n">xml</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="BaseXMPP.process"><a class="viewcode-back" href="../../api/basexmpp.html#sleekxmpp.basexmpp.BaseXMPP.process">[docs]</a>    <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overrides XMLStream.process.</span>
-
-<span class="sd">        Initialize the XML streams and begin processing events.</span>
+        <span class="sd">&quot;&quot;&quot;Initialize plugins and begin processing the XML stream.</span>
 
 <span class="sd">        The number of threads used for processing stream events is determined</span>
-<span class="sd">        by HANDLER_THREADS.</span>
+<span class="sd">        by :data:`HANDLER_THREADS`.</span>
 
-<span class="sd">        Arguments:</span>
-<span class="sd">            block -- If block=False then event dispatcher will run</span>
-<span class="sd">                     in a separate thread, allowing for the stream to be</span>
-<span class="sd">                     used in the background for another application.</span>
-<span class="sd">                     Otherwise, process(block=True) blocks the current thread.</span>
-<span class="sd">                     Defaults to False.</span>
+<span class="sd">        :param bool block: If ``False``, then event dispatcher will run</span>
+<span class="sd">                    in a separate thread, allowing for the stream to be</span>
+<span class="sd">                    used in the background for another application.</span>
+<span class="sd">                    Otherwise, ``process(block=True)`` blocks the current</span>
+<span class="sd">                    thread. Defaults to ``False``.</span>
+<span class="sd">        :param bool threaded: **DEPRECATED**</span>
+<span class="sd">                    If ``True``, then event dispatcher will run</span>
+<span class="sd">                    in a separate thread, allowing for the stream to be</span>
+<span class="sd">                    used in the background for another application.</span>
+<span class="sd">                    Defaults to ``True``. This does **not** mean that no</span>
+<span class="sd">                    threads are used at all if ``threaded=False``.</span>
 
-<span class="sd">            **threaded is deprecated and included for API compatibility**</span>
-<span class="sd">            threaded -- If threaded=True then event dispatcher will run</span>
-<span class="sd">                        in a separate thread, allowing for the stream to be</span>
-<span class="sd">                        used in the background for another application.</span>
-<span class="sd">                        Defaults to True.</span>
+<span class="sd">        Regardless of these threading options, these threads will </span>
+<span class="sd">        always exist:</span>
 
-<span class="sd">            Event handlers and the send queue will be threaded</span>
-<span class="sd">            regardless of these parameters.</span>
+<span class="sd">        - The event queue processor</span>
+<span class="sd">        - The send queue processor</span>
+<span class="sd">        - The scheduler</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugin</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugin</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">post_inited</span><span class="p">:</span>
@@ -250,15 +244,13 @@
         <span class="k">return</span> <span class="n">XMLStream</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="BaseXMPP.register_plugin"><a class="viewcode-back" href="../../api/basexmpp.html#sleekxmpp.basexmpp.BaseXMPP.register_plugin">[docs]</a>    <span class="k">def</span> <span class="nf">register_plugin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plugin</span><span class="p">,</span> <span class="n">pconfig</span><span class="o">=</span><span class="p">{},</span> <span class="n">module</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Register and configure  a plugin for use in this stream.</span>
+        <span class="sd">&quot;&quot;&quot;Register and configure  a plugin for use in this stream.</span>
 
-<span class="sd">        Arguments:</span>
-<span class="sd">            plugin  -- The name of the plugin class. Plugin names must</span>
+<span class="sd">        :param plugin: The name of the plugin class. Plugin names must</span>
 <span class="sd">                       be unique.</span>
-<span class="sd">            pconfig -- A dictionary of configuration data for the plugin.</span>
-<span class="sd">                       Defaults to an empty dictionary.</span>
-<span class="sd">            module  -- Optional refence to the module containing the plugin</span>
+<span class="sd">        :param pconfig: A dictionary of configuration data for the plugin.</span>
+<span class="sd">                        Defaults to an empty dictionary.</span>
+<span class="sd">        :param module: Optional refence to the module containing the plugin</span>
 <span class="sd">                       class if using custom plugins.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
@@ -287,25 +279,24 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">plugin</span><span class="p">[</span><span class="n">plugin</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">plugin</span><span class="p">)(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pconfig</span><span class="p">)</span>
 
             <span class="c"># Let XEP/RFC implementing plugins have some extra logging info.</span>
-            <span class="n">spec</span> <span class="o">=</span> <span class="s">&#39;(CUSTOM) &#39;</span>
+            <span class="n">spec</span> <span class="o">=</span> <span class="s">&#39;(CUSTOM) </span><span class="si">%s</span><span class="s">&#39;</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugin</span><span class="p">[</span><span class="n">plugin</span><span class="p">]</span><span class="o">.</span><span class="n">xep</span><span class="p">:</span>
                 <span class="n">spec</span> <span class="o">=</span> <span class="s">&quot;(XEP-</span><span class="si">%s</span><span class="s">) &quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugin</span><span class="p">[</span><span class="n">plugin</span><span class="p">]</span><span class="o">.</span><span class="n">xep</span>
             <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugin</span><span class="p">[</span><span class="n">plugin</span><span class="p">]</span><span class="o">.</span><span class="n">rfc</span><span class="p">:</span>
                 <span class="n">spec</span> <span class="o">=</span> <span class="s">&quot;(RFC-</span><span class="si">%s</span><span class="s">) &quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugin</span><span class="p">[</span><span class="n">plugin</span><span class="p">]</span><span class="o">.</span><span class="n">rfc</span>
 
             <span class="n">desc</span> <span class="o">=</span> <span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugin</span><span class="p">[</span><span class="n">plugin</span><span class="p">]</span><span class="o">.</span><span class="n">description</span><span class="p">)</span>
-            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Loaded Plugin </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">desc</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Loaded Plugin </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">desc</span><span class="p">)</span>
         <span class="k">except</span><span class="p">:</span>
             <span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s">&quot;Unable to load plugin: </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">plugin</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="BaseXMPP.register_plugins"><a class="viewcode-back" href="../../api/basexmpp.html#sleekxmpp.basexmpp.BaseXMPP.register_plugins">[docs]</a>    <span class="k">def</span> <span class="nf">register_plugins</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Register and initialize all built-in plugins.</span>
+        <span class="sd">&quot;&quot;&quot;Register and initialize all built-in plugins.</span>
 
 <span class="sd">        Optionally, the list of plugins loaded may be limited to those</span>
-<span class="sd">        contained in self.plugin_whitelist.</span>
+<span class="sd">        contained in :attr:`plugin_whitelist`.</span>
 
-<span class="sd">        Plugin configurations stored in self.plugin_config will be used.</span>
+<span class="sd">        Plugin configurations stored in :attr:`plugin_config` will be used.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugin_whitelist</span><span class="p">:</span>
             <span class="n">plugin_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugin_whitelist</span>
@@ -324,9 +315,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">plugin</span><span class="p">[</span><span class="n">plugin</span><span class="p">]</span><span class="o">.</span><span class="n">post_init</span><span class="p">()</span>
 </div>
     <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return a plugin given its name, if it has been registered.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Return a plugin given its name, if it has been registered.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugin</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugin</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
@@ -334,9 +323,7 @@
             <span class="k">return</span> <span class="bp">False</span>
 
 <div class="viewcode-block" id="BaseXMPP.get"><a class="viewcode-back" href="../../api/basexmpp.html#sleekxmpp.basexmpp.BaseXMPP.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return a plugin given its name, if it has been registered.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Return a plugin given its name, if it has been registered.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugin</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="BaseXMPP.Message"><a class="viewcode-back" href="../../api/basexmpp.html#sleekxmpp.basexmpp.BaseXMPP.Message">[docs]</a>    <span class="k">def</span> <span class="nf">Message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -352,16 +339,18 @@
         <span class="k">return</span> <span class="n">Presence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="BaseXMPP.make_iq"><a class="viewcode-back" href="../../api/basexmpp.html#sleekxmpp.basexmpp.BaseXMPP.make_iq">[docs]</a>    <span class="k">def</span> <span class="nf">make_iq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ifrom</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ito</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">itype</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">iquery</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Create a new Iq stanza with a given Id and from JID.</span>
+        <span class="sd">&quot;&quot;&quot;Create a new Iq stanza with a given Id and from JID.</span>
 
-<span class="sd">        Arguments:</span>
-<span class="sd">            id     -- An ideally unique ID value for this stanza thread.</span>
-<span class="sd">                      Defaults to 0.</span>
-<span class="sd">            ifrom  -- The from JID to use for this stanza.</span>
-<span class="sd">            ito    -- The destination JID for this stanza.</span>
-<span class="sd">            itype  -- The Iq&#39;s type, one of: get, set, result, or error.</span>
-<span class="sd">            iquery -- Optional namespace for adding a query element.</span>
+<span class="sd">        :param id: An ideally unique ID value for this stanza thread.</span>
+<span class="sd">                   Defaults to 0.</span>
+<span class="sd">        :param ifrom: The from :class:`~sleekxmpp.xmlstream.jid.JID` </span>
+<span class="sd">                      to use for this stanza.</span>
+<span class="sd">        :param ito: The destination :class:`~sleekxmpp.xmlstream.jid.JID`</span>
+<span class="sd">                    for this stanza.</span>
+<span class="sd">        :param itype: The :class:`~sleekxmpp.stanza.iq.Iq`&#39;s type, </span>
+<span class="sd">                      one of: ``&#39;get&#39;``, ``&#39;set&#39;``, ``&#39;result&#39;``,</span>
+<span class="sd">                      or ``&#39;error&#39;``.</span>
+<span class="sd">        :param iquery: Optional namespace for adding a query element.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">iq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Iq</span><span class="p">()</span>
         <span class="n">iq</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span>
@@ -372,17 +361,17 @@
         <span class="k">return</span> <span class="n">iq</span>
 </div>
 <div class="viewcode-block" id="BaseXMPP.make_iq_get"><a class="viewcode-back" href="../../api/basexmpp.html#sleekxmpp.basexmpp.BaseXMPP.make_iq_get">[docs]</a>    <span class="k">def</span> <span class="nf">make_iq_get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">queryxmlns</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ito</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ifrom</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">iq</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Create an Iq stanza of type &#39;get&#39;.</span>
+        <span class="sd">&quot;&quot;&quot;Create an :class:`~sleekxmpp.stanza.iq.Iq` stanza of type ``&#39;get&#39;``.</span>
 
 <span class="sd">        Optionally, a query element may be added.</span>
 
-<span class="sd">        Arguments:</span>
-<span class="sd">            queryxmlns -- The namespace of the query to use.</span>
-<span class="sd">            ito        -- The destination JID for this stanza.</span>
-<span class="sd">            ifrom      -- The from JID to use for this stanza.</span>
-<span class="sd">            iq         -- Optionally use an existing stanza instead</span>
-<span class="sd">                          of generating a new one.</span>
+<span class="sd">        :param queryxmlns: The namespace of the query to use.</span>
+<span class="sd">        :param ito: The destination :class:`~sleekxmpp.xmlstream.jid.JID`</span>
+<span class="sd">                    for this stanza.</span>
+<span class="sd">        :param ifrom: The ``&#39;from&#39;`` :class:`~sleekxmpp.xmlstream.jid.JID`</span>
+<span class="sd">                      to use for this stanza.</span>
+<span class="sd">        :param iq: Optionally use an existing stanza instead</span>
+<span class="sd">                   of generating a new one.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">iq</span><span class="p">:</span>
             <span class="n">iq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Iq</span><span class="p">()</span>
@@ -396,14 +385,16 @@
 </div>
 <div class="viewcode-block" id="BaseXMPP.make_iq_result"><a class="viewcode-back" href="../../api/basexmpp.html#sleekxmpp.basexmpp.BaseXMPP.make_iq_result">[docs]</a>    <span class="k">def</span> <span class="nf">make_iq_result</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ito</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ifrom</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">iq</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Create an Iq stanza of type &#39;result&#39; with the given ID value.</span>
+<span class="sd">        Create an :class:`~sleekxmpp.stanza.iq.Iq` stanza of type </span>
+<span class="sd">        ``&#39;result&#39;`` with the given ID value.</span>
 
-<span class="sd">        Arguments:</span>
-<span class="sd">            id    -- An ideally unique ID value. May use self.new_id().</span>
-<span class="sd">            ito   -- The destination JID for this stanza.</span>
-<span class="sd">            ifrom -- The from JID to use for this stanza.</span>
-<span class="sd">            iq    -- Optionally use an existing stanza instead</span>
-<span class="sd">                     of generating a new one.</span>
+<span class="sd">        :param id: An ideally unique ID value. May use :meth:`new_id()`.</span>
+<span class="sd">        :param ito: The destination :class:`~sleekxmpp.xmlstream.jid.JID`</span>
+<span class="sd">                    for this stanza.</span>
+<span class="sd">        :param ifrom: The ``&#39;from&#39;`` :class:`~sleekxmpp.xmlstream.jid.JID`</span>
+<span class="sd">                      to use for this stanza.</span>
+<span class="sd">        :param iq: Optionally use an existing stanza instead</span>
+<span class="sd">                   of generating a new one.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">iq</span><span class="p">:</span>
             <span class="n">iq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Iq</span><span class="p">()</span>
@@ -419,17 +410,22 @@
 </div>
 <div class="viewcode-block" id="BaseXMPP.make_iq_set"><a class="viewcode-back" href="../../api/basexmpp.html#sleekxmpp.basexmpp.BaseXMPP.make_iq_set">[docs]</a>    <span class="k">def</span> <span class="nf">make_iq_set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sub</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ito</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ifrom</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">iq</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Create an Iq stanza of type &#39;set&#39;.</span>
+<span class="sd">        Create an :class:`~sleekxmpp.stanza.iq.Iq` stanza of type ``&#39;set&#39;``.</span>
 
 <span class="sd">        Optionally, a substanza may be given to use as the</span>
 <span class="sd">        stanza&#39;s payload.</span>
 
-<span class="sd">        Arguments:</span>
-<span class="sd">            sub   -- A stanza or XML object to use as the Iq&#39;s payload.</span>
-<span class="sd">            ito   -- The destination JID for this stanza.</span>
-<span class="sd">            ifrom -- The from JID to use for this stanza.</span>
-<span class="sd">            iq    -- Optionally use an existing stanza instead</span>
-<span class="sd">                     of generating a new one.</span>
+<span class="sd">        :param sub: Either an </span>
+<span class="sd">                    :class:`~sleekxmpp.xmlstream.stanzabase.ElementBase`</span>
+<span class="sd">                    stanza object or an</span>
+<span class="sd">                    :class:`~xml.etree.ElementTree.Element` XML object </span>
+<span class="sd">                    to use as the :class:`~sleekxmpp.stanza.iq.Iq`&#39;s payload.</span>
+<span class="sd">        :param ito: The destination :class:`~sleekxmpp.xmlstream.jid.JID`</span>
+<span class="sd">                    for this stanza.</span>
+<span class="sd">        :param ifrom: The ``&#39;from&#39;`` :class:`~sleekxmpp.xmlstream.jid.JID`</span>
+<span class="sd">                      to use for this stanza.</span>
+<span class="sd">        :param iq: Optionally use an existing stanza instead</span>
+<span class="sd">                   of generating a new one.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">iq</span><span class="p">:</span>
             <span class="n">iq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Iq</span><span class="p">()</span>
@@ -446,19 +442,20 @@
                       <span class="n">condition</span><span class="o">=</span><span class="s">&#39;feature-not-implemented&#39;</span><span class="p">,</span>
                       <span class="n">text</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ito</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ifrom</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">iq</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Create an Iq stanza of type &#39;error&#39;.</span>
+<span class="sd">        Create an :class:`~sleekxmpp.stanza.iq.Iq` stanza of type ``&#39;error&#39;``.</span>
 
-<span class="sd">        Arguments:</span>
-<span class="sd">            id        -- An ideally unique ID value. May use self.new_id().</span>
-<span class="sd">            type      -- The type of the error, such as &#39;cancel&#39; or &#39;modify&#39;.</span>
-<span class="sd">                         Defaults to &#39;cancel&#39;.</span>
-<span class="sd">            condition -- The error condition.</span>
-<span class="sd">                         Defaults to &#39;feature-not-implemented&#39;.</span>
-<span class="sd">            text      -- A message describing the cause of the error.</span>
-<span class="sd">            ito       -- The destination JID for this stanza.</span>
-<span class="sd">            ifrom     -- The from JID to use for this stanza.</span>
-<span class="sd">            iq        -- Optionally use an existing stanza instead</span>
-<span class="sd">                         of generating a new one.</span>
+<span class="sd">        :param id: An ideally unique ID value. May use :meth:`new_id()`.</span>
+<span class="sd">        :param type: The type of the error, such as ``&#39;cancel&#39;`` or </span>
+<span class="sd">                     ``&#39;modify&#39;``. Defaults to ``&#39;cancel&#39;``.</span>
+<span class="sd">        :param condition: The error condition. Defaults to </span>
+<span class="sd">                          ``&#39;feature-not-implemented&#39;``.</span>
+<span class="sd">        :param text: A message describing the cause of the error.</span>
+<span class="sd">        :param ito: The destination :class:`~sleekxmpp.xmlstream.jid.JID`</span>
+<span class="sd">                    for this stanza.</span>
+<span class="sd">        :param ifrom: The ``&#39;from&#39;`` :class:`~sleekxmpp.xmlstream.jid.JID`</span>
+<span class="sd">                      to use for this stanza.</span>
+<span class="sd">        :param iq: Optionally use an existing stanza instead</span>
+<span class="sd">                   of generating a new one.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">iq</span><span class="p">:</span>
             <span class="n">iq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Iq</span><span class="p">()</span>
@@ -474,15 +471,16 @@
 </div>
 <div class="viewcode-block" id="BaseXMPP.make_iq_query"><a class="viewcode-back" href="../../api/basexmpp.html#sleekxmpp.basexmpp.BaseXMPP.make_iq_query">[docs]</a>    <span class="k">def</span> <span class="nf">make_iq_query</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iq</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">xmlns</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">ito</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ifrom</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Create or modify an Iq stanza to use the given</span>
-<span class="sd">        query namespace.</span>
+<span class="sd">        Create or modify an :class:`~sleekxmpp.stanza.iq.Iq` stanza </span>
+<span class="sd">        to use the given query namespace.</span>
 
-<span class="sd">        Arguments:</span>
-<span class="sd">            iq    -- Optional Iq stanza to modify. A new</span>
-<span class="sd">                     stanza is created otherwise.</span>
-<span class="sd">            xmlns -- The query&#39;s namespace.</span>
-<span class="sd">            ito   -- The destination JID for this stanza.</span>
-<span class="sd">            ifrom -- The from JID to use for this stanza.</span>
+<span class="sd">        :param iq: Optionally use an existing stanza instead</span>
+<span class="sd">                   of generating a new one.</span>
+<span class="sd">        :param xmlns: The query&#39;s namespace.</span>
+<span class="sd">        :param ito: The destination :class:`~sleekxmpp.xmlstream.jid.JID`</span>
+<span class="sd">                    for this stanza.</span>
+<span class="sd">        :param ifrom: The ``&#39;from&#39;`` :class:`~sleekxmpp.xmlstream.jid.JID`</span>
+<span class="sd">                      to use for this stanza.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">iq</span><span class="p">:</span>
             <span class="n">iq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Iq</span><span class="p">()</span>
@@ -494,12 +492,10 @@
         <span class="k">return</span> <span class="n">iq</span>
 </div>
 <div class="viewcode-block" id="BaseXMPP.make_query_roster"><a class="viewcode-back" href="../../api/basexmpp.html#sleekxmpp.basexmpp.BaseXMPP.make_query_roster">[docs]</a>    <span class="k">def</span> <span class="nf">make_query_roster</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iq</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Create a roster query element.</span>
+        <span class="sd">&quot;&quot;&quot;Create a roster query element.</span>
 
-<span class="sd">        Arguments:</span>
-<span class="sd">            iq -- Optional Iq stanza to modify. A new stanza</span>
-<span class="sd">                  is created otherwise.</span>
+<span class="sd">        :param iq: Optionally use an existing stanza instead</span>
+<span class="sd">                   of generating a new one.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">iq</span><span class="p">:</span>
             <span class="n">iq</span><span class="p">[</span><span class="s">&#39;query&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;jabber:iq:roster&#39;</span>
@@ -508,18 +504,19 @@
 <div class="viewcode-block" id="BaseXMPP.make_message"><a class="viewcode-back" href="../../api/basexmpp.html#sleekxmpp.basexmpp.BaseXMPP.make_message">[docs]</a>    <span class="k">def</span> <span class="nf">make_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mto</span><span class="p">,</span> <span class="n">mbody</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">msubject</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">mtype</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                      <span class="n">mhtml</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">mfrom</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">mnick</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Create and initialize a new Message stanza.</span>
+<span class="sd">        Create and initialize a new </span>
+<span class="sd">        :class:`~sleekxmpp.stanza.message.Message` stanza.</span>
 
-<span class="sd">        Arguments:</span>
-<span class="sd">            mto      -- The recipient of the message.</span>
-<span class="sd">            mbody    -- The main contents of the message.</span>
-<span class="sd">            msubject -- Optional subject for the message.</span>
-<span class="sd">            mtype    -- The message&#39;s type, such as &#39;chat&#39; or &#39;groupchat&#39;.</span>
-<span class="sd">            mhtml    -- Optional HTML body content.</span>
-<span class="sd">            mfrom    -- The sender of the message. if sending from a client,</span>
-<span class="sd">                        be aware that some servers require that the full JID</span>
-<span class="sd">                        of the sender be used.</span>
-<span class="sd">            mnick    -- Optional nickname of the sender.</span>
+<span class="sd">        :param mto: The recipient of the message.</span>
+<span class="sd">        :param mbody: The main contents of the message.</span>
+<span class="sd">        :param msubject: Optional subject for the message.</span>
+<span class="sd">        :param mtype: The message&#39;s type, such as ``&#39;chat&#39;`` or</span>
+<span class="sd">                      ``&#39;groupchat&#39;``.</span>
+<span class="sd">        :param mhtml: Optional HTML body content in the form of a string.</span>
+<span class="sd">        :param mfrom: The sender of the message. if sending from a client,</span>
+<span class="sd">                      be aware that some servers require that the full JID</span>
+<span class="sd">                      of the sender be used.</span>
+<span class="sd">        :param mnick: Optional nickname of the sender.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">message</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Message</span><span class="p">(</span><span class="n">sto</span><span class="o">=</span><span class="n">mto</span><span class="p">,</span> <span class="n">stype</span><span class="o">=</span><span class="n">mtype</span><span class="p">,</span> <span class="n">sfrom</span><span class="o">=</span><span class="n">mfrom</span><span class="p">)</span>
         <span class="n">message</span><span class="p">[</span><span class="s">&#39;body&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mbody</span>
@@ -533,16 +530,16 @@
 <div class="viewcode-block" id="BaseXMPP.make_presence"><a class="viewcode-back" href="../../api/basexmpp.html#sleekxmpp.basexmpp.BaseXMPP.make_presence">[docs]</a>    <span class="k">def</span> <span class="nf">make_presence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pshow</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">pstatus</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ppriority</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                       <span class="n">pto</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ptype</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">pfrom</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">pnick</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Create and initialize a new Presence stanza.</span>
+<span class="sd">        Create and initialize a new </span>
+<span class="sd">        :class:`~sleekxmpp.stanza.presence.Presence` stanza.</span>
 
-<span class="sd">        Arguments:</span>
-<span class="sd">            pshow     -- The presence&#39;s show value.</span>
-<span class="sd">            pstatus   -- The presence&#39;s status message.</span>
-<span class="sd">            ppriority -- This connections&#39; priority.</span>
-<span class="sd">            pto       -- The recipient of a directed presence.</span>
-<span class="sd">            ptype     -- The type of presence, such as &#39;subscribe&#39;.</span>
-<span class="sd">            pfrom     -- The sender of the presence.</span>
-<span class="sd">            pnick     -- Optional nickname of the presence&#39;s sender.</span>
+<span class="sd">        :param pshow: The presence&#39;s show value.</span>
+<span class="sd">        :param pstatus: The presence&#39;s status message.</span>
+<span class="sd">        :param ppriority: This connection&#39;s priority.</span>
+<span class="sd">        :param pto: The recipient of a directed presence.</span>
+<span class="sd">        :param ptype: The type of presence, such as ``&#39;subscribe&#39;``.</span>
+<span class="sd">        :param pfrom: The sender of the presence.</span>
+<span class="sd">        :param pnick: Optional nickname of the presence&#39;s sender.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">presence</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Presence</span><span class="p">(</span><span class="n">stype</span><span class="o">=</span><span class="n">ptype</span><span class="p">,</span> <span class="n">sfrom</span><span class="o">=</span><span class="n">pfrom</span><span class="p">,</span> <span class="n">sto</span><span class="o">=</span><span class="n">pto</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">pshow</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
@@ -557,18 +554,19 @@
 <div class="viewcode-block" id="BaseXMPP.send_message"><a class="viewcode-back" href="../../api/basexmpp.html#sleekxmpp.basexmpp.BaseXMPP.send_message">[docs]</a>    <span class="k">def</span> <span class="nf">send_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mto</span><span class="p">,</span> <span class="n">mbody</span><span class="p">,</span> <span class="n">msubject</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">mtype</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                      <span class="n">mhtml</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">mfrom</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">mnick</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Create, initialize, and send a Message stanza.</span>
+<span class="sd">        Create, initialize, and send a new </span>
+<span class="sd">        :class:`~sleekxmpp.stanza.message.Message` stanza.</span>
 
-<span class="sd">        Arguments:</span>
-<span class="sd">            mto      -- The recipient of the message.</span>
-<span class="sd">            mbody    -- The main contents of the message.</span>
-<span class="sd">            msubject -- Optional subject for the message.</span>
-<span class="sd">            mtype    -- The message&#39;s type, such as &#39;chat&#39; or &#39;groupchat&#39;.</span>
-<span class="sd">            mhtml    -- Optional HTML body content.</span>
-<span class="sd">            mfrom    -- The sender of the message. if sending from a client,</span>
-<span class="sd">                        be aware that some servers require that the full JID</span>
-<span class="sd">                        of the sender be used.</span>
-<span class="sd">            mnick    -- Optional nickname of the sender.</span>
+<span class="sd">        :param mto: The recipient of the message.</span>
+<span class="sd">        :param mbody: The main contents of the message.</span>
+<span class="sd">        :param msubject: Optional subject for the message.</span>
+<span class="sd">        :param mtype: The message&#39;s type, such as ``&#39;chat&#39;`` or</span>
+<span class="sd">                      ``&#39;groupchat&#39;``.</span>
+<span class="sd">        :param mhtml: Optional HTML body content in the form of a string.</span>
+<span class="sd">        :param mfrom: The sender of the message. if sending from a client,</span>
+<span class="sd">                      be aware that some servers require that the full JID</span>
+<span class="sd">                      of the sender be used.</span>
+<span class="sd">        :param mnick: Optional nickname of the sender.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">make_message</span><span class="p">(</span><span class="n">mto</span><span class="p">,</span> <span class="n">mbody</span><span class="p">,</span> <span class="n">msubject</span><span class="p">,</span> <span class="n">mtype</span><span class="p">,</span>
                           <span class="n">mhtml</span><span class="p">,</span> <span class="n">mfrom</span><span class="p">,</span> <span class="n">mnick</span><span class="p">)</span><span class="o">.</span><span class="n">send</span><span class="p">()</span>
@@ -576,16 +574,16 @@
 <div class="viewcode-block" id="BaseXMPP.send_presence"><a class="viewcode-back" href="../../api/basexmpp.html#sleekxmpp.basexmpp.BaseXMPP.send_presence">[docs]</a>    <span class="k">def</span> <span class="nf">send_presence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pshow</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">pstatus</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ppriority</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                       <span class="n">pto</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">pfrom</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ptype</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">pnick</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Create, initialize, and send a Presence stanza.</span>
+<span class="sd">        Create, initialize, and send a new </span>
+<span class="sd">        :class:`~sleekxmpp.stanza.presence.Presence` stanza.</span>
 
-<span class="sd">        Arguments:</span>
-<span class="sd">            pshow     -- The presence&#39;s show value.</span>
-<span class="sd">            pstatus   -- The presence&#39;s status message.</span>
-<span class="sd">            ppriority -- This connections&#39; priority.</span>
-<span class="sd">            pto       -- The recipient of a directed presence.</span>
-<span class="sd">            ptype     -- The type of presence, such as &#39;subscribe&#39;.</span>
-<span class="sd">            pfrom     -- The sender of the presence.</span>
-<span class="sd">            pnick     -- Optional nickname of the presence&#39;s sender.</span>
+<span class="sd">        :param pshow: The presence&#39;s show value.</span>
+<span class="sd">        :param pstatus: The presence&#39;s status message.</span>
+<span class="sd">        :param ppriority: This connection&#39;s priority.</span>
+<span class="sd">        :param pto: The recipient of a directed presence.</span>
+<span class="sd">        :param ptype: The type of presence, such as ``&#39;subscribe&#39;``.</span>
+<span class="sd">        :param pfrom: The sender of the presence.</span>
+<span class="sd">        :param pnick: Optional nickname of the presence&#39;s sender.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c"># Python2.6 chokes on Unicode strings for dict keys.</span>
         <span class="n">args</span> <span class="o">=</span> <span class="p">{</span><span class="nb">str</span><span class="p">(</span><span class="s">&#39;pto&#39;</span><span class="p">):</span> <span class="n">pto</span><span class="p">,</span>
@@ -603,13 +601,14 @@
 <div class="viewcode-block" id="BaseXMPP.send_presence_subscription"><a class="viewcode-back" href="../../api/basexmpp.html#sleekxmpp.basexmpp.BaseXMPP.send_presence_subscription">[docs]</a>    <span class="k">def</span> <span class="nf">send_presence_subscription</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pto</span><span class="p">,</span> <span class="n">pfrom</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                                    <span class="n">ptype</span><span class="o">=</span><span class="s">&#39;subscribe&#39;</span><span class="p">,</span> <span class="n">pnick</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Create, initialize, and send a Presence stanza of type &#39;subscribe&#39;.</span>
+<span class="sd">        Create, initialize, and send a new </span>
+<span class="sd">        :class:`~sleekxmpp.stanza.presence.Presence` stanza of</span>
+<span class="sd">        type ``&#39;subscribe&#39;``.</span>
 
-<span class="sd">        Arguments:</span>
-<span class="sd">            pto   -- The recipient of a directed presence.</span>
-<span class="sd">            pfrom -- The sender of the presence.</span>
-<span class="sd">            ptype -- The type of presence. Defaults to &#39;subscribe&#39;.</span>
-<span class="sd">            pnick -- Nickname of the presence&#39;s sender.</span>
+<span class="sd">        :param pto: The recipient of a directed presence.</span>
+<span class="sd">        :param pfrom: The sender of the presence.</span>
+<span class="sd">        :param ptype: The type of presence, such as ``&#39;subscribe&#39;``.</span>
+<span class="sd">        :param pnick: Optional nickname of the presence&#39;s sender.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">presence</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">makePresence</span><span class="p">(</span><span class="n">ptype</span><span class="o">=</span><span class="n">ptype</span><span class="p">,</span>
                                      <span class="n">pfrom</span><span class="o">=</span><span class="n">pfrom</span><span class="p">,</span>
@@ -622,9 +621,7 @@
 </div>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">jid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Attribute accessor for bare jid</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Attribute accessor for bare jid&quot;&quot;&quot;</span>
         <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;jid property deprecated. Use boundjid.bare&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundjid</span><span class="o">.</span><span class="n">bare</span>
 
@@ -635,9 +632,7 @@
 </div>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">fulljid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Attribute accessor for full jid</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Attribute accessor for full jid&quot;&quot;&quot;</span>
         <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;fulljid property deprecated. Use boundjid.full&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundjid</span><span class="o">.</span><span class="n">full</span>
 
@@ -648,9 +643,7 @@
 </div>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">resource</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Attribute accessor for jid resource</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Attribute accessor for jid resource&quot;&quot;&quot;</span>
         <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;resource property deprecated. Use boundjid.resource&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundjid</span><span class="o">.</span><span class="n">resource</span>
 
@@ -661,9 +654,7 @@
 </div>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">username</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Attribute accessor for jid usernode</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Attribute accessor for jid usernode&quot;&quot;&quot;</span>
         <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;username property deprecated. Use boundjid.user&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundjid</span><span class="o">.</span><span class="n">user</span>
 
@@ -674,9 +665,7 @@
 </div>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">server</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Attribute accessor for jid host</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Attribute accessor for jid host&quot;&quot;&quot;</span>
         <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;server property deprecated. Use boundjid.host&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundjid</span><span class="o">.</span><span class="n">server</span>
 
@@ -687,42 +676,28 @@
 </div>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">auto_authorize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Auto accept or deny subscription requests.</span>
+        <span class="sd">&quot;&quot;&quot;Auto accept or deny subscription requests.</span>
 
-<span class="sd">        If True, auto accept subscription requests.</span>
-<span class="sd">        If False, auto deny subscription requests.</span>
-<span class="sd">        If None, don&#39;t automatically respond.</span>
+<span class="sd">        If ``True``, auto accept subscription requests.</span>
+<span class="sd">        If ``False``, auto deny subscription requests.</span>
+<span class="sd">        If ``None``, don&#39;t automatically respond.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">roster</span><span class="o">.</span><span class="n">auto_authorize</span>
 
     <span class="nd">@auto_authorize.setter</span>
 <div class="viewcode-block" id="BaseXMPP.auto_authorize"><a class="viewcode-back" href="../../api/basexmpp.html#sleekxmpp.basexmpp.BaseXMPP.auto_authorize">[docs]</a>    <span class="k">def</span> <span class="nf">auto_authorize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Auto accept or deny subscription requests.</span>
-
-<span class="sd">        If True, auto accept subscription requests.</span>
-<span class="sd">        If False, auto deny subscription requests.</span>
-<span class="sd">        If None, don&#39;t automatically respond.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">roster</span><span class="o">.</span><span class="n">auto_authorize</span> <span class="o">=</span> <span class="n">value</span>
 </div>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">auto_subscribe</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Auto send requests for mutual subscriptions.</span>
+        <span class="sd">&quot;&quot;&quot;Auto send requests for mutual subscriptions.</span>
 
-<span class="sd">        If True, auto send mutual subscription requests.</span>
+<span class="sd">        If ``True``, auto send mutual subscription requests.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">roster</span><span class="o">.</span><span class="n">auto_subscribe</span>
 
     <span class="nd">@auto_subscribe.setter</span>
 <div class="viewcode-block" id="BaseXMPP.auto_subscribe"><a class="viewcode-back" href="../../api/basexmpp.html#sleekxmpp.basexmpp.BaseXMPP.auto_subscribe">[docs]</a>    <span class="k">def</span> <span class="nf">auto_subscribe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Auto send requests for mutual subscriptions.</span>
-
-<span class="sd">        If True, auto send mutual subscription requests.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">roster</span><span class="o">.</span><span class="n">auto_subscribe</span> <span class="o">=</span> <span class="n">value</span>
 </div>
 <div class="viewcode-block" id="BaseXMPP.set_jid"><a class="viewcode-back" href="../../api/basexmpp.html#sleekxmpp.basexmpp.BaseXMPP.set_jid">[docs]</a>    <span class="k">def</span> <span class="nf">set_jid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jid</span><span class="p">):</span>
@@ -761,17 +736,16 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">roster</span><span class="p">[</span><span class="n">pto</span><span class="p">][</span><span class="n">pfrom</span><span class="p">]</span><span class="o">.</span><span class="n">handle_unavailable</span><span class="p">(</span><span class="n">presence</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_handle_new_subscription</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stanza</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Attempt to automatically handle subscription requests.</span>
+        <span class="sd">&quot;&quot;&quot;Attempt to automatically handle subscription requests.</span>
 
 <span class="sd">        Subscriptions will be approved if the request is from</span>
-<span class="sd">        a whitelisted JID, of self.auto_authorize is True. They</span>
-<span class="sd">        will be rejected if self.auto_authorize is False. Setting</span>
-<span class="sd">        self.auto_authorize to None will disable automatic</span>
+<span class="sd">        a whitelisted JID, of :attr:`auto_authorize` is True. They</span>
+<span class="sd">        will be rejected if :attr:`auto_authorize` is False. Setting</span>
+<span class="sd">        :attr:`auto_authorize` to ``None`` will disable automatic</span>
 <span class="sd">        subscription handling (except for whitelisted JIDs).</span>
 
 <span class="sd">        If a subscription is accepted, a request for a mutual</span>
-<span class="sd">        subscription will be sent if self.auto_subscribe is True.</span>
+<span class="sd">        subscription will be sent if :attr:`auto_subscribe` is ``True``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">roster</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">roster</span><span class="p">[</span><span class="n">stanza</span><span class="p">[</span><span class="s">&#39;to&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">bare</span><span class="p">]</span>
         <span class="n">item</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">roster</span><span class="p">[</span><span class="n">stanza</span><span class="p">[</span><span class="s">&#39;to&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">bare</span><span class="p">][</span><span class="n">stanza</span><span class="p">[</span><span class="s">&#39;from&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">bare</span><span class="p">]</span>
@@ -810,8 +784,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">roster</span><span class="p">[</span><span class="n">pto</span><span class="p">][</span><span class="n">pfrom</span><span class="p">]</span><span class="o">.</span><span class="n">handle_unsubscribed</span><span class="p">(</span><span class="n">presence</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_handle_presence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">presence</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Process incoming presence stanzas.</span>
+        <span class="sd">&quot;&quot;&quot;Process incoming presence stanzas.</span>
 
 <span class="sd">        Update the roster with presence information.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -827,14 +800,11 @@
             <span class="k">return</span>
 
 <div class="viewcode-block" id="BaseXMPP.exception"><a class="viewcode-back" href="../../api/basexmpp.html#sleekxmpp.basexmpp.BaseXMPP.exception">[docs]</a>    <span class="k">def</span> <span class="nf">exception</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exception</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Process any uncaught exceptions, notably IqError and</span>
-<span class="sd">        IqTimeout exceptions.</span>
+        <span class="sd">&quot;&quot;&quot;Process any uncaught exceptions, notably </span>
+<span class="sd">        :class:`~sleekxmpp.exceptions.IqError` and</span>
+<span class="sd">        :class:`~sleekxmpp.exceptions.IqTimeout` exceptions.</span>
 
-<span class="sd">        Overrides XMLStream.exception.</span>
-
-<span class="sd">        Arguments:</span>
-<span class="sd">            exception -- An unhandled exception object.</span>
+<span class="sd">        :param exception: An unhandled :class:`Exception` object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">exception</span><span class="p">,</span> <span class="n">IqError</span><span class="p">):</span>
             <span class="n">iq</span> <span class="o">=</span> <span class="n">exception</span><span class="o">.</span><span class="n">iq</span>
@@ -845,6 +815,11 @@
             <span class="n">iq</span> <span class="o">=</span> <span class="n">exception</span><span class="o">.</span><span class="n">iq</span>
             <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&#39;Request timed out: </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">iq</span><span class="p">)</span>
             <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&#39;You should catch IqTimeout exceptions&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">exception</span><span class="p">,</span> <span class="ne">SyntaxError</span><span class="p">):</span>
+            <span class="c"># Hide stream parsing errors that occur when the</span>
+            <span class="c"># stream is disconnected (they&#39;ve been handled, we</span>
+            <span class="c"># don&#39;t need to make a mess in the logs).</span>
+            <span class="k">pass</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">exception</span><span class="p">)</span>
 

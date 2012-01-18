@@ -46,12 +46,18 @@
         
         
   <h1>Source code for sleekxmpp.componentxmpp</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    SleekXMPP: The Sleek XMPP Library</span>
-<span class="sd">    Copyright (C) 2010  Nathanael C. Fritz</span>
-<span class="sd">    This file is part of SleekXMPP.</span>
+<span class="sd">    sleekxmpp.clientxmpp</span>
+<span class="sd">    ~~~~~~~~~~~~~~~~~~~~</span>
 
-<span class="sd">    See the file LICENSE for copying permission.</span>
+<span class="sd">    This module provides XMPP functionality that</span>
+<span class="sd">    is specific to external server component connections.</span>
+
+<span class="sd">    Part of SleekXMPP: The Sleek XMPP Library</span>
+
+<span class="sd">    :copyright: (c) 2011 Nathanael C. Fritz</span>
+<span class="sd">    :license: MIT, see LICENSE for more details</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span>
@@ -80,28 +86,22 @@
 
 <span class="sd">    Use only for good, not for evil.</span>
 
-<span class="sd">    Methods:</span>
-<span class="sd">        connect              -- Overrides XMLStream.connect.</span>
-<span class="sd">        incoming_filter      -- Overrides XMLStream.incoming_filter.</span>
-<span class="sd">        start_stream_handler -- Overrides XMLStream.start_stream_handler.</span>
+<span class="sd">    :param jid: The JID of the component.</span>
+<span class="sd">    :param secret: The secret or password for the component.</span>
+<span class="sd">    :param host: The server accepting the component.</span>
+<span class="sd">    :param port: The port used to connect to the server.</span>
+<span class="sd">    :param plugin_config: A dictionary of plugin configurations.</span>
+<span class="sd">    :param plugin_whitelist: A list of approved plugins that </span>
+<span class="sd">                    will be loaded when calling </span>
+<span class="sd">                    :meth:`~sleekxmpp.basexmpp.BaseXMPP.register_plugins()`.</span>
+<span class="sd">    :param use_jc_ns: Indicates if the ``&#39;jabber:client&#39;`` namespace</span>
+<span class="sd">                      should be used instead of the standard</span>
+<span class="sd">                      ``&#39;jabber:component:accept&#39;`` namespace.</span>
+<span class="sd">                      Defaults to ``False``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jid</span><span class="p">,</span> <span class="n">secret</span><span class="p">,</span> <span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jid</span><span class="p">,</span> <span class="n">secret</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                  <span class="n">plugin_config</span><span class="o">=</span><span class="p">{},</span> <span class="n">plugin_whitelist</span><span class="o">=</span><span class="p">[],</span> <span class="n">use_jc_ns</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Arguments:</span>
-<span class="sd">            jid              -- The JID of the component.</span>
-<span class="sd">            secret           -- The secret or password for the component.</span>
-<span class="sd">            host             -- The server accepting the component.</span>
-<span class="sd">            port             -- The port used to connect to the server.</span>
-<span class="sd">            plugin_config    -- A dictionary of plugin configurations.</span>
-<span class="sd">            plugin_whitelist -- A list of desired plugins to load</span>
-<span class="sd">                                when using register_plugins.</span>
-<span class="sd">            use_js_ns        -- Indicates if the &#39;jabber:client&#39; namespace</span>
-<span class="sd">                                should be used instead of the standard</span>
-<span class="sd">                                &#39;jabber:component:accept&#39; namespace.</span>
-<span class="sd">                                Defaults to False.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">use_jc_ns</span><span class="p">:</span>
             <span class="n">default_ns</span> <span class="o">=</span> <span class="s">&#39;jabber:client&#39;</span>
         <span class="k">else</span><span class="p">:</span>
@@ -129,26 +129,42 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">add_event_handler</span><span class="p">(</span><span class="s">&#39;presence_probe&#39;</span><span class="p">,</span>
                                <span class="bp">self</span><span class="o">.</span><span class="n">_handle_probe</span><span class="p">)</span>
 
-<div class="viewcode-block" id="ComponentXMPP.connect"><a class="viewcode-back" href="../../api/componentxmpp.html#sleekxmpp.componentxmpp.ComponentXMPP.connect">[docs]</a>    <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Connect to the server.</span>
+<div class="viewcode-block" id="ComponentXMPP.connect"><a class="viewcode-back" href="../../api/componentxmpp.html#sleekxmpp.componentxmpp.ComponentXMPP.connect">[docs]</a>    <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">use_ssl</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> 
+                      <span class="n">use_tls</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">reattempt</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Connect to the server.</span>
 
-<span class="sd">        Overrides XMLStream.connect.</span>
+<span class="sd">        Setting ``reattempt`` to ``True`` will cause connection attempts to</span>
+<span class="sd">        be made every second until a successful connection is established.</span>
+
+<span class="sd">        :param host: The name of the desired server for the connection.</span>
+<span class="sd">                     Defaults to :attr:`server_host`.</span>
+<span class="sd">        :param port: Port to connect to on the server.</span>
+<span class="sd">                     Defauts to :attr:`server_port`.</span>
+<span class="sd">        :param use_ssl: Flag indicating if SSL should be used by connecting</span>
+<span class="sd">                        directly to a port using SSL.</span>
+<span class="sd">        :param use_tls: Flag indicating if TLS should be used, allowing for</span>
+<span class="sd">                        connecting to a port without using SSL immediately and</span>
+<span class="sd">                        later upgrading the connection.</span>
+<span class="sd">        :param reattempt: Flag indicating if the socket should reconnect</span>
+<span class="sd">                          after disconnections.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Connecting to </span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">server_host</span><span class="p">,</span>
-                                         <span class="bp">self</span><span class="o">.</span><span class="n">server_port</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">XMLStream</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">server_host</span><span class="p">,</span>
-                                       <span class="bp">self</span><span class="o">.</span><span class="n">server_port</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">host</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">host</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server_host</span>
+        <span class="k">if</span> <span class="n">port</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">port</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server_port</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Connecting to </span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">XMLStream</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">port</span><span class="p">,</span>
+                                       <span class="n">use_ssl</span><span class="o">=</span><span class="n">use_ssl</span><span class="p">,</span>
+                                       <span class="n">use_tls</span><span class="o">=</span><span class="n">use_tls</span><span class="p">,</span>
+                                       <span class="n">reattempt</span><span class="o">=</span><span class="n">reattempt</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="ComponentXMPP.incoming_filter"><a class="viewcode-back" href="../../api/componentxmpp.html#sleekxmpp.componentxmpp.ComponentXMPP.incoming_filter">[docs]</a>    <span class="k">def</span> <span class="nf">incoming_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Pre-process incoming XML stanzas by converting any &#39;jabber:client&#39;</span>
-<span class="sd">        namespaced elements to the component&#39;s default namespace.</span>
+<span class="sd">        Pre-process incoming XML stanzas by converting any</span>
+<span class="sd">        ``&#39;jabber:client&#39;`` namespaced elements to the component&#39;s</span>
+<span class="sd">        default namespace.</span>
 
-<span class="sd">        Overrides XMLStream.incoming_filter.</span>
-
-<span class="sd">        Arguments:</span>
-<span class="sd">            xml -- The XML stanza to pre-process.</span>
+<span class="sd">        :param xml: The XML stanza to pre-process.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">xml</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;{jabber:client}&#39;</span><span class="p">):</span>
             <span class="n">xml</span><span class="o">.</span><span class="n">tag</span> <span class="o">=</span> <span class="n">xml</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;jabber:client&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_ns</span><span class="p">)</span>
@@ -165,10 +181,7 @@
 <span class="sd">        Once the streams are established, attempt to handshake</span>
 <span class="sd">        with the server to be accepted as a component.</span>
 
-<span class="sd">        Overrides BaseXMPP.start_stream_handler.</span>
-
-<span class="sd">        Arguments:</span>
-<span class="sd">            xml -- The incoming stream&#39;s root element.</span>
+<span class="sd">        :param xml: The incoming stream&#39;s root element.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">BaseXMPP</span><span class="o">.</span><span class="n">start_stream_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">)</span>
 
@@ -184,11 +197,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">send_xml</span><span class="p">(</span><span class="n">handshake</span><span class="p">,</span> <span class="n">now</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 </div>
     <span class="k">def</span> <span class="nf">_handle_handshake</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        The handshake has been accepted.</span>
+        <span class="sd">&quot;&quot;&quot;The handshake has been accepted.</span>
 
-<span class="sd">        Arguments:</span>
-<span class="sd">            xml -- The reply handshake stanza.</span>
+<span class="sd">        :param xml: The reply handshake stanza.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">session_started_event</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">event</span><span class="p">(</span><span class="s">&quot;session_start&quot;</span><span class="p">)</span>

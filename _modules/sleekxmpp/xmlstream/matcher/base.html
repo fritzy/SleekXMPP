@@ -46,12 +46,15 @@
         
         
   <h1>Source code for sleekxmpp.xmlstream.matcher.base</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    SleekXMPP: The Sleek XMPP Library</span>
-<span class="sd">    Copyright (C) 2010  Nathanael C. Fritz</span>
-<span class="sd">    This file is part of SleekXMPP.</span>
+<span class="sd">    sleekxmpp.xmlstream.matcher.base</span>
+<span class="sd">    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
 
-<span class="sd">    See the file LICENSE for copying permission.</span>
+<span class="sd">    Part of SleekXMPP: The Sleek XMPP Library</span>
+
+<span class="sd">    :copyright: (c) 2011 Nathanael C. Fritz</span>
+<span class="sd">    :license: MIT, see LICENSE for more details</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 
@@ -61,21 +64,15 @@
 <span class="sd">    Base class for stanza matchers. Stanza matchers are used to pick</span>
 <span class="sd">    stanzas out of the XML stream and pass them to the appropriate</span>
 <span class="sd">    stream handlers.</span>
+
+<span class="sd">    :param criteria: Object to compare some aspect of a stanza against.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">criteria</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Create a new stanza matcher.</span>
-
-<span class="sd">        Arguments:</span>
-<span class="sd">            criteria -- Object to compare some aspect of a stanza</span>
-<span class="sd">                        against.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_criteria</span> <span class="o">=</span> <span class="n">criteria</span>
 
 <div class="viewcode-block" id="MatcherBase.match"><a class="viewcode-back" href="../../../../api/xmlstream/matcher.html#sleekxmpp.xmlstream.matcher.base.MatcherBase.match">[docs]</a>    <span class="k">def</span> <span class="nf">match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Check if a stanza matches the stored criteria.</span>
+        <span class="sd">&quot;&quot;&quot;Check if a stanza matches the stored criteria.</span>
 
 <span class="sd">        Meant to be overridden.</span>
 <span class="sd">        &quot;&quot;&quot;</span>

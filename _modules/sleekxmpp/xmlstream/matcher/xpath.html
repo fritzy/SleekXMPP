@@ -46,12 +46,15 @@
         
         
   <h1>Source code for sleekxmpp.xmlstream.matcher.xpath</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    SleekXMPP: The Sleek XMPP Library</span>
-<span class="sd">    Copyright (C) 2010  Nathanael C. Fritz</span>
-<span class="sd">    This file is part of SleekXMPP.</span>
+<span class="sd">    sleekxmpp.xmlstream.matcher.xpath</span>
+<span class="sd">    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
 
-<span class="sd">    See the file LICENSE for copying permission.</span>
+<span class="sd">    Part of SleekXMPP: The Sleek XMPP Library</span>
+
+<span class="sd">    :copyright: (c) 2011 Nathanael C. Fritz</span>
+<span class="sd">    :license: MIT, see LICENSE for more details</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">sleekxmpp.xmlstream.stanzabase</span> <span class="kn">import</span> <span class="n">ET</span>
@@ -70,30 +73,34 @@
 <span class="sd">    The XPath matcher selects stanzas whose XML contents matches a given</span>
 <span class="sd">    XPath expression.</span>
 
-<span class="sd">    Note that using this matcher may not produce expected behavior when using</span>
-<span class="sd">    attribute selectors. For Python 2.6 and 3.1, the ElementTree find method</span>
-<span class="sd">    does not support the use of attribute selectors. If you need to support</span>
-<span class="sd">    Python 2.6 or 3.1, it might be more useful to use a StanzaPath matcher.</span>
+<span class="sd">    .. warning::</span>
 
-<span class="sd">    If the value of IGNORE_NS is set to true, then XPath expressions will</span>
-<span class="sd">    be matched without using namespaces.</span>
+<span class="sd">        Using this matcher may not produce expected behavior when using</span>
+<span class="sd">        attribute selectors. For Python 2.6 and 3.1, the ElementTree</span>
+<span class="sd">        :meth:`~xml.etree.ElementTree.Element.find()` method does</span>
+<span class="sd">        not support the use of attribute selectors. If you need to</span>
+<span class="sd">        support Python 2.6 or 3.1, it might be more useful to use a</span>
+<span class="sd">        :class:`~sleekxmpp.xmlstream.matcher.stanzapath.StanzaPath` matcher.</span>
 
-<span class="sd">    Methods:</span>
-<span class="sd">        match -- Overrides MatcherBase.match.</span>
+<span class="sd">    If the value of :data:`IGNORE_NS` is set to ``True``, then XPath</span>
+<span class="sd">    expressions will be matched without using namespaces.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="MatchXPath.match"><a class="viewcode-back" href="../../../../api/xmlstream/matcher.html#sleekxmpp.xmlstream.matcher.xpath.MatchXPath.match">[docs]</a>    <span class="k">def</span> <span class="nf">match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compare a stanza&#39;s XML contents to an XPath expression.</span>
 
-<span class="sd">        If the value of IGNORE_NS is set to true, then XPath expressions</span>
-<span class="sd">        will be matched without using namespaces.</span>
+<span class="sd">        If the value of :data:`IGNORE_NS` is set to ``True``, then XPath</span>
+<span class="sd">        expressions will be matched without using namespaces.</span>
 
-<span class="sd">        Note that in Python 2.6 and 3.1 the ElementTree find method does</span>
-<span class="sd">        not support attribute selectors in the XPath expression.</span>
+<span class="sd">        .. warning::</span>
 
-<span class="sd">        Arguments:</span>
-<span class="sd">            xml -- The stanza object to compare against.</span>
+<span class="sd">            In Python 2.6 and 3.1 the ElementTree</span>
+<span class="sd">            :meth:`~xml.etree.ElementTree.Element.find()` method does not</span>
+<span class="sd">            support attribute selectors in the XPath expression.</span>
+
+<span class="sd">        :param xml: The :class:`~sleekxmpp.xmlstream.stanzabase.ElementBase`</span>
+<span class="sd">                    stanza to compare against.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">xml</span><span class="p">,</span> <span class="s">&#39;xml&#39;</span><span class="p">):</span>
             <span class="n">xml</span> <span class="o">=</span> <span class="n">xml</span><span class="o">.</span><span class="n">xml</span>

@@ -46,12 +46,15 @@
         
         
   <h1>Source code for sleekxmpp.xmlstream.handler.waiter</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    SleekXMPP: The Sleek XMPP Library</span>
-<span class="sd">    Copyright (C) 2010  Nathanael C. Fritz</span>
-<span class="sd">    This file is part of SleekXMPP.</span>
+<span class="sd">    sleekxmpp.xmlstream.handler.waiter</span>
+<span class="sd">    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
 
-<span class="sd">    See the file LICENSE for copying permission.</span>
+<span class="sd">    Part of SleekXMPP: The Sleek XMPP Library</span>
+
+<span class="sd">    :copyright: (c) 2011 Nathanael C. Fritz</span>
+<span class="sd">    :license: MIT, see LICENSE for more details</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">logging</span>
@@ -70,67 +73,46 @@
 <div class="viewcode-block" id="Waiter"><a class="viewcode-back" href="../../../../api/xmlstream/handler.html#sleekxmpp.xmlstream.handler.waiter.Waiter">[docs]</a><span class="k">class</span> <span class="nc">Waiter</span><span class="p">(</span><span class="n">BaseHandler</span><span class="p">):</span>
 
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    The Waiter handler allows an event handler to block</span>
-<span class="sd">    until a particular stanza has been received. The handler</span>
-<span class="sd">    will either be given the matched stanza, or False if the</span>
-<span class="sd">    waiter has timed out.</span>
+<span class="sd">    The Waiter handler allows an event handler to block until a</span>
+<span class="sd">    particular stanza has been received. The handler will either be</span>
+<span class="sd">    given the matched stanza, or ``False`` if the waiter has timed out.</span>
 
-<span class="sd">    Methods:</span>
-<span class="sd">        check_delete -- Overrides BaseHandler.check_delete</span>
-<span class="sd">        prerun       -- Overrides BaseHandler.prerun</span>
-<span class="sd">        run          -- Overrides BaseHandler.run</span>
-<span class="sd">        wait         -- Wait for a stanza to arrive and return it to</span>
-<span class="sd">                        an event handler.</span>
+<span class="sd">    :param string name: The name of the handler.</span>
+<span class="sd">    :param matcher: A :class:`~sleekxmpp.xmlstream.matcher.base.MatcherBase`</span>
+<span class="sd">                    derived object for matching stanza objects.</span>
+<span class="sd">    :param stream: The :class:`~sleekxmpp.xmlstream.xmlstream.XMLStream`</span>
+<span class="sd">                   instance this handler should monitor.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">matcher</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Create a new Waiter.</span>
-
-<span class="sd">        Arguments:</span>
-<span class="sd">            name    -- The name of the waiter.</span>
-<span class="sd">            matcher -- A matcher object to detect the desired stanza.</span>
-<span class="sd">            stream  -- Optional XMLStream instance to monitor.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">BaseHandler</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">matcher</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="n">stream</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_payload</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
 
 <div class="viewcode-block" id="Waiter.prerun"><a class="viewcode-back" href="../../../../api/xmlstream/handler.html#sleekxmpp.xmlstream.handler.waiter.Waiter.prerun">[docs]</a>    <span class="k">def</span> <span class="nf">prerun</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Store the matched stanza.</span>
+        <span class="sd">&quot;&quot;&quot;Store the matched stanza when received during processing.</span>
 
-<span class="sd">        Overrides BaseHandler.prerun</span>
-
-<span class="sd">        Arguments:</span>
-<span class="sd">            payload -- The matched stanza object.</span>
+<span class="sd">        :param payload: The matched</span>
+<span class="sd">            :class:`~sleekxmpp.xmlstream.stanzabase.ElementBase` object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_payload</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="Waiter.run"><a class="viewcode-back" href="../../../../api/xmlstream/handler.html#sleekxmpp.xmlstream.handler.waiter.Waiter.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Do not process this handler during the main event loop.</span>
-
-<span class="sd">        Overrides BaseHandler.run</span>
-
-<span class="sd">        Arguments:</span>
-<span class="sd">            payload -- The matched stanza object.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Do not process this handler during the main event loop.&quot;&quot;&quot;</span>
         <span class="k">pass</span>
 </div>
 <div class="viewcode-block" id="Waiter.wait"><a class="viewcode-back" href="../../../../api/xmlstream/handler.html#sleekxmpp.xmlstream.handler.waiter.Waiter.wait">[docs]</a>    <span class="k">def</span> <span class="nf">wait</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Block an event handler while waiting for a stanza to arrive.</span>
+        <span class="sd">&quot;&quot;&quot;Block an event handler while waiting for a stanza to arrive.</span>
 
 <span class="sd">        Be aware that this will impact performance if called from a</span>
 <span class="sd">        non-threaded event handler.</span>
 
-<span class="sd">        Will return either the received stanza, or False if the waiter</span>
-<span class="sd">        timed out.</span>
+<span class="sd">        Will return either the received stanza, or ``False`` if the</span>
+<span class="sd">        waiter timed out.</span>
 
-<span class="sd">        Arguments:</span>
-<span class="sd">            timeout -- The number of seconds to wait for the stanza to</span>
-<span class="sd">                       arrive. Defaults to the global default timeout</span>
-<span class="sd">                       value sleekxmpp.xmlstream.RESPONSE_TIMEOUT.</span>
+<span class="sd">        :param int timeout: The number of seconds to wait for the stanza</span>
+<span class="sd">            to arrive. Defaults to the the stream&#39;s</span>
+<span class="sd">            :class:`~sleekxmpp.xmlstream.xmlstream.XMLStream.response_timeout`</span>
+<span class="sd">            value.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">timeout</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">timeout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="p">()</span><span class="o">.</span><span class="n">response_timeout</span>
@@ -149,11 +131,7 @@
         <span class="k">return</span> <span class="n">stanza</span>
 </div>
 <div class="viewcode-block" id="Waiter.check_delete"><a class="viewcode-back" href="../../../../api/xmlstream/handler.html#sleekxmpp.xmlstream.handler.waiter.Waiter.check_delete">[docs]</a>    <span class="k">def</span> <span class="nf">check_delete</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Always remove waiters after use.</span>
-
-<span class="sd">        Overrides BaseHandler.check_delete</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Always remove waiters after use.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">True</span></div></div>
 </pre></div>
 

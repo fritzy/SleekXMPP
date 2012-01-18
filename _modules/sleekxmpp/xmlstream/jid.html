@@ -46,18 +46,25 @@
         
         
   <h1>Source code for sleekxmpp.xmlstream.jid</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    SleekXMPP: The Sleek XMPP Library</span>
-<span class="sd">    Copyright (C) 2010  Nathanael C. Fritz</span>
-<span class="sd">    This file is part of SleekXMPP.</span>
+<span class="sd">    sleekxmpp.xmlstream.jid</span>
+<span class="sd">    ~~~~~~~~~~~~~~~~~~~~~~~</span>
 
-<span class="sd">    See the file LICENSE for copying permission.</span>
+<span class="sd">    This module allows for working with Jabber IDs (JIDs) by</span>
+<span class="sd">    providing accessors for the various components of a JID.</span>
+
+<span class="sd">    Part of SleekXMPP: The Sleek XMPP Library</span>
+
+<span class="sd">    :copyright: (c) 2011 Nathanael C. Fritz</span>
+<span class="sd">    :license: MIT, see LICENSE for more details</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">unicode_literals</span>
 
 
 <div class="viewcode-block" id="JID"><a class="viewcode-back" href="../../../api/xmlstream/jid.html#sleekxmpp.xmlstream.jid.JID">[docs]</a><span class="k">class</span> <span class="nc">JID</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A representation of a Jabber ID, or JID.</span>
 
@@ -67,18 +74,16 @@
 <span class="sd">    When a resource is not used, the JID is called a bare JID.</span>
 <span class="sd">    The JID is a full JID otherwise.</span>
 
-<span class="sd">    Attributes:</span>
-<span class="sd">        jid      -- Alias for &#39;full&#39;.</span>
-<span class="sd">        full     -- The value of the full JID.</span>
-<span class="sd">        bare     -- The value of the bare JID.</span>
-<span class="sd">        user     -- The username portion of the JID.</span>
-<span class="sd">        domain   -- The domain name portion of the JID.</span>
-<span class="sd">        server   -- Alias for &#39;domain&#39;.</span>
-<span class="sd">        resource -- The resource portion of the JID.</span>
+<span class="sd">    **JID Properties:**</span>
+<span class="sd">        :jid: Alias for ``full``.</span>
+<span class="sd">        :full: The value of the full JID.</span>
+<span class="sd">        :bare: The value of the bare JID.</span>
+<span class="sd">        :user: The username portion of the JID.</span>
+<span class="sd">        :domain: The domain name portion of the JID.</span>
+<span class="sd">        :server: Alias for ``domain``.</span>
+<span class="sd">        :resource: The resource portion of the JID.</span>
 
-<span class="sd">    Methods:</span>
-<span class="sd">        reset      -- Use a new JID value.</span>
-<span class="sd">        regenerate -- Recreate the JID from its components.</span>
+<span class="sd">    :param string jid: A string of the form ``&#39;[user@]domain[/resource]&#39;``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jid</span><span class="p">):</span>
@@ -86,11 +91,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">jid</span><span class="p">)</span>
 
 <div class="viewcode-block" id="JID.reset"><a class="viewcode-back" href="../../../api/xmlstream/jid.html#sleekxmpp.xmlstream.jid.JID.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jid</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Start fresh from a new JID string.</span>
+        <span class="sd">&quot;&quot;&quot;Start fresh from a new JID string.</span>
 
-<span class="sd">        Arguments:</span>
-<span class="sd">            jid - The new JID value.</span>
+<span class="sd">        :param string jid: A string of the form ``&#39;[user@]domain[/resource]&#39;``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">jid</span><span class="p">,</span> <span class="n">JID</span><span class="p">):</span>
             <span class="n">jid</span> <span class="o">=</span> <span class="n">jid</span><span class="o">.</span><span class="n">full</span>
@@ -101,12 +104,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_bare</span> <span class="o">=</span> <span class="bp">None</span>
 </div>
     <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Handle getting the JID values, using cache if available.</span>
+        <span class="sd">&quot;&quot;&quot;Handle getting the JID values, using cache if available.</span>
 
-<span class="sd">        Arguments:</span>
-<span class="sd">            name -- One of: user, server, domain, resource,</span>
-<span class="sd">                    full, or bare.</span>
+<span class="sd">        :param name: One of: user, server, domain, resource,</span>
+<span class="sd">                     full, or bare.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s">&#39;resource&#39;</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resource</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="s">&#39;/&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jid</span><span class="p">:</span>
@@ -131,8 +132,7 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bare</span> <span class="ow">or</span> <span class="s">&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Edit a JID by updating it&#39;s individual values, resetting the</span>
+        <span class="sd">&quot;&quot;&quot;Edit a JID by updating it&#39;s individual values, resetting the</span>
 <span class="sd">        generated JID in the end.</span>
 
 <span class="sd">        Arguments:</span>
@@ -185,9 +185,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">full</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">full</span>
 
     <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Two JIDs are considered unequal if they are not equal.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Two JIDs are considered unequal if they are not equal.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span> <span class="o">==</span> <span class="n">other</span></div>
 </pre></div>
 

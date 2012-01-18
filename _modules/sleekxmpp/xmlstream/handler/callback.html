@@ -46,12 +46,15 @@
         
         
   <h1>Source code for sleekxmpp.xmlstream.handler.callback</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    SleekXMPP: The Sleek XMPP Library</span>
-<span class="sd">    Copyright (C) 2010  Nathanael C. Fritz</span>
-<span class="sd">    This file is part of SleekXMPP.</span>
+<span class="sd">    sleekxmpp.xmlstream.handler.callback</span>
+<span class="sd">    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
 
-<span class="sd">    See the file LICENSE for copying permission.</span>
+<span class="sd">    Part of SleekXMPP: The Sleek XMPP Library</span>
+
+<span class="sd">    :copyright: (c) 2011 Nathanael C. Fritz</span>
+<span class="sd">    :license: MIT, see LICENSE for more details</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">sleekxmpp.xmlstream.handler.base</span> <span class="kn">import</span> <span class="n">BaseHandler</span>
@@ -66,48 +69,42 @@
 <span class="sd">    The handler may execute the callback either during stream</span>
 <span class="sd">    processing or during the main event loop.</span>
 
-<span class="sd">    Callback functions are all executed in the same thread, so be</span>
-<span class="sd">    aware if you are executing functions that will block for extended</span>
-<span class="sd">    periods of time. Typically, you should signal your own events using the</span>
-<span class="sd">    SleekXMPP object&#39;s event() method to pass the stanza off to a threaded</span>
-<span class="sd">    event handler for further processing.</span>
+<span class="sd">    Callback functions are all executed in the same thread, so be aware if</span>
+<span class="sd">    you are executing functions that will block for extended periods of</span>
+<span class="sd">    time. Typically, you should signal your own events using the SleekXMPP</span>
+<span class="sd">    object&#39;s :meth:`~sleekxmpp.xmlstream.xmlstream.XMLStream.event()`</span>
+<span class="sd">    method to pass the stanza off to a threaded event handler for further</span>
+<span class="sd">    processing.</span>
 
-<span class="sd">    Methods:</span>
-<span class="sd">        prerun -- Overrides BaseHandler.prerun</span>
-<span class="sd">        run    -- Overrides BaseHandler.run</span>
+
+<span class="sd">    :param string name: The name of the handler.</span>
+<span class="sd">    :param matcher: A :class:`~sleekxmpp.xmlstream.matcher.base.MatcherBase`</span>
+<span class="sd">                    derived object for matching stanza objects.</span>
+<span class="sd">    :param pointer: The function to execute during callback.</span>
+<span class="sd">    :param bool thread: **DEPRECATED.** Remains only for </span>
+<span class="sd">                        backwards compatibility.</span>
+<span class="sd">    :param bool once: Indicates if the handler should be used only</span>
+<span class="sd">                      once. Defaults to False.</span>
+<span class="sd">    :param bool instream: Indicates if the callback should be executed</span>
+<span class="sd">                          during stream processing instead of in the</span>
+<span class="sd">                          main event loop.</span>
+<span class="sd">    :param stream: The :class:`~sleekxmpp.xmlstream.xmlstream.XMLStream`</span>
+<span class="sd">                   instance this handler should monitor.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">matcher</span><span class="p">,</span> <span class="n">pointer</span><span class="p">,</span> <span class="n">thread</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
                  <span class="n">once</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">instream</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Create a new callback handler.</span>
-
-<span class="sd">        Arguments:</span>
-<span class="sd">            name     -- The name of the handler.</span>
-<span class="sd">            matcher  -- A matcher object for matching stanza objects.</span>
-<span class="sd">            pointer  -- The function to execute during callback.</span>
-<span class="sd">            thread   -- DEPRECATED. Remains only for backwards compatibility.</span>
-<span class="sd">            once     -- Indicates if the handler should be used only</span>
-<span class="sd">                        once. Defaults to False.</span>
-<span class="sd">            instream -- Indicates if the callback should be executed</span>
-<span class="sd">                        during stream processing instead of in the</span>
-<span class="sd">                        main event loop.</span>
-<span class="sd">            stream   -- The XMLStream instance this handler should monitor.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">BaseHandler</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">matcher</span><span class="p">,</span> <span class="n">stream</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_pointer</span> <span class="o">=</span> <span class="n">pointer</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_once</span> <span class="o">=</span> <span class="n">once</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_instream</span> <span class="o">=</span> <span class="n">instream</span>
 
 <div class="viewcode-block" id="Callback.prerun"><a class="viewcode-back" href="../../../../api/xmlstream/handler.html#sleekxmpp.xmlstream.handler.callback.Callback.prerun">[docs]</a>    <span class="k">def</span> <span class="nf">prerun</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Execute the callback during stream processing, if</span>
-<span class="sd">        the callback was created with instream=True.</span>
+        <span class="sd">&quot;&quot;&quot;Execute the callback during stream processing, if</span>
+<span class="sd">        the callback was created with ``instream=True``.</span>
 
-<span class="sd">        Overrides BaseHandler.prerun</span>
-
-<span class="sd">        Arguments:</span>
-<span class="sd">            payload -- The matched stanza object.</span>
+<span class="sd">        :param payload: The matched</span>
+<span class="sd">            :class:`~sleekxmpp.xmlstream.stanzabase.ElementBase` object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_once</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_destroy</span> <span class="o">=</span> <span class="bp">True</span>
@@ -115,16 +112,13 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">payload</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="Callback.run"><a class="viewcode-back" href="../../../../api/xmlstream/handler.html#sleekxmpp.xmlstream.handler.callback.Callback.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">,</span> <span class="n">instream</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Execute the callback function with the matched stanza payload.</span>
+        <span class="sd">&quot;&quot;&quot;Execute the callback function with the matched stanza payload.</span>
 
-<span class="sd">        Overrides BaseHandler.run</span>
-
-<span class="sd">        Arguments:</span>
-<span class="sd">            payload  -- The matched stanza object.</span>
-<span class="sd">            instream -- Force the handler to execute during</span>
-<span class="sd">                        stream processing. Used only by prerun.</span>
-<span class="sd">                        Defaults to False.</span>
+<span class="sd">        :param payload: The matched</span>
+<span class="sd">            :class:`~sleekxmpp.xmlstream.stanzabase.ElementBase` object.</span>
+<span class="sd">        :param bool instream: Force the handler to execute during stream</span>
+<span class="sd">                              processing. This should only be used by</span>
+<span class="sd">                              :meth:`prerun()`. Defaults to ``False``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instream</span> <span class="ow">or</span> <span class="n">instream</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_pointer</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>

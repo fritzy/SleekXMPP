@@ -128,6 +128,33 @@ discarded after one use. Defaults to <tt class="docutils literal"><span class="p
 </dd></dl>
 
 <dl class="method">
+<dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.add_filter">
+<tt class="descname">add_filter</tt><big>(</big><em>mode</em>, <em>handler</em>, <em>order=None</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/xmlstream.html#XMLStream.add_filter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.add_filter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a filter for incoming or outgoing stanzas.</p>
+<p>These filters are applied before incoming stanzas are
+passed to any handlers, and before outgoing stanzas
+are put in the send queue.</p>
+<p>Each filter must accept a single stanza, and return
+either a stanza or <tt class="docutils literal"><span class="pre">None</span></tt>. If the filter returns
+<tt class="docutils literal"><span class="pre">None</span></tt>, then the stanza will be dropped from being
+processed for events or from being sent.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>mode</strong> &#8211; One of <tt class="docutils literal"><span class="pre">'in'</span></tt> or <tt class="docutils literal"><span class="pre">'out'</span></tt>.</li>
+<li><strong>handler</strong> &#8211; The filter function.</li>
+<li><strong>order</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/functions.html#int" title="(in Python v3.2)"><em>int</em></a>) &#8211; The position to insert the filter in
+the list of active filters.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="sleekxmpp.xmlstream.xmlstream.XMLStream.add_handler">
 <tt class="descname">add_handler</tt><big>(</big><em>mask</em>, <em>pointer</em>, <em>name=None</em>, <em>disposable=False</em>, <em>threaded=False</em>, <em>filter=False</em>, <em>instream=False</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/xmlstream.html#XMLStream.add_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.xmlstream.XMLStream.add_handler" title="Permalink to this definition">¶</a></dt>
 <dd><p>A shortcut method for registering a handler using XML masks.</p>

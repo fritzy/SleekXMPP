@@ -46,12 +46,15 @@
         
         
   <h1>Source code for sleekxmpp.exceptions</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    SleekXMPP: The Sleek XMPP Library</span>
-<span class="sd">    Copyright (C) 2010  Nathanael C. Fritz</span>
-<span class="sd">    This file is part of SleekXMPP.</span>
+<span class="sd">    sleekxmpp.exceptions</span>
+<span class="sd">    ~~~~~~~~~~~~~~~~~~~~</span>
 
-<span class="sd">    See the file LICENSE for copying permission.</span>
+<span class="sd">    Part of SleekXMPP: The Sleek XMPP Library</span>
+
+<span class="sd">    :copyright: (c) 2011 Nathanael C. Fritz</span>
+<span class="sd">    :license: MIT, see LICENSE for more details</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 
@@ -61,37 +64,35 @@
 <span class="sd">    A generic exception that may be raised while processing an XMPP stanza</span>
 <span class="sd">    to indicate that an error response stanza should be sent.</span>
 
-<span class="sd">    The exception method for stanza objects extending RootStanza will create</span>
-<span class="sd">    an error stanza and initialize any additional substanzas using the</span>
-<span class="sd">    extension information included in the exception.</span>
+<span class="sd">    The exception method for stanza objects extending</span>
+<span class="sd">    :class:`~sleekxmpp.stanza.rootstanza.RootStanza` will create an error</span>
+<span class="sd">    stanza and initialize any additional substanzas using the extension</span>
+<span class="sd">    information included in the exception.</span>
 
 <span class="sd">    Meant for use in SleekXMPP plugins and applications using SleekXMPP.</span>
+
+<span class="sd">    Extension information can be included to add additional XML elements</span>
+<span class="sd">    to the generated error stanza.</span>
+
+<span class="sd">    :param condition: The XMPP defined error condition.</span>
+<span class="sd">                      Defaults to ``&#39;undefined-condition&#39;``.</span>
+<span class="sd">    :param text: Human readable text describing the error.</span>
+<span class="sd">    :param etype: The XMPP error type, such as ``&#39;cancel&#39;`` or ``&#39;modify&#39;``.</span>
+<span class="sd">                  Defaults to ``&#39;cancel&#39;``.</span>
+<span class="sd">    :param extension: Tag name of the extension&#39;s XML content.</span>
+<span class="sd">    :param extension_ns: XML namespace of the extensions&#39; XML content.</span>
+<span class="sd">    :param extension_args: Content and attributes for the extension</span>
+<span class="sd">                           element. Same as the additional arguments to</span>
+<span class="sd">                           the :class:`~xml.etree.ElementTree.Element`</span>
+<span class="sd">                           constructor.</span>
+<span class="sd">    :param clear: Indicates if the stanza&#39;s contents should be</span>
+<span class="sd">                  removed before replying with an error.</span>
+<span class="sd">                  Defaults to ``True``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">condition</span><span class="o">=</span><span class="s">&#39;undefined-condition&#39;</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                 <span class="n">etype</span><span class="o">=</span><span class="s">&#39;cancel&#39;</span><span class="p">,</span> <span class="n">extension</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">extension_ns</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                 <span class="n">extension_args</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">clear</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Create a new XMPPError exception.</span>
-
-<span class="sd">        Extension information can be included to add additional XML elements</span>
-<span class="sd">        to the generated error stanza.</span>
-
-<span class="sd">        Arguments:</span>
-<span class="sd">            condition      -- The XMPP defined error condition.</span>
-<span class="sd">                              Defaults to &#39;undefined-condition&#39;.</span>
-<span class="sd">            text           -- Human readable text describing the error.</span>
-<span class="sd">            etype          -- The XMPP error type, such as cancel or modify.</span>
-<span class="sd">                              Defaults to &#39;cancel&#39;.</span>
-<span class="sd">            extension      -- Tag name of the extension&#39;s XML content.</span>
-<span class="sd">            extension_ns   -- XML namespace of the extensions&#39; XML content.</span>
-<span class="sd">            extension_args -- Content and attributes for the extension</span>
-<span class="sd">                              element. Same as the additional arguments to</span>
-<span class="sd">                              the ET.Element constructor.</span>
-<span class="sd">            clear          -- Indicates if the stanza&#39;s contents should be</span>
-<span class="sd">                              removed before replying with an error.</span>
-<span class="sd">                              Defaults to True.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">extension_args</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">extension_args</span> <span class="o">=</span> <span class="p">{}</span>
 
@@ -116,6 +117,8 @@
                 <span class="n">condition</span><span class="o">=</span><span class="s">&#39;remote-server-timeout&#39;</span><span class="p">,</span>
                 <span class="n">etype</span><span class="o">=</span><span class="s">&#39;cancel&#39;</span><span class="p">)</span>
 
+        <span class="c">#: The :class:`~sleekxmpp.stanza.iq.Iq` stanza whose response </span>
+        <span class="c">#: did not arrive before the timeout expired.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">iq</span> <span class="o">=</span> <span class="n">iq</span>
 </div>
 <div class="viewcode-block" id="IqError"><a class="viewcode-back" href="../../api/exceptions.html#sleekxmpp.exceptions.IqError">[docs]</a><span class="k">class</span> <span class="nc">IqError</span><span class="p">(</span><span class="n">XMPPError</span><span class="p">):</span>
@@ -131,6 +134,7 @@
                 <span class="n">text</span><span class="o">=</span><span class="n">iq</span><span class="p">[</span><span class="s">&#39;error&#39;</span><span class="p">][</span><span class="s">&#39;text&#39;</span><span class="p">],</span>
                 <span class="n">etype</span><span class="o">=</span><span class="n">iq</span><span class="p">[</span><span class="s">&#39;error&#39;</span><span class="p">][</span><span class="s">&#39;type&#39;</span><span class="p">])</span>
 
+        <span class="c">#: The :class:`~sleekxmpp.stanza.iq.Iq` error result stanza.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">iq</span> <span class="o">=</span> <span class="n">iq</span></div>
 </pre></div>
 

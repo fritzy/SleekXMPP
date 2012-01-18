@@ -557,32 +557,6 @@ deleted element. Defaults to False.</li>
 </dd></dl>
 
 <dl class="method">
-<dt id="sleekxmpp.xmlstream.stanzabase.ElementBase._fix_ns">
-<tt class="descname">_fix_ns</tt><big>(</big><em>xpath</em>, <em>split=False</em>, <em>propagate_ns=True</em><big>)</big><a class="reference internal" href="../../_modules/sleekxmpp/xmlstream/stanzabase.html#ElementBase._fix_ns"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase._fix_ns" title="Permalink to this definition">¶</a></dt>
-<dd><p>Apply the stanza&#8217;s namespace to elements in an XPath expression.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>xpath</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/string.html#string" title="(in Python v3.2)"><em>string</em></a>) &#8211; The XPath expression to fix with namespaces.</li>
-<li><strong>split</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/functions.html#bool" title="(in Python v3.2)"><em>bool</em></a>) &#8211; Indicates if the fixed XPath should be left as a
-list of element names with namespaces. Defaults to
-False, which returns a flat string path.</li>
-<li><strong>propagate_ns</strong> (<a class="reference external" href="http://docs.python.org/3.2/library/functions.html#bool" title="(in Python v3.2)"><em>bool</em></a>) &#8211; Overrides propagating parent element
-namespaces to child elements. Useful if
-you wish to simply split an XPath that has
-non-specified namespaces, and child and
-parent namespaces are known not to always
-match. Defaults to True.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
 <dt id="sleekxmpp.xmlstream.stanzabase.ElementBase._getAttr">
 <tt class="descname">_getAttr</tt><big>(</big><em>name</em>, <em>default=''</em><big>)</big><a class="headerlink" href="#sleekxmpp.xmlstream.stanzabase.ElementBase._getAttr" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the value of a top level attribute of the XML object.</p>

@@ -63,6 +63,17 @@ class feature_mechanisms(base_plugin):
         self.xmpp.register_stanza(stanza.Challenge)
         self.xmpp.register_stanza(stanza.Response)
 
+        self.xmpp.add_event_handler('stream_start',
+                self._handle_stream_start)
+        self.xmpp.add_event_handler('session_start',
+                self._handle_session_start)
+
+        self.xmpp.register_feature('mechanisms',
+                self._handle_sasl_auth,
+                restart=True,
+                order=self.config.get('order', 100))
+
+    def _handle_stream_start(self, root):
         self.xmpp.register_handler(
                 Callback('SASL Success',
                          MatchXPath(stanza.Success.tag_name()),
@@ -80,10 +91,10 @@ class feature_mechanisms(base_plugin):
                          MatchXPath(stanza.Challenge.tag_name()),
                          self._handle_challenge))
 
-        self.xmpp.register_feature('mechanisms',
-                self._handle_sasl_auth,
-                restart=True,
-                order=self.config.get('order', 100))
+    def _handle_session_start(self, e):
+        self.xmpp.remove_handler('SASL Success')
+        self.xmpp.remove_handler('SASL Failure')
+        self.xmpp.remove_handler('SASL Challenge')
 
     def _handle_sasl_auth(self, features):
         """

@@ -1223,6 +1223,7 @@ class XMLStream(object):
                     # as handshakes.
                     self.stream_end_event.clear()
                     self.start_stream_handler(root)
+                    self.event('stream_start', root, direct=True)
                 depth += 1
             if event == b'end':
                 depth -= 1

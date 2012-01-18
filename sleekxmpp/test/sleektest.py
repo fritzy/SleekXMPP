@@ -367,6 +367,7 @@ class SleekTest(unittest.TestCase):
         if skip:
             if socket != 'live':
                 # Mark send queue as usable
+                self.xmpp.event('session_start')
                 self.xmpp.session_started_event.set()
                 # Clear startup stanzas
                 self.xmpp.socket.next_sent(timeout=1)

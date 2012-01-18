@@ -98,13 +98,11 @@ class ClientXMPP(BaseXMPP):
 
         self.add_event_handler('connected', self._handle_connected)
         self.add_event_handler('session_bind', self._handle_session_bind)
+        self.add_event_handler('stream_start', self._handle_stream_start)
+        self.add_event_handler('session_start', self._handle_session_start)
 
         self.register_stanza(StreamFeatures)
 
-        self.register_handler(
-                Callback('Stream Features',
-                         MatchXPath('{%s}features' % self.stream_ns),
-                         self._handle_stream_features))
         self.register_handler(
                 Callback('Roster Update',
                          MatchXPath('{%s}iq/{%s}query' % (
@@ -118,6 +116,15 @@ class ClientXMPP(BaseXMPP):
         self.register_plugin('feature_session')
         self.register_plugin('feature_mechanisms',
                 pconfig={'use_mech': sasl_mech} if sasl_mech else None)
+
+    def _handle_stream_start(self, root):
+        self.register_handler(
+                Callback('Stream Features',
+                         MatchXPath('{%s}features' % self.stream_ns),
+                         self._handle_stream_features))
+
+    def _handle_session_start(self, e):
+        self.remove_handler('Stream Features')
 
     def connect(self, address=tuple(), reattempt=True,
                 use_tls=True, use_ssl=False):

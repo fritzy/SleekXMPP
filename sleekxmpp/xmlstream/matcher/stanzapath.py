@@ -10,6 +10,7 @@
 """
 
 from sleekxmpp.xmlstream.matcher.base import MatcherBase
+from sleekxmpp.xmlstream.stanzabase import fix_ns
 
 
 class StanzaPath(MatcherBase):
@@ -18,7 +19,15 @@ class StanzaPath(MatcherBase):
     The StanzaPath matcher selects stanzas that match a given "stanza path",
     which is similar to a normal XPath except that it uses the interfaces and
     plugins of the stanza instead of the actual, underlying XML.
+
+    :param criteria: Object to compare some aspect of a stanza against.
     """
+
+    def __init__(self, criteria):
+        self._criteria = fix_ns(criteria, split=True,
+                                          propagate_ns=False,
+                                          default_ns='jabber:client')
+        self._raw_criteria = criteria
 
     def match(self, stanza):
         """
@@ -31,4 +40,4 @@ class StanzaPath(MatcherBase):
         :param stanza: The :class:`~sleekxmpp.xmlstream.stanzabase.ElementBase`
                        stanza to compare against.
         """
-        return stanza.match(self._criteria)
+        return stanza.match(self._criteria) or stanza.match(self._raw_criteria)

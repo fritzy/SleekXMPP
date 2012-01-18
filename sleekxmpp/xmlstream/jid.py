@@ -139,3 +139,7 @@ class JID(object):
     def __ne__(self, other):
         """Two JIDs are considered unequal if they are not equal."""
         return not self == other
+
+    def __hash__(self):
+        """Hash a JID based on the string version of its full JID."""
+        return hash(self.full)

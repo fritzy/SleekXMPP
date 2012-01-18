@@ -241,10 +241,6 @@ realtime web and XMPP applications.
     - `contact@andyet.net <mailto:contact@andyet.net>`_
     - `XMPP Consulting <http://xmppconsulting.com>`_
 
-**Co-Author:** Lance Stout
-    `lancestout@gmail.com <xmpp:lancestout@gmail.com?message>`_, 
-    `@lancestout <http://twitter.com/lancestout>`_
-
 **Contributors:**
     - Brian Beggs (`macdiesel <http://github.com/macdiesel>`_)
     - Dann Martens (`dannmartens <http://github.com/dannmartens>`_)

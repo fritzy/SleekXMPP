@@ -144,6 +144,9 @@ class RosterNode(object):
         """
         if isinstance(jid, JID):
             key = jid.bare
+        else:
+            key = jid
+
         state = {'name': name,
                  'groups': groups or [],
                  'from': afrom,

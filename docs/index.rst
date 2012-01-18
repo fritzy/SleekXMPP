@@ -13,7 +13,7 @@ SleekXMPP
     ``develop`` branch.
 
     **Latest Stable Release**
-        - `1.0 <http://github.com/fritzy/SleekXMPP/zipball/1.0>`_  
+        - `1.0 RC3 <http://github.com/fritzy/SleekXMPP/zipball/1.0-RC3>`_  
 
     **Develop Releases**
         - `Latest Develop Version <http://github.com/fritzy/SleekXMPP/zipball/develop>`_
@@ -58,6 +58,73 @@ SleekXMPP's design goals and philosphy are:
     As much as possible, SleekXMPP should allow things to "just work" using
     sensible defaults and appropriate abstractions. XML can be ugly to work
     with, but it doesn't have to be that way.
+
+
+Here's your first SleekXMPP Bot:
+--------------------------------
+
+.. code-block:: python
+
+    import logging
+
+    from sleekxmpp import ClientXMPP
+    from sleekxmpp.exceptions import IqError, IqTimeout
+
+
+    class EchoBot(ClientXMPP):
+
+        def __init__(self, jid, password):
+            ClientXMPP.__init__(self, jid, password)
+
+            self.add_event_handler("session_start", self.session_start)
+            self.add_event_handler("message", self.message)
+
+            self.register_plugin('xep_0030') # Service Discovery
+            self.register_plugin('xep_0199') # XMPP Ping
+
+            # Here's how to access plugins once you've registered them:
+            # self['xep_0030'].add_feature('echodemo')
+            # You can also use self.plugin['xep_0030']
+
+            # If you are working with an OpenFire server, you will
+            # need to use a different SSL version:
+            # import ssl
+            # self.ssl_version = ssl.PROTOCOL_SSLv3
+
+        def session_start(self, event):
+            self.send_presence()
+            self.get_roster()
+
+            # Most get_*/set_* methods from plugins use Iq stanzas, which
+            # can generate IqError and IqTimeout exceptions
+            #
+            # try:
+            #     self.get_roster()
+            # except IqError as err:
+            #     logging.error('There was an error getting the roster')
+            #     logging.error(err.iq['error']['condition'])
+            #     self.disconnect()
+            # except IqTimeout:
+            #     logging.error('Server is taking too long to respond')
+            #     self.disconnect()
+
+        def message(self, msg):
+            if msg['type'] in ('chat', 'normal'):
+                msg.reply("Thanks for sending\n%(body)s" % msg).send()
+
+
+    if __name__ == '__main__':
+        # Ideally use optparse or argparse to get JID, 
+        # password, and log level.
+
+        logging.basicConfig(level=logging.DEBUG,
+                            format='%(levelname)-8s %(message)s')
+
+        xmpp = EchoBot('somejid@example.com', 'use_getpass')
+        xmpp.connect()
+        xmpp.process(block=True)
+
+
 
 Getting Started (with Examples)
 -------------------------------
@@ -156,23 +223,17 @@ Additional Info
 
 Credits
 -------
-**Main Author:** `Nathan Fritz <http://andyet.net/team/fritzy>`_
+**Main Author:** Nathan Fritz
     `fritzy@netflint.net <xmpp:fritzy@netflint.net?message>`_, 
     `@fritzy <http://twitter.com/fritzy>`_
 
     Nathan is also the author of XMPPHP and `Seesmic-AS3-XMPP
-    <http://code.google.com/p/seesmic-as3-xmpp/>`_, and a former member of the XMPP
+    <http://code.google.com/p/seesmic-as3-xmpp/>`_, and a member of the XMPP
     Council.
 
-**Co-Author:** `Lance Stout <http://andyet.net/team/lance>`_
+**Co-Author:** Lance Stout
     `lancestout@gmail.com <xmpp:lancestout@gmail.com?message>`_, 
     `@lancestout <http://twitter.com/lancestout>`_
-
-Both Fritzy and Lance work for `&yet <http://andyet.net>`_, which specializes in
-realtime web and XMPP applications. 
-
-- `contact@andyet.net <mailto:contact@andyet.net>`_
-- `XMPP Consulting <http://xmppconsulting.com>`_
 
 **Contributors:**
     - Brian Beggs (`macdiesel <http://github.com/macdiesel>`_)

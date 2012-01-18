@@ -27,29 +27,19 @@ class feature_starttls(base_plugin):
         self.description = "STARTTLS Stream Feature"
         self.stanza = stanza
 
-        self.xmpp.register_feature('starttls',
-                self._handle_starttls,
-                restart=True,
-                order=self.config.get('order', 0))
-
-        self.xmpp.add_event_handler('stream_start',
-                self._handle_stream_start)
-        self.xmpp.add_event_handler('session_start',
-                self._handle_session_start)
-
-        self.xmpp.register_stanza(stanza.Proceed)
-        self.xmpp.register_stanza(stanza.Failure)
-        register_stanza_plugin(StreamFeatures, stanza.STARTTLS)
-
-    def _handle_stream_start(self, root):
         self.xmpp.register_handler(
                 Callback('STARTTLS Proceed',
                         MatchXPath(stanza.Proceed.tag_name()),
                         self._handle_starttls_proceed,
                         instream=True))
+        self.xmpp.register_feature('starttls',
+                self._handle_starttls,
+                restart=True,
+                order=self.config.get('order', 0))
 
-    def _handle_session_start(self, e):
-        self.xmpp.remove_handler('STARTTLS Proceed')
+        self.xmpp.register_stanza(stanza.Proceed)
+        self.xmpp.register_stanza(stanza.Failure)
+        register_stanza_plugin(StreamFeatures, stanza.STARTTLS)
 
     def _handle_starttls(self, features):
         """

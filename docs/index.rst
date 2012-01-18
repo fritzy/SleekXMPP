@@ -78,12 +78,12 @@ Here's your first SleekXMPP Bot:
             self.add_event_handler("session_start", self.session_start)
             self.add_event_handler("message", self.message)
 
-            self.register_plugin('xep_0030') # Service Discovery
-            self.register_plugin('xep_0199') # XMPP Ping
+            # If you wanted more functionality, here's how to register plugins:
+            # self.register_plugin('xep_0030') # Service Discovery
+            # self.register_plugin('xep_0199') # XMPP Ping
 
             # Here's how to access plugins once you've registered them:
-            # self['xep_0030'].add_feature('echodemo')
-            # You can also use self.plugin['xep_0030']
+            # self['xep_0030'].add_feature('echo_demo')
 
             # If you are working with an OpenFire server, you will
             # need to use a different SSL version:
@@ -222,13 +222,24 @@ Additional Info
 
 Credits
 -------
-**Main Author:** Nathan Fritz
-    `fritzy@netflint.net <xmpp:fritzy@netflint.net?message>`_, 
-    `@fritzy <http://twitter.com/fritzy>`_
 
-    Nathan is also the author of XMPPHP and `Seesmic-AS3-XMPP
-    <http://code.google.com/p/seesmic-as3-xmpp/>`_, and a member of the XMPP
-    Council.
+**Main Author:** `Nathan Fritz <http://andyet.net/team/fritzy>`_
+     `fritzy@netflint.net <xmpp:fritzy@netflint.net?message>`_,
+     `@fritzy <http://twitter.com/fritzy>`_
+
+     Nathan is also the author of XMPPHP and `Seesmic-AS3-XMPP
+     <http://code.google.com/p/seesmic-as3-xmpp/>`_, and a former member of the XMPP
+     Council.
+
+**Co-Author:** `Lance Stout <http://andyet.net/team/lance>`_
+     `lancestout@gmail.com <xmpp:lancestout@gmail.com?message>`_,
+     `@lancestout <http://twitter.com/lancestout>`_
+
+Both Fritzy and Lance work for `&yet <http://andyet.net>`_, which specializes in
+realtime web and XMPP applications.
+
+    - `contact@andyet.net <mailto:contact@andyet.net>`_
+    - `XMPP Consulting <http://xmppconsulting.com>`_
 
 **Co-Author:** Lance Stout
     `lancestout@gmail.com <xmpp:lancestout@gmail.com?message>`_, 

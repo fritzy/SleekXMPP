@@ -6,7 +6,7 @@
     See the file LICENSE for copying permission.
 """
 
-from sleekxmpp.xmlstream import ElementBase, ET
+from sleekxmpp.xmlstream import ElementBase, ET, register_stanza_plugin
 
 
 class DiscoItems(ElementBase):
@@ -78,13 +78,11 @@ class DiscoItems(ElementBase):
         """
         if (jid, node) not in self._items:
             self._items.add((jid, node))
-            item_xml = ET.Element('{%s}item' % self.namespace)
-            item_xml.attrib['jid'] = jid
-            if name:
-                item_xml.attrib['name'] = name
-            if node:
-                item_xml.attrib['node'] = node
-            self.xml.append(item_xml)
+            item = DiscoItem(parent=self)
+            item['jid'] = jid
+            item['node'] = node
+            item['name'] = name
+            self.iterables.append(item)
             return True
         return False
 
@@ -108,11 +106,9 @@ class DiscoItems(ElementBase):
     def get_items(self):
         """Return all items."""
         items = set()
-        for item_xml in self.findall('{%s}item' % self.namespace):
-            item = (item_xml.attrib['jid'],
-                    item_xml.attrib.get('node'),
-                    item_xml.attrib.get('name'))
-            items.add(item)
+        for item in self['substanzas']:
+            if isinstance(item, DiscoItem):
+                items.add((item['jid'], item['node'], item['name']))
         return items
 
     def set_items(self, items):
@@ -132,5 +128,23 @@ class DiscoItems(ElementBase):
     def del_items(self):
         """Remove all items."""
         self._items = set()
-        for item_xml in self.findall('{%s}item' % self.namespace):
-            self.xml.remove(item_xml)
+        for item in self['substanzas']:
+            if isinstance(item, DiscoItem):
+                self.xml.remove(item.xml)
+
+
+class DiscoItem(ElementBase):
+    name = 'item'
+    namespace = 'http://jabber.org/protocol/disco#items'
+    plugin_attrib = name
+    interfaces = set(('jid', 'node', 'name'))
+
+    def get_node(self):
+        return self._get_attr('node', None)
+
+    def get_name(self):
+        return self._get_attr('name', None)
+
+
+register_stanza_plugin(DiscoItems, DiscoItem, iterable=True)
+

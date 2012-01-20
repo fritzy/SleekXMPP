@@ -61,6 +61,9 @@ class feature_mechanisms(base_plugin):
                                 tls_active=tls_active,
                                 mech=self.use_mech)
 
+        self.mech_list = set()
+        self.attempted_mechs = set()
+
         register_stanza_plugin(StreamFeatures, stanza.Mechanisms)
 
         self.xmpp.register_stanza(stanza.Success)
@@ -73,14 +76,12 @@ class feature_mechanisms(base_plugin):
                 Callback('SASL Success',
                          MatchXPath(stanza.Success.tag_name()),
                          self._handle_success,
-                         instream=True,
-                         once=True))
+                         instream=True))
         self.xmpp.register_handler(
                 Callback('SASL Failure',
                          MatchXPath(stanza.Failure.tag_name()),
                          self._handle_fail,
-                         instream=True,
-                         once=True))
+                         instream=True))
         self.xmpp.register_handler(
                 Callback('SASL Challenge',
                          MatchXPath(stanza.Challenge.tag_name()),
@@ -103,10 +104,15 @@ class feature_mechanisms(base_plugin):
             # server has incorrectly offered it again.
             return False
 
-        mech_list = features['mechanisms']
+        self.mech_list = set(features['mechanisms'])
+        return self._send_auth()
+
+    def _send_auth(self):
+        mech_list = self.mech_list - self.attempted_mechs
         self.mech = self.sasl.choose_mechanism(mech_list)
 
         if self.mech is not None:
+            self.attempted_mechs.add(self.mech.name)
             resp = stanza.Auth(self.xmpp)
             resp['mechanism'] = self.mech.name
             resp['value'] = self.mech.process()
@@ -133,5 +139,5 @@ class feature_mechanisms(base_plugin):
         """SASL authentication failed. Disconnect and shutdown."""
         log.info("Authentication failed: %s", stanza['condition'])
         self.xmpp.event("failed_auth", stanza, direct=True)
-        self.xmpp.disconnect()
+        self._send_auth()
         return True

@@ -74,11 +74,14 @@ class ClientXMPP(BaseXMPP):
         BaseXMPP.__init__(self, jid, 'jabber:client')
 
         self.set_jid(jid)
-        self.password = password
         self.escape_quotes = escape_quotes
         self.plugin_config = plugin_config
         self.plugin_whitelist = plugin_whitelist
         self.default_port = 5222
+
+        self.credentials = {}
+
+        self.password = password
 
         self.stream_header = "<stream:stream to='%s' %s %s version='1.0'>" % (
                 self.boundjid.host,
@@ -118,6 +121,14 @@ class ClientXMPP(BaseXMPP):
         self.register_plugin('feature_session')
         self.register_plugin('feature_mechanisms',
                 pconfig={'use_mech': sasl_mech} if sasl_mech else None)
+
+    @property
+    def password(self):
+        return self.credentials.get('password', '')
+
+    @password.setter
+    def password(self, value):
+        self.credentials['password'] = value
 
     def connect(self, address=tuple(), reattempt=True,
                 use_tls=True, use_ssl=False):

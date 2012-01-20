@@ -35,12 +35,18 @@ class feature_mechanisms(base_plugin):
             return 'starttls' in self.xmpp.features
 
         def basic_callback(mech, values):
-            if 'username' in values:
-                values['username'] = self.xmpp.boundjid.user
-            if 'password' in values:
-                values['password'] = self.xmpp.password
-            if 'access_token' in values:
-                values['access_token'] = self.xmpp.password
+            for value in values:
+                if value == 'username':
+                    values['username'] = self.xmpp.boundjid.user
+                elif value == 'password':
+                    values['password'] = self.xmpp.credentials['password']
+                elif value == 'access_token':
+                    if 'access_token' in self.xmpp.credentials:
+                        values['access_token'] = self.xmpp.credentials['access_token']
+                    else:
+                        values['access_token'] = self.xmpp.credentials['password']
+                elif value in self.xmpp.credentials:
+                    values[value] = self.xmpp.credentials[value]
             mech.fulfill(values)
 
         sasl_callback = self.config.get('sasl_callback', None)

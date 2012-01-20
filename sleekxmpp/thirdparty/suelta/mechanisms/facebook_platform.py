@@ -17,21 +17,21 @@ class X_FACEBOOK_PLATFORM(Mechanism):
     def process(self, challenge=None):
         if challenge is not None:
             values = {}
-            for kv in challenge.split('&'):
-                key, value = kv.split('=')
+            for kv in challenge.split(b'&'):
+                key, value = kv.split(b'=')
                 values[key] = value
 
             resp_data = {
-                'method': values['method'],
-                'v': '1.0',
-                'call_id': '1.0',
-                'nonce': values['nonce'],
-                'access_token': self.values['access_token'],
-                'api_key': self.values['api_key']
+                b'method': values[b'method'],
+                b'v': b'1.0',
+                b'call_id': b'1.0',
+                b'nonce': values[b'nonce'],
+                b'access_token': self.values['access_token'],
+                b'api_key': self.values['api_key']
             }
             resp = '&'.join(['%s=%s' % (k, v) for k, v in resp_data.items()])
             return bytes(resp)
-        return bytes('')
+        return b''
 
     def okay(self):
         return True

@@ -58,4 +58,4 @@ class PLAIN(Mechanism):
         return True
 
 
-register_mechanism('PLAIN', 1, PLAIN, use_hashes=False)
+register_mechanism('PLAIN', 5, PLAIN, use_hashes=False)

@@ -13,3 +13,4 @@ from sleekxmpp.features.feature_mechanisms.stanza.success import Success
 from sleekxmpp.features.feature_mechanisms.stanza.failure import Failure
 from sleekxmpp.features.feature_mechanisms.stanza.challenge import Challenge
 from sleekxmpp.features.feature_mechanisms.stanza.response import Response
+from sleekxmpp.features.feature_mechanisms.stanza.abort import Abort

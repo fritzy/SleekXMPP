@@ -42,7 +42,7 @@ class X_GOOGLE_TOKEN(Mechanism):
                 resp = conn.getresponse().read()
                 data = {}
                 for line in resp.split():
-                    k, v = line.split(b'=')
+                    k, v = line.split(b'=', 1)
                     data[k] = v
             except Exception as e:
                 raise e

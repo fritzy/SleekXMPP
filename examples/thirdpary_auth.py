@@ -212,14 +212,14 @@ if __name__ == '__main__':
     xmpp.credentials['access_token'] = access_token
 
     # The credentials dictionary is used to provide additional authentication
-    # beyond just a password.
+    # information beyond just a password.
     
     xmpp.register_plugin('xep_0030') # Service Discovery
     xmpp.register_plugin('xep_0004') # Data Forms
     xmpp.register_plugin('xep_0060') # PubSub
 
     # MSN will kill connections that have been inactive for even
-    # short periods of time. So use pings to keep the session alive,
+    # short periods of time. So use pings to keep the session alive;
     # whitespace keepalives do not work.
     xmpp.register_plugin('xep_0199', {'keepalive': True, 'frequency': 60})
 

@@ -33,7 +33,7 @@ class CRAM_MD5(Mechanism):
         if 'savepass' not in self.values:
             del self.values['password']
 
-    def process(self, challenge):
+    def process(self, challenge=None):
         """
         """
         if challenge is None:

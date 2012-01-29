@@ -454,7 +454,7 @@ class XMLStream(object):
             return True
         except Socket.error as serr:
             error_msg = "Could not connect to %s:%s. Socket Error #%s: %s"
-            self.event('socket_error', serr)
+            self.event('socket_error', serr, direct=True)
             log.error(error_msg, self.address[0], self.address[1],
                                  serr.errno, serr.strerror)
             self.reconnect_delay = delay
@@ -507,7 +507,7 @@ class XMLStream(object):
             return True
         except Socket.error as serr:
             error_msg = "Could not connect to %s:%s. Socket Error #%s: %s"
-            self.event('socket_error', serr)
+            self.event('socket_error', serr, direct=True)
             log.error(error_msg, self.address[0], self.address[1],
                                  serr.errno, serr.strerror)
             return False
@@ -578,7 +578,7 @@ class XMLStream(object):
             self.socket.close()
             self.filesocket.close()
         except Socket.error as serr:
-            self.event('socket_error', serr)
+            self.event('socket_error', serr, direct=True)
         finally:
             #clear your application state
             self.event("disconnected", direct=True)
@@ -1092,7 +1092,7 @@ class XMLStream(object):
                 if count > 1:
                     log.debug('SENT: %d chunks', count)
             except Socket.error as serr:
-                self.event('socket_error', serr)
+                self.event('socket_error', serr, direct=True)
                 log.warning("Failed to send %s", data)
                 if reconnect is None:
                     reconnect = self.auto_reconnect
@@ -1193,7 +1193,7 @@ class XMLStream(object):
                 shutdown = True
                 self.exception(e)
             except Socket.error as serr:
-                self.event('socket_error', serr)
+                self.event('socket_error', serr, direct=True)
                 log.exception('Socket Error')
             except Exception as e:
                 if not self.stop.is_set():
@@ -1445,7 +1445,7 @@ class XMLStream(object):
                         log.debug('SENT: %d chunks', count)
                     self.send_queue.task_done()
                 except Socket.error as serr:
-                    self.event('socket_error', serr)
+                    self.event('socket_error', serr, direct=True)
                     log.warning("Failed to send %s", data)
                     self.__failed_send_stanza = data
                     self.disconnect(self.auto_reconnect)

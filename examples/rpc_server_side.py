@@ -15,7 +15,7 @@ class Thermostat(Endpoint):
     def FQN(self):
         return 'thermostat'
     
-    def __init(self, initial_temperature):
+    def __init__(self, initial_temperature):
         self._temperature = initial_temperature
         self._event = threading.Event()        
     

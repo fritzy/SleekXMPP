@@ -1408,7 +1408,7 @@ class XMLStream(object):
         """Extract stanzas from the send queue and send them on the stream."""
         try:
             while not self.stop.is_set():
-                while not self.stop.is_set and \
+                while not self.stop.is_set() and \
                       not self.session_started_event.is_set():
                     self.session_started_event.wait(timeout=1)
                 if self.__failed_send_stanza is not None:

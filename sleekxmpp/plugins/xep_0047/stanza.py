@@ -46,14 +46,17 @@ class Data(ElementBase):
         self._set_attr('seq', str(value))
 
     def get_data(self):
-        b64_data = self._get_sub_text('data', '')
+        b64_data = self.xml.text
         if VALID_B64.match(b64_data).group() == b64_data:
             return from_b64(b64_data)
         else:
             raise XMPPError('not-acceptable')
 
     def set_data(self, value):
-        self._set_sub_text('data', to_b64(value))
+        self.xml.text = to_64(value)
+
+    def del_data(self):
+        self.xml.text = ''
 
 
 class Close(ElementBase):

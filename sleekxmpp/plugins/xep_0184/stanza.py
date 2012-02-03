@@ -1,6 +1,6 @@
 """
     SleekXMPP: The Sleek XMPP Library
-    Copyright (C) 2012 Erik Reuterborg Larsson
+    Copyright (C) 2012 Erik Reuterborg Larsson, Nathanael C. Fritz
     This file is part of SleekXMPP.
 
     See the file LICENSE for copying permission.

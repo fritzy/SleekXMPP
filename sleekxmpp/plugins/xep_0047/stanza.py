@@ -53,7 +53,7 @@ class Data(ElementBase):
             raise XMPPError('not-acceptable')
 
     def set_data(self, value):
-        self.xml.text = to_64(value)
+        self.xml.text = to_b64(value)
 
     def del_data(self):
         self.xml.text = ''

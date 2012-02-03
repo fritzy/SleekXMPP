@@ -22,7 +22,7 @@ class xep_0047(base_plugin):
         self.stanza = stanza
 
         self.streams = {}
-        self.pending_streams = {}
+        self.pending_streams = {3: 5}
         self.pending_close_streams = {}
         self._stream_lock = threading.Lock()
 
@@ -63,9 +63,6 @@ class xep_0047(base_plugin):
 
     def open_stream(self, jid, block_size=4096, sid=None, window=1,
                     ifrom=None, block=True, timeout=None, callback=None):
-        if not block and callback is not None:
-            callback = lambda resp: self._handle_opened_stream(resp, callback)
-
         if sid is None:
             sid = str(uuid.uuid4())
 
@@ -77,29 +74,40 @@ class xep_0047(base_plugin):
         iq['ibb_open']['sid'] = sid
         iq['ibb_open']['stanza'] = 'iq'
 
-        stream = IBBytestream(self.xmpp, sid, size, 
+        stream = IBBytestream(self.xmpp, sid, block_size,
                               iq['to'], iq['from'], window)
-        
+
         with self._stream_lock:
             self.pending_streams[iq['id']] = stream
-                                                          
-        resp = iq.send(block=block, timeout=timeout, callback=callback)
+
+        self.pending_streams[iq['id']] = stream
+
         if block:
+            resp = iq.send(timeout=timeout)
             self._handle_opened_stream(resp)
             return stream
+        else:
+            cb = None
+            if callback is not None:
+                def chained(resp):
+                    self._handle_opened_stream(resp)
+                    callback(resp)
+                cb = chained
+            else:
+                cb = self._handle_opened_stream
+            return iq.send(block=block, timeout=timeout, callback=cb)
 
-    def _handle_opened_stream(self, iq, callback=None):
+
+    def _handle_opened_stream(self, iq):
         if iq['type'] == 'result':
             with self._stream_lock:
-                stream = self.pending_streams[iq['id']]
-                stream.sender = iq['to']
-                stream.receiver = iq['from']
-                stream.stream_started.set()
-                self.streams[stream.sid] = stream
-                self.xmpp.event('ibb_stream_start', stream)
-
-        if callback is not None:
-            callback(iq)
+                stream = self.pending_streams.get(iq['id'], None)
+                if stream is not None:
+                    stream.sender = iq['to']
+                    stream.receiver = iq['from']
+                    stream.stream_started.set()
+                    self.streams[stream.sid] = stream
+                    self.xmpp.event('ibb_stream_start', stream)
 
         with self._stream_lock:
             if iq['id'] in self.pending_streams:
@@ -114,7 +122,7 @@ class xep_0047(base_plugin):
         if size > self.max_block_size:
             raise XMPPError('resource-constraint')
 
-        stream = IBBytestream(self.xmpp, sid, size, 
+        stream = IBBytestream(self.xmpp, sid, size,
                               iq['from'], iq['to'],
                               self.window_size)
         stream.stream_started.set()

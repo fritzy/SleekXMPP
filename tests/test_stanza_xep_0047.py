@@ -73,5 +73,18 @@ class TestIBB(SleekTest):
 
         self.assertTrue(errored, "ABCD?EFGH did not raise base64 error")
 
+    def testConvertData(self):
+        """Test that data is converted to base64"""
+        iq = Iq()
+        iq['type'] = 'set'
+        iq['ibb_data']['seq'] = 0
+        iq['ibb_data']['data'] = 'sleekxmpp'
+
+        self.check(iq, """
+          <iq type="set">
+            <data xmlns="http://jabber.org/protocol/ibb" seq="0">c2xlZWt4bXBw</data>
+          </iq>
+        """)
+
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestIBB)

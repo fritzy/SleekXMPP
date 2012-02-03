@@ -9,7 +9,7 @@
 from sleekxmpp.stanza import Message
 from sleekxmpp.xmlstream import register_stanza_plugin
 from sleekxmpp.plugins.base import base_plugin
-from stanza import Request, Received
+from sleekxmpp.plugins.xep_0184 import stanza, Request, Received
 
 
 class xep_0184(base_plugin):
@@ -20,6 +20,8 @@ class xep_0184(base_plugin):
     def plugin_init(self):
         self.xep = '0184'
         self.description = 'Message Delivery Receipts'
+        self.stanza = stanza
+
         register_stanza_plugin(Message, Request)
         register_stanza_plugin(Message, Received)
 

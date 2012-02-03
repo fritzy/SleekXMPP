@@ -46,7 +46,7 @@ class Data(ElementBase):
         self._set_attr('seq', str(value))
 
     def get_data(self):
-        b64_data = self.xml.text
+        b64_data = self.xml.text.strip()
         if VALID_B64.match(b64_data).group() == b64_data:
             return from_b64(b64_data)
         else:

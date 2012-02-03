@@ -16,7 +16,7 @@ def saslprep(text, strict=True):
 
     if sys.version_info < (3, 0):
         if type(text) == str:
-            text = text.decode('us-ascii')
+            text = text.decode('utf-8')
 
     # Mapping:
     #

@@ -442,6 +442,9 @@ class XMLStream(object):
             else:
                 self.socket = ssl_socket
 
+            cert = self.socket.getpeercert()
+            log.debug('CERT: %s', cert)
+            self.event('ssl_cert', cert, direct=True)
         try:
             if not self.use_proxy:
                 log.debug("Connecting to %s:%s", *self.address)
@@ -675,6 +678,11 @@ class XMLStream(object):
             else:
                 self.socket = ssl_socket
             self.socket.do_handshake()
+
+            cert = self.socket.getpeercert()
+            log.debug('CERT: %s', cert)
+            self.event('ssl_cert', cert, direct=True)
+
             self.set_socket(self.socket)
             return True
         else:

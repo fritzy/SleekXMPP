@@ -33,7 +33,10 @@ class Challenge(StanzaBase):
         return base64.b64decode(bytes(self.xml.text))
 
     def set_value(self, values):
-        self.xml.text = bytes(base64.b64encode(values)).decode('utf-8')
+        if values:
+            self.xml.text = bytes(base64.b64encode(values)).decode('utf-8')
+        else:
+            self.xml.text = '='
 
     def del_value(self):
         self.xml.text = ''

@@ -166,8 +166,10 @@ class ClientXMPP(BaseXMPP):
             try:
                 record = "_xmpp-client._tcp.%s" % domain
                 answers = []
+                log.debug("Querying SRV records for %s" % domain)
                 for answer in dns.resolver.query(record, dns.rdatatype.SRV):
                     address = (answer.target.to_text()[:-1], answer.port)
+                    log.debug("Found SRV record: %s", address)
                     answers.append((address, answer.priority, answer.weight))
             except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
                 log.warning("No SRV records for %s", domain)
@@ -179,7 +181,7 @@ class ClientXMPP(BaseXMPP):
             return answers
         else:
             log.warning("dnspython is not installed -- " + \
-                        "relying on OS A record resolution")
+                        "relying on OS A/AAAA record resolution")
             return [((domain, port), 0, 0)]
 
     def register_feature(self, name, handler, restart=False, order=5000):

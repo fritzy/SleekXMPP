@@ -397,7 +397,25 @@ class XMLStream(object):
         if self.default_domain:
             self.address = self.pick_dns_answer(self.default_domain,
                                                 self.address[1])
-        self.socket = self.socket_class(Socket.AF_INET, Socket.SOCK_STREAM)
+        
+        try:
+            # Look for IPv6 addresses, in addition to IPv4
+            for res in Socket.getaddrinfo(self.address[0],
+                                          int(self.address[1]),
+                                          0,
+                                          Socket.SOCK_STREAM):
+                log.debug("Trying: %s", res[-1])
+                af, sock_type, proto, canonical, sock_addr = res
+                try:
+                    self.socket = self.socket_class(af, sock_type, proto)
+                    break
+                except Socket.error:
+                    log.debug("Could not open IPv%s socket." % proto)
+        except Socket.gaierror:
+            log.warning("Socket could not be opened, wrong IP versions.")
+            self.stop.set()
+            return False
+
         self.configure_socket()
 
         if self.reconnect_delay is None:
@@ -839,20 +857,44 @@ class XMLStream(object):
             resolver = dns.resolver.get_default_resolver()
             self.configure_dns(resolver, domain=domain, port=port)
 
+            v4_answers = []
+            v6_answers = []
+            answers = []
+
             try:
-                answers = resolver.query(domain, dns.rdatatype.A)
+                log.debug("Querying A records for %s" % domain)
+                v4_answers = resolver.query(domain, dns.rdatatype.A)
             except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
                 log.warning("No A records for %s", domain)
-                return [((domain, port), 0, 0)]
+                v4_answers = [((domain, port), 0, 0)]
             except dns.exception.Timeout:
                 log.warning("DNS resolution timed out " + \
                             "for A record of %s", domain)
-                return [((domain, port), 0, 0)]
+                v4_answers = [((domain, port), 0, 0)]
             else:
-                return [((ans.address, port), 0, 0) for ans in answers]
+                for ans in v4_answers:
+                    log.debug("Found A record: %s", ans[0])
+                    answers.append(((ans.address, port), 0, 0))
+
+            try:
+                log.debug("Querying AAAA records for %s" % domain)
+                v6_answers = resolver.query(domain, dns.rdatatype.AAAA)
+            except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
+                log.warning("No A records for %s", domain)
+                v6_answers = [((domain, port), 0, 0)]
+            except dns.exception.Timeout:
+                log.warning("DNS resolution timed out " + \
+                            "for A record of %s", domain)
+                v6_answers = [((domain, port), 0, 0)]
+            else:
+                for ans in v6_answers:
+                    log.debug("Found AAAA record: %s", ans[0])
+                    answers.append(((ans.address, port), 0, 0))
+
+            return answers
         else:
             log.warning("dnspython is not installed -- " + \
-                        "relying on OS A record resolution")
+                        "relying on OS A/AAAA record resolution")
             self.configure_dns(None, domain=domain, port=port)
             return [((domain, port), 0, 0)]
 

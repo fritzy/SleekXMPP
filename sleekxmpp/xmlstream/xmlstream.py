@@ -873,22 +873,22 @@ class XMLStream(object):
                 v4_answers = [((domain, port), 0, 0)]
             else:
                 for ans in v4_answers:
-                    log.debug("Found A record: %s", ans[0])
+                    log.debug("Found A record: %s", ans.address)
                     answers.append(((ans.address, port), 0, 0))
 
             try:
                 log.debug("Querying AAAA records for %s" % domain)
                 v6_answers = resolver.query(domain, dns.rdatatype.AAAA)
             except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
-                log.warning("No A records for %s", domain)
+                log.warning("No AAAA records for %s", domain)
                 v6_answers = [((domain, port), 0, 0)]
             except dns.exception.Timeout:
                 log.warning("DNS resolution timed out " + \
-                            "for A record of %s", domain)
+                            "for AAAA record of %s", domain)
                 v6_answers = [((domain, port), 0, 0)]
             else:
                 for ans in v6_answers:
-                    log.debug("Found AAAA record: %s", ans[0])
+                    log.debug("Found AAAA record: %s", ans.address)
                     answers.append(((ans.address, port), 0, 0))
 
             return answers

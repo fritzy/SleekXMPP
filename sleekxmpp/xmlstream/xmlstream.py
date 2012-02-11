@@ -1242,7 +1242,6 @@ class XMLStream(object):
                 shutdown = True
             except SyntaxError as e:
                 log.error("Error reading from XML stream.")
-                shutdown = True
                 self.exception(e)
             except Socket.error as serr:
                 self.event('socket_error', serr, direct=True)

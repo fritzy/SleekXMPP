@@ -412,7 +412,8 @@ class XMLStream(object):
                 except Socket.error:
                     log.debug("Could not open IPv%s socket." % proto)
         except Socket.gaierror:
-            log.warning("Socket could not be opened, wrong IP versions.")
+            log.warning("Socket could not be opened: no connectivity" + \
+                        " or wrong IP versions.")
             self.stop.set()
             return False
 
@@ -923,6 +924,7 @@ class XMLStream(object):
         items = [x for x in addresses.keys()]
         items.sort()
 
+        address = (domain, port)
         picked = random.randint(0, intmax)
         for item in items:
             if picked <= item:
@@ -930,8 +932,8 @@ class XMLStream(object):
                 break
         for idx, answer in enumerate(self.dns_answers):
             if self.dns_answers[0] == address:
+                self.dns_answers.pop(idx)
                 break
-        self.dns_answers.pop(idx)
         log.debug("Trying to connect to %s:%s", *address)
         return address
 

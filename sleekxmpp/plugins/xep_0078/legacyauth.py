@@ -12,7 +12,7 @@ import random
 
 from sleekxmpp.stanza import Iq, StreamFeatures
 from sleekxmpp.xmlstream import ElementBase, ET, register_stanza_plugin
-from sleekxmpp.plugins.base import BasePlugin, register_plugin
+from sleekxmpp.plugins import BasePlugin, register_plugin
 from sleekxmpp.plugins.xep_0078 import stanza
 
 

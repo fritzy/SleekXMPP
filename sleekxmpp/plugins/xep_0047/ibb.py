@@ -7,7 +7,7 @@ from sleekxmpp.exceptions import XMPPError, IqError, IqTimeout
 from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.xmlstream.matcher import StanzaPath
 from sleekxmpp.xmlstream import register_stanza_plugin
-from sleekxmpp.plugins.base import BasePlugin, register_plugin
+from sleekxmpp.plugins import BasePlugin, register_plugin
 from sleekxmpp.plugins.xep_0047 import stanza, Open, Close, Data, IBBytestream
 
 

@@ -14,7 +14,7 @@ from sleekxmpp.exceptions import IqError
 from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.xmlstream.matcher import StanzaPath
 from sleekxmpp.xmlstream import register_stanza_plugin, JID
-from sleekxmpp.plugins.base import BasePlugin, register_plugin
+from sleekxmpp.plugins import BasePlugin, register_plugin
 from sleekxmpp.plugins.xep_0050 import stanza
 from sleekxmpp.plugins.xep_0050 import Command
 from sleekxmpp.plugins.xep_0004 import Form

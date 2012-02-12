@@ -11,7 +11,7 @@ import logging
 import sleekxmpp
 from sleekxmpp import Iq
 from sleekxmpp.xmlstream import register_stanza_plugin
-from sleekxmpp.plugins.base import BasePlugin, register_plugin
+from sleekxmpp.plugins import BasePlugin, register_plugin
 from sleekxmpp.plugins.xep_0004 import Form
 from sleekxmpp.plugins.xep_0030 import DiscoInfo
 from sleekxmpp.plugins.xep_0128 import StaticExtendedDisco

@@ -6,7 +6,7 @@
     See the file LICENSE for copying permission.
 """
 
-from sleekxmpp.plugins.base import BasePlugin, register_plugin
+from sleekxmpp.plugins import BasePlugin, register_plugin
 from sleekxmpp.plugins.xep_0009 import stanza
 from sleekxmpp.plugins.xep_0009.stanza.RPC import RPCQuery, MethodCall, MethodResponse
 from sleekxmpp.stanza.iq import Iq

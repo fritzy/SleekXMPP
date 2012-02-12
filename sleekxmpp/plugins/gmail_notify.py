@@ -7,7 +7,7 @@
 """
 
 import logging
-from sleekxmpp.plugins.base import BasePlugin, register_plugin
+from sleekxmpp.plugins import BasePlugin, register_plugin
 from sleekxmpp.xmlstream.handler.callback import Callback
 from sleekxmpp.xmlstream.matcher.xpath import MatchXPath
 from sleekxmpp.xmlstream.stanzabase import registerStanzaPlugin, ElementBase, ET, JID

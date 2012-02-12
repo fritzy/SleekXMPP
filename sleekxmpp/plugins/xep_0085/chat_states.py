@@ -13,7 +13,7 @@ from sleekxmpp.stanza import Message
 from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.xmlstream.matcher import StanzaPath
 from sleekxmpp.xmlstream import register_stanza_plugin, ElementBase, ET
-from sleekxmpp.plugins.base import BasePlugin, register_plugin
+from sleekxmpp.plugins import BasePlugin, register_plugin
 from sleekxmpp.plugins.xep_0085 import stanza, ChatState
 
 

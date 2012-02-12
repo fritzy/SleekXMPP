@@ -9,7 +9,7 @@
 
 from sleekxmpp.stanza import Message, Presence
 from sleekxmpp.xmlstream import register_stanza_plugin
-from sleekxmpp.plugins.base import BasePlugin, register_plugin
+from sleekxmpp.plugins import BasePlugin, register_plugin
 from sleekxmpp.plugins.xep_0203 import stanza
 
 

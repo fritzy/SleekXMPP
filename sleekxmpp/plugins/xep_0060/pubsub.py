@@ -9,7 +9,7 @@
 import logging
 
 from sleekxmpp.xmlstream import JID
-from sleekxmpp.plugins.base import BasePlugin, register_plugin
+from sleekxmpp.plugins import BasePlugin, register_plugin
 from sleekxmpp.plugins.xep_0060 import stanza
 
 

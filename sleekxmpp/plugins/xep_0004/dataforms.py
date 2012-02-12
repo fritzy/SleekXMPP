@@ -14,7 +14,7 @@ from sleekxmpp import Message
 from sleekxmpp.xmlstream import register_stanza_plugin, ElementBase, ET
 from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.xmlstream.matcher import StanzaPath
-from sleekxmpp.plugins.base import BasePlugin, register_plugin
+from sleekxmpp.plugins import BasePlugin, register_plugin
 from sleekxmpp.plugins.xep_0004 import stanza
 from sleekxmpp.plugins.xep_0004.stanza import Form, FormField, FieldOption
 

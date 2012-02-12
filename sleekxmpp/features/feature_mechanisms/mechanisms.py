@@ -15,7 +15,7 @@ from sleekxmpp.stanza import StreamFeatures
 from sleekxmpp.xmlstream import RestartStream, register_stanza_plugin
 from sleekxmpp.xmlstream.matcher import *
 from sleekxmpp.xmlstream.handler import *
-from sleekxmpp.plugins.base import BasePlugin, register_plugin
+from sleekxmpp.plugins import BasePlugin, register_plugin
 from sleekxmpp.features.feature_mechanisms import stanza
 
 

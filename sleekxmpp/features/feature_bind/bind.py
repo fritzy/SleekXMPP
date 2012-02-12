@@ -13,7 +13,7 @@ from sleekxmpp.features.feature_bind import stanza
 from sleekxmpp.xmlstream import register_stanza_plugin
 from sleekxmpp.xmlstream.matcher import *
 from sleekxmpp.xmlstream.handler import *
-from sleekxmpp.plugins.base import BasePlugin, register_plugin
+from sleekxmpp.plugins import BasePlugin, register_plugin
 
 
 log = logging.getLogger(__name__)

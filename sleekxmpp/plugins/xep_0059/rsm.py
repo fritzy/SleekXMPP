@@ -10,7 +10,7 @@ import logging
 
 import sleekxmpp
 from sleekxmpp import Iq
-from sleekxmpp.plugins.base import BasePlugin, register_plugin
+from sleekxmpp.plugins import BasePlugin, register_plugin
 from sleekxmpp.xmlstream import register_stanza_plugin
 from sleekxmpp.plugins.xep_0059 import stanza, Set
 from sleekxmpp.exceptions import XMPPError

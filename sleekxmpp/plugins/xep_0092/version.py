@@ -13,7 +13,7 @@ from sleekxmpp import Iq
 from sleekxmpp.xmlstream import register_stanza_plugin
 from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.xmlstream.matcher import StanzaPath
-from sleekxmpp.plugins.base import BasePlugin, register_plugin
+from sleekxmpp.plugins import BasePlugin, register_plugin
 from sleekxmpp.plugins.xep_0092 import Version, stanza
 
 

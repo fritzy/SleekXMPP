@@ -10,7 +10,7 @@ from __future__ import with_statement
 import logging
 
 from sleekxmpp import Presence
-from sleekxmpp.plugins.base import BasePlugin, register_plugin
+from sleekxmpp.plugins import BasePlugin, register_plugin
 from sleekxmpp.xmlstream import register_stanza_plugin, ElementBase, JID, ET
 from sleekxmpp.xmlstream.handler.callback import Callback
 from sleekxmpp.xmlstream.matcher.xpath import MatchXPath

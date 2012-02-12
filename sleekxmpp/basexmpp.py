@@ -31,7 +31,7 @@ from sleekxmpp.xmlstream import XMLStream, JID, tostring
 from sleekxmpp.xmlstream import ET, register_stanza_plugin
 from sleekxmpp.xmlstream.matcher import *
 from sleekxmpp.xmlstream.handler import *
-from sleekxmpp.plugins.base import PluginManager, register_plugin
+from sleekxmpp.plugins import PluginManager, register_plugin
 
 
 log = logging.getLogger(__name__)

@@ -8,7 +8,7 @@
 
 from sleekxmpp.stanza import Message
 from sleekxmpp.xmlstream import register_stanza_plugin
-from sleekxmpp.plugins.base import BasePlugin, register_plugin
+from sleekxmpp.plugins import BasePlugin, register_plugin
 from sleekxmpp.plugins.xep_0184 import stanza, Request, Received
 
 

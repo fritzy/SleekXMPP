@@ -11,7 +11,7 @@ from sleekxmpp import Message
 from sleekxmpp.xmlstream.handler.callback import Callback
 from sleekxmpp.xmlstream.matcher.xpath import MatchXPath
 from sleekxmpp.xmlstream import register_stanza_plugin, ElementBase, ET, JID
-from sleekxmpp.plugins.base import BasePlugin, register_plugin
+from sleekxmpp.plugins import BasePlugin, register_plugin
 
 
 class Addresses(ElementBase):

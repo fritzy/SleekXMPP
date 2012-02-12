@@ -31,11 +31,9 @@ class XEP_0078(BasePlugin):
     name = 'xep_0078'
     description = 'XEP-0078: Non-SASL Authentication'
     dependencies = set()
+    stanza = stanza
 
     def plugin_init(self):
-        self.xep = "0078"
-        self.stanza = stanza
-
         self.xmpp.register_feature('auth',
                 self._handle_auth,
                 restart=False,

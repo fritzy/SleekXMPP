@@ -27,12 +27,9 @@ class FeatureSASL(BasePlugin):
     name = 'feature_mechanisms'
     description = 'RFC 6120: Stream Feature: SASL'
     dependencies = set()
+    stanza = stanza
 
     def plugin_init(self):
-        self.name = 'SASL Mechanisms'
-        self.rfc = '6120'
-        self.stanza = stanza
-
         self.use_mech = self.config.get('use_mech', None)
 
         def tls_active():

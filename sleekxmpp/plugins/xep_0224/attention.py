@@ -28,12 +28,10 @@ class XEP_0224(BasePlugin):
     name = 'xep_0224'
     description = 'XEP-0224: Attention'
     dependencies = set(['xep_0030'])
+    stanza = stanza
 
     def plugin_init(self):
         """Start the XEP-0224 plugin."""
-        self.xep = '0224'
-        self.stanza = stanza
-
         register_stanza_plugin(Message, stanza.Attention)
 
         self.xmpp.register_handler(

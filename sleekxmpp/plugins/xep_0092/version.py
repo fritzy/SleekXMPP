@@ -14,7 +14,7 @@ from sleekxmpp.xmlstream import register_stanza_plugin
 from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.xmlstream.matcher import StanzaPath
 from sleekxmpp.plugins.base import BasePlugin, register_plugin
-from sleekxmpp.plugins.xep_0092 import Version
+from sleekxmpp.plugins.xep_0092 import Version, stanza
 
 
 log = logging.getLogger(__name__)
@@ -29,14 +29,12 @@ class XEP_0092(BasePlugin):
     name = 'xep_0092'
     description = 'XEP-0092: Software Version'
     dependencies = set(['xep_0030'])
+    stanza = stanza
 
     def plugin_init(self):
         """
         Start the XEP-0092 plugin.
         """
-        self.xep = "0092"
-        self.stanza = sleekxmpp.plugins.xep_0092.stanza
-
         self.name = self.config.get('name', 'SleekXMPP')
         self.version = self.config.get('version', sleekxmpp.__version__)
         self.os = self.config.get('os', '')

@@ -24,12 +24,9 @@ class FeatureBind(BasePlugin):
     name = 'feature_bind'
     description = 'RFC 6120: Stream Feature: Resource Binding'
     dependencies = set()
+    stanza = stanza
 
     def plugin_init(self):
-        self.name = 'Bind Resource'
-        self.rfc = '6120'
-        self.stanza = stanza
-
         self.xmpp.register_feature('bind',
                 self._handle_bind_resource,
                 restart=False,

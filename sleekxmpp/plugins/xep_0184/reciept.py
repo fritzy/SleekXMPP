@@ -21,11 +21,9 @@ class XEP_0184(BasePlugin):
     name = 'xep_0184'
     description = 'XEP-0184: Message Delivery Receipts'
     dependencies = set(['xep_0030'])
+    stanza = stanza
 
     def plugin_init(self):
-        self.xep = '0184'
-        self.stanza = stanza
-
         register_stanza_plugin(Message, Request)
         register_stanza_plugin(Message, Received)
 

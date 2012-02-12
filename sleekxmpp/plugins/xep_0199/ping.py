@@ -50,14 +50,12 @@ class XEP_0199(BasePlugin):
     name = 'xep_0199'
     description = 'XEP-0199: XMPP Ping'
     dependencies = set(['xep_0030'])
+    stanza = stanza
 
     def plugin_init(self):
         """
         Start the XEP-0199 plugin.
         """
-        self.xep = '0199'
-        self.stanza = stanza
-
         self.keepalive = self.config.get('keepalive', False)
         self.frequency = float(self.config.get('frequency', 300))
         self.timeout = self.config.get('timeout', 30)

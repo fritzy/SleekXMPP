@@ -19,11 +19,9 @@ class XEP_0047(BasePlugin):
     name = 'xep_0047'
     description = 'XEP-0047: In-band Bytestreams'
     dependencies = set(['xep_0030'])
+    stanza = stanza
 
     def plugin_init(self):
-        self.xep = '0047'
-        self.stanza = stanza
-
         self.streams = {}
         self.pending_streams = {3: 5}
         self.pending_close_streams = {}

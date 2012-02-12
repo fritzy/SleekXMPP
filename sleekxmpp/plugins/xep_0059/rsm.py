@@ -12,7 +12,7 @@ import sleekxmpp
 from sleekxmpp import Iq
 from sleekxmpp.plugins.base import BasePlugin, register_plugin
 from sleekxmpp.xmlstream import register_stanza_plugin
-from sleekxmpp.plugins.xep_0059 import Set
+from sleekxmpp.plugins.xep_0059 import stanza, Set
 from sleekxmpp.exceptions import XMPPError
 
 
@@ -105,14 +105,12 @@ class XEP_0059(BasePlugin):
     name = 'xep_0059'
     description = 'XEP-0059: Result Set Management'
     dependencies = set(['xep_0030'])
+    stanza = stanza
 
     def plugin_init(self):
         """
         Start the XEP-0059 plugin.
         """
-        self.xep = '0059'
-        self.stanza = sleekxmpp.plugins.xep_0059.stanza
-
         self.xmpp['xep_0030'].add_feature(Set.namespace)
         register_stanza_plugin(self.xmpp['xep_0030'].stanza.DiscoItems,
                                self.stanza.Set)

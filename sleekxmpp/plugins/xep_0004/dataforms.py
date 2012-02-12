@@ -27,11 +27,9 @@ class XEP_0004(BasePlugin):
     name = 'xep_0004'
     description = 'XEP-0004: Data Forms'
     dependencies = set(['xep_0030'])
+    stanza = stanza
 
     def plugin_init(self):
-        self.xep = '0004'
-        self.stanza = stanza
-
         self.xmpp.registerHandler(
             Callback('Data Form',
                  StanzaPath('message/form'),
@@ -41,7 +39,7 @@ class XEP_0004(BasePlugin):
         register_stanza_plugin(Form, FormField, iterable=True)
         register_stanza_plugin(Message, Form)
 
-        self.xmpp.plugin['xep_0030'].add_feature('jabber:x:data')
+        self.xmpp['xep_0030'].add_feature('jabber:x:data')
 
     def make_form(self, ftype='form', title='', instructions=''):
         f = Form()

@@ -25,12 +25,9 @@ class FeatureSession(BasePlugin):
     name = 'feature_session'
     description = 'RFC 3920: Stream Feature: Start Session'
     dependencies = set()
+    stanza = stanza
 
     def plugin_init(self):
-        self.name = 'Start Session'
-        self.rfc = '3920'
-        self.stanza = stanza
-
         self.xmpp.register_feature('session',
                 self._handle_start_session,
                 restart=False,

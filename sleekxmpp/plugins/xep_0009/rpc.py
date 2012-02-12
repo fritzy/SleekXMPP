@@ -7,6 +7,7 @@
 """
 
 from sleekxmpp.plugins.base import BasePlugin, register_plugin
+from sleekxmpp.plugins.xep_0009 import stanza
 from sleekxmpp.plugins.xep_0009.stanza.RPC import RPCQuery, MethodCall, MethodResponse
 from sleekxmpp.stanza.iq import Iq
 from sleekxmpp.xmlstream.handler.callback import Callback
@@ -26,11 +27,9 @@ class XEP_0009(BasePlugin):
     name = 'xep_0009'
     description = 'XEP-0009: Jabber-RPC'
     dependencies = set(['xep_0030'])
+    stanza = stanza
 
     def plugin_init(self):
-        self.xep = '0009'
-        #self.stanza = sleekxmpp.plugins.xep_0009.stanza
-
         register_stanza_plugin(Iq, RPCQuery)
         register_stanza_plugin(RPCQuery, MethodCall)
         register_stanza_plugin(RPCQuery, MethodResponse)
@@ -54,8 +53,8 @@ class XEP_0009(BasePlugin):
         self.xmpp.add_event_handler('error', self._handle_error)
         #self.activeCalls = []
 
-        self.xmpp.plugin['xep_0030'].add_feature('jabber:iq:rpc')
-        self.xmpp.plugin['xep_0030'].add_identity('automation','rpc')
+        self.xmpp['xep_0030'].add_feature('jabber:iq:rpc')
+        self.xmpp['xep_0030'].add_identity('automation','rpc')
 
     def make_iq_method_call(self, pto, pmethod, params):
         iq = self.xmpp.makeIqSet()

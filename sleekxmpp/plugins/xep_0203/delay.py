@@ -29,12 +29,10 @@ class XEP_0203(BasePlugin):
     name = 'xep_0203'
     description = 'XEP-0203: Delayed Delivery'
     dependencies = set()
+    stanza = stanza
 
     def plugin_init(self):
         """Start the XEP-0203 plugin."""
-        self.xep = '0203'
-        self.stanza = stanza
-
         register_stanza_plugin(Message, stanza.Delay)
         register_stanza_plugin(Presence, stanza.Delay)
 

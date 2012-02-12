@@ -15,7 +15,7 @@ from sleekxmpp.plugins.base import BasePlugin, register_plugin
 from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.xmlstream.matcher import StanzaPath
 from sleekxmpp.xmlstream import register_stanza_plugin, ElementBase, ET, JID
-from sleekxmpp.plugins.xep_0030 import DiscoInfo, DiscoItems, StaticDisco
+from sleekxmpp.plugins.xep_0030 import stanza, DiscoInfo, DiscoItems, StaticDisco
 
 
 log = logging.getLogger(__name__)
@@ -88,14 +88,12 @@ class XEP_0030(BasePlugin):
     name = 'xep_0030'
     description = 'XEP-0030: Service Discovery'
     dependencies = set()
+    stanza = stanza
 
     def plugin_init(self):
         """
         Start the XEP-0030 plugin.
         """
-        self.xep = '0030'
-        self.stanza = sleekxmpp.plugins.xep_0030.stanza
-
         self.xmpp.register_handler(
                 Callback('Disco Info',
                          StanzaPath('iq/disco_info'),

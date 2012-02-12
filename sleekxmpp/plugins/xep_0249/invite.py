@@ -14,7 +14,7 @@ from sleekxmpp.plugins.base import BasePlugin, register_plugin
 from sleekxmpp.xmlstream import register_stanza_plugin
 from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.xmlstream.matcher import StanzaPath
-from sleekxmpp.plugins.xep_0249 import Invite
+from sleekxmpp.plugins.xep_0249 import Invite, stanza
 
 
 log = logging.getLogger(__name__)
@@ -29,11 +29,9 @@ class XEP_0249(BasePlugin):
     name = 'xep_0249'
     description = 'XEP-0249: Direct MUC Invitations'
     dependencies = set(['xep_0030'])
+    stanza = stanza
 
     def plugin_init(self):
-        self.xep = "0249"
-        self.stanza = sleekxmpp.plugins.xep_0249.stanza
-
         self.xmpp.register_handler(
                 Callback('Direct MUC Invitations',
                          StanzaPath('message/groupchat_invite'),

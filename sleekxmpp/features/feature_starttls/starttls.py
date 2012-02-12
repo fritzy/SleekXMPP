@@ -24,12 +24,9 @@ class FeatureSTARTTLS(BasePlugin):
     name = 'feature_starttls'
     description = 'RFC 6120: Stream Feature: STARTTLS'
     dependencies = set()
+    stanza = stanza
 
     def plugin_init(self):
-        self.name = "STARTTLS"
-        self.rfc = '6120'
-        self.stanza = stanza
-
         self.xmpp.register_handler(
                 Callback('STARTTLS Proceed',
                         MatchXPath(stanza.Proceed.tag_name()),

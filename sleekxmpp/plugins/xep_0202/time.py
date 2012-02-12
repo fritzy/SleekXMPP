@@ -29,12 +29,10 @@ class XEP_0202(BasePlugin):
     name = 'xep_0202'
     description = 'XEP-0202: Entity Time'
     dependencies = set(['xep_0030', 'xep_0082'])
+    stanza = stanza
 
     def plugin_init(self):
         """Start the XEP-0203 plugin."""
-        self.xep = '0202'
-        self.stanza = stanza
-
         self.tz_offset = self.config.get('tz_offset', 0)
 
         # As a default, respond to time requests with the

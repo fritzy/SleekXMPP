@@ -81,12 +81,10 @@ class XEP_0050(BasePlugin):
     name = 'xep_0050'
     description = 'XEP-0050: Ad-Hoc Commands'
     dependencies = set(['xep_0030', 'xep_0004'])
+    stanza = stanza
 
     def plugin_init(self):
         """Start the XEP-0050 plugin."""
-        self.xep = '0050'
-        self.stanza = stanza
-
         self.threaded = self.config.get('threaded', True)
         self.commands = {}
         self.sessions = self.config.get('session_db', {})

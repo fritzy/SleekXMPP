@@ -32,11 +32,9 @@ class XEP_0115(BasePlugin):
     name = 'xep_0115'
     description = 'XEP-0115: Entity Capabilities'
     dependencies = set(['xep_0030', 'xep_0128', 'xep_0004'])
+    stanza = stanza
 
     def plugin_init(self):
-        self.xep = '0115'
-        self.stanza = stanza
-
         self.hashes = {'sha-1': hashlib.sha1, 
                        'md5': hashlib.md5}
 

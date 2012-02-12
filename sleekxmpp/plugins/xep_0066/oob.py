@@ -45,11 +45,10 @@ class XEP_0066(BasePlugin):
     name = 'xep_0066'
     description = 'XEP-0066: Out-of-Band Transfer'
     dependencies = set(['xep_0030'])
+    stanza = stanza
 
     def plugin_init(self):
         """Start the XEP-0066 plugin."""
-        self.xep = '0066'
-        self.stanza = stanza
 
         self.url_handlers = {'global': self._default_handler,
                              'jid': {}}

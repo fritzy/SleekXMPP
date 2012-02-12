@@ -25,10 +25,7 @@ class XEP_0060(BasePlugin):
     name = 'xep_0060'
     description = 'XEP-0060: Publish-Subscribe'
     dependencies = set(['xep_0030', 'xep_0004'])
-
-    def plugin_init(self):
-        self.xep = '0060'
-        self.stanza = stanza
+    stanza = stanza
 
     def create_node(self, jid, node, config=None, ntype=None, ifrom=None,
                     block=True, callback=None, timeout=None):
@@ -367,7 +364,7 @@ class XEP_0060(BasePlugin):
         """
         Discover the nodes provided by a Pubsub service, using disco.
         """
-        return self.xmpp.plugin['xep_0030'].get_items(*args, **kwargs)
+        return self.xmpp['xep_0030'].get_items(*args, **kwargs)
 
     def get_item(self, jid, node, item_id, ifrom=None, block=True,
                  callback=None, timeout=None):
@@ -375,7 +372,7 @@ class XEP_0060(BasePlugin):
         Retrieve the content of an individual item.
         """
         iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='get')
-        item = self.stanza.Item()
+        item = stanza.Item()
         item['id'] = item_id
         iq['pubsub']['items']['node'] = node
         iq['pubsub']['items'].append(item)
@@ -399,7 +396,7 @@ class XEP_0060(BasePlugin):
 
         if item_ids is not None:
             for item_id in item_ids:
-                item = self.stanza.Item()
+                item = stanza.Item()
                 item['id'] = item_id
                 iq['pubsub']['items'].append(item)
 
@@ -413,7 +410,7 @@ class XEP_0060(BasePlugin):
         """
         Retrieve the ItemIDs hosted by a given node, using disco.
         """
-        return self.xmpp.plugin['xep_0030'].get_items(jid, node,
+        return self.xmpp['xep_0030'].get_items(jid, node,
                                                       ifrom=ifrom,
                                                       block=block,
                                                       callback=callback,
@@ -429,7 +426,7 @@ class XEP_0060(BasePlugin):
             affiliations = []
 
         for jid, affiliation in affiliations:
-            aff = self.stanza.OwnerAffiliation()
+            aff = stanza.OwnerAffiliation()
             aff['jid'] = jid
             aff['affiliation'] = affiliation
             iq['pubsub_owner']['affiliations'].append(aff)
@@ -445,7 +442,7 @@ class XEP_0060(BasePlugin):
             subscriptions = []
 
         for jid, subscription in subscriptions:
-            sub = self.stanza.OwnerSubscription()
+            sub = stanza.OwnerSubscription()
             sub['jid'] = jid
             sub['subscription'] = subscription
             iq['pubsub_owner']['subscriptions'].append(sub)

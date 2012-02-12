@@ -9,22 +9,25 @@
 import logging
 
 from sleekxmpp.xmlstream import JID
-from sleekxmpp.plugins.base import base_plugin
+from sleekxmpp.plugins.base import BasePlugin, register_plugin
 from sleekxmpp.plugins.xep_0060 import stanza
 
 
 log = logging.getLogger(__name__)
 
 
-class xep_0060(base_plugin):
+class XEP_0060(BasePlugin):
 
     """
     XEP-0060 Publish Subscribe
     """
 
+    name = 'xep_0060'
+    description = 'XEP-0060: Publish-Subscribe'
+    dependencies = set(['xep_0030', 'xep_0004'])
+
     def plugin_init(self):
         self.xep = '0060'
-        self.description = 'Publish-Subscribe'
         self.stanza = stanza
 
     def create_node(self, jid, node, config=None, ntype=None, ifrom=None,
@@ -448,3 +451,6 @@ class xep_0060(base_plugin):
             iq['pubsub_owner']['subscriptions'].append(sub)
 
         return iq.send(block=block, callback=callback, timeout=timeout)
+
+
+register_plugin(XEP_0060)

@@ -8,4 +8,4 @@
 
 from sleekxmpp.plugins.xep_0004.stanza import Form
 from sleekxmpp.plugins.xep_0004.stanza import FormField, FieldOption
-from sleekxmpp.plugins.xep_0004.dataforms import xep_0004
+from sleekxmpp.plugins.xep_0004.dataforms import XEP_0004

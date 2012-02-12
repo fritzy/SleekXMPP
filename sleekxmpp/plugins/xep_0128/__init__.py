@@ -7,4 +7,4 @@
 """
 
 from sleekxmpp.plugins.xep_0128.static import StaticExtendedDisco
-from sleekxmpp.plugins.xep_0128.extended_disco import xep_0128
+from sleekxmpp.plugins.xep_0128.extended_disco import XEP_0128

@@ -14,7 +14,7 @@ from sleekxmpp.exceptions import IqError
 from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.xmlstream.matcher import StanzaPath
 from sleekxmpp.xmlstream import register_stanza_plugin, JID
-from sleekxmpp.plugins.base import base_plugin
+from sleekxmpp.plugins.base import BasePlugin, register_plugin
 from sleekxmpp.plugins.xep_0050 import stanza
 from sleekxmpp.plugins.xep_0050 import Command
 from sleekxmpp.plugins.xep_0004 import Form
@@ -23,7 +23,7 @@ from sleekxmpp.plugins.xep_0004 import Form
 log = logging.getLogger(__name__)
 
 
-class xep_0050(base_plugin):
+class XEP_0050(BasePlugin):
 
     """
     XEP-0050: Ad-Hoc Commands
@@ -78,10 +78,13 @@ class xep_0050(base_plugin):
         terminate_command -- Command user API: delete a command's session
     """
 
+    name = 'xep_0050'
+    description = 'XEP-0050: Ad-Hoc Commands'
+    dependencies = set(['xep_0030', 'xep_0004'])
+
     def plugin_init(self):
         """Start the XEP-0050 plugin."""
         self.xep = '0050'
-        self.description = 'Ad-Hoc Commands'
         self.stanza = stanza
 
         self.threaded = self.config.get('threaded', True)
@@ -109,9 +112,6 @@ class xep_0050(base_plugin):
                                     self._handle_command_complete,
                                     threaded=self.threaded)
 
-    def post_init(self):
-        """Handle cross-plugin interactions."""
-        base_plugin.post_init(self)
         self.xmpp['xep_0030'].add_feature(Command.namespace)
 
     def set_backend(self, db):
@@ -612,3 +612,6 @@ class xep_0050(base_plugin):
 
         if iq['command']['status'] == 'completed':
             self.terminate_command(session)
+
+
+register_plugin(XEP_0050)

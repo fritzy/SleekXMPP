@@ -15,14 +15,14 @@ from sleekxmpp.exceptions import IqError, IqTimeout
 from sleekxmpp.xmlstream import register_stanza_plugin
 from sleekxmpp.xmlstream.matcher import StanzaPath
 from sleekxmpp.xmlstream.handler import Callback
-from sleekxmpp.plugins.base import base_plugin
+from sleekxmpp.plugins.base import BasePlugin, register_plugin
 from sleekxmpp.plugins.xep_0199 import stanza, Ping
 
 
 log = logging.getLogger(__name__)
 
 
-class xep_0199(base_plugin):
+class XEP_0199(BasePlugin):
 
     """
     XEP-0199: XMPP Ping
@@ -47,11 +47,14 @@ class xep_0199(base_plugin):
                      round trip time.
     """
 
+    name = 'xep_0199'
+    description = 'XEP-0199: XMPP Ping'
+    dependencies = set(['xep_0030'])
+
     def plugin_init(self):
         """
         Start the XEP-0199 plugin.
         """
-        self.description = 'XMPP Ping'
         self.xep = '0199'
         self.stanza = stanza
 
@@ -73,9 +76,6 @@ class xep_0199(base_plugin):
             self.xmpp.add_event_handler('session_end',
                                         self._handle_session_end)
 
-    def post_init(self):
-        """Handle cross-plugin dependencies."""
-        base_plugin.post_init(self)
         self.xmpp['xep_0030'].add_feature(Ping.namespace)
 
     def _handle_keepalive(self, event):
@@ -171,5 +171,9 @@ class xep_0199(base_plugin):
         return delay
 
 
+register_plugin(XEP_0199)
+
+
 # Backwards compatibility for names
+xep_0199 = XEP_0199
 xep_0199.sendPing = xep_0199.send_ping

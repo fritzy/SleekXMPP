@@ -1,91 +1,231 @@
-"""
-    SleekXMPP: The Sleek XMPP Library
-    Copyright (C) 2010 Nathanael C. Fritz
-    This file is part of SleekXMPP.
-
-    See the file LICENSE for copying permission.
-"""
+import threading
+import logging
 
 
-class base_plugin(object):
+log = logging.getLogger(__name__)
 
+
+#: Associate short string names of plugins with implementations. The
+#: plugin names are based on the spec used by the plugin, such as
+#: `'xep_0030'` for a plugin that implements XEP-0030.
+PLUGIN_REGISTRY = {}
+
+#: In order to do cascading plugin disabling, reverse dependencies
+#: must be tracked. 
+PLUGIN_DEPENDENTS = {}
+
+#: Only allow one thread to manipulate the plugin registry at a time. 
+REGISTRY_LOCK = threading.RLock()
+
+
+def register_plugin(impl, name=None):
+    """Add a new plugin implementation to the registry.
+
+    :param class impl: The plugin class.
+
+    The implementation class must provide a :attr:`~BasePlugin.name`
+    value that will be used as a short name for enabling and disabling
+    the plugin. The name should be based on the specification used by
+    the plugin. For example, a plugin implementing XEP-0030 would be
+    named `'xep_0030'`.
     """
-    The base_plugin class serves as a base for user created plugins
-    that provide support for existing or experimental XEPS.
+    if name is None:
+        name = impl.name
+    with REGISTRY_LOCK:
+        PLUGIN_REGISTRY[name] = impl
+        if name not in PLUGIN_DEPENDENTS:
+            PLUGIN_DEPENDENTS[name] = set()
+        for dep in impl.dependencies:
+            if dep not in PLUGIN_DEPENDENTS:
+                PLUGIN_DEPENDENTS[dep] = set()
+            PLUGIN_DEPENDENTS[dep].add(name)
 
-    Each plugin has a dictionary for configuration options, as well
-    as a name and description.
 
-    The lifecycle of a plugin is:
-        1. The plugin is instantiated during registration.
-        2. Once the XML stream begins processing, the method
-           plugin_init() is called (if the plugin is configured
-           as enabled with {'enable': True}).
-        3. After all plugins have been initialized, the
-           method post_init() is called.
+class PluginNotFound(Exception):
+    """Raised if an unknown plugin is accessed."""
 
-    Recommended event handlers:
-        session_start -- Plugins which require the use of the current
-                         bound JID SHOULD wait for the session_start
-                         event to perform any initialization (or
-                         resetting). This is a transitive recommendation,
-                         plugins that use other plugins which use the
-                         bound JID should also wait for session_start
-                         before making such calls.
-        session_end   -- If the plugin keeps any per-session state,
-                         such as joined MUC rooms, such state SHOULD
-                         be cleared when the session_end event is raised.
 
-    Attributes:
-        xep          -- The XEP number the plugin implements, if any.
-        description  -- A short description of the plugin, typically
-                        the long name of the implemented XEP.
-        xmpp         -- The main SleekXMPP instance.
-        config       -- A dictionary of custom configuration values.
-                        The value 'enable' is special and controls
-                        whether or not the plugin is initialized
-                        after registration.
-        post_initted -- Executed after all plugins have been initialized
-                        to handle any cross-plugin interactions, such as
-                        registering service discovery items.
-        enable       -- Indicates that the plugin is enabled for use and
-                        will be initialized after registration.
-
-    Methods:
-        plugin_init  -- Initialize the plugin state.
-        post_init    -- Handle any cross-plugin concerns.
-    """
-
+class PluginManager(object): 
     def __init__(self, xmpp, config=None):
-        """
-        Instantiate a new plugin and store the given configuration.
+        #: We will track all enabled plugins in a set so that we
+        #: can enable plugins in batches and pull in dependencies
+        #: without problems.
+        self._enabled = set()
 
-        Arguments:
-            xmpp   -- The main SleekXMPP instance.
-            config -- A dictionary of configuration values.
+        #: Maintain references to active plugins.
+        self._plugins = {}
+
+        self._plugin_lock = threading.RLock()
+
+        #: Globally set default plugin configuration. This will
+        #: be used for plugins that are auto-enabled through
+        #: dependency loading.
+        self.config = config if config else {}
+
+        self.xmpp = xmpp
+
+    def register(self, plugin, enable=True):
+        """Register a new plugin, and optionally enable it.
+
+        :param class plugin: The implementation class of the plugin
+                             to register.
+        :param bool enable: If ``True``, immediately enable the
+                            plugin after registration.
         """
+        register_plugin(plugin)
+        if enable:
+            self.enable(plugin.name)
+
+    def enable(self, name, config=None, _enabled=None):
+        """Enable a plugin, including any dependencies.
+
+        :param string name: The short name of the plugin.
+        :param dict config: Optional settings dictionary for
+                            configuring plugin behaviour.
+        """
+        top_level = False
+        if _enabled is None:
+            top_level = True
+            _enabled = set()
+
+        with self._plugin_lock:
+            if name not in self._enabled:
+                _enabled.add(name)
+                self._enabled.add(name)
+                plugin_class = PLUGIN_REGISTRY.get(name, None)
+                if not plugin_class:
+                    raise PluginNotFound(name)
+
+                if config is None:
+                    config = self.config.get(name, None)
+
+                plugin = plugin_class(self.xmpp, config)
+                self._plugins[name] = plugin
+                for dep in plugin.dependencies:
+                    self.enable(dep, _enabled=_enabled)
+                plugin.plugin_init()
+                log.debug("Loaded Plugin: %s", plugin.description)
+
+        # Finish initializing circular dependencies
+        if top_level:
+            for name in _enabled:
+                self._plugins[name].post_init()
+
+    def enable_all(self, names=None, config=None):
+        """Enable all registered plugins.
+        
+        :param list names: A list of plugin names to enable. If
+                           none are provided, all registered plugins
+                           will be enabled.
+        :param dict config: A dictionary mapping plugin names to
+                            configuration dictionaries, as used by
+                            :meth:`~PluginManager.enable`.
+        """
+        names = names if names else PLUGIN_REGISTRY.keys()
         if config is None:
             config = {}
-        self.xep = None
-        self.rfc = None
-        self.description = 'Base Plugin'
+        for name in names:
+            self.enable(name, config.get(name, {}))
+
+    def enabled(self, name):
+        """Check if a plugin has been enabled.
+
+        :param string name: The name of the plugin to check.
+        :return: boolean
+        """
+        return name in self._enabled
+
+    def registered(self, name):
+        """Check if a plugin has been registered.
+
+        :param string name: The name of the plugin to check.
+        :return: boolean
+        """
+        return name in PLUGIN_REGISTRY
+
+    def disable(self, name, _disabled=None):
+        """Disable a plugin, including any dependent upon it.
+
+        :param string name: The name of the plugin to disable.
+        :param set _disabled: Private set used to track the
+                              disabled status of plugins during
+                              the cascading process.
+        """
+        if _disabled is None:
+            _disabled = set()
+        with self._plugin_lock:
+            if name not in _disabled and name in self._enabled:
+                _disabled.add(name)
+                plugin = self._plugins.get(name, None)
+                if plugin is None:
+                    raise PluginNotFound(name)
+                for dep in PLUGIN_DEPENDENTS[name]:
+                    self.disable(dep, _disabled)
+                plugin.plugin_end()
+                if name in self._enabled:
+                    self._enabled.remove(name)
+                del self._plugins[name]
+
+    def __keys__(self):
+        """Return the set of enabled plugins."""
+        return self._plugins.keys()
+
+    def __getitem__(self, name):
+        """
+        Allow plugins to be accessed through the manager as if
+        it were a dictionary.
+        """
+        plugin = self._plugins.get(name, None)
+        if plugin is None:
+            raise PluginNotFound(name)
+        return plugin
+
+    def __iter__(self):
+        """Return an iterator over the set of enabled plugins."""
+        return self._plugins.__iter__()
+
+    def __len__(self):
+        """Return the number of enabled plugins."""
+        return len(self._plugins)
+
+
+class BasePlugin(object):
+
+    #: A short name for the plugin based on the implemented specification.
+    #: For example, a plugin for XEP-0030 would use `'xep_0030'`.
+    name = ''
+
+    #: A longer name for the plugin, describing its purpose. For example,
+    #: a plugin for XEP-0030 would use `'Service Discovery'` as its
+    #: description value.
+    description = ''
+
+    #: Some plugins may depend on others in order to function properly.
+    #: Any plugin names included in :attr:`~BasePlugin.dependencies` will
+    #: be initialized as needed if this plugin is enabled.
+    dependencies = set()
+
+    def __init__(self, xmpp, config=None):
         self.xmpp = xmpp
-        self.config = config
-        self.post_inited = False
-        self.enable = config.get('enable', True)
-        if self.enable:
-            self.plugin_init()
+
+        #: A plugin's behaviour may be configurable, in which case those
+        #: configuration settings will be provided as a dictionary.
+        self.config = config if config is not None else {}
 
     def plugin_init(self):
-        """
-        Initialize plugin state, such as registering any stream or
-        event handlers, or new stanza types.
-        """
+        """Initialize plugin state, such as registering event handlers."""
+        pass
+
+    def plugin_end(self):
+        """Cleanup plugin state, and prepare for plugin removal."""
         pass
 
     def post_init(self):
+        """Initialize any cross-plugin state.
+       
+        Only needed if the plugin has circular dependencies.
         """
-        Perform any cross-plugin interactions, such as registering
-        service discovery identities or items.
-        """
-        self.post_inited = True
+        pass
+
+
+base_plugin = BasePlugin

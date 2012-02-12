@@ -16,22 +16,25 @@ from sleekxmpp.xmlstream import register_stanza_plugin, JID
 from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.xmlstream.matcher import StanzaPath
 from sleekxmpp.exceptions import XMPPError, IqError, IqTimeout
-from sleekxmpp.plugins.base import base_plugin
+from sleekxmpp.plugins.base import BasePlugin, register_plugin
 from sleekxmpp.plugins.xep_0115 import stanza, StaticCaps
 
 
 log = logging.getLogger(__name__)
 
 
-class xep_0115(base_plugin):
+class XEP_0115(BasePlugin):
 
     """
     XEP-0115: Entity Capabalities
     """
 
+    name = 'xep_0115'
+    description = 'XEP-0115: Entity Capabilities'
+    dependencies = set(['xep_0030', 'xep_0128', 'xep_0004'])
+
     def plugin_init(self):
         self.xep = '0115'
-        self.description = 'Entity Capabilities'
         self.stanza = stanza
 
         self.hashes = {'sha-1': hashlib.sha1, 
@@ -71,8 +74,6 @@ class xep_0115(base_plugin):
                     restart=False,
                     order=10010)
 
-    def post_init(self):
-        base_plugin.post_init(self)
         self.xmpp['xep_0030'].add_feature(stanza.Capabilities.namespace)
 
         disco = self.xmpp['xep_0030']
@@ -304,3 +305,6 @@ class xep_0115(base_plugin):
             jid = jid.full
         data = {'verstring': verstring}
         return self._run_node_handler('get_caps', jid, None, None, data)
+
+
+register_plugin(XEP_0115)

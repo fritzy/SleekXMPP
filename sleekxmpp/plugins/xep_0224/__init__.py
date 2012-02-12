@@ -8,4 +8,4 @@
 
 from sleekxmpp.plugins.xep_0224 import stanza
 from sleekxmpp.plugins.xep_0224.stanza import Attention
-from sleekxmpp.plugins.xep_0224.attention import xep_0224
+from sleekxmpp.plugins.xep_0224.attention import XEP_0224

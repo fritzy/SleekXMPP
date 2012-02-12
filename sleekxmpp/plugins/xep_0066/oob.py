@@ -13,14 +13,14 @@ from sleekxmpp.exceptions import XMPPError
 from sleekxmpp.xmlstream import register_stanza_plugin
 from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.xmlstream.matcher import StanzaPath
-from sleekxmpp.plugins.base import base_plugin
+from sleekxmpp.plugins.base import BasePlugin, register_plugin
 from sleekxmpp.plugins.xep_0066 import stanza
 
 
 log = logging.getLogger(__name__)
 
 
-class xep_0066(base_plugin):
+class XEP_0066(BasePlugin):
 
     """
     XEP-0066: Out-of-Band Data
@@ -42,10 +42,13 @@ class xep_0066(base_plugin):
                     or other addressable resource.
     """
 
+    name = 'xep_0066'
+    description = 'XEP-0066: Out-of-Band Transfer'
+    dependencies = set(['xep_0030'])
+
     def plugin_init(self):
         """Start the XEP-0066 plugin."""
         self.xep = '0066'
-        self.description = 'Out-of-Band Transfer'
         self.stanza = stanza
 
         self.url_handlers = {'global': self._default_handler,
@@ -60,9 +63,6 @@ class xep_0066(base_plugin):
                          StanzaPath('iq@type=set/oob_transfer'),
                          self._handle_transfer))
 
-    def post_init(self):
-        """Handle cross-plugin dependencies."""
-        base_plugin.post_init(self)
         self.xmpp['xep_0030'].add_feature(stanza.OOBTransfer.namespace)
         self.xmpp['xep_0030'].add_feature(stanza.OOB.namespace)
 
@@ -151,3 +151,6 @@ class xep_0066(base_plugin):
             iq['oob_transfer']['url'], iq['from']))
         self._run_url_handler(iq)
         iq.reply().send()
+
+
+register_plugin(XEP_0066)

@@ -7,4 +7,4 @@
 """
 
 from sleekxmpp.plugins.xep_0085.stanza import ChatState
-from sleekxmpp.plugins.xep_0085.chat_states import xep_0085
+from sleekxmpp.plugins.xep_0085.chat_states import XEP_0085

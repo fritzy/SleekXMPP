@@ -6,5 +6,5 @@
     See the file LICENSE for copying permission.
 """
 
-from sleekxmpp.features.feature_starttls.starttls import feature_starttls
+from sleekxmpp.features.feature_starttls.starttls import FeatureSTARTTLS
 from sleekxmpp.features.feature_starttls.stanza import *

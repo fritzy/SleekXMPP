@@ -25,6 +25,7 @@ import sleekxmpp
 from sleekxmpp import plugins
 from sleekxmpp import stanza
 from sleekxmpp import features
+from sleekxmpp.features import *
 from sleekxmpp.basexmpp import BaseXMPP
 from sleekxmpp.stanza import *
 from sleekxmpp.xmlstream import XMLStream, RestartStream

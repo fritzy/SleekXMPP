@@ -11,29 +11,31 @@ import logging
 import sleekxmpp
 from sleekxmpp.stanza import StreamFeatures, Iq
 from sleekxmpp.xmlstream import register_stanza_plugin, JID
-from sleekxmpp.plugins.base import base_plugin
+from sleekxmpp.plugins.base import BasePlugin, register_plugin
 from sleekxmpp.plugins.xep_0077 import stanza, Register, RegisterFeature
 
 
 log = logging.getLogger(__name__)
 
 
-class xep_0077(base_plugin):
+class XEP_0077(BasePlugin):
 
     """
     XEP-0077: In-Band Registration
     """
 
+    name = 'xep_0077'
+    description = 'XEP-0077: In-Band Registration'
+    dependencies = set(['xep_0004', 'xep_0066'])
+
     def plugin_init(self):
         self.xep = '0077'
-        self.description = 'In-Band Registration'
         self.stanza = stanza
 
         self.create_account = self.config.get('create_account', True)
 
         register_stanza_plugin(StreamFeatures, RegisterFeature)
         register_stanza_plugin(Iq, Register)
-
 
         if self.xmpp.is_component:
             pass
@@ -43,13 +45,8 @@ class xep_0077(base_plugin):
                 restart=False,
                 order=self.config.get('order', 50))
 
-    def post_init(self):
-        base_plugin.post_init(self)
-        if 'xep_0004' in self.xmpp.plugin:
-            register_stanza_plugin(Register, self.xmpp['xep_0004'].stanza.Form)
-
-        if 'xep_0066' in self.xmpp.plugin:
-            register_stanza_plugin(Register, self.xmpp['xep_0066'].stanza.OOB)
+        register_stanza_plugin(Register, self.xmpp['xep_0004'].stanza.Form)
+        register_stanza_plugin(Register, self.xmpp['xep_0066'].stanza.OOB)
 
     def _handle_register_feature(self, features):
         if 'mechanisms' in self.xmpp.features:
@@ -93,3 +90,6 @@ class xep_0077(base_plugin):
             iq['register']['username'] = self.xmpp.boundjid.user
         iq['register']['password'] = password
         return iq.send(block=block, timeout=timeout, callback=callback)
+
+
+register_plugin(XEP_0077)

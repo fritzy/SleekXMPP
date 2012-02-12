@@ -7,11 +7,11 @@
 """
 
 import logging
-from . import base
-from .. xmlstream.handler.callback import Callback
-from .. xmlstream.matcher.xpath import MatchXPath
-from .. xmlstream.stanzabase import registerStanzaPlugin, ElementBase, ET, JID
-from .. stanza.iq import Iq
+from sleekxmpp.plugins.base import BasePlugin, register_plugin
+from sleekxmpp.xmlstream.handler.callback import Callback
+from sleekxmpp.xmlstream.matcher.xpath import MatchXPath
+from sleekxmpp.xmlstream.stanzabase import registerStanzaPlugin, ElementBase, ET, JID
+from sleekxmpp import Iq
 
 
 log = logging.getLogger(__name__)
@@ -90,10 +90,14 @@ class NewMail(ElementBase):
     plugin_attrib = 'new-mail'
 
 
-class gmail_notify(base.base_plugin):
+class GmailNotify(BasePlugin):
     """
     Google Talk: Gmail Notifications
     """
+
+    name = 'gmail_notify'
+    description = 'Google Talk: Gmail Notifications'
+    dependencies = set()
 
     def plugin_init(self):
         self.description = 'Google Talk: Gmail Notifications'
@@ -147,3 +151,6 @@ class gmail_notify(base.base_plugin):
         iq['gmail']['q'] = query
         iq['gmail']['newer-than-time'] = newer
         return iq.send()
+
+
+register_plugin(GmailNotify)

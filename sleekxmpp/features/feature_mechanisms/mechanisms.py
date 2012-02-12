@@ -15,19 +15,22 @@ from sleekxmpp.stanza import StreamFeatures
 from sleekxmpp.xmlstream import RestartStream, register_stanza_plugin
 from sleekxmpp.xmlstream.matcher import *
 from sleekxmpp.xmlstream.handler import *
-from sleekxmpp.plugins.base import base_plugin
+from sleekxmpp.plugins.base import BasePlugin, register_plugin
 from sleekxmpp.features.feature_mechanisms import stanza
 
 
 log = logging.getLogger(__name__)
 
 
-class feature_mechanisms(base_plugin):
+class FeatureSASL(BasePlugin):
+
+    name = 'feature_mechanisms'
+    description = 'RFC 6120: Stream Feature: SASL'
+    dependencies = set()
 
     def plugin_init(self):
         self.name = 'SASL Mechanisms'
         self.rfc = '6120'
-        self.description = "SASL Stream Feature"
         self.stanza = stanza
 
         self.use_mech = self.config.get('use_mech', None)
@@ -157,3 +160,6 @@ class feature_mechanisms(base_plugin):
         self.xmpp.event("failed_auth", stanza, direct=True)
         self._send_auth()
         return True
+
+
+register_plugin(FeatureSASL)

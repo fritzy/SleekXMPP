@@ -12,14 +12,14 @@ import random
 
 from sleekxmpp.stanza import Iq, StreamFeatures
 from sleekxmpp.xmlstream import ElementBase, ET, register_stanza_plugin
-from sleekxmpp.plugins.base import base_plugin
+from sleekxmpp.plugins.base import BasePlugin, register_plugin
 from sleekxmpp.plugins.xep_0078 import stanza
 
 
 log = logging.getLogger(__name__)
 
 
-class xep_0078(base_plugin):
+class XEP_0078(BasePlugin):
 
     """
     XEP-0078 NON-SASL Authentication
@@ -28,9 +28,12 @@ class xep_0078(base_plugin):
     unless you are forced to use an old XMPP server implementation.
     """
 
+    name = 'xep_0078'
+    description = 'XEP-0078: Non-SASL Authentication'
+    dependencies = set()
+
     def plugin_init(self):
         self.xep = "0078"
-        self.description = "Non-SASL Authentication"
         self.stanza = stanza
 
         self.xmpp.register_feature('auth',
@@ -40,7 +43,6 @@ class xep_0078(base_plugin):
 
         register_stanza_plugin(Iq, stanza.IqAuth)
         register_stanza_plugin(StreamFeatures, stanza.AuthFeature)
-
 
     def _handle_auth(self, features):
         # If we can or have already authenticated with SASL, do nothing.
@@ -117,3 +119,6 @@ class xep_0078(base_plugin):
         self.xmpp.event('session_start')
 
         return True
+
+
+register_plugin(XEP_0078)

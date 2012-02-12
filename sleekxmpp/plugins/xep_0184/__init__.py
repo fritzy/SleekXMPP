@@ -7,4 +7,4 @@
 """
 
 from sleekxmpp.plugins.xep_0184.stanza import Request, Received
-from sleekxmpp.plugins.xep_0184.reciept import xep_0184
+from sleekxmpp.plugins.xep_0184.reciept import XEP_0184

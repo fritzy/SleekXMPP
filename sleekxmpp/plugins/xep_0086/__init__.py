@@ -7,4 +7,4 @@
 """
 
 from sleekxmpp.plugins.xep_0086.stanza import LegacyError
-from sleekxmpp.plugins.xep_0086.legacy_error import xep_0086
+from sleekxmpp.plugins.xep_0086.legacy_error import XEP_0086

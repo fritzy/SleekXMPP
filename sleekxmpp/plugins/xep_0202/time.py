@@ -12,7 +12,7 @@ from sleekxmpp.stanza.iq import Iq
 from sleekxmpp.xmlstream import register_stanza_plugin
 from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.xmlstream.matcher import StanzaPath
-from sleekxmpp.plugins.base import base_plugin
+from sleekxmpp.plugins.base import BasePlugin, register_plugin
 from sleekxmpp.plugins import xep_0082
 from sleekxmpp.plugins.xep_0202 import stanza
 
@@ -20,16 +20,19 @@ from sleekxmpp.plugins.xep_0202 import stanza
 log = logging.getLogger(__name__)
 
 
-class xep_0202(base_plugin):
+class XEP_0202(BasePlugin):
 
     """
     XEP-0202: Entity Time
     """
 
+    name = 'xep_0202'
+    description = 'XEP-0202: Entity Time'
+    dependencies = set(['xep_0030', 'xep_0082'])
+
     def plugin_init(self):
         """Start the XEP-0203 plugin."""
         self.xep = '0202'
-        self.description = 'Entity Time'
         self.stanza = stanza
 
         self.tz_offset = self.config.get('tz_offset', 0)
@@ -48,11 +51,7 @@ class xep_0202(base_plugin):
                  self._handle_time_request))
         register_stanza_plugin(Iq, stanza.EntityTime)
 
-    def post_init(self):
-        """Handle cross-plugin interactions."""
-        base_plugin.post_init(self)
         self.xmpp['xep_0030'].add_feature('urn:xmpp:time')
-
 
     def _handle_time_request(self, iq):
         """
@@ -89,3 +88,6 @@ class xep_0202(base_plugin):
         iq['from'] = ifrom
         iq.enable('entity_time')
         return iq.send(**iqargs)
+
+
+register_plugin(XEP_0202)

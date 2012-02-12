@@ -6,7 +6,7 @@
     See the file LICENSE for copying permission.
 """
 
-from sleekxmpp.plugins import base
+from sleekxmpp.plugins.base import BasePlugin, register_plugin
 from sleekxmpp.plugins.xep_0009.stanza.RPC import RPCQuery, MethodCall, MethodResponse
 from sleekxmpp.stanza.iq import Iq
 from sleekxmpp.xmlstream.handler.callback import Callback
@@ -21,11 +21,14 @@ log = logging.getLogger(__name__)
 
 
 
-class xep_0009(base.base_plugin):
+class XEP_0009(BasePlugin):
+
+    name = 'xep_0009'
+    description = 'XEP-0009: Jabber-RPC'
+    dependencies = set(['xep_0030'])
 
     def plugin_init(self):
         self.xep = '0009'
-        self.description = 'Jabber-RPC'
         #self.stanza = sleekxmpp.plugins.xep_0009.stanza
 
         register_stanza_plugin(Iq, RPCQuery)
@@ -51,8 +54,6 @@ class xep_0009(base.base_plugin):
         self.xmpp.add_event_handler('error', self._handle_error)
         #self.activeCalls = []
 
-    def post_init(self):
-        base.base_plugin.post_init(self)
         self.xmpp.plugin['xep_0030'].add_feature('jabber:iq:rpc')
         self.xmpp.plugin['xep_0030'].add_identity('automation','rpc')
 
@@ -219,3 +220,5 @@ class xep_0009(base.base_plugin):
         xml = ET.fromstring("%s" % stanza)
         return xml.find("./methodCall/methodName").text
 
+
+register_plugin(XEP_0009)

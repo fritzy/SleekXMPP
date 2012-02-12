@@ -8,4 +8,4 @@
 
 from sleekxmpp.plugins.xep_0115.stanza import Capabilities
 from sleekxmpp.plugins.xep_0115.static import StaticCaps
-from sleekxmpp.plugins.xep_0115.caps import xep_0115
+from sleekxmpp.plugins.xep_0115.caps import XEP_0115

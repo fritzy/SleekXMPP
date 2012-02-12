@@ -7,4 +7,4 @@
 """
 
 from sleekxmpp.plugins.xep_0199.stanza import Ping
-from sleekxmpp.plugins.xep_0199.ping import xep_0199
+from sleekxmpp.plugins.xep_0199.ping import XEP_0199

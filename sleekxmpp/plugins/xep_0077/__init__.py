@@ -7,4 +7,4 @@
 """
 
 from sleekxmpp.plugins.xep_0077.stanza import Register, RegisterFeature
-from sleekxmpp.plugins.xep_0077.register import xep_0077
+from sleekxmpp.plugins.xep_0077.register import XEP_0077

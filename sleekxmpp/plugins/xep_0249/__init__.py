@@ -7,4 +7,4 @@
 """
 
 from sleekxmpp.plugins.xep_0249.stanza import Invite
-from sleekxmpp.plugins.xep_0249.invite import xep_0249
+from sleekxmpp.plugins.xep_0249.invite import XEP_0249

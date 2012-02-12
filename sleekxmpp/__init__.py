@@ -14,5 +14,6 @@ from sleekxmpp.xmlstream.handler import *
 from sleekxmpp.xmlstream import XMLStream, RestartStream
 from sleekxmpp.xmlstream.matcher import *
 from sleekxmpp.xmlstream.stanzabase import StanzaBase, ET
+from sleekxmpp.plugins import *
 
 from sleekxmpp.version import __version__, __version_info__

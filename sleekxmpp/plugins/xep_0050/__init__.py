@@ -7,4 +7,4 @@
 """
 
 from sleekxmpp.plugins.xep_0050.stanza import Command
-from sleekxmpp.plugins.xep_0050.adhoc import xep_0050
+from sleekxmpp.plugins.xep_0050.adhoc import XEP_0050 

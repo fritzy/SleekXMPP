@@ -11,7 +11,7 @@ import logging
 import sleekxmpp
 from sleekxmpp import Iq
 from sleekxmpp.exceptions import XMPPError, IqError, IqTimeout
-from sleekxmpp.plugins.base import base_plugin
+from sleekxmpp.plugins.base import BasePlugin, register_plugin
 from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.xmlstream.matcher import StanzaPath
 from sleekxmpp.xmlstream import register_stanza_plugin, ElementBase, ET, JID
@@ -21,7 +21,7 @@ from sleekxmpp.plugins.xep_0030 import DiscoInfo, DiscoItems, StaticDisco
 log = logging.getLogger(__name__)
 
 
-class xep_0030(base_plugin):
+class XEP_0030(BasePlugin):
 
     """
     XEP-0030: Service Discovery
@@ -85,12 +85,15 @@ class xep_0030(base_plugin):
         add_item         --
     """
 
+    name = 'xep_0030'
+    description = 'XEP-0030: Service Discovery'
+    dependencies = set()
+
     def plugin_init(self):
         """
         Start the XEP-0030 plugin.
         """
         self.xep = '0030'
-        self.description = 'Service Discovery'
         self.stanza = sleekxmpp.plugins.xep_0030.stanza
 
         self.xmpp.register_handler(
@@ -122,13 +125,6 @@ class xep_0030(base_plugin):
         self._handlers = {}
         for op in self._disco_ops:
             self._add_disco_op(op, getattr(self.static, op))
-
-    def post_init(self):
-        """Handle cross-plugin dependencies."""
-        base_plugin.post_init(self)
-        if 'xep_0059' in self.xmpp.plugin:
-            register_stanza_plugin(DiscoItems,
-                                   self.xmpp['xep_0059'].stanza.Set)
 
     def _add_disco_op(self, op, default_handler):
         self.default_handlers[op] = default_handler
@@ -794,7 +790,10 @@ class xep_0030(base_plugin):
         return payload
 
 
+register_plugin(XEP_0030)
+
 # Retain some backwards compatibility
-xep_0030.getInfo = xep_0030.get_info
-xep_0030.getItems = xep_0030.get_items
-xep_0030.make_static = xep_0030.restore_defaults
+xep_0030 = XEP_0030
+XEP_0030.getInfo = XEP_0030.get_info
+XEP_0030.getItems = XEP_0030.get_items
+XEP_0030.make_static = XEP_0030.restore_defaults

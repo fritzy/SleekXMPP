@@ -8,5 +8,5 @@
 
 from sleekxmpp.plugins.xep_0203 import stanza
 from sleekxmpp.plugins.xep_0203.stanza import Delay
-from sleekxmpp.plugins.xep_0203.delay import xep_0203
+from sleekxmpp.plugins.xep_0203.delay import XEP_0203
 

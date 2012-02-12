@@ -8,5 +8,5 @@
 
 from sleekxmpp.plugins.xep_0078 import stanza
 from sleekxmpp.plugins.xep_0078.stanza import IqAuth, AuthFeature
-from sleekxmpp.plugins.xep_0078.legacyauth import xep_0078
+from sleekxmpp.plugins.xep_0078.legacyauth import XEP_0078
 

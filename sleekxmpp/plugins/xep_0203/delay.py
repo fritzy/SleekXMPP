@@ -9,11 +9,11 @@
 
 from sleekxmpp.stanza import Message, Presence
 from sleekxmpp.xmlstream import register_stanza_plugin
-from sleekxmpp.plugins.base import base_plugin
+from sleekxmpp.plugins.base import BasePlugin, register_plugin
 from sleekxmpp.plugins.xep_0203 import stanza
 
 
-class xep_0203(base_plugin):
+class XEP_0203(BasePlugin):
 
     """
     XEP-0203: Delayed Delivery
@@ -26,11 +26,17 @@ class xep_0203(base_plugin):
     Also see <http://www.xmpp.org/extensions/xep-0203.html>.
     """
 
+    name = 'xep_0203'
+    description = 'XEP-0203: Delayed Delivery'
+    dependencies = set()
+
     def plugin_init(self):
         """Start the XEP-0203 plugin."""
         self.xep = '0203'
-        self.description = 'Delayed Delivery'
         self.stanza = stanza
 
         register_stanza_plugin(Message, stanza.Delay)
         register_stanza_plugin(Presence, stanza.Delay)
+
+
+register_plugin(XEP_0203)

@@ -6,5 +6,5 @@
     See the file LICENSE for copying permission.
 """
 
-from sleekxmpp.features.feature_bind.bind import feature_bind
+from sleekxmpp.features.feature_bind.bind import FeatureBind
 from sleekxmpp.features.feature_bind.stanza import Bind

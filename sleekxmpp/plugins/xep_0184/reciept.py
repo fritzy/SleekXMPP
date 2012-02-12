@@ -8,25 +8,27 @@
 
 from sleekxmpp.stanza import Message
 from sleekxmpp.xmlstream import register_stanza_plugin
-from sleekxmpp.plugins.base import base_plugin
+from sleekxmpp.plugins.base import BasePlugin, register_plugin
 from sleekxmpp.plugins.xep_0184 import stanza, Request, Received
 
 
-class xep_0184(base_plugin):
+class XEP_0184(BasePlugin):
+
     """
     XEP-0184: Message Delivery Receipts
     """
 
+    name = 'xep_0184'
+    description = 'XEP-0184: Message Delivery Receipts'
+    dependencies = set(['xep_0030'])
+
     def plugin_init(self):
         self.xep = '0184'
-        self.description = 'Message Delivery Receipts'
         self.stanza = stanza
 
         register_stanza_plugin(Message, Request)
         register_stanza_plugin(Message, Received)
 
-    def post_init(self):
-        base_plugin.post_init(self)
         self.xmpp.plugin['xep_0030'].add_feature('urn:xmpp:receipts')
 
     def ack(self, message):
@@ -43,3 +45,6 @@ class xep_0184(base_plugin):
         msg['reciept_received']['id'] = mid
         msg['id'] = self.xmpp.new_id()
         msg.send()
+
+
+register_plugin(XEP_0184)

@@ -13,18 +13,21 @@ from sleekxmpp.features.feature_bind import stanza
 from sleekxmpp.xmlstream import register_stanza_plugin
 from sleekxmpp.xmlstream.matcher import *
 from sleekxmpp.xmlstream.handler import *
-from sleekxmpp.plugins.base import base_plugin
+from sleekxmpp.plugins.base import BasePlugin, register_plugin
 
 
 log = logging.getLogger(__name__)
 
 
-class feature_bind(base_plugin):
+class FeatureBind(BasePlugin):
+
+    name = 'feature_bind'
+    description = 'RFC 6120: Stream Feature: Resource Binding'
+    dependencies = set()
 
     def plugin_init(self):
         self.name = 'Bind Resource'
         self.rfc = '6120'
-        self.description = 'Resource Binding Stream Feature'
         self.stanza = stanza
 
         self.xmpp.register_feature('bind',
@@ -63,3 +66,6 @@ class feature_bind(base_plugin):
             self.xmpp.sessionstarted = True
             self.xmpp.session_started_event.set()
             self.xmpp.event("session_start")
+
+
+register_plugin(FeatureBind)

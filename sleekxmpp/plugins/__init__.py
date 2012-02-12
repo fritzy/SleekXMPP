@@ -17,10 +17,12 @@ __all__ = [
     'xep_0030',  # Service Discovery
     'xep_0033',  # Extended Stanza Addresses
     'xep_0045',  # Multi-User Chat (Client)
+    'xep_0047',  # In-band Bytestreams
     'xep_0050',  # Ad-hoc Commands
     'xep_0059',  # Result Set Management
     'xep_0060',  # Pubsub (Client)
     'xep_0066',  # Out-of-band Transfer
+    'xep_0077',  # In-band Registration
 #   'xep_0078',  # Non-SASL auth. Don't automatically load
     'xep_0082',  # XMPP Date and Time Profiles
     'xep_0085',  # Chat State Notifications
@@ -28,6 +30,7 @@ __all__ = [
     'xep_0092',  # Software Version
     'xep_0115',  # Entity Capabilities
     'xep_0128',  # Extended Service Discovery
+    'xep_0184',  # Message Delivery Receipts
     'xep_0199',  # Ping
     'xep_0202',  # Entity Time
     'xep_0203',  # Delayed Delivery

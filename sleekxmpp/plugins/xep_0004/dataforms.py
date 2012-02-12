@@ -14,19 +14,22 @@ from sleekxmpp import Message
 from sleekxmpp.xmlstream import register_stanza_plugin, ElementBase, ET
 from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.xmlstream.matcher import StanzaPath
-from sleekxmpp.plugins.base import base_plugin
+from sleekxmpp.plugins.base import BasePlugin, register_plugin
 from sleekxmpp.plugins.xep_0004 import stanza
 from sleekxmpp.plugins.xep_0004.stanza import Form, FormField, FieldOption
 
 
-class xep_0004(base_plugin):
+class XEP_0004(BasePlugin):
     """
     XEP-0004: Data Forms
     """
 
+    name = 'xep_0004'
+    description = 'XEP-0004: Data Forms'
+    dependencies = set(['xep_0030'])
+
     def plugin_init(self):
         self.xep = '0004'
-        self.description = 'Data Forms'
         self.stanza = stanza
 
         self.xmpp.registerHandler(
@@ -38,16 +41,14 @@ class xep_0004(base_plugin):
         register_stanza_plugin(Form, FormField, iterable=True)
         register_stanza_plugin(Message, Form)
 
+        self.xmpp.plugin['xep_0030'].add_feature('jabber:x:data')
+
     def make_form(self, ftype='form', title='', instructions=''):
         f = Form()
         f['type'] = ftype
         f['title'] = title
         f['instructions'] = instructions
         return f
-
-    def post_init(self):
-        base_plugin.post_init(self)
-        self.xmpp.plugin['xep_0030'].add_feature('jabber:x:data')
 
     def handle_form(self, message):
         self.xmpp.event("message_xform", message)
@@ -56,5 +57,9 @@ class xep_0004(base_plugin):
         return Form(xml=xml)
 
 
+register_plugin(XEP_0004)
+
+
+xep_0004 = XEP_0004
 xep_0004.makeForm = xep_0004.make_form
 xep_0004.buildForm = xep_0004.build_form

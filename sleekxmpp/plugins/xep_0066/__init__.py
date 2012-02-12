@@ -8,4 +8,4 @@
 
 from sleekxmpp.plugins.xep_0066 import stanza
 from sleekxmpp.plugins.xep_0066.stanza import OOB, OOBTransfer
-from sleekxmpp.plugins.xep_0066.oob import xep_0066
+from sleekxmpp.plugins.xep_0066.oob import XEP_0066

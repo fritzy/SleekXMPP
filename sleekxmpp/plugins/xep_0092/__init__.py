@@ -8,4 +8,4 @@
 
 from sleekxmpp.plugins.xep_0092 import stanza
 from sleekxmpp.plugins.xep_0092.stanza import Version
-from sleekxmpp.plugins.xep_0092.version import xep_0092
+from sleekxmpp.plugins.xep_0092.version import XEP_0092

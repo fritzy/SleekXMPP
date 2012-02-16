@@ -771,7 +771,7 @@ class XMLStream(object):
         stanza objects, but may still be processed using handlers and
         matchers.
         """
-        del self.__root_stanza.remove(stanza_class)
+        self.__root_stanza.remove(stanza_class)
 
     def add_filter(self, mode, handler, order=None):
         """Add a filter for incoming or outgoing stanzas.

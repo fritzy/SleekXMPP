@@ -15,22 +15,12 @@
 from __future__ import absolute_import, unicode_literals
 
 import logging
-import base64
-import sys
-import hashlib
-import random
-import threading
 
-import sleekxmpp
-from sleekxmpp import plugins
-from sleekxmpp import stanza
-from sleekxmpp import features
+from sleekxmpp.stanza import StreamFeatures
 from sleekxmpp.basexmpp import BaseXMPP
-from sleekxmpp.stanza import *
-from sleekxmpp.xmlstream import XMLStream, RestartStream
-from sleekxmpp.xmlstream import StanzaBase, ET, register_stanza_plugin
-from sleekxmpp.xmlstream.matcher import *
-from sleekxmpp.xmlstream.handler import *
+from sleekxmpp.xmlstream import XMLStream
+from sleekxmpp.xmlstream.matcher import MatchXPath
+from sleekxmpp.xmlstream.handler import Callback
 
 # Flag indicating if DNS SRV records are available for use.
 try:

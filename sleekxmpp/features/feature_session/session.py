@@ -10,8 +10,6 @@ import logging
 
 from sleekxmpp.stanza import Iq, StreamFeatures
 from sleekxmpp.xmlstream import register_stanza_plugin
-from sleekxmpp.xmlstream.matcher import *
-from sleekxmpp.xmlstream.handler import *
 from sleekxmpp.plugins.base import base_plugin
 
 from sleekxmpp.features.feature_session import stanza
@@ -46,7 +44,7 @@ class feature_session(base_plugin):
         iq = self.xmpp.Iq()
         iq['type'] = 'set'
         iq.enable('session')
-        response = iq.send(now=True)
+        iq.send(now=True)
 
         self.xmpp.features.add('session')
 

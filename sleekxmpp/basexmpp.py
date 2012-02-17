@@ -18,7 +18,7 @@ import sys
 import logging
 
 import sleekxmpp
-from sleekxmpp import plugins, roster
+from sleekxmpp import plugins, features, roster
 from sleekxmpp.exceptions import IqError, IqTimeout
 
 from sleekxmpp.stanza import Message, Presence, Iq, StreamError
@@ -204,12 +204,12 @@ class BaseXMPP(XMLStream):
             # Import the given module that contains the plugin.
             if not module:
                 try:
-                    module = sleekxmpp.plugins
+                    module = plugins
                     module = __import__(
                             str("%s.%s" % (module.__name__, plugin)),
                             globals(), locals(), [str(plugin)])
                 except ImportError:
-                    module = sleekxmpp.features
+                    module = features
                     module = __import__(
                             str("%s.%s" % (module.__name__, plugin)),
                             globals(), locals(), [str(plugin)])

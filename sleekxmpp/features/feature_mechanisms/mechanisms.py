@@ -13,8 +13,8 @@ from sleekxmpp.thirdparty.suelta.exceptions import SASLCancelled, SASLError
 
 from sleekxmpp.stanza import StreamFeatures
 from sleekxmpp.xmlstream import RestartStream, register_stanza_plugin
-from sleekxmpp.xmlstream.matcher import *
-from sleekxmpp.xmlstream.handler import *
+from sleekxmpp.xmlstream.matcher import MatchXPath
+from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.plugins.base import base_plugin
 from sleekxmpp.features.feature_mechanisms import stanza
 

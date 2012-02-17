@@ -15,7 +15,7 @@ from sleekxmpp.stanza import StreamFeatures, Presence, Iq
 from sleekxmpp.xmlstream import register_stanza_plugin, JID
 from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.xmlstream.matcher import StanzaPath
-from sleekxmpp.exceptions import XMPPError, IqError, IqTimeout
+from sleekxmpp.exceptions import XMPPError
 from sleekxmpp.plugins.base import base_plugin
 from sleekxmpp.plugins.xep_0115 import stanza, StaticCaps
 

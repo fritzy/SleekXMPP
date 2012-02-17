@@ -8,7 +8,7 @@
 
 from __future__ import unicode_literals
 
-from sleekxmpp.xmlstream import ElementBase, ET
+from sleekxmpp.xmlstream import ElementBase
 
 
 class Capabilities(ElementBase):

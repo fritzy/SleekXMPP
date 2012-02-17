@@ -8,9 +8,8 @@
 
 import logging
 
-import sleekxmpp
 from sleekxmpp.xmlstream import JID
-from sleekxmpp.plugins.xep_0030 import StaticDisco
+from sleekxmpp.exceptions import IqError, IqTimeout
 
 
 log = logging.getLogger(__name__)

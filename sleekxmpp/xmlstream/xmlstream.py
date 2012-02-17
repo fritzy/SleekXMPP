@@ -1488,9 +1488,7 @@ class XMLStream(object):
                                 log.debug('SSL error - max retries reached')
                                 self.exception(serr)
                                 log.warning("Failed to send %s", data)
-                                if reconnect is None:
-                                    reconnect = self.auto_reconnect
-                                self.disconnect(reconnect)
+                                self.disconnect(self.auto_reconnect)
                             log.warning('SSL write error - reattempting')
                             time.sleep(self.ssl_retry_delay)
                             tries += 1

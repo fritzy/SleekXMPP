@@ -1,3 +1,5 @@
+# -*- encoding:utf-8 -*-
+
 """
     SleekXMPP: The Sleek XMPP Library
     Copyright (C) 2011 Nathanael C. Fritz, Dann Martens (TOMOTON).
@@ -104,6 +106,24 @@ class TestJabberRPC(SleekTest):
                 <param>
                     <value>
                         <string>&apos;This&apos; &amp; &quot;That&quot;</string>
+                    </value>
+                </param>
+            </params>
+        """)
+        self.assertTrue(self.compare(expected_xml, params_xml),
+                        "String to XML conversion\nExpected: %s\nGot: %s" % (
+                            tostring(expected_xml), tostring(params_xml)))
+        self.assertEqual(params, xml2py(expected_xml),
+                        "XML to string conversion")
+
+    def testConvertUnicodeString(self):
+        params = [u"おはよう"]
+        params_xml = py2xml(*params)
+        expected_xml = self.parse_xml("""
+            <params xmlns="jabber:iq:rpc">
+                <param>
+                    <value>
+                        <string>おはよう</string>
                     </value>
                 </param>
             </params>

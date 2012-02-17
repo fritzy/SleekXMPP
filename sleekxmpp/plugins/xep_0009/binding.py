@@ -54,7 +54,7 @@ def _py2xml(*args):
             boolean = ET.Element("{%s}boolean" % _namespace)
             boolean.text = str(int(x))
             val.append(boolean)
-        elif type(x) is str:
+        elif type(x) in (str, unicode):
             string = ET.Element("{%s}string" % _namespace)
             string.text = x
             val.append(string)

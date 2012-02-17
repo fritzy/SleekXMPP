@@ -352,6 +352,7 @@ class ElementBase(object):
         if self.xml is None:
             self.xml = xml
 
+        last_xml = self.xml
         if self.xml is None:
             # Generate XML from the stanza definition
             for ename in self.name.split('/'):

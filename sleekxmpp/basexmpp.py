@@ -204,7 +204,6 @@ class BaseXMPP(XMLStream):
         :param module: Optional refence to the module containing the plugin
                        class if using custom plugins.
         """
-<<<<<<< HEAD
 
         # Use the global plugin config cache, if applicable
         if not pconfig:
@@ -240,44 +239,6 @@ class BaseXMPP(XMLStream):
                 return
                 
         self.plugin.enable(plugin, pconfig)
-=======
-        try:
-            # Import the given module that contains the plugin.
-            if not module:
-                try:
-                    module = plugins
-                    module = __import__(
-                            str("%s.%s" % (module.__name__, plugin)),
-                            globals(), locals(), [str(plugin)])
-                except ImportError:
-                    module = features
-                    module = __import__(
-                            str("%s.%s" % (module.__name__, plugin)),
-                            globals(), locals(), [str(plugin)])
-            if isinstance(module, str):
-                # We probably want to load a module from outside
-                # the sleekxmpp package, so leave out the globals().
-                module = __import__(module, fromlist=[plugin])
-
-            # Use the global plugin config cache, if applicable
-            if not pconfig:
-                pconfig = self.plugin_config.get(plugin, {})
-
-            # Load the plugin class from the module.
-            self.plugin[plugin] = getattr(module, plugin)(self, pconfig)
-
-            # Let XEP/RFC implementing plugins have some extra logging info.
-            spec = '(CUSTOM) %s'
-            if self.plugin[plugin].xep:
-                spec = "(XEP-%s) " % self.plugin[plugin].xep
-            elif self.plugin[plugin].rfc:
-                spec = "(RFC-%s) " % self.plugin[plugin].rfc
-
-            desc = (spec, self.plugin[plugin].description)
-            log.debug("Loaded Plugin %s %s" % desc)
-        except:
-            log.exception("Unable to load plugin: %s", plugin)
->>>>>>> develop
 
     def register_plugins(self):
         """Register and initialize all built-in plugins.

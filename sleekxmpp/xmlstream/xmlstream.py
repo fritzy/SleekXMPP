@@ -24,7 +24,6 @@ import ssl
 import sys
 import threading
 import time
-import types
 import random
 import weakref
 try:

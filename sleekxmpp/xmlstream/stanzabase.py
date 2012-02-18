@@ -14,7 +14,6 @@
 
 import copy
 import logging
-import sys
 import weakref
 from xml.etree import cElementTree as ET
 

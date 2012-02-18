@@ -6,9 +6,8 @@
     See the file LICENSE for copying permission.
 """
 
-from sleekxmpp.stanza import Error
 from sleekxmpp.stanza.rootstanza import RootStanza
-from sleekxmpp.xmlstream import StanzaBase, ET
+from sleekxmpp.xmlstream import StanzaBase
 
 
 class Message(RootStanza):

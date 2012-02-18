@@ -7,8 +7,7 @@
 """
 
 from sleekxmpp.stanza.error import Error
-from sleekxmpp.xmlstream import StanzaBase, ElementBase, ET
-from sleekxmpp.xmlstream import register_stanza_plugin
+from sleekxmpp.xmlstream import StanzaBase
 
 
 class StreamError(Error, StanzaBase):

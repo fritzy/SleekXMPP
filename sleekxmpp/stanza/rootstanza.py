@@ -7,8 +7,6 @@
 """
 
 import logging
-import traceback
-import sys
 
 from sleekxmpp.exceptions import XMPPError, IqError, IqTimeout
 from sleekxmpp.stanza import Error

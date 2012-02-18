@@ -11,7 +11,7 @@ import threading
 
 import sleekxmpp
 from sleekxmpp import Iq
-from sleekxmpp.exceptions import XMPPError
+from sleekxmpp.exceptions import XMPPError, IqError, IqTimeout
 from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.xmlstream.matcher import StanzaPath
 from sleekxmpp.xmlstream import register_stanza_plugin, ElementBase, ET, JID

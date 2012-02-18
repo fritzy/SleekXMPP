@@ -9,7 +9,9 @@
 import logging
 import hashlib
 import random
+import sys
 
+from sleekxmpp.exceptions import IqError, IqTimeout
 from sleekxmpp.stanza import Iq, StreamFeatures
 from sleekxmpp.xmlstream import ElementBase, ET, register_stanza_plugin
 from sleekxmpp.plugins import BasePlugin, register_plugin

@@ -10,9 +10,7 @@ import base64
 
 from sleekxmpp.thirdparty.suelta.util import bytes
 
-from sleekxmpp.stanza import StreamFeatures
-from sleekxmpp.xmlstream import ElementBase, StanzaBase, ET
-from sleekxmpp.xmlstream import register_stanza_plugin
+from sleekxmpp.xmlstream import StanzaBase
 
 
 class Challenge(StanzaBase):

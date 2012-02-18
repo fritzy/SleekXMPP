@@ -15,17 +15,14 @@
 from __future__ import absolute_import
 
 import logging
-import base64
 import sys
 import hashlib
 
-from sleekxmpp import plugins
-from sleekxmpp import stanza
 from sleekxmpp.basexmpp import BaseXMPP
-from sleekxmpp.xmlstream import XMLStream, RestartStream
-from sleekxmpp.xmlstream import StanzaBase, ET
-from sleekxmpp.xmlstream.matcher import *
-from sleekxmpp.xmlstream.handler import *
+from sleekxmpp.xmlstream import XMLStream
+from sleekxmpp.xmlstream import ET
+from sleekxmpp.xmlstream.matcher import MatchXPath
+from sleekxmpp.xmlstream.handler import Callback
 
 
 log = logging.getLogger(__name__)

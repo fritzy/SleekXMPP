@@ -7,7 +7,7 @@
 """
 
 from sleekxmpp.stanza import Message, Presence
-from sleekxmpp.xmlstream import ElementBase, ET, register_stanza_plugin
+from sleekxmpp.xmlstream import ElementBase, register_stanza_plugin
 
 
 class Nick(ElementBase):

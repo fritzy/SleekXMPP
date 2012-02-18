@@ -24,7 +24,6 @@ import ssl
 import sys
 import threading
 import time
-import types
 import random
 import weakref
 try:
@@ -461,13 +460,15 @@ class XMLStream(object):
             else:
                 self.socket = ssl_socket
 
-            cert = self.socket.getpeercert()
-            log.debug('CERT: %s', cert)
-            self.event('ssl_cert', cert, direct=True)
         try:
             if not self.use_proxy:
                 log.debug("Connecting to %s:%s", *self.address)
                 self.socket.connect(self.address)
+
+                if self.use_ssl and self.ssl_support:
+                    cert = self.socket.getpeercert()
+                    log.debug('CERT: %s', cert)
+                    self.event('ssl_cert', cert, direct=True)
 
             self.set_socket(self.socket, ignore=True)
             #this event is where you should set your application state
@@ -769,7 +770,7 @@ class XMLStream(object):
         stanza objects, but may still be processed using handlers and
         matchers.
         """
-        del self.__root_stanza[stanza_class]
+        self.__root_stanza.remove(stanza_class)
 
     def add_filter(self, mode, handler, order=None):
         """Add a filter for incoming or outgoing stanzas.
@@ -1486,9 +1487,7 @@ class XMLStream(object):
                                 log.debug('SSL error - max retries reached')
                                 self.exception(serr)
                                 log.warning("Failed to send %s", data)
-                                if reconnect is None:
-                                    reconnect = self.auto_reconnect
-                                self.disconnect(reconnect)
+                                self.disconnect(self.auto_reconnect)
                             log.warning('SSL write error - reattempting')
                             time.sleep(self.ssl_retry_delay)
                             tries += 1

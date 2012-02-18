@@ -161,7 +161,7 @@ class Scheduler(object):
                             else:
                                 break
                         for task in cleanup:
-                            x = self.schedule.pop(self.schedule.index(task))
+                            self.schedule.pop(self.schedule.index(task))
                     else:
                         updated = True
                         self.schedule_lock.acquire()

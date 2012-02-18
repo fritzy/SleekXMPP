@@ -11,8 +11,6 @@ import logging
 from sleekxmpp.stanza import Iq, StreamFeatures
 from sleekxmpp.features.feature_bind import stanza
 from sleekxmpp.xmlstream import register_stanza_plugin
-from sleekxmpp.xmlstream.matcher import *
-from sleekxmpp.xmlstream.handler import *
 from sleekxmpp.plugins import BasePlugin, register_plugin
 
 

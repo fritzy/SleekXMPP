@@ -97,6 +97,12 @@ class RosterItem(ElementBase):
     interfaces = set(('jid', 'name', 'subscription', 'ask',
                       'approved', 'groups'))
 
+    def get_jid(self):
+        return JID(self._get_attr('jid', ''))
+
+    def set_jid(self, jid):
+        self._set_attr('jid', str(jid))
+
     def get_groups(self):
         groups = []
         for group in self.xml.findall('{%s}group' % self.namespace):

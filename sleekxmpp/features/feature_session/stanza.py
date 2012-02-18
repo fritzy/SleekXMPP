@@ -6,8 +6,7 @@
     See the file LICENSE for copying permission.
 """
 
-from sleekxmpp.stanza import Iq, StreamFeatures
-from sleekxmpp.xmlstream import ElementBase, ET, register_stanza_plugin
+from sleekxmpp.xmlstream import ElementBase
 
 
 class Session(ElementBase):

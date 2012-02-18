@@ -13,9 +13,9 @@ from sleekxmpp.thirdparty.suelta.exceptions import SASLCancelled, SASLError
 
 from sleekxmpp.stanza import StreamFeatures
 from sleekxmpp.xmlstream import RestartStream, register_stanza_plugin
-from sleekxmpp.xmlstream.matcher import *
-from sleekxmpp.xmlstream.handler import *
 from sleekxmpp.plugins import BasePlugin, register_plugin
+from sleekxmpp.xmlstream.matcher import MatchXPath
+from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.features.feature_mechanisms import stanza
 
 

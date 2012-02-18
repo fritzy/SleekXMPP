@@ -15,7 +15,6 @@ try:
 except ImportError:
     import Queue as queue
 
-from sleekxmpp.xmlstream import StanzaBase
 from sleekxmpp.xmlstream.handler.base import BaseHandler
 
 

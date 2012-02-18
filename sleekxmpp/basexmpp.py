@@ -15,22 +15,22 @@
 from __future__ import with_statement, unicode_literals
 
 import sys
-import copy
 import logging
 
 import sleekxmpp
-from sleekxmpp import plugins, roster
+from sleekxmpp import plugins, features, roster
 from sleekxmpp.exceptions import IqError, IqTimeout
 
-from sleekxmpp.stanza import Message, Presence, Iq, Error, StreamError
+from sleekxmpp.stanza import Message, Presence, Iq, StreamError
 from sleekxmpp.stanza.roster import Roster
 from sleekxmpp.stanza.nick import Nick
 from sleekxmpp.stanza.htmlim import HTMLIM
 
-from sleekxmpp.xmlstream import XMLStream, JID, tostring
+from sleekxmpp.xmlstream import XMLStream, JID
 from sleekxmpp.xmlstream import ET, register_stanza_plugin
-from sleekxmpp.xmlstream.matcher import *
-from sleekxmpp.xmlstream.handler import *
+from sleekxmpp.xmlstream.matcher import MatchXPath
+from sleekxmpp.xmlstream.handler import Callback
+
 from sleekxmpp.plugins import PluginManager, register_plugin
 
 
@@ -204,6 +204,7 @@ class BaseXMPP(XMLStream):
         :param module: Optional refence to the module containing the plugin
                        class if using custom plugins.
         """
+<<<<<<< HEAD
 
         # Use the global plugin config cache, if applicable
         if not pconfig:
@@ -239,6 +240,44 @@ class BaseXMPP(XMLStream):
                 return
                 
         self.plugin.enable(plugin, pconfig)
+=======
+        try:
+            # Import the given module that contains the plugin.
+            if not module:
+                try:
+                    module = plugins
+                    module = __import__(
+                            str("%s.%s" % (module.__name__, plugin)),
+                            globals(), locals(), [str(plugin)])
+                except ImportError:
+                    module = features
+                    module = __import__(
+                            str("%s.%s" % (module.__name__, plugin)),
+                            globals(), locals(), [str(plugin)])
+            if isinstance(module, str):
+                # We probably want to load a module from outside
+                # the sleekxmpp package, so leave out the globals().
+                module = __import__(module, fromlist=[plugin])
+
+            # Use the global plugin config cache, if applicable
+            if not pconfig:
+                pconfig = self.plugin_config.get(plugin, {})
+
+            # Load the plugin class from the module.
+            self.plugin[plugin] = getattr(module, plugin)(self, pconfig)
+
+            # Let XEP/RFC implementing plugins have some extra logging info.
+            spec = '(CUSTOM) %s'
+            if self.plugin[plugin].xep:
+                spec = "(XEP-%s) " % self.plugin[plugin].xep
+            elif self.plugin[plugin].rfc:
+                spec = "(RFC-%s) " % self.plugin[plugin].rfc
+
+            desc = (spec, self.plugin[plugin].description)
+            log.debug("Loaded Plugin %s %s" % desc)
+        except:
+            log.exception("Unable to load plugin: %s", plugin)
+>>>>>>> develop
 
     def register_plugins(self):
         """Register and initialize all built-in plugins.

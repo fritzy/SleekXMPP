@@ -6,9 +6,7 @@
     See the file LICENSE for copying permission.
 """
 
-from sleekxmpp.stanza import StreamFeatures
 from sleekxmpp.xmlstream import StanzaBase, ElementBase
-from sleekxmpp.xmlstream import register_stanza_plugin
 
 
 class STARTTLS(ElementBase):

@@ -67,6 +67,7 @@
 
 
 import re
+import math
 import datetime
 
 
@@ -240,12 +241,12 @@ except:
         if frac != None:
             # ok, fractions of hour?
             if min == None:
-                frac, min = _math.modf(frac * 60.0)
+                frac, min = math.modf(frac * 60.0)
                 min = int(min)
 
             # fractions of second?
             if s == None:
-                frac, s = _math.modf(frac * 60.0)
+                frac, s = math.modf(frac * 60.0)
                 s = int(s)
 
             # and extract microseconds...

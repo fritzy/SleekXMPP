@@ -121,7 +121,7 @@ class xep_0066(base_plugin):
             iq -- The Iq stanza containing the OOB transfer request.
         """
         if iq['to'] in self.url_handlers['jid']:
-            return self.url_handlers['jid'][jid](iq)
+            return self.url_handlers['jid'][iq['to']](iq)
         else:
             if self.url_handlers['global']:
                 self.url_handlers['global'](iq)

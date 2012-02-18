@@ -754,7 +754,7 @@ class xep_0030(base_plugin):
         """
         result = info
         if isinstance(info, Iq):
-            info = iq['disco_info']
+            info = info['disco_info']
         if not info['node']:
             if not info['identities']:
                 if self.xmpp.is_component:

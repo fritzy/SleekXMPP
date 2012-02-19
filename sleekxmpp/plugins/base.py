@@ -1,3 +1,18 @@
+# -*- encoding: utf-8 -*-
+
+"""
+    sleekxmpp.plugins.base
+    ~~~~~~~~~~~~~~~~~~~~~~
+
+    This module provides XMPP functionality that
+    is specific to client connections.
+
+    Part of SleekXMPP: The Sleek XMPP Library
+
+    :copyright: (c) 2012 Nathanael C. Fritz
+    :license: MIT, see LICENSE for more details
+"""
+
 import threading
 import logging
 

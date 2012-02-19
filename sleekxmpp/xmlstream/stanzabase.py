@@ -15,7 +15,7 @@
 import copy
 import logging
 import weakref
-from xml.etree import cElementTree as ET
+from xml.etree import ElementTree as ET
 
 from sleekxmpp.xmlstream import JID
 from sleekxmpp.xmlstream.tostring import tostring

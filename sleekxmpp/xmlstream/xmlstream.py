@@ -37,6 +37,7 @@ from sleekxmpp.xmlstream import Scheduler, tostring
 from sleekxmpp.xmlstream.stanzabase import StanzaBase, ET, ElementBase
 from sleekxmpp.xmlstream.handler import Waiter, XMLCallback
 from sleekxmpp.xmlstream.matcher import MatchXMLMask
+from sleekxmpp.xmlstream.parser import RestrictedXMLParser, StreamReader
 
 # In Python 2.x, file socket objects are broken. A patched socket
 # wrapper is provided for this case in filesocket.py.
@@ -1264,37 +1265,31 @@ class XMLStream(object):
         
         Stream events are raised for each received stanza.
         """
-        depth = 0
-        root = None
-        for event, xml in ET.iterparse(self.filesocket, (b'end', b'start')):
-            if event == b'start':
-                if depth == 0:
-                    # We have received the start of the root element.
-                    root = xml
-                    # Perform any stream initialization actions, such
-                    # as handshakes.
-                    self.stream_end_event.clear()
-                    self.start_stream_handler(root)
-                depth += 1
-            if event == b'end':
-                depth -= 1
-                if depth == 0:
-                    # The stream's root element has closed,
-                    # terminating the stream.
-                    log.debug("End of stream recieved")
-                    self.stream_end_event.set()
+
+        def stream_start(root):
+            self.stream_end_event.clear()
+            self.start_stream_handler(root)
+
+        def stream_end(root):
+            self.stream_end_event.set()
+            log.debug("End of stream recieved")
+
+        builder = StreamReader(stream_start=stream_start,
+                               stream_end=stream_end,
+                               child_recv=self.__spawn_event)
+        parser = RestrictedXMLParser(target=builder)
+
+        while not self.stop.is_set():
+            data = self.filesocket.read(16384)
+            if data:
+                try:
+                    parser.feed(data)
+                except RestartStream:
+                    return True
+
+                if self.stream_end_event.is_set():
                     return False
-                elif depth == 1:
-                    # We only raise events for stanzas that are direct
-                    # children of the root element.
-                    try:
-                        self.__spawn_event(xml)
-                    except RestartStream:
-                        return True
-                    if root is not None:
-                        # Keep the root element empty of children to
-                        # save on memory use.
-                        root.clear()
+
         log.debug("Ending read XML loop")
 
     def _build_stanza(self, xml, default_ns=None):

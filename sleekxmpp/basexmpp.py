@@ -31,6 +31,7 @@ from sleekxmpp.xmlstream import ET, register_stanza_plugin
 from sleekxmpp.xmlstream.matcher import MatchXPath
 from sleekxmpp.xmlstream.handler import Callback
 
+from sleekxmpp.features import *
 from sleekxmpp.plugins import PluginManager, register_plugin
 
 

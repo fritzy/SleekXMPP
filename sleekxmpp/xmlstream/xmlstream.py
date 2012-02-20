@@ -31,6 +31,8 @@ try:
 except ImportError:
     import Queue as queue
 
+from xml.parsers.expat import ExpatError
+
 import sleekxmpp
 from sleekxmpp.thirdparty.statemachine import StateMachine
 from sleekxmpp.xmlstream import Scheduler, tostring
@@ -1241,7 +1243,7 @@ class XMLStream(object):
             except SystemExit:
                 log.debug("SystemExit in _process")
                 shutdown = True
-            except SyntaxError as e:
+            except (SyntaxError, ExpatError) as e:
                 log.error("Error reading from XML stream.")
                 self.exception(e)
             except Socket.error as serr:

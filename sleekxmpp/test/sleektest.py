@@ -7,6 +7,7 @@
 """
 
 import unittest
+from xml.parsers.expat import ExpatError
 try:
     import Queue as queue
 except:
@@ -62,8 +63,9 @@ class SleekTest(unittest.TestCase):
         try:
             xml = ET.fromstring(xml_string)
             return xml
-        except SyntaxError as e:
-            if 'unbound' in e.msg:
+        except (SyntaxError, ExpatError) as e:
+            msg = e.msg if hasattr(e, 'msg') else e.message
+            if 'unbound' in msg:
                 known_prefixes = {
                         'stream': 'http://etherx.jabber.org/streams'}
 

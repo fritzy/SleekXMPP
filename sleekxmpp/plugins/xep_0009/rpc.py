@@ -11,8 +11,7 @@ from sleekxmpp.plugins.xep_0009.stanza.RPC import RPCQuery, MethodCall, MethodRe
 from sleekxmpp.stanza.iq import Iq
 from sleekxmpp.xmlstream.handler.callback import Callback
 from sleekxmpp.xmlstream.matcher.xpath import MatchXPath
-from sleekxmpp.xmlstream.stanzabase import register_stanza_plugin
-from xml.etree import cElementTree as ET
+from sleekxmpp.xmlstream.stanzabase import register_stanza_plugin, ET
 import logging
 
 

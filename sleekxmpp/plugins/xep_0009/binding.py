@@ -6,7 +6,7 @@
     See the file LICENSE for copying permission.
 """
 
-from xml.etree import cElementTree as ET
+from sleekxmpp.xmlstream import ET
 import base64
 import logging
 import time

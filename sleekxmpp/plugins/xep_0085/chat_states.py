@@ -37,7 +37,11 @@ class xep_0085(base_plugin):
                          StanzaPath('message@chat_state=%s' % state),
                          self._handle_chat_state))
 
-        register_stanza_plugin(Message, ChatState)
+        register_stanza_plugin(Message, stanza.Active)
+        register_stanza_plugin(Message, stanza.Composing)
+        register_stanza_plugin(Message, stanza.Gone)
+        register_stanza_plugin(Message, stanza.Inactive)
+        register_stanza_plugin(Message, stanza.Paused)
 
     def post_init(self):
         base_plugin.post_init(self)

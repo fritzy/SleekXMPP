@@ -71,3 +71,23 @@ class ChatState(ElementBase):
             if state_xml is not None:
                 self.xml = ET.Element('')
                 parent.xml.remove(state_xml)
+
+
+class Active(ChatState):
+    name = 'active'
+
+
+class Composing(ChatState):
+    name = 'composing'
+
+
+class Gone(ChatState):
+    name = 'gone'
+
+
+class Inactive(ChatState):
+    name = 'inactive'
+
+
+class Paused(ChatState):
+    name = 'paused'

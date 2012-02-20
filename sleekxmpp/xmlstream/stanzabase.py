@@ -961,8 +961,9 @@ class ElementBase(object):
 
         Any attribute values will be preserved.
         """
-        for child in self.xml.getchildren():
+        for child in list(self.xml):
             self.xml.remove(child)
+
         for plugin in list(self.plugins.keys()):
             del self.plugins[plugin]
         return self

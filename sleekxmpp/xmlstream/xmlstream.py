@@ -576,6 +576,7 @@ class XMLStream(object):
                      :attr:`disconnect_wait`.
         """
         self.state.transition('connected', 'disconnected',
+                              wait=2.0,
                               func=self._disconnect, args=(reconnect, wait))
 
     def _disconnect(self, reconnect=False, wait=None):

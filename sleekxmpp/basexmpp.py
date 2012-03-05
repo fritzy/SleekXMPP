@@ -674,11 +674,15 @@ class BaseXMPP(XMLStream):
 
     def _handle_available(self, presence):
         pto = presence['to'].bare
+        if not pto:
+            pto = self.boundjid.bare
         pfrom = presence['from'].bare
         self.roster[pto][pfrom].handle_available(presence)
 
     def _handle_unavailable(self, presence):
         pto = presence['to'].bare
+        if not pto:
+            pto = self.boundjid.bare
         pfrom = presence['from'].bare
         self.roster[pto][pfrom].handle_unavailable(presence)
 

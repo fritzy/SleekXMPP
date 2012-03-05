@@ -95,19 +95,21 @@ class Roster(object):
         if node not in self._rosters:
             self._rosters[node] = RosterNode(self.xmpp, node, self.db)
 
-    def set_backend(self, db=None):
+    def set_backend(self, db=None, save=True):
         """
         Set the datastore interface object for the roster.
 
         Arguments:
             db -- The new datastore interface.
+            save -- If True, save the existing state to the new
+                    backend datastore. Defaults to True.
         """
         self.db = db
         existing_entries = set(self._rosters)
         new_entries = set(self.db.entries(None, {}))
 
         for node in existing_entries:
-            self._rosters[node].set_backend(db)
+            self._rosters[node].set_backend(db, save)
         for node in new_entries - existing_entries:
             self.add(node)
 

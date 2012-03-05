@@ -101,19 +101,21 @@ class RosterNode(object):
         """Iterate over the roster items."""
         return self._jids.__iter__()
 
-    def set_backend(self, db=None):
+    def set_backend(self, db=None, save=True):
         """
         Set the datastore interface object for the roster node.
 
         Arguments:
             db -- The new datastore interface.
+            save -- If True, save the existing state to the new
+                    backend datastore. Defaults to True.
         """
         self.db = db
         existing_entries = set(self._jids)
         new_entries = set(self.db.entries(self.jid, {}))
         
         for jid in existing_entries:
-            self._jids[jid].set_backend(db)
+            self._jids[jid].set_backend(db, save)
         for jid in new_entries - existing_entries:
             self.add(jid)
 

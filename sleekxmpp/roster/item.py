@@ -137,14 +137,18 @@ class RosterItem(object):
         self._db_state = {}
         self.load()
 
-    def set_backend(self, db=None):
+    def set_backend(self, db=None, save=True):
         """
         Set the datastore interface object for the roster item.
 
         Arguments:
-            db -- The new datastore interface.
+            db   -- The new datastore interface.
+            save -- If True, save the existing state to the new
+                    backend datastore. Defaults to True.
         """
         self.db = db
+        if save:
+            self.save()
         self.load()
 
     def load(self):

@@ -9,7 +9,6 @@
 from sleekxmpp.xmlstream import JID
 from sleekxmpp.roster import RosterNode
 
-
 class Roster(object):
 
     """
@@ -104,10 +103,13 @@ class Roster(object):
             db -- The new datastore interface.
         """
         self.db = db
-        for node in self.db.entries(None, {}):
-            self.add(node)
-        for node in self._rosters:
+        existing_entries = set(self._rosters)
+        new_entries = set(self.db.entries(None, {}))
+
+        for node in existing_entries:
             self._rosters[node].set_backend(db)
+        for node in new_entries - existing_entries:
+            self.add(node)
 
     def reset(self):
         """

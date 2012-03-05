@@ -109,10 +109,13 @@ class RosterNode(object):
             db -- The new datastore interface.
         """
         self.db = db
-        for jid in self.db.entries(self.jid):
-            self.add(jid)
-        for jid in self._jids:
+        existing_entries = set(self._jids)
+        new_entries = set(self.db.entries(self.jid, {}))
+        
+        for jid in existing_entries:
             self._jids[jid].set_backend(db)
+        for jid in new_entries - existing_entries:
+            self.add(jid)
 
     def add(self, jid, name='', groups=None, afrom=False, ato=False,
             pending_in=False, pending_out=False, whitelisted=False,

@@ -226,7 +226,7 @@ class BaseXMPP(XMLStream):
             self.plugin[plugin] = getattr(module, plugin)(self, pconfig)
 
             # Let XEP/RFC implementing plugins have some extra logging info.
-            spec = '(CUSTOM) %s'
+            spec = '(CUSTOM) '
             if self.plugin[plugin].xep:
                 spec = "(XEP-%s) " % self.plugin[plugin].xep
             elif self.plugin[plugin].rfc:

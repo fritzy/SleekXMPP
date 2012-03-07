@@ -18,6 +18,7 @@ import logging
 
 from sleekxmpp.stanza import StreamFeatures
 from sleekxmpp.basexmpp import BaseXMPP
+from sleekxmpp.exceptions import XMPPError
 from sleekxmpp.xmlstream import XMLStream
 from sleekxmpp.xmlstream.matcher import MatchXPath
 from sleekxmpp.xmlstream.handler import Callback
@@ -111,6 +112,7 @@ class ClientXMPP(BaseXMPP):
         self.register_plugin('feature_session')
         self.register_plugin('feature_mechanisms',
                 pconfig={'use_mech': sasl_mech} if sasl_mech else None)
+        self.register_plugin('feature_rosterver')
 
     @property
     def password(self):
@@ -240,6 +242,8 @@ class ClientXMPP(BaseXMPP):
         iq = self.Iq()
         iq['type'] = 'get'
         iq.enable('roster')
+        if 'rosterver' in self.features:
+            iq['roster']['ver'] = self.client_roster.version
 
         if not block and callback is None:
             callback = lambda resp: self._handle_roster(resp, request=True)
@@ -279,15 +283,22 @@ class ClientXMPP(BaseXMPP):
                         to a request for the roster, and not an
                         empty acknowledgement from the server.
         """
+        if iq['from'].bare and iq['from'].bare != self.boundjid.bare:
+            raise XMPPError(condition='service-unavailable')
         if iq['type'] == 'set' or (iq['type'] == 'result' and request):
+            roster = self.client_roster
+            if iq['roster']['ver']:
+                roster.version = iq['roster']['ver']
             for jid in iq['roster']['items']:
                 item = iq['roster']['items'][jid]
-                roster = self.roster[iq['to'].bare]
                 roster[jid]['name'] = item['name']
                 roster[jid]['groups'] = item['groups']
                 roster[jid]['from'] = item['subscription'] in ['from', 'both']
                 roster[jid]['to'] = item['subscription'] in ['to', 'both']
                 roster[jid]['pending_out'] = (item['ask'] == 'subscribe')
+
+                roster[jid].save(remove=(item['subscription'] == 'remove'))
+                     
             self.event('roster_received', iq)
 
         self.event("roster_update", iq)

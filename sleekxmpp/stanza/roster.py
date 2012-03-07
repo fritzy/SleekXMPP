@@ -36,7 +36,30 @@ class Roster(ElementBase):
     namespace = 'jabber:iq:roster'
     name = 'query'
     plugin_attrib = 'roster'
-    interfaces = set(('items',))
+    interfaces = set(('items', 'ver'))
+
+    def get_ver(self):
+        """
+        Ensure handling an empty ver attribute propery.
+
+        The ver attribute is special in that the presence of the
+        attribute with an empty value is important for boostrapping
+        roster versioning.
+        """
+        return self.xml.attrib.get('ver', None)
+ 
+    def set_ver(self, ver):
+        """
+        Ensure handling an empty ver attribute propery.
+
+        The ver attribute is special in that the presence of the
+        attribute with an empty value is important for boostrapping
+        roster versioning.
+        """
+        if ver is not None:
+            self.xml.attrib['ver'] = ver
+        else:
+            del self.xml.attrib['ver']
 
     def set_items(self, items):
         """

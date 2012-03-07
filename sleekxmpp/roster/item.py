@@ -134,6 +134,7 @@ class RosterItem(object):
                 'subscription': 'none',
                 'name': '',
                 'groups': []}
+
         self._db_state = {}
         self.load()
 
@@ -171,15 +172,24 @@ class RosterItem(object):
             return self._state
         return None
 
-    def save(self):
+    def save(self, remove=False):
         """
         Save the item's state information to an external datastore,
         if one has been provided.
+
+        Arguments:
+            remove -- If True, expunge the item from the datastore.
         """
         self['subscription'] = self._subscription()
+        if remove:
+            self._state['removed'] = True
         if self.db:
             self.db.save(self.owner, self.jid,
                          self._state, self._db_state)
+
+        # Finally, remove the in-memory copy if needed.
+        if remove:
+            del self.xmpp.roster[self.owner][self.jid]
 
     def __getitem__(self, key):
         """Return a state field's value."""

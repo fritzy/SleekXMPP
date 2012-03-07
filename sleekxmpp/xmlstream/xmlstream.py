@@ -468,7 +468,8 @@ class XMLStream(object):
                 self.socket.connect(self.address)
 
                 if self.use_ssl and self.ssl_support:
-                    cert = self.socket.getpeercert()
+                    cert = self.socket.getpeercert(binary_form=True)
+                    cert = ssl.DER_cert_to_PEM_cert(cert)
                     log.debug('CERT: %s', cert)
                     self.event('ssl_cert', cert, direct=True)
 
@@ -702,7 +703,8 @@ class XMLStream(object):
                 self.socket = ssl_socket
             self.socket.do_handshake()
 
-            cert = self.socket.getpeercert()
+            cert = self.socket.getpeercert(binary_form=True)
+            cert = ssl.DER_cert_to_PEM_cert(cert)
             log.debug('CERT: %s', cert)
             self.event('ssl_cert', cert, direct=True)
 

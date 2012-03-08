@@ -104,6 +104,74 @@ class TestStreamRoster(SleekTest):
         self.failUnless('roster_update' in events,
                 "Roster updated event not triggered: %s" % events)
 
+    def testRosterPushRemove(self):
+        """Test handling roster item removal updates."""
+        self.stream_start(mode='client')
+        events = []
+
+        # Add roster item
+        self.recv("""
+          <iq to='tester@localhost' type="set" id="1">
+            <query xmlns="jabber:iq:roster">
+              <item jid="user@localhost"
+                    name="User"
+                    subscription="both">
+                <group>Friends</group>
+                <group>Examples</group>
+              </item>
+            </query>
+          </iq>
+        """)
+        self.send("""
+          <iq type="result" id="1">
+            <query xmlns="jabber:iq:roster" />
+          </iq>
+        """)
+
+        self.assertTrue('user@localhost' in self.xmpp.client_roster)
+
+        # Receive item remove push
+        self.recv("""
+          <iq to='tester@localhost' type="set" id="1">
+            <query xmlns="jabber:iq:roster">
+              <item jid="user@localhost"
+                    subscription="remove">
+              </item>
+            </query>
+          </iq>
+        """)
+        self.send("""
+          <iq type="result" id="1">
+            <query xmlns="jabber:iq:roster" />
+          </iq>
+        """)
+
+        self.assertTrue('user@localhost' not in self.xmpp.client_roster)
+
+    def testUnauthorizedRosterPush(self):
+        """Test rejecting a roster push from an unauthorized source."""
+        self.stream_start()
+        self.recv("""
+          <iq to='tester@localhost' from="malicious_user@localhost" 
+              type="set" id="1">
+            <query xmlns="jabber:iq:roster">
+              <item jid="user@localhost"
+                    name="User"
+                    subscription="both">
+                <group>Friends</group>
+                <group>Examples</group>
+              </item>
+            </query>
+          </iq>
+        """)
+        self.send("""
+          <iq to="malicious_user@localhost" type="error" id="1">
+            <error type="cancel" code="503">
+              <service-unavailable xmlns="urn:ietf:params:xml:ns:xmpp-stanzas" />
+            </error>
+          </iq>
+        """)
+
     def testRosterTimeout(self):
         """Test handling a timed out roster request."""
         self.stream_start()
@@ -226,6 +294,63 @@ class TestStreamRoster(SleekTest):
             <show>dnd</show>
           </presence>
         """)
+
+    def testUnsupportedRosterVer(self):
+        """Test working with a server without roster versioning."""
+        self.stream_start()
+        self.assertTrue('rosterver' not in self.xmpp.features)
+
+        t = threading.Thread(name='get_roster', target=self.xmpp.get_roster)
+        t.start()
+        self.send("""
+          <iq type="get" id="1">
+            <query xmlns="jabber:iq:roster" />
+          </iq>
+        """)
+        self.recv("""
+          <iq to="tester@localhost" type="result" id="1" />
+        """)
+
+        t.join()
+
+    def testBootstrapRosterVer(self):
+        """Test bootstrapping with roster versioning."""
+        self.stream_start()
+        self.xmpp.features.add('rosterver')
+        self.xmpp.client_roster.version = ''
+
+        t = threading.Thread(name='get_roster', target=self.xmpp.get_roster)
+        t.start()
+        self.send("""
+          <iq type="get" id="1">
+            <query xmlns="jabber:iq:roster" ver="" />
+          </iq>
+        """)
+        self.recv("""
+          <iq to="tester@localhost" type="result" id="1" />
+        """)
+
+        t.join()
+
+
+    def testExistingRosterVer(self):
+        """Test using a stored roster version."""
+        self.stream_start()
+        self.xmpp.features.add('rosterver')
+        self.xmpp.client_roster.version = '42'
+
+        t = threading.Thread(name='get_roster', target=self.xmpp.get_roster)
+        t.start()
+        self.send("""
+          <iq type="get" id="1">
+            <query xmlns="jabber:iq:roster" ver="42" />
+          </iq>
+        """)
+        self.recv("""
+          <iq to="tester@localhost" type="result" id="1" />
+        """)
+
+        t.join()
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestStreamRoster)

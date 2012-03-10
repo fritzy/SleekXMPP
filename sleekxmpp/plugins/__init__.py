@@ -22,6 +22,7 @@ __all__ = [
     'xep_0060',  # Pubsub (Client)
     'xep_0066',  # Out-of-band Transfer
 #   'xep_0078',  # Non-SASL auth. Don't automatically load
+    'xep_0080',  # User Location
     'xep_0082',  # XMPP Date and Time Profiles
     'xep_0085',  # Chat State Notifications
     'xep_0086',  # Legacy Error Codes

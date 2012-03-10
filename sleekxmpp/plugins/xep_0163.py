@@ -41,7 +41,7 @@ class xep_0163(base_plugin):
         for ns in namespace:
             self.xmpp['xep_0030'].add_feature('%s+notify' % ns,
                                               jid=jid)
-        self.xmpp['xep_0115'].update_caps()
+        self.xmpp['xep_0115'].update_caps(jid)
 
     def remove_interest(self, namespace, jid=None):
         """
@@ -60,7 +60,7 @@ class xep_0163(base_plugin):
         for ns in namespace:
             self.xmpp['xep_0030'].del_feature(jid=jid,
                                               feature='%s+notify' % namespace)
-        self.xmpp['xep_0115'].update_caps()
+        self.xmpp['xep_0115'].update_caps(jid)
 
     def publish(self, stanza, node=None, id=None, options=None, ifrom=None,
                 block=True, callback=None, timeout=None):
@@ -84,7 +84,6 @@ class xep_0163(base_plugin):
                         Defaults to sleekxmpp.xmlstream.RESPONSE_TIMEOUT
             callback -- Optional reference to a stream handler function. Will
                         be executed when a reply stanza is received.
-     
         """
         if node is None:
             node = stanza.namespace

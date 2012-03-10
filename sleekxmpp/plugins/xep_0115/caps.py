@@ -258,7 +258,7 @@ class xep_0115(base_plugin):
             self.cache_caps(ver, info)
             self.assign_verstring(jid, ver)
 
-            if self.broadcast:
+            if self.xmpp.session_started_event.is_set() and self.broadcast:
                 # Check if we've sent directed presence. If we haven't, we
                 # can just send a normal presence stanza. If we have, then
                 # we will send presence to each contact individually so

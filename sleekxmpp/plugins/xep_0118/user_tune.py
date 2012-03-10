@@ -33,6 +33,7 @@ class xep_0118(base_plugin):
         base_plugin.post_init(self)
         pubsub_stanza = self.xmpp['xep_0060'].stanza
         register_stanza_plugin(pubsub_stanza.EventItem, UserTune)
+        self.xmpp['xep_0030'].add_feature(UserTune.namespace)
         self.xmpp['xep_0163'].add_interest(UserTune.namespace)
         self.xmpp['xep_0060'].map_node_event(UserTune.namespace, 'user_tune')
 

@@ -7,6 +7,9 @@ class TestStreamPresence(SleekTest):
     Test handling roster updates.
     """
 
+    def setUp(self):
+        self.stream_start(jid='tester@localhost', plugins=[])
+
     def tearDown(self):
         self.stream_close()
 
@@ -25,7 +28,6 @@ class TestStreamPresence(SleekTest):
             # The presence_unavailable event should be triggered.
             events.add('unavailable')
 
-        self.stream_start()
         self.xmpp.add_event_handler('got_offline', got_offline)
         self.xmpp.add_event_handler('presence_unavailable', unavailable)
 
@@ -48,7 +50,6 @@ class TestStreamPresence(SleekTest):
         def got_offline(presence):
             events.append('got_offline')
 
-        self.stream_start()
         self.xmpp.add_event_handler('got_offline', got_offline)
 
         # Setup roster. Use a 'set' instead of 'result' so we
@@ -98,7 +99,6 @@ class TestStreamPresence(SleekTest):
         def got_online(p):
             events.add('got_online')
 
-        self.stream_start()
         self.xmpp.add_event_handler('presence_available', presence_available)
         self.xmpp.add_event_handler('got_online', got_online)
 
@@ -128,7 +128,6 @@ class TestStreamPresence(SleekTest):
         def changed_subscription(p):
             events.add('changed_subscription')
 
-        self.stream_start(jid='tester@localhost')
 
         self.xmpp.add_event_handler('changed_subscription',
                                     changed_subscription)
@@ -175,8 +174,6 @@ class TestStreamPresence(SleekTest):
         def changed_subscription(p):
             events.add('changed_subscription')
 
-        self.stream_start(jid='tester@localhost')
-
         self.xmpp.add_event_handler('changed_subscription',
                                     changed_subscription)
         self.xmpp.add_event_handler('presence_subscribe',
@@ -204,8 +201,6 @@ class TestStreamPresence(SleekTest):
         """Test that presence events are raised."""
 
         events = []
-
-        self.stream_start()
 
         ptypes = ['available', 'away', 'dnd', 'xa', 'chat',
                   'unavailable', 'subscribe', 'subscribed',
@@ -254,7 +249,6 @@ class TestStreamPresence(SleekTest):
     def test_changed_status(self):
         """Test that the changed_status event is handled properly."""
         events = []
-        self.stream_start()
 
         def changed_status(presence):
             events.append(presence['type'])

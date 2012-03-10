@@ -185,6 +185,16 @@ class BaseXMPP(XMLStream):
         - The send queue processor
         - The scheduler
         """
+
+        # The current post_init() process can only resolve a single
+        # layer of inter-plugin dependencies. However, XEP-0115 and
+        # plugins which depend on it exceeds this limit and can cause
+        # failures if plugins are post_inited out of order, so we must
+        # manually process XEP-0115 first.
+        if 'xep_0115' in self.plugin:
+            if not self.plugin['xep_0115'].post_inited:
+                self.plugin['xep_0115'].post_init()
+
         for name in self.plugin:
             if not self.plugin[name].post_inited:
                 self.plugin[name].post_init()
@@ -256,10 +266,6 @@ class BaseXMPP(XMLStream):
                                      self.plugin_config.get(plugin, {}))
             else:
                 raise NameError("Plugin %s not in plugins.__all__." % plugin)
-
-        # Resolve plugin inter-dependencies.
-        for plugin in self.plugin:
-            self.plugin[plugin].post_init()
 
     def __getitem__(self, key):
         """Return a plugin given its name, if it has been registered."""

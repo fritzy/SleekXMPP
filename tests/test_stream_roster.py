@@ -226,7 +226,7 @@ class TestStreamRoster(SleekTest):
 
     def testRosterUnicode(self):
         """Test that JIDs with Unicode values are handled properly."""
-        self.stream_start()
+        self.stream_start(plugins=[])
         self.recv("""
           <iq to="tester@localhost" type="set" id="1">
             <query xmlns="jabber:iq:roster">
@@ -267,7 +267,7 @@ class TestStreamRoster(SleekTest):
 
     def testSendLastPresence(self):
         """Test that sending the last presence works."""
-        self.stream_start()
+        self.stream_start(plugins=[])
         self.xmpp.send_presence(pshow='dnd')
         self.xmpp.auto_authorize = True
         self.xmpp.auto_subscribe = True

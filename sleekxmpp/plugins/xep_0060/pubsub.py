@@ -9,6 +9,8 @@
 import logging
 
 from sleekxmpp.xmlstream import JID
+from sleekxmpp.xmlstream.handler import Callback
+from sleekxmpp.xmlstream.matcher import StanzaPath
 from sleekxmpp.plugins.base import base_plugin
 from sleekxmpp.plugins.xep_0060 import stanza
 
@@ -26,6 +28,91 @@ class xep_0060(base_plugin):
         self.xep = '0060'
         self.description = 'Publish-Subscribe'
         self.stanza = stanza
+
+        self.node_event_map = {}
+
+        self.xmpp.register_handler(
+                Callback('Pubsub Event: Items',
+                    StanzaPath('message/pubsub_event/items'),
+                    self._handle_event_items))
+        self.xmpp.register_handler(
+                Callback('Pubsub Event: Purge',
+                    StanzaPath('message/pubsub_event/purge'),
+                    self._handle_event_purge))
+        self.xmpp.register_handler(
+                Callback('Pubsub Event: Delete',
+                    StanzaPath('message/pubsub_event/delete'),
+                    self._handle_event_delete))
+
+    def _handle_event_items(self, msg):
+        """Raise events for publish and retraction notifications."""
+        node = msg['pubsub_event']['items']['node']
+
+        multi = len(msg['pubsub_event']['items']) > 1
+        values = {}
+        if multi:
+            values = msg.values
+            del values['pubsub_event']
+
+        for item in msg['pubsub_event']['items']:
+            event_name = self.node_event_map.get(node, None)
+            event_type = 'publish'
+            if item.name == 'retract':
+                event_type = 'retract'
+
+            if multi:
+                condensed = self.xmpp.Message()
+                condensed.values = values
+                condensed['pubsub_event']['items']['node'] = node
+                condensed['pubsub_event']['items'].append(item)
+                self.xmpp.event('pubsub_%s' % event_type, msg)
+                if event_name:
+                    self.xmpp.event('%s_%s' % (event_name, event_type), condensed)
+            else:
+                self.xmpp.event('pubsub_%s' % event_type, msg)
+                if event_name:
+                    self.xmpp.event('%s_%s' % (event_name, event_type), msg)
+
+    def _handle_event_purge(self, msg):
+        """Raise events for node purge notifications."""
+        node = msg['pubsub_event']['purge']['node']
+        event_name = self.node_event_map.get(node, None)
+
+        self.xmpp.event('pubsub_purge', msg)
+        if event_name:
+            self.xmpp.event('%s_purge' % event_name, msg)
+
+    def _handle_event_delete(self, msg):
+        """Raise events for node deletion notifications."""
+        node = msg['pubsub_event']['delete']['node']
+        event_name = self.node_event_map.get(node, None)
+
+        self.xmpp.event('pubsub_delete', msg)
+        if event_name:
+            self.xmpp.event('%s_delete' % event_name, msg)
+
+    def map_node_event(self, node, event_name):
+        """
+        Map node names to events.
+
+        When a pubsub event is received for the given node,
+        raise the provided event.
+
+        For example::
+        
+            map_node_event('http://jabber.org/protocol/tune',
+                           'user_tune')
+
+        will produce the events 'user_tune_publish' and 'user_tune_retract'
+        when the respective notifications are received from the node
+        'http://jabber.org/protocol/tune', among other events.
+
+        Arguments:
+            node       -- The node name to map to an event.
+            event_name -- The name of the event to raise when a
+                          notification from the given node is received.
+        """
+        self.node_event_map[node] = event_name
 
     def create_node(self, jid, node, config=None, ntype=None, ifrom=None,
                     block=True, callback=None, timeout=None):

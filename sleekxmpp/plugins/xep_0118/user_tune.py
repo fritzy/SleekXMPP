@@ -30,6 +30,7 @@ class xep_0118(base_plugin):
         self.stanza = stanza
 
     def post_init(self):
+        base_plugin.post_init(self)
         pubsub_stanza = self.xmpp['xep_0060'].stanza
         register_stanza_plugin(pubsub_stanza.EventItem, UserTune)
         self.xmpp['xep_0163'].add_interest(UserTune.namespace)

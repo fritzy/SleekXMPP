@@ -32,6 +32,7 @@ __all__ = [
     'xep_0118',  # User Tune
     'xep_0128',  # Extended Service Discovery
     'xep_0163',  # Personal Eventing Protocol
+    'xep_0172',  # User Nickname
     'xep_0199',  # Ping
     'xep_0202',  # Entity Time
     'xep_0203',  # Delayed Delivery

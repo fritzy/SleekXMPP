@@ -63,7 +63,7 @@ class xep_0107(base_plugin):
         mood = UserMood()
         mood['value'] = value
         mood['text'] = text
-        self.xmpp['xep_0163'].publish(mood,
+        return self.xmpp['xep_0163'].publish(mood,
                 node=UserMood.namespace,
                 options=options,
                 ifrom=ifrom,
@@ -86,7 +86,7 @@ class xep_0107(base_plugin):
                         be executed when a reply stanza is received.
         """
         mood = UserMood()
-        self.xmpp['xep_0163'].publish(mood, 
+        return self.xmpp['xep_0163'].publish(mood, 
                 node=UserMood.namespace,
                 ifrom=ifrom,
                 block=block,

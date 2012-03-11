@@ -63,7 +63,7 @@ class xep_0108(base_plugin):
         activity = UserActivity()
         activity['value'] = (general, specific)
         activity['text'] = text
-        self.xmpp['xep_0163'].publish(activity,
+        return self.xmpp['xep_0163'].publish(activity,
                 node=UserActivity.namespace,
                 options=options,
                 ifrom=ifrom,
@@ -86,7 +86,7 @@ class xep_0108(base_plugin):
                         be executed when a reply stanza is received.
         """
         activity = UserActivity()
-        self.xmpp['xep_0163'].publish(activity, 
+        return self.xmpp['xep_0163'].publish(activity, 
                 node=UserActivity.namespace,
                 ifrom=ifrom,
                 block=block,

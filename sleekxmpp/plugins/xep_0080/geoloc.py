@@ -103,7 +103,7 @@ class xep_0080(base_plugin):
         geoloc = Geoloc()
         geoloc.values = kwargs
 
-        self.xmpp['xep_0163'].publish(geoloc,
+        return self.xmpp['xep_0163'].publish(geoloc,
                 node=Geoloc.namespace,
                 options=options,
                 ifrom=ifrom,
@@ -126,7 +126,7 @@ class xep_0080(base_plugin):
                         be executed when a reply stanza is received.
         """
         geoloc = Geoloc()
-        self.xmpp['xep_0163'].publish(geoloc, 
+        return self.xmpp['xep_0163'].publish(geoloc, 
                 node=Geoloc.namespace,
                 ifrom=ifrom,
                 block=block,

@@ -69,7 +69,7 @@ class xep_0118(base_plugin):
         tune['title'] = title
         tune['track'] = track
         tune['uri'] = uri
-        self.xmpp['xep_0163'].publish(tune, 
+        return self.xmpp['xep_0163'].publish(tune, 
                 node=UserTune.namespace,
                 options=options,
                 ifrom=ifrom,
@@ -92,7 +92,7 @@ class xep_0118(base_plugin):
                         be executed when a reply stanza is received.
         """
         tune = UserTune()
-        self.xmpp['xep_0163'].publish(tune, 
+        return self.xmpp['xep_0163'].publish(tune, 
                 node=UserTune.namespace,
                 ifrom=ifrom,
                 block=block,

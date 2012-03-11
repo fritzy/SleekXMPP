@@ -88,7 +88,7 @@ class xep_0163(base_plugin):
         if node is None:
             node = stanza.namespace
 
-        self.xmpp['xep_0060'].publish(ifrom, node,
+        return self.xmpp['xep_0060'].publish(ifrom, node,
                 payload=stanza.xml,
                 options=options,
                 ifrom=ifrom,

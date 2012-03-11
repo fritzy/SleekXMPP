@@ -62,7 +62,7 @@ class xep_0172(base_plugin):
         """
         nickname = UserNick()
         nickname['nick'] = nick
-        self.xmpp['xep_0163'].publish(nickname,
+        return self.xmpp['xep_0163'].publish(nickname,
                 node=UserNick.namespace,
                 options=options,
                 ifrom=ifrom,
@@ -85,7 +85,7 @@ class xep_0172(base_plugin):
                         be executed when a reply stanza is received.
         """
         nick = UserNick()
-        self.xmpp['xep_0163'].publish(nick, 
+        return self.xmpp['xep_0163'].publish(nick, 
                 node=UserNick.namespace,
                 ifrom=ifrom,
                 block=block,

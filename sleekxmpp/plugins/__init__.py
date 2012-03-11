@@ -28,6 +28,7 @@ __all__ = [
     'xep_0086',  # Legacy Error Codes
     'xep_0092',  # Software Version
     'xep_0107',  # User Mood
+    'xep_0108',  # User Activity
     'xep_0115',  # Entity Capabilities
     'xep_0118',  # User Tune
     'xep_0128',  # Extended Service Discovery

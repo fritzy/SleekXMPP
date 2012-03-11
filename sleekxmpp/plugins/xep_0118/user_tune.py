@@ -25,7 +25,7 @@ class xep_0118(base_plugin):
     """
 
     def plugin_init(self):
-        self.xep = '118'
+        self.xep = '0118'
         self.description = 'User Tune'
         self.stanza = stanza
 

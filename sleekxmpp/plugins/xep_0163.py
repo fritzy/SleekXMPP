@@ -21,7 +21,7 @@ class xep_0163(base_plugin):
     """
 
     def plugin_init(self):
-        self.xep = '163'
+        self.xep = '0163'
         self.description = 'Personal Eventing Protocol'
 
     def add_interest(self, namespace, jid=None):

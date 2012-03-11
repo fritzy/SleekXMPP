@@ -18,7 +18,7 @@ class xep_0047(base_plugin):
 
     def plugin_init(self):
         self.xep = '0047'
-        self.description = 'In-band Bytestreams'
+        self.description = 'In-Band Bytestreams'
         self.stanza = stanza
 
         self.streams = {}

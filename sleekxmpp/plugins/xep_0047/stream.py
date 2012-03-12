@@ -28,7 +28,7 @@ class IBBytestream(object):
 
         self._send_seq_lock = threading.Lock()
         self._recv_seq_lock = threading.Lock()
-        
+
         self.stream_started = threading.Event()
         self.stream_in_closed = threading.Event()
         self.stream_out_closed = threading.Event()
@@ -55,7 +55,7 @@ class IBBytestream(object):
         iq['from'] = self.sender
         iq['ibb_data']['sid'] = self.sid
         iq['ibb_data']['seq'] = seq
-        iq['ibb_data']['data'] = data 
+        iq['ibb_data']['data'] = data
         self.window_empty.clear()
         self.window_ids.add(iq['id'])
         iq.send(block=False, callback=self._recv_ack)
@@ -113,7 +113,7 @@ class IBBytestream(object):
         iq['from'] = self.sender
         iq['ibb_close']['sid'] = self.sid
         self.stream_out_closed.set()
-        iq.send(block=False, 
+        iq.send(block=False,
                 callback=lambda x: self.stream_in_closed.set())
         self.xmpp.event('ibb_stream_end', self)
 

@@ -2,7 +2,7 @@ import re
 import base64
 
 from sleekxmpp.exceptions import XMPPError
-from sleekxmpp.xmlstream import register_stanza_plugin, ET, ElementBase
+from sleekxmpp.xmlstream import ElementBase
 from sleekxmpp.thirdparty.suelta.util import bytes
 
 
@@ -11,6 +11,7 @@ VALID_B64 = re.compile(r'[A-Za-z0-9\+\/]*=*')
 
 def to_b64(data):
     return bytes(base64.b64encode(bytes(data))).decode('utf-8')
+
 
 def from_b64(data):
     return bytes(base64.b64decode(bytes(data))).decode('utf-8')

@@ -3,24 +3,25 @@ import logging
 import threading
 
 from sleekxmpp import Message, Iq
-from sleekxmpp.exceptions import XMPPError, IqError, IqTimeout
+from sleekxmpp.exceptions import XMPPError
 from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.xmlstream.matcher import StanzaPath
 from sleekxmpp.xmlstream import register_stanza_plugin
-from sleekxmpp.plugins.base import base_plugin
+from sleekxmpp.plugins import BasePlugin
 from sleekxmpp.plugins.xep_0047 import stanza, Open, Close, Data, IBBytestream
 
 
 log = logging.getLogger(__name__)
 
 
-class xep_0047(base_plugin):
+class XEP_0047(BasePlugin):
+
+    name = 'xep_0047'
+    description = 'XEP-0047: In-band Bytestreams'
+    dependencies = set(['xep_0030'])
+    stanza = stanza
 
     def plugin_init(self):
-        self.xep = '0047'
-        self.description = 'In-Band Bytestreams'
-        self.stanza = stanza
-
         self.streams = {}
         self.pending_streams = {3: 5}
         self.pending_close_streams = {}
@@ -50,7 +51,6 @@ class xep_0047(base_plugin):
             StanzaPath('iq@type=set/ibb_data'),
             self._handle_data))
 
-    def post_init(self):
         self.xmpp['xep_0030'].add_feature('http://jabber.org/protocol/ibb')
 
     def _accept_stream(self, iq):
@@ -96,7 +96,6 @@ class xep_0047(base_plugin):
             else:
                 cb = self._handle_opened_stream
             return iq.send(block=block, timeout=timeout, callback=cb)
-
 
     def _handle_opened_stream(self, iq):
         if iq['type'] == 'result':

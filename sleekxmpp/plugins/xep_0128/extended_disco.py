@@ -11,13 +11,13 @@ import logging
 import sleekxmpp
 from sleekxmpp import Iq
 from sleekxmpp.xmlstream import register_stanza_plugin
-from sleekxmpp.plugins.base import base_plugin
+from sleekxmpp.plugins import BasePlugin
 from sleekxmpp.plugins.xep_0004 import Form
 from sleekxmpp.plugins.xep_0030 import DiscoInfo
 from sleekxmpp.plugins.xep_0128 import StaticExtendedDisco
 
 
-class xep_0128(base_plugin):
+class XEP_0128(BasePlugin):
 
     """
     XEP-0128: Service Discovery Extensions
@@ -39,11 +39,12 @@ class xep_0128(base_plugin):
         del_extended_info -- Remove all extensions from a disco#info result.
     """
 
+    name = 'xep_0128'
+    description = 'XEP-0128: Service Discovery Extensions'
+    dependencies = set(['xep_0030', 'xep_0004'])
+
     def plugin_init(self):
         """Start the XEP-0128 plugin."""
-        self.xep = '0128'
-        self.description = 'Service Discovery Extensions'
-
         self._disco_ops = ['set_extended_info',
                            'add_extended_info',
                            'del_extended_info']
@@ -52,7 +53,6 @@ class xep_0128(base_plugin):
 
     def post_init(self):
         """Handle cross-plugin dependencies."""
-        base_plugin.post_init(self)
         self.disco = self.xmpp['xep_0030']
         self.static = StaticExtendedDisco(self.disco.static)
 

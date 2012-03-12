@@ -6,5 +6,14 @@
     See the file LICENSE for copying permission.
 """
 
+from sleekxmpp.plugins.base import register_plugin
+
 from sleekxmpp.plugins.xep_0128.static import StaticExtendedDisco
-from sleekxmpp.plugins.xep_0128.extended_disco import xep_0128
+from sleekxmpp.plugins.xep_0128.extended_disco import XEP_0128
+
+
+register_plugin(XEP_0128)
+
+
+# Retain some backwards compatibility
+xep_0128 = XEP_0128

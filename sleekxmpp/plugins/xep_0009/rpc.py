@@ -6,27 +6,28 @@
     See the file LICENSE for copying permission.
 """
 
-from sleekxmpp.plugins import base
-from sleekxmpp.plugins.xep_0009.stanza.RPC import RPCQuery, MethodCall, MethodResponse
-from sleekxmpp.stanza.iq import Iq
-from sleekxmpp.xmlstream.handler.callback import Callback
-from sleekxmpp.xmlstream.matcher.xpath import MatchXPath
-from sleekxmpp.xmlstream.stanzabase import register_stanza_plugin, ET
 import logging
 
+from sleekxmpp import Iq
+from sleekxmpp.xmlstream import ET, register_stanza_plugin
+from sleekxmpp.xmlstream.handler import Callback
+from sleekxmpp.xmlstream.matcher import MatchXPath
+from sleekxmpp.plugins import BasePlugin
+from sleekxmpp.plugins.xep_0009 import stanza
+from sleekxmpp.plugins.xep_0009.stanza.RPC import RPCQuery, MethodCall, MethodResponse
 
 
 log = logging.getLogger(__name__)
 
 
+class XEP_0009(BasePlugin):
 
-class xep_0009(base.base_plugin):
+    name = 'xep_0009'
+    description = 'XEP-0009: Jabber-RPC'
+    dependencies = set(['xep_0030'])
+    stanza = stanza
 
     def plugin_init(self):
-        self.xep = '0009'
-        self.description = 'Jabber-RPC'
-        #self.stanza = sleekxmpp.plugins.xep_0009.stanza
-
         register_stanza_plugin(Iq, RPCQuery)
         register_stanza_plugin(RPCQuery, MethodCall)
         register_stanza_plugin(RPCQuery, MethodResponse)
@@ -50,10 +51,8 @@ class xep_0009(base.base_plugin):
         self.xmpp.add_event_handler('error', self._handle_error)
         #self.activeCalls = []
 
-    def post_init(self):
-        base.base_plugin.post_init(self)
-        self.xmpp.plugin['xep_0030'].add_feature('jabber:iq:rpc')
-        self.xmpp.plugin['xep_0030'].add_identity('automation','rpc')
+        self.xmpp['xep_0030'].add_feature('jabber:iq:rpc')
+        self.xmpp['xep_0030'].add_identity('automation','rpc')
 
     def make_iq_method_call(self, pto, pmethod, params):
         iq = self.xmpp.makeIqSet()
@@ -217,4 +216,3 @@ class xep_0009(base.base_plugin):
     def _extract_method(self, stanza):
         xml = ET.fromstring("%s" % stanza)
         return xml.find("./methodCall/methodName").text
-

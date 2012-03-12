@@ -6,6 +6,15 @@
     See the file LICENSE for copying permission.
 """
 
+from sleekxmpp.plugins.base import register_plugin
+
 from sleekxmpp.plugins.xep_0009 import stanza
-from sleekxmpp.plugins.xep_0009.rpc import xep_0009
+from sleekxmpp.plugins.xep_0009.rpc import XEP_0009
 from sleekxmpp.plugins.xep_0009.stanza import RPCQuery, MethodCall, MethodResponse
+
+
+register_plugin(XEP_0009)
+
+
+# Retain some backwards compatibility
+xep_0009 = XEP_0009

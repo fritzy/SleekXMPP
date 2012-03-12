@@ -11,7 +11,7 @@ import logging
 import sleekxmpp
 from sleekxmpp import Iq
 from sleekxmpp.exceptions import XMPPError, IqError, IqTimeout
-from sleekxmpp.plugins import BasePlugin, register_plugin
+from sleekxmpp.plugins import BasePlugin
 from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.xmlstream.matcher import StanzaPath
 from sleekxmpp.xmlstream import register_stanza_plugin, ElementBase, ET, JID
@@ -787,12 +787,3 @@ class XEP_0030(BasePlugin):
             iq.append(payload)
             return iq
         return payload
-
-
-register_plugin(XEP_0030)
-
-# Retain some backwards compatibility
-xep_0030 = XEP_0030
-XEP_0030.getInfo = XEP_0030.get_info
-XEP_0030.getItems = XEP_0030.get_items
-XEP_0030.make_static = XEP_0030.restore_defaults

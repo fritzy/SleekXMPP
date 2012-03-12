@@ -129,8 +129,3 @@ class XEP_0059(BasePlugin):
                          the interface 'disco_items' should be used.
         """
         return ResultIterator(stanza, interface)
-
-
-register_plugin(XEP_0059)
-
-xep_0059 = XEP_0059

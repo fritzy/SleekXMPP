@@ -89,6 +89,9 @@ def load_plugin(name, module=None):
             plugin = getattr(mod, name)
             if not hasattr(plugin, 'name'):
                 plugin.name = name
+                # Mark the plugin as an older style plugin so
+                # we can work around dependency issues.
+                plugin.old_style = True
             register_plugin(plugin, name)
     except:
         log.exception("Unable to load plugin: %s", name)
@@ -132,6 +135,7 @@ class PluginManager(object):
         :param dict config: Optional settings dictionary for
                             configuring plugin behaviour.
         """
+        top_level = False
         if enabled is None:
             enabled = set()
 
@@ -155,6 +159,15 @@ class PluginManager(object):
                     self.enable(dep, enabled=enabled)
                 plugin.plugin_init()
                 log.debug("Loaded Plugin: %s", plugin.description)
+
+        if top_level:
+            for name in enabled:
+                if hasattr(self.plugins[name], 'old_style'):
+                    # Older style plugins require post_init()
+                    # to run just before stream processing begins,
+                    # so we don't call it here.
+                    pass
+                self.plugins[name].post_init()
 
     def enable_all(self, names=None, config=None):
         """Enable all registered plugins.

@@ -9,11 +9,11 @@
 from datetime import datetime
 import logging
 
-from . import base
-from .. stanza.iq import Iq
-from .. xmlstream.handler.callback import Callback
-from .. xmlstream.matcher.xpath import MatchXPath
-from .. xmlstream import ElementBase, ET, JID, register_stanza_plugin
+from sleekxmpp.plugins import BasePlugin, register_plugin
+from sleekxmpp import Iq
+from sleekxmpp.xmlstream.handler.callback import Callback
+from sleekxmpp.xmlstream.matcher.xpath import MatchXPath
+from sleekxmpp.xmlstream import ElementBase, ET, JID, register_stanza_plugin
 
 
 log = logging.getLogger(__name__)
@@ -40,12 +40,18 @@ class LastActivity(ElementBase):
     def del_status(self):
         self.xml.text = ''
 
-class xep_0012(base.base_plugin):
+
+class XEP_0012(BasePlugin):
+
     """
     XEP-0012 Last Activity
     """
+
+    name = 'xep_0012'
+    description = 'XEP-0012: Last Activity'
+    dependencies = set(['xep_0030'])
+
     def plugin_init(self):
-        self.description = "Last Activity"
         self.xep = "0012"
 
         self.xmpp.registerHandler(
@@ -57,9 +63,6 @@ class xep_0012(base.base_plugin):
 
         self.xmpp.add_event_handler('last_activity_request', self.handle_last_activity)
 
-
-    def post_init(self):
-        base.base_plugin.post_init(self)
         if self.xmpp.is_component:
             # We are a component, so we track the uptime
             self.xmpp.add_event_handler("session_start", self._reset_uptime)
@@ -113,3 +116,6 @@ class xep_0012(base.base_plugin):
         id = iq.get('id')
         result = iq.send()
         return result['last_activity']['seconds']
+
+
+register_plugin(XEP_0012)

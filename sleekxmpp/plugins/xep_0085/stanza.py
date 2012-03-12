@@ -38,6 +38,7 @@ class ChatState(ElementBase):
     namespace = 'http://jabber.org/protocol/chatstates'
     plugin_attrib = 'chat_state'
     interfaces = set(('chat_state',))
+    sub_interfaces = interfaces
     is_extension = True
 
     states = set(('active', 'composing', 'gone', 'inactive', 'paused'))

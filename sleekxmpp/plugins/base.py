@@ -33,6 +33,10 @@ PLUGIN_DEPENDENTS = {}
 REGISTRY_LOCK = threading.RLock()
 
 
+class PluginNotFound(Exception):
+    """Raised if an unknown plugin is accessed."""
+
+
 def register_plugin(impl, name=None):
     """Add a new plugin implementation to the registry.
 
@@ -56,8 +60,40 @@ def register_plugin(impl, name=None):
             PLUGIN_DEPENDENTS[dep].add(name)
 
 
-class PluginNotFound(Exception):
-    """Raised if an unknown plugin is accessed."""
+def load_plugin(name, module=None):
+    """Find and import a plugin module so that it can be registered.
+
+    This function is called to import plugins that have selected for
+    enabling, but no matching registered plugin has been found.
+
+    :param str name: The name of the plugin. It is expected that
+                     plugins are in packages matching their name,
+                     even though the plugin class name does not
+                     have to match.
+    :param str module: The name of the base module to search 
+                       for the plugin.
+    """
+    try:
+        if not module:
+            try:
+                module = 'sleekxmpp.plugins.%s' % name
+                mod = __import__(module, fromlist=[str(name)])
+            except:
+                module = 'sleekxmpp.features.%s' % name
+                mod = __import__(module, fromlist=[str(name)])
+        else:
+            mod = __import__(module, fromlist=[str(name)])
+
+        # Add older style plugins to the registry.
+        if hasattr(mod, name):
+            plugin = getattr(mod, name)
+            if not hasattr(plugin, 'name'):
+                plugin.name = name
+            register_plugin(plugin, name)
+        else:
+            log.debug("%s does not have %s", mod, name)
+    except:
+        log.exception("Unable to load plugin: %s", name)
 
 
 class PluginManager(object): 
@@ -105,6 +141,9 @@ class PluginManager(object):
             if name not in self._enabled:
                 enabled.add(name)
                 self._enabled.add(name)
+                if not self.registered(name):
+                    load_plugin(name)
+
                 plugin_class = PLUGIN_REGISTRY.get(name, None)
                 if not plugin_class:
                     raise PluginNotFound(name)

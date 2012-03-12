@@ -6,8 +6,9 @@
     See the file LICENSE for copying permission.
 """
 
-from sleekxmpp.plugins.base import PluginManager, PluginNotFound, \
-                                   BasePlugin, register_plugin
+from sleekxmpp.plugins.base import PluginManager, PluginNotFound, BasePlugin
+from sleekxmpp.plugins.base import register_plugin, load_plugin
+
 
 __all__ = [
     # Non-standard

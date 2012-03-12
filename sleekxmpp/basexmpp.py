@@ -32,7 +32,7 @@ from sleekxmpp.xmlstream.matcher import MatchXPath
 from sleekxmpp.xmlstream.handler import Callback
 
 from sleekxmpp.features import *
-from sleekxmpp.plugins import PluginManager, register_plugin
+from sleekxmpp.plugins import PluginManager, register_plugin, load_plugin
 
 
 log = logging.getLogger(__name__)
@@ -218,34 +218,7 @@ class BaseXMPP(XMLStream):
             pconfig = self.plugin_config.get(plugin, {})
 
         if not self.plugin.registered(plugin):
-            # Use old-style plugin
-            try:
-                #Import the given module that contains the plugin.
-                if not module:
-                    try:
-                        module = sleekxmpp.plugins
-                        module = __import__(
-                                str("%s.%s" % (module.__name__, plugin)),
-                                globals(), locals(), [str(plugin)])
-                    except ImportError:
-                        module = sleekxmpp.features
-                        module = __import__(
-                                str("%s.%s" % (module.__name__, plugin)),
-                                globals(), locals(), [str(plugin)])
-                if isinstance(module, str):
-                    # We probably want to load a module from outside
-                    # the sleekxmpp package, so leave out the globals().
-                    module = __import__(module, fromlist=[plugin])
-
-                plugin_class = getattr(module, plugin)
-
-                if not hasattr(plugin_class, 'name'):
-                    plugin_class.name = plugin
-                register_plugin(plugin_class, name=plugin)
-            except:
-                log.exception("Unable to load plugin: %s", plugin)
-                return
-                
+            load_plugin(plugin, module)
         self.plugin.enable(plugin, pconfig)
 
     def register_plugins(self):

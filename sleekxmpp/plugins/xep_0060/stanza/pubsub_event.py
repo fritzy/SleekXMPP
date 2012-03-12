@@ -97,7 +97,7 @@ class EventDelete(ElementBase):
         redirect = ET.Element('{%s}redirect' % self.namespace)
         redirect.attrib['uri'] = uri
         self.xml.append(redirect)
-        
+
     def get_redirect(self):
         redirect = self.xml.find('{%s}redirect' % self.namespace)
         if redirect is not None:

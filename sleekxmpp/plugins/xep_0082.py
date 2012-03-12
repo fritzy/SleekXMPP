@@ -9,7 +9,7 @@
 import logging
 import datetime as dt
 
-from sleekxmpp.plugins.base import base_plugin
+from sleekxmpp.plugins import BasePlugin, register_plugin
 from sleekxmpp.thirdparty import tzutc, tzoffset, parse_iso
 
 
@@ -184,7 +184,8 @@ def datetime(year=None, month=None, day=None, hour=None,
         return value 
     return format_datetime(value)
 
-class xep_0082(base_plugin):
+
+class XEP_0082(BasePlugin):
 
     """
     XEP-0082: XMPP Date and Time Profiles
@@ -205,11 +206,12 @@ class xep_0082(base_plugin):
         parse           -- Convert a time string into a Python datetime object.
     """
 
+    name = 'xep_0082'
+    description = 'XEP-0082: XMPP Date and Time Profiles'
+    dependencies = set()
+
     def plugin_init(self):
         """Start the XEP-0082 plugin."""
-        self.xep = '0082'
-        self.description = 'XMPP Date and Time Profiles'
-
         self.date = date
         self.datetime = datetime
         self.time = time
@@ -217,3 +219,6 @@ class xep_0082(base_plugin):
         self.format_datetime = format_datetime
         self.format_time = format_time
         self.parse = parse
+
+
+register_plugin(XEP_0082)

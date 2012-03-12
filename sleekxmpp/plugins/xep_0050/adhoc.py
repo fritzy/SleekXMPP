@@ -111,6 +111,7 @@ class XEP_0050(BasePlugin):
                                     threaded=self.threaded)
 
         self.xmpp['xep_0030'].add_feature(Command.namespace)
+        self.xmpp['xep_0030'].set_items(node=Command.namespace, items=tuple())
 
     def set_backend(self, db):
         """

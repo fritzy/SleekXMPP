@@ -8,21 +8,41 @@
 
 import logging
 
-from sleekxmpp.plugins.base import base_plugin
+from sleekxmpp.xmlstream import register_stanza_plugin
+from sleekxmpp.plugins.base import BasePlugin, register_plugin
 
 
 log = logging.getLogger(__name__)
 
 
-class xep_0163(base_plugin):
+class XEP_0163(BasePlugin):
 
     """
     XEP-0163: Personal Eventing Protocol (PEP)
     """
 
-    def plugin_init(self):
-        self.xep = '0163'
-        self.description = 'Personal Eventing Protocol'
+    name = 'xep_0163'
+    description = 'XEP-0163: Personal Eventing Protocol (PEP)'
+    dependencies = set(['xep_0030', 'xep_0060', 'xep_0115'])
+
+    def register_pep(self, name, stanza):
+        """
+        Setup and configure events and stanza registration for
+        the given PEP stanza:
+
+            - Add disco feature for the PEP content.
+            - Register disco interest in the PEP content.
+            - Map events from the PEP content's namespace to the given name.
+
+        :param str name: The event name prefix to use for PEP events.
+        :param stanza: The stanza class for the PEP content.
+        """
+        pubsub_stanza = self.xmpp['xep_0060'].stanza
+        register_stanza_plugin(pubsub_stanza.EventItem, stanza)
+
+        self.add_interest(stanza.namespace)
+        self.xmpp['xep_0030'].add_feature(stanza.namespace)
+        self.xmpp['xep_0060'].map_node_event(stanza.namespace, name)
 
     def add_interest(self, namespace, jid=None):
         """
@@ -67,8 +87,8 @@ class xep_0163(base_plugin):
         """
         Publish a PEP update.
 
-        This is just a thin wrapper around the XEP-0060 publish() method
-        to set the defaults expected by PEP.
+        This is just a (very) thin wrapper around the XEP-0060 publish()
+        method to set the defaults expected by PEP.
 
         Arguments:
             stanza   -- The PEP update stanza to publish.
@@ -95,3 +115,6 @@ class xep_0163(base_plugin):
                 block=block,
                 callback=callback,
                 timeout=timeout)
+
+
+register_plugin(XEP_0163)

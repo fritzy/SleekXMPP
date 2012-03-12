@@ -9,12 +9,9 @@
 import logging
 import threading
 
-import sleekxmpp
 from sleekxmpp import Iq
 from sleekxmpp.exceptions import XMPPError, IqError, IqTimeout
-from sleekxmpp.xmlstream.handler import Callback
-from sleekxmpp.xmlstream.matcher import StanzaPath
-from sleekxmpp.xmlstream import register_stanza_plugin, ElementBase, ET, JID
+from sleekxmpp.xmlstream import JID
 from sleekxmpp.plugins.xep_0030 import DiscoInfo, DiscoItems
 
 

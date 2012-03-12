@@ -6,7 +6,7 @@
     See the file LICENSE for copying permission.
 """
 
-from sleekxmpp.xmlstream import ElementBase, ET, register_stanza_plugin
+from sleekxmpp.xmlstream import ElementBase, register_stanza_plugin
 
 
 class DiscoItems(ElementBase):
@@ -140,9 +140,11 @@ class DiscoItem(ElementBase):
     interfaces = set(('jid', 'node', 'name'))
 
     def get_node(self):
+        """Return the item's node name or ``None``."""
         return self._get_attr('node', None)
 
     def get_name(self):
+        """Return the item's human readable name, or ``None``."""
         return self._get_attr('name', None)
 
 

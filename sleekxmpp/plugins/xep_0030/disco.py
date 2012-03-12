@@ -8,13 +8,11 @@
 
 import logging
 
-import sleekxmpp
 from sleekxmpp import Iq
-from sleekxmpp.exceptions import XMPPError, IqError, IqTimeout
 from sleekxmpp.plugins import BasePlugin
 from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.xmlstream.matcher import StanzaPath
-from sleekxmpp.xmlstream import register_stanza_plugin, ElementBase, ET, JID
+from sleekxmpp.xmlstream import register_stanza_plugin, JID
 from sleekxmpp.plugins.xep_0030 import stanza, DiscoInfo, DiscoItems
 from sleekxmpp.plugins.xep_0030 import StaticDisco
 

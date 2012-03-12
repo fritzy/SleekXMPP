@@ -81,6 +81,12 @@ SSL_RETRY_MAX = 10
 #: Maximum time to delay between connection attempts is one hour.
 RECONNECT_MAX_DELAY = 600
 
+#: Maximum number of attempts to connect to the server before quitting
+#: and raising a 'connect_failed' event. Setting this to ``None`` will
+#: allow infinite reconnection attempts, and using ``0`` will disable
+#: reconnections. Defaults to ``None``.
+RECONNECT_MAX_ATTEMPTS = None
+
 
 log = logging.getLogger(__name__)
 
@@ -156,6 +162,12 @@ class XMLStream(object):
             
         #: Maximum time to delay between connection attempts is one hour.
         self.reconnect_max_delay = RECONNECT_MAX_DELAY
+
+        #: Maximum number of attempts to connect to the server before 
+        #: quitting and raising a 'connect_failed' event. Setting to
+        #: ``None`` allows infinite reattempts, while setting it to ``0``
+        #: will disable reconnection attempts. Defaults to ``None``.
+        self.reconnect_max_attempts = RECONNECT_MAX_ATTEMPTS
 
         #: The time in seconds to delay between attempts to resend data
         #: after an SSL error.
@@ -383,13 +395,21 @@ class XMLStream(object):
         if use_tls is not None:
             self.use_tls = use_tls
 
+
         # Repeatedly attempt to connect until a successful connection
         # is established.
+        attempts = self.reconnect_max_attempts
         connected = self.state.transition('disconnected', 'connected',
                                           func=self._connect)
         while reattempt and not connected and not self.stop.is_set():
             connected = self.state.transition('disconnected', 'connected',
                                               func=self._connect)
+            if not connected:
+                if attempts is not None:
+                    attempts -= 1
+                    if attempts <= 0:
+                        self.event('connection_failed', direct=True)
+                        return False
         return connected
 
     def _connect(self):
@@ -399,27 +419,6 @@ class XMLStream(object):
             self.address = self.pick_dns_answer(self.default_domain,
                                                 self.address[1])
         
-        try:
-            # Look for IPv6 addresses, in addition to IPv4
-            for res in Socket.getaddrinfo(self.address[0],
-                                          int(self.address[1]),
-                                          0,
-                                          Socket.SOCK_STREAM):
-                log.debug("Trying: %s", res[-1])
-                af, sock_type, proto, canonical, sock_addr = res
-                try:
-                    self.socket = self.socket_class(af, sock_type, proto)
-                    break
-                except Socket.error:
-                    log.debug("Could not open IPv%s socket." % proto)
-        except Socket.gaierror:
-            log.warning("Socket could not be opened: no connectivity" + \
-                        " or wrong IP versions.")
-            self.stop.set()
-            return False
-
-        self.configure_socket()
-
         if self.reconnect_delay is None:
             delay = 1.0
         else:
@@ -437,6 +436,27 @@ class XMLStream(object):
             except SystemExit:
                 self.stop.set()
                 return False
+
+        try:
+            # Look for IPv6 addresses, in addition to IPv4
+            for res in Socket.getaddrinfo(self.address[0],
+                                          int(self.address[1]),
+                                          0,
+                                          Socket.SOCK_STREAM):
+                log.debug("Trying: %s", res[-1])
+                af, sock_type, proto, canonical, sock_addr = res
+                try:
+                    self.socket = self.socket_class(af, sock_type, proto)
+                    break
+                except Socket.error:
+                    log.debug("Could not open IPv%s socket." % proto)
+        except Socket.gaierror:
+            log.warning("Socket could not be opened: no connectivity" + \
+                        " or wrong IP versions.")
+            self.reconnect_delay = delay
+            return False
+
+        self.configure_socket()
 
         if self.use_proxy:
             connected = self._connect_proxy()
@@ -618,6 +638,8 @@ class XMLStream(object):
             self.state.transition('connected', 'disconnected', wait=2.0,
                                   func=self._disconnect, args=(True,))
 
+        attempts = self.reconnect_max_attempts
+
         log.debug("connecting...")
         connected = self.state.transition('disconnected', 'connected',
                                           wait=2.0, func=self._connect)
@@ -625,6 +647,12 @@ class XMLStream(object):
             connected = self.state.transition('disconnected', 'connected',
                                               wait=2.0, func=self._connect)
             connected = connected or self.state.ensure('connected')
+            if not connected:
+                if attempts is not None:
+                    attempts -= 1
+                    if attempts <= 0:
+                        self.event('connection_failed', direct=True)
+                        return False
         return connected
 
     def set_socket(self, socket, ignore=False):

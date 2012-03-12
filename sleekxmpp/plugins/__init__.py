@@ -6,6 +6,9 @@
     See the file LICENSE for copying permission.
 """
 
+from sleekxmpp.plugins.base import PluginManager, PluginNotFound, \
+                                   BasePlugin, register_plugin
+
 __all__ = [
     # Non-standard
     'gmail_notify',  # Gmail searching and notifications

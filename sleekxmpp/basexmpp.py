@@ -31,6 +31,9 @@ from sleekxmpp.xmlstream import ET, register_stanza_plugin
 from sleekxmpp.xmlstream.matcher import MatchXPath
 from sleekxmpp.xmlstream.handler import Callback
 
+from sleekxmpp.features import *
+from sleekxmpp.plugins import PluginManager, register_plugin
+
 
 log = logging.getLogger(__name__)
 
@@ -66,7 +69,7 @@ class BaseXMPP(XMLStream):
         self.boundjid = JID(jid)
 
         #: A dictionary mapping plugin names to plugins.
-        self.plugin = {}
+        self.plugin = PluginManager(self)
 
         #: Configuration options for whitelisted plugins.
         #: If a plugin is registered without any configuration,
@@ -185,19 +188,18 @@ class BaseXMPP(XMLStream):
         - The send queue processor
         - The scheduler
         """
-
-        # The current post_init() process can only resolve a single
-        # layer of inter-plugin dependencies. However, XEP-0115 and
-        # plugins which depend on it exceeds this limit and can cause
-        # failures if plugins are post_inited out of order, so we must
-        # manually process XEP-0115 first.
         if 'xep_0115' in self.plugin:
-            if not self.plugin['xep_0115'].post_inited:
-                self.plugin['xep_0115'].post_init()
+            name = 'xep_0115'
+            if not hasattr(self.plugin[name], 'post_inited'):
+                if hasattr(self.plugin[name], 'post_init'):
+                    self.plugin[name].post_init()
+                self.plugin[name].post_inited = True
 
         for name in self.plugin:
-            if not self.plugin[name].post_inited:
-                self.plugin[name].post_init()
+            if not hasattr(self.plugin[name], 'post_inited'):
+                if hasattr(self.plugin[name], 'post_init'):
+                    self.plugin[name].post_init()
+                self.plugin[name].post_inited = True
         return XMLStream.process(self, *args, **kwargs)
 
     def register_plugin(self, plugin, pconfig={}, module=None):
@@ -210,42 +212,41 @@ class BaseXMPP(XMLStream):
         :param module: Optional refence to the module containing the plugin
                        class if using custom plugins.
         """
-        try:
-            # Import the given module that contains the plugin.
-            if not module:
-                try:
-                    module = plugins
-                    module = __import__(
-                            str("%s.%s" % (module.__name__, plugin)),
-                            globals(), locals(), [str(plugin)])
-                except ImportError:
-                    module = features
-                    module = __import__(
-                            str("%s.%s" % (module.__name__, plugin)),
-                            globals(), locals(), [str(plugin)])
-            if isinstance(module, str):
-                # We probably want to load a module from outside
-                # the sleekxmpp package, so leave out the globals().
-                module = __import__(module, fromlist=[plugin])
 
-            # Use the global plugin config cache, if applicable
-            if not pconfig:
-                pconfig = self.plugin_config.get(plugin, {})
+        # Use the global plugin config cache, if applicable
+        if not pconfig:
+            pconfig = self.plugin_config.get(plugin, {})
 
-            # Load the plugin class from the module.
-            self.plugin[plugin] = getattr(module, plugin)(self, pconfig)
+        if not self.plugin.registered(plugin):
+            # Use old-style plugin
+            try:
+                #Import the given module that contains the plugin.
+                if not module:
+                    try:
+                        module = sleekxmpp.plugins
+                        module = __import__(
+                                str("%s.%s" % (module.__name__, plugin)),
+                                globals(), locals(), [str(plugin)])
+                    except ImportError:
+                        module = sleekxmpp.features
+                        module = __import__(
+                                str("%s.%s" % (module.__name__, plugin)),
+                                globals(), locals(), [str(plugin)])
+                if isinstance(module, str):
+                    # We probably want to load a module from outside
+                    # the sleekxmpp package, so leave out the globals().
+                    module = __import__(module, fromlist=[plugin])
 
-            # Let XEP/RFC implementing plugins have some extra logging info.
-            spec = '(CUSTOM) '
-            if self.plugin[plugin].xep:
-                spec = "(XEP-%s) " % self.plugin[plugin].xep
-            elif self.plugin[plugin].rfc:
-                spec = "(RFC-%s) " % self.plugin[plugin].rfc
+                plugin_class = getattr(module, plugin)
 
-            desc = (spec, self.plugin[plugin].description)
-            log.debug("Loaded Plugin %s %s" % desc)
-        except:
-            log.exception("Unable to load plugin: %s", plugin)
+                if not hasattr(plugin_class, 'name'):
+                    plugin_class.name = plugin
+                register_plugin(plugin_class, name=plugin)
+            except:
+                log.exception("Unable to load plugin: %s", plugin)
+                return
+                
+        self.plugin.enable(plugin, pconfig)
 
     def register_plugins(self):
         """Register and initialize all built-in plugins.
@@ -262,8 +263,7 @@ class BaseXMPP(XMLStream):
 
         for plugin in plugin_list:
             if plugin in plugins.__all__:
-                self.register_plugin(plugin,
-                                     self.plugin_config.get(plugin, {}))
+                self.register_plugin(plugin)
             else:
                 raise NameError("Plugin %s not in plugins.__all__." % plugin)
 

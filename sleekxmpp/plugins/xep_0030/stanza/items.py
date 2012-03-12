@@ -147,4 +147,3 @@ class DiscoItem(ElementBase):
 
 
 register_stanza_plugin(DiscoItems, DiscoItem, iterable=True)
-

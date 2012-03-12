@@ -11,17 +11,18 @@ import logging
 import sleekxmpp
 from sleekxmpp import Iq
 from sleekxmpp.exceptions import XMPPError, IqError, IqTimeout
-from sleekxmpp.plugins.base import base_plugin
+from sleekxmpp.plugins import BasePlugin, register_plugin
 from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.xmlstream.matcher import StanzaPath
 from sleekxmpp.xmlstream import register_stanza_plugin, ElementBase, ET, JID
-from sleekxmpp.plugins.xep_0030 import DiscoInfo, DiscoItems, StaticDisco
+from sleekxmpp.plugins.xep_0030 import stanza, DiscoInfo, DiscoItems
+from sleekxmpp.plugins.xep_0030 import StaticDisco
 
 
 log = logging.getLogger(__name__)
 
 
-class xep_0030(base_plugin):
+class XEP_0030(BasePlugin):
 
     """
     XEP-0030: Service Discovery
@@ -85,14 +86,15 @@ class xep_0030(base_plugin):
         add_item         --
     """
 
+    name = 'xep_0030'
+    description = 'XEP-0030: Service Discovery'
+    dependencies = set()
+    stanza = stanza
+
     def plugin_init(self):
         """
         Start the XEP-0030 plugin.
         """
-        self.xep = '0030'
-        self.description = 'Service Discovery'
-        self.stanza = sleekxmpp.plugins.xep_0030.stanza
-
         self.xmpp.register_handler(
                 Callback('Disco Info',
                          StanzaPath('iq/disco_info'),
@@ -117,18 +119,11 @@ class xep_0030(base_plugin):
                 'del_identity', 'add_feature', 'del_feature', 'add_item',
                 'del_item', 'del_identities', 'del_features', 'cache_info',
                 'get_cached_info', 'supports', 'has_identity']
-        
+
         self.default_handlers = {}
         self._handlers = {}
         for op in self._disco_ops:
             self._add_disco_op(op, getattr(self.static, op))
-
-    def post_init(self):
-        """Handle cross-plugin dependencies."""
-        base_plugin.post_init(self)
-        if 'xep_0059' in self.xmpp.plugin:
-            register_stanza_plugin(DiscoItems,
-                                   self.xmpp['xep_0059'].stanza.Set)
 
     def _add_disco_op(self, op, default_handler):
         self.default_handlers[op] = default_handler
@@ -242,7 +237,7 @@ class xep_0030(base_plugin):
             self.del_node_handler(op, jid, node)
             self.set_node_handler(op, jid, node, self.default_handlers[op])
 
-    def supports(self, jid=None, node=None, feature=None, local=False, 
+    def supports(self, jid=None, node=None, feature=None, local=False,
                        cached=True, ifrom=None):
         """
         Check if a JID supports a given feature.
@@ -274,14 +269,14 @@ class xep_0030(base_plugin):
                 'local': local,
                 'cached': cached}
         return self._run_node_handler('supports', jid, node, ifrom, data)
- 
+
     def has_identity(self, jid=None, node=None, category=None, itype=None,
                      lang=None, local=False, cached=True, ifrom=None):
         """
         Check if a JID provides a given identity.
 
         Return values:
-            True  -- The identity is provided 
+            True  -- The identity is provided
             False -- The identity is not listed
             None  -- Nothing could be found due to a timeout
 
@@ -311,8 +306,8 @@ class xep_0030(base_plugin):
                 'local': local,
                 'cached': cached}
         return self._run_node_handler('has_identity', jid, node, ifrom, data)
-            
-    def get_info(self, jid=None, node=None, local=False, 
+
+    def get_info(self, jid=None, node=None, local=False,
                        cached=None, **kwargs):
         """
         Retrieve the disco#info results from a given JID/node combination.
@@ -362,7 +357,7 @@ class xep_0030(base_plugin):
         if local or jid in (None, ''):
             log.debug("Looking up local disco#info data " + \
                       "for %s, node %s.", jid, node)
-            info = self._run_node_handler('get_info', 
+            info = self._run_node_handler('get_info',
                     jid, node, kwargs.get('ifrom', None), kwargs)
             info = self._fix_default_info(info)
             return self._wrap(kwargs.get('ifrom', None), jid, info)
@@ -370,11 +365,11 @@ class xep_0030(base_plugin):
         if cached:
             log.debug("Looking up cached disco#info data " + \
                       "for %s, node %s.", jid, node)
-            info = self._run_node_handler('get_cached_info', 
+            info = self._run_node_handler('get_cached_info',
                     jid, node, kwargs.get('ifrom', None), kwargs)
             if info is not None:
                 return self._wrap(kwargs.get('ifrom', None), jid, info)
-            
+
         iq = self.xmpp.Iq()
         # Check dfrom parameter for backwards compatibility
         iq['from'] = kwargs.get('ifrom', kwargs.get('dfrom', ''))
@@ -426,7 +421,7 @@ class xep_0030(base_plugin):
                         Otherwise the parameter is ignored.
         """
         if local or jid is None:
-            items = self._run_node_handler('get_items', 
+            items = self._run_node_handler('get_items',
                     jid, node, kwargs.get('ifrom', None), kwargs)
             return self._wrap(kwargs.get('ifrom', None), jid, items)
 
@@ -794,7 +789,10 @@ class xep_0030(base_plugin):
         return payload
 
 
+register_plugin(XEP_0030)
+
 # Retain some backwards compatibility
-xep_0030.getInfo = xep_0030.get_info
-xep_0030.getItems = xep_0030.get_items
-xep_0030.make_static = xep_0030.restore_defaults
+xep_0030 = XEP_0030
+XEP_0030.getInfo = XEP_0030.get_info
+XEP_0030.getItems = XEP_0030.get_items
+XEP_0030.make_static = XEP_0030.restore_defaults

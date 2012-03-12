@@ -12,7 +12,6 @@ import threading
 import sleekxmpp
 from sleekxmpp import Iq
 from sleekxmpp.exceptions import XMPPError, IqError, IqTimeout
-from sleekxmpp.plugins.base import base_plugin
 from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.xmlstream.matcher import StanzaPath
 from sleekxmpp.xmlstream import register_stanza_plugin, ElementBase, ET, JID
@@ -104,7 +103,7 @@ class StaticDisco(object):
                 ifrom = ifrom.full
             if (jid, node, ifrom) not in self.nodes:
                 return False
-            return True 
+            return True
 
     # =================================================================
     # Node Handlers
@@ -117,7 +116,7 @@ class StaticDisco(object):
     # additional parameters that will be passed to other calls.
     #
     # This implementation does not allow different responses based on
-    # the requester's JID, except for cached results. To do that, 
+    # the requester's JID, except for cached results. To do that,
     # register a custom node handler.
 
     def supports(self, jid, node, ifrom, data):
@@ -148,7 +147,7 @@ class StaticDisco(object):
             return False
 
         try:
-            info = self.disco.get_info(jid=jid, node=node, 
+            info = self.disco.get_info(jid=jid, node=node,
                                        ifrom=ifrom, **data)
             info = self.disco._wrap(ifrom, jid, info, True)
             features = info['disco_info']['features']
@@ -179,7 +178,7 @@ class StaticDisco(object):
                         be skipped, even if a result has already been
                         cached. Defaults to false.
         """
-        identity = (data.get('category', None), 
+        identity = (data.get('category', None),
                     data.get('itype', None),
                     data.get('lang', None))
 
@@ -192,7 +191,7 @@ class StaticDisco(object):
                 return True
 
         try:
-            info = self.disco.get_info(jid=jid, node=node, 
+            info = self.disco.get_info(jid=jid, node=node,
                                        ifrom=ifrom, **data)
             info = self.disco._wrap(ifrom, jid, info, True)
             trunc = lambda i: (i[0], i[1], i[2])
@@ -201,7 +200,6 @@ class StaticDisco(object):
             return False
         except IqTimeout:
             return None
-
 
     def get_info(self, jid, node, ifrom, data):
         """
@@ -343,7 +341,8 @@ class StaticDisco(object):
         """
         with self.lock:
             self.add_node(jid, node)
-            self.get_node(jid, node)['info'].add_feature(data.get('feature', ''))
+            self.get_node(jid, node)['info'].add_feature(
+                    data.get('feature', ''))
 
     def set_features(self, jid, node, ifrom, data):
         """
@@ -366,7 +365,8 @@ class StaticDisco(object):
         """
         with self.lock:
             if self.node_exists(jid, node):
-                self.get_node(jid, node)['info'].del_feature(data.get('feature', ''))
+                self.get_node(jid, node)['info'].del_feature(
+                        data.get('feature', ''))
 
     def del_features(self, jid, node, ifrom, data):
         """

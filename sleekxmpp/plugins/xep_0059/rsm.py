@@ -10,9 +10,9 @@ import logging
 
 import sleekxmpp
 from sleekxmpp import Iq
-from sleekxmpp.plugins.base import base_plugin
+from sleekxmpp.plugins import BasePlugin, register_plugin
 from sleekxmpp.xmlstream import register_stanza_plugin
-from sleekxmpp.plugins.xep_0059 import Set
+from sleekxmpp.plugins.xep_0059 import stanza, Set
 from sleekxmpp.exceptions import XMPPError
 
 
@@ -85,7 +85,7 @@ class ResultIterator():
                 num_items = len(r[self.interface]['substanzas'])
                 if first + num_items == count:
                     raise StopIteration
-            
+
             if self.reverse:
                 self.start = r[self.interface]['rsm']['first']
             else:
@@ -96,24 +96,24 @@ class ResultIterator():
             raise StopIteration
 
 
-class xep_0059(base_plugin):
+class XEP_0059(BasePlugin):
 
     """
     XEP-0050: Result Set Management
     """
 
+    name = 'xep_0059'
+    description = 'XEP-0059: Result Set Management'
+    dependencies = set(['xep_0030'])
+    stanza = stanza
+
     def plugin_init(self):
         """
         Start the XEP-0059 plugin.
         """
-        self.xep = '0059'
-        self.description = 'Result Set Management'
-        self.stanza = sleekxmpp.plugins.xep_0059.stanza
-
-    def post_init(self):
-        """Handle inter-plugin dependencies."""
-        base_plugin.post_init(self)
         self.xmpp['xep_0030'].add_feature(Set.namespace)
+        register_stanza_plugin(self.xmpp['xep_0030'].stanza.DiscoItems,
+                               self.stanza.Set)
 
     def iterate(self, stanza, interface):
         """
@@ -129,3 +129,8 @@ class xep_0059(base_plugin):
                          the interface 'disco_items' should be used.
         """
         return ResultIterator(stanza, interface)
+
+
+register_plugin(XEP_0059)
+
+xep_0059 = XEP_0059

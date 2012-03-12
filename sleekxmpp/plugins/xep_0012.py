@@ -118,4 +118,5 @@ class XEP_0012(BasePlugin):
         return result['last_activity']['seconds']
 
 
+xep_0012 = XEP_0012
 register_plugin(XEP_0012)

@@ -163,4 +163,5 @@ class XEP_0033(BasePlugin):
         self.xmpp.plugin['xep_0030'].add_feature(Addresses.namespace)
 
 
+xep_0033 = XEP_0033
 register_plugin(XEP_0033)

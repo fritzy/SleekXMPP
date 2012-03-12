@@ -382,4 +382,5 @@ class XEP_0045(BasePlugin):
         return self.rooms[room].keys()
 
 
+xep_0045 = XEP_0045
 register_plugin(XEP_0045)

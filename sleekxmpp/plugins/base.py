@@ -90,8 +90,6 @@ def load_plugin(name, module=None):
             if not hasattr(plugin, 'name'):
                 plugin.name = name
             register_plugin(plugin, name)
-        else:
-            log.debug("%s does not have %s", mod, name)
     except:
         log.exception("Unable to load plugin: %s", name)
 

@@ -8,11 +8,11 @@
 
 from sleekxmpp.stanza import Error
 from sleekxmpp.xmlstream import register_stanza_plugin
-from sleekxmpp.plugins.base import base_plugin
+from sleekxmpp.plugins import BasePlugin
 from sleekxmpp.plugins.xep_0086 import stanza, LegacyError
 
 
-class xep_0086(base_plugin):
+class XEP_0086(BasePlugin):
 
     """
     XEP-0086: Error Condition Mappings
@@ -33,10 +33,11 @@ class xep_0086(base_plugin):
                         iq['error']['legacy']['condition'] = ...
     """
 
-    def plugin_init(self):
-        self.xep = '0086'
-        self.description = 'Error Condition Mappings'
-        self.stanza = stanza
+    name = 'xep_0086'
+    description = 'XEP-0086: Error Condition Mappings'
+    dependencies = set()
+    stanza = stanza
 
+    def plugin_init(self):
         register_stanza_plugin(Error, LegacyError,
                                overrides=self.config.get('override', True))

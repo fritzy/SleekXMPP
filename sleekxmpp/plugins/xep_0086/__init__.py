@@ -6,5 +6,14 @@
     See the file LICENSE for copying permission.
 """
 
+from sleekxmpp.plugins.base import register_plugin
+
 from sleekxmpp.plugins.xep_0086.stanza import LegacyError
-from sleekxmpp.plugins.xep_0086.legacy_error import xep_0086
+from sleekxmpp.plugins.xep_0086.legacy_error import XEP_0086
+
+
+register_plugin(XEP_0086)
+
+
+# Retain some backwards compatibility
+xep_0086 = XEP_0086

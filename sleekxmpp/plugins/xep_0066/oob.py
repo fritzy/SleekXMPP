@@ -13,19 +13,19 @@ from sleekxmpp.exceptions import XMPPError
 from sleekxmpp.xmlstream import register_stanza_plugin
 from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.xmlstream.matcher import StanzaPath
-from sleekxmpp.plugins.base import base_plugin
+from sleekxmpp.plugins import BasePlugin, register_plugin
 from sleekxmpp.plugins.xep_0066 import stanza
 
 
 log = logging.getLogger(__name__)
 
 
-class xep_0066(base_plugin):
+class XEP_0066(BasePlugin):
 
     """
     XEP-0066: Out of Band Data
 
-    Out-of-Band Data is a basic method for transferring files between
+    Out of Band Data is a basic method for transferring files between
     XMPP agents. The URL of the resource in question is sent to the receiving
     entity, which then downloads the resource before responding to the OOB
     request. OOB is also used as a generic means to transmit URLs in other
@@ -42,11 +42,13 @@ class xep_0066(base_plugin):
                     or other addressable resource.
     """
 
+    name = 'xep_0066'
+    description = 'XEP-0066: Out of Band Data'
+    dependencies = set(['xep_0030'])
+    stanza = stanza
+
     def plugin_init(self):
         """Start the XEP-0066 plugin."""
-        self.xep = '0066'
-        self.description = 'Out of Band Data'
-        self.stanza = stanza
 
         self.url_handlers = {'global': self._default_handler,
                              'jid': {}}
@@ -60,9 +62,6 @@ class xep_0066(base_plugin):
                          StanzaPath('iq@type=set/oob_transfer'),
                          self._handle_transfer))
 
-    def post_init(self):
-        """Handle cross-plugin dependencies."""
-        base_plugin.post_init(self)
         self.xmpp['xep_0030'].add_feature(stanza.OOBTransfer.namespace)
         self.xmpp['xep_0030'].add_feature(stanza.OOB.namespace)
 

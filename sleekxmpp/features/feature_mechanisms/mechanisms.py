@@ -32,6 +32,9 @@ class FeatureMechanisms(BasePlugin):
     def plugin_init(self):
         self.use_mech = self.config.get('use_mech', None)
 
+        if not self.use_mech and not self.xmpp.boundjid.user:
+            self.use_mech = 'ANONYMOUS'
+
         def tls_active():
             return 'starttls' in self.xmpp.features
 

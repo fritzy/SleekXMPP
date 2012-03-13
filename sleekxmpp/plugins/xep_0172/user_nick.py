@@ -13,35 +13,28 @@ from sleekxmpp.stanza.presence import Presence
 from sleekxmpp.xmlstream import register_stanza_plugin
 from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.xmlstream.matcher import MatchXPath
-from sleekxmpp.plugins.base import base_plugin
+from sleekxmpp.plugins.base import BasePlugin
 from sleekxmpp.plugins.xep_0172 import stanza, UserNick
 
 
 log = logging.getLogger(__name__)
 
 
-class xep_0172(base_plugin):
+class XEP_0172(BasePlugin):
 
     """
     XEP-0172: User Nickname
     """
 
+    name = 'xep_0172'
+    description = 'XEP-0172: User Nickname'
+    dependencies = set(['xep_0163'])
+    stanza = stanza
+
     def plugin_init(self):
-        self.xep = '0172'
-        self.description = 'User Nickname'
-        self.stanza = stanza
-
-    def post_init(self):
-        base_plugin.post_init(self)
-
-        pubsub_stanza = self.xmpp['xep_0060'].stanza
         register_stanza_plugin(Message, UserNick)
         register_stanza_plugin(Presence, UserNick)
-        register_stanza_plugin(pubsub_stanza.EventItem, UserNick)
-
-        self.xmpp['xep_0030'].add_feature(UserNick.namespace)
-        self.xmpp['xep_0163'].add_interest(UserNick.namespace)
-        self.xmpp['xep_0060'].map_node_event(UserNick.namespace, 'user_nick')
+        self.xmpp['xep_0163'].register_pep('user_nick', UserNick)
 
     def publish_nick(self, nick=None, options=None, ifrom=None, block=True,
                      callback=None, timeout=None):

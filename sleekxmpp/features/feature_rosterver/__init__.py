@@ -6,5 +6,14 @@
     See the file LICENSE for copying permission.
 """
 
-from sleekxmpp.features.feature_rosterver.rosterver import feature_rosterver
+from sleekxmpp.plugins.base import register_plugin
+
+from sleekxmpp.features.feature_rosterver.rosterver import FeatureRosterVer
 from sleekxmpp.features.feature_rosterver.stanza import RosterVer
+
+
+register_plugin(FeatureRosterVer)
+
+
+# Retain some backwards compatibility
+feature_rosterver = FeatureRosterVer

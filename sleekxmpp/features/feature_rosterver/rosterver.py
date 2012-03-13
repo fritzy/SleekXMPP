@@ -11,20 +11,20 @@ import logging
 from sleekxmpp.stanza import Iq, StreamFeatures
 from sleekxmpp.features.feature_rosterver import stanza
 from sleekxmpp.xmlstream import register_stanza_plugin
-from sleekxmpp.plugins.base import base_plugin
+from sleekxmpp.plugins.base import BasePlugin
 
 
 log = logging.getLogger(__name__)
 
 
-class feature_rosterver(base_plugin):
+class FeatureRosterVer(BasePlugin):
+
+    name = 'feature_rosterver'
+    description = 'RFC 6121: Stream Feature: Roster Versioning'
+    dependences = set()
+    stanza = stanza
 
     def plugin_init(self):
-        self.name = 'Roster Versioning'
-        self.rfc = '6121'
-        self.description = 'Roster Versioning'
-        self.stanza = stanza
-
         self.xmpp.register_feature('rosterver',
                 self._handle_rosterver,
                 restart=False,

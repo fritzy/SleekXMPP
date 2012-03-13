@@ -8,34 +8,26 @@
 
 import logging
 
-from sleekxmpp.xmlstream import register_stanza_plugin
-from sleekxmpp.xmlstream.handler import Callback
-from sleekxmpp.xmlstream.matcher import MatchXPath
-from sleekxmpp.plugins.base import base_plugin
+from sleekxmpp.plugins.base import BasePlugin
 from sleekxmpp.plugins.xep_0118 import stanza, UserTune
 
 
 log = logging.getLogger(__name__)
 
 
-class xep_0118(base_plugin):
+class XEP_0118(BasePlugin):
 
     """
     XEP-0118: User Tune
     """
 
-    def plugin_init(self):
-        self.xep = '0118'
-        self.description = 'User Tune'
-        self.stanza = stanza
+    name = 'xep_0118'
+    description = 'XEP-0118: User Tune'
+    dependencies = set(['xep_0163'])
+    stanza = stanza
 
-    def post_init(self):
-        base_plugin.post_init(self)
-        pubsub_stanza = self.xmpp['xep_0060'].stanza
-        register_stanza_plugin(pubsub_stanza.EventItem, UserTune)
-        self.xmpp['xep_0030'].add_feature(UserTune.namespace)
-        self.xmpp['xep_0163'].add_interest(UserTune.namespace)
-        self.xmpp['xep_0060'].map_node_event(UserTune.namespace, 'user_tune')
+    def plugin_init(self):
+        self.xmpp['xep_0163'].register_pep('user_tune', UserTune)
 
     def publish_tune(self, artist=None, length=None, rating=None, source=None,
                      title=None, track=None, uri=None, options=None, 

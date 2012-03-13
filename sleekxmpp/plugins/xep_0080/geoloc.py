@@ -9,7 +9,7 @@
 import logging
 
 import sleekxmpp
-from sleekxmpp.plugins.base import base_plugin
+from sleekxmpp.plugins.base import BasePlugin
 from sleekxmpp.xmlstream import register_stanza_plugin
 from sleekxmpp.plugins.xep_0080 import stanza, Geoloc
 
@@ -17,30 +17,20 @@ from sleekxmpp.plugins.xep_0080 import stanza, Geoloc
 log = logging.getLogger(__name__)
 
 
-class xep_0080(base_plugin):
+class XEP_0080(BasePlugin):
 
     """
     XEP-0080: User Location
     """
 
+    name = 'xep_0080'
+    description = 'XEP-0080: User Location'
+    dependencies = set(['xep_0163'])
+    stanza = stanza
+
     def plugin_init(self):
-        """
-        Start the XEP-0090 plugin.
-        """
-        self.xep = '0080'
-        self.description = 'User Location'
-        self.stanza = stanza
-
-    def post_init(self):
-        """Handle inter-plugin dependencies."""
-        base_plugin.post_init(self)
-
-        pubsub_stanza = self.xmpp['xep_0060'].stanza
-        register_stanza_plugin(pubsub_stanza.EventItem, Geoloc)
-
-        self.xmpp['xep_0030'].add_feature(Geoloc.namespace)
-        self.xmpp['xep_0163'].add_interest(Geoloc.namespace)
-        self.xmpp['xep_0060'].map_node_event(Geoloc.namespace, 'user_location')
+        """Start the XEP-0080 plugin."""
+        self.xmpp['xep_0163'].register_pep('user_location', Geoloc)
 
     def publish_location(self, **kwargs):
         """
@@ -104,7 +94,6 @@ class xep_0080(base_plugin):
         geoloc.values = kwargs
 
         return self.xmpp['xep_0163'].publish(geoloc,
-                node=Geoloc.namespace,
                 options=options,
                 ifrom=ifrom,
                 block=block,
@@ -127,7 +116,6 @@ class xep_0080(base_plugin):
         """
         geoloc = Geoloc()
         return self.xmpp['xep_0163'].publish(geoloc, 
-                node=Geoloc.namespace,
                 ifrom=ifrom,
                 block=block,
                 callback=callback,

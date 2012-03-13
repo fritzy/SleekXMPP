@@ -12,34 +12,27 @@ from sleekxmpp import Message
 from sleekxmpp.xmlstream import register_stanza_plugin
 from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.xmlstream.matcher import MatchXPath
-from sleekxmpp.plugins.base import base_plugin
+from sleekxmpp.plugins.base import BasePlugin
 from sleekxmpp.plugins.xep_0107 import stanza, UserMood
 
 
 log = logging.getLogger(__name__)
 
 
-class xep_0107(base_plugin):
+class XEP_0107(BasePlugin):
 
     """
     XEP-0107: User Mood
     """
 
+    name = 'xep_0107'
+    description = 'XEP-0107: User Mood'
+    dependencies = set(['xep_0163'])
+    stanza = stanza
+
     def plugin_init(self):
-        self.xep = '0107'
-        self.description = 'User Mood'
-        self.stanza = stanza
-
-    def post_init(self):
-        base_plugin.post_init(self)
-
-        pubsub_stanza = self.xmpp['xep_0060'].stanza
         register_stanza_plugin(Message, UserMood)
-        register_stanza_plugin(pubsub_stanza.EventItem, UserMood)
-
-        self.xmpp['xep_0030'].add_feature(UserMood.namespace)
-        self.xmpp['xep_0163'].add_interest(UserMood.namespace)
-        self.xmpp['xep_0060'].map_node_event(UserMood.namespace, 'user_mood')
+        self.xmpp['xep_0163'].register_pep('user_mood', UserMood)
 
     def publish_mood(self, value=None, text=None, options=None, 
                      ifrom=None, block=True, callback=None, timeout=None):

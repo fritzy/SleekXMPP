@@ -13,23 +13,23 @@ from sleekxmpp.thirdparty.suelta.exceptions import SASLCancelled, SASLError
 
 from sleekxmpp.stanza import StreamFeatures
 from sleekxmpp.xmlstream import RestartStream, register_stanza_plugin
+from sleekxmpp.plugins import BasePlugin
 from sleekxmpp.xmlstream.matcher import MatchXPath
 from sleekxmpp.xmlstream.handler import Callback
-from sleekxmpp.plugins.base import base_plugin
 from sleekxmpp.features.feature_mechanisms import stanza
 
 
 log = logging.getLogger(__name__)
 
 
-class feature_mechanisms(base_plugin):
+class FeatureMechanisms(BasePlugin):
+
+    name = 'feature_mechanisms'
+    description = 'RFC 6120: Stream Feature: SASL'
+    dependencies = set()
+    stanza = stanza
 
     def plugin_init(self):
-        self.name = 'SASL Mechanisms'
-        self.rfc = '6120'
-        self.description = "SASL Stream Feature"
-        self.stanza = stanza
-
         self.use_mech = self.config.get('use_mech', None)
 
         def tls_active():

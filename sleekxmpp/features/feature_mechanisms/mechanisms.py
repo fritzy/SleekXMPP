@@ -105,14 +105,17 @@ class FeatureMechanisms(BasePlugin):
             # server has incorrectly offered it again.
             return False
 
-        self.mech_list = set(features['mechanisms'])
+        if not self.use_mech:
+            self.mech_list = set(features['mechanisms'])
+        else:
+            self.mech_list = set([self.use_mech])
         return self._send_auth()
 
     def _send_auth(self):
         mech_list = self.mech_list - self.attempted_mechs
         self.mech = self.sasl.choose_mechanism(mech_list)
 
-        if self.mech is not None:
+        if mech_list and self.mech is not None:
             resp = stanza.Auth(self.xmpp)
             resp['mechanism'] = self.mech.name
             try:

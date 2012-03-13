@@ -13,8 +13,9 @@
     :license: MIT, see LICENSE for more details
 """
 
-import threading
+import sys
 import logging
+import threading
 
 
 log = logging.getLogger(__name__)
@@ -77,17 +78,20 @@ def load_plugin(name, module=None):
         if not module:
             try:
                 module = 'sleekxmpp.plugins.%s' % name
-                mod = __import__(module, fromlist=[str(name)])
+                __import__(module)
+                mod = sys.modules[module]
             except:
                 module = 'sleekxmpp.features.%s' % name
-                mod = __import__(module, fromlist=[str(name)])
+                __import__(module)
+                mod = sys.modules[module]
         else:
-            mod = __import__(module, fromlist=[str(name)])
+            __import__(module)
+            mod = sys.modules[module]
 
         # Add older style plugins to the registry.
         if hasattr(mod, name):
             plugin = getattr(mod, name)
-            if not hasattr(plugin, 'name'):
+            if hasattr(plugin, 'xep') or hasattr(plugin, 'rfc'):
                 plugin.name = name
                 # Mark the plugin as an older style plugin so
                 # we can work around dependency issues.

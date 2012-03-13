@@ -6,6 +6,11 @@
     See the file LICENSE for copying permission.
 """
 
+from sleekxmpp.plugins.base import register_plugin
+
 from sleekxmpp.plugins.xep_0108 import stanza
 from sleekxmpp.plugins.xep_0108.stanza import UserActivity
-from sleekxmpp.plugins.xep_0108.user_activity import xep_0108
+from sleekxmpp.plugins.xep_0108.user_activity import XEP_0108
+
+
+register_plugin(XEP_0108)

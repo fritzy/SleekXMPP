@@ -8,36 +8,26 @@
 
 import logging
 
-from sleekxmpp.xmlstream import register_stanza_plugin
-from sleekxmpp.xmlstream.handler import Callback
-from sleekxmpp.xmlstream.matcher import MatchXPath
-from sleekxmpp.plugins.base import base_plugin
+from sleekxmpp.plugins.base import BasePlugin
 from sleekxmpp.plugins.xep_0108 import stanza, UserActivity
 
 
 log = logging.getLogger(__name__)
 
 
-class xep_0108(base_plugin):
+class XEP_0108(BasePlugin):
 
     """
     XEP-0108: User Activity
     """
 
+    name = 'xep_0108'
+    description = 'XEP-0108: User Activity'
+    dependencies = set(['xep_0163'])
+    stanza = stanza
+
     def plugin_init(self):
-        self.xep = '0108'
-        self.description = 'User Activity'
-        self.stanza = stanza
-
-    def post_init(self):
-        base_plugin.post_init(self)
-
-        pubsub_stanza = self.xmpp['xep_0060'].stanza
-        register_stanza_plugin(pubsub_stanza.EventItem, UserActivity)
-
-        self.xmpp['xep_0030'].add_feature(UserActivity.namespace)
-        self.xmpp['xep_0163'].add_interest(UserActivity.namespace)
-        self.xmpp['xep_0060'].map_node_event(UserActivity.namespace, 'user_activity')
+        self.xmpp['xep_0163'].register_pep('user_activity', UserActivity)
 
     def publish_activity(self, general, specific=None, text=None, options=None, 
                      ifrom=None, block=True, callback=None, timeout=None):

@@ -9,21 +9,30 @@ class TestReciept(SleekTest):
         register_stanza_plugin(Message, xep_0184.Received)
 
     def testCreateRequest(self):
-        request = """<message><request xmlns="urn:xmpp:receipts" /></message>"""
+        request = """
+          <message>
+            <request xmlns="urn:xmpp:receipts" />
+          </message>
+        """
 
         msg = self.Message()
 
-        self.assertEqual(msg['request_reciept'], False)
+        self.assertEqual(msg['request_receipt'], False)
 
-        msg['request_reciept'] = True
-        self.check(msg, request, use_values=False)
+        msg['request_receipt'] = True
+        self.check(msg, request)
 
     def testCreateReceived(self):
-        received = """<message><received xmlns="urn:xmpp:receipts" id="1"/></message>"""
+        received = """
+          <message>
+            <received xmlns="urn:xmpp:receipts" id="1" />
+          </message>
+        """
 
         msg = self.Message()
-        msg['reciept_received']['id'] = '1'
 
+        msg['receipt'] = '1'
         self.check(msg, received)
+
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestReciept)

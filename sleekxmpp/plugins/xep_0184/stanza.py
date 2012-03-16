@@ -12,34 +12,58 @@ from sleekxmpp.xmlstream.stanzabase import ElementBase, ET
 class Request(ElementBase):
     namespace = 'urn:xmpp:receipts'
     name = 'request'
-    plugin_attrib = 'request_reciept'
-    interfaces = set(('request_reciept',))
+    plugin_attrib = 'request_receipt'
+    interfaces = set(('request_receipt',))
+    sub_interfaces = interfaces
     is_extension = True
 
     def setup(self, xml=None):
         self.xml = ET.Element('')
         return True
 
-    def set_request_reciept(self, val):
-        self.del_request_reciept()
-        parent = self.parent()
+    def set_request_receipt(self, val):
+        self.del_request_receipt()
         if val:
-            self.xml = ET.Element("{%s}%s" % (self.namespace, self.name))
-            parent.append(self.xml)
+            parent = self.parent()
+            parent._set_sub_text("{%s}request" % self.namespace, keep=True)
 
-    def get_request_reciept(self):
+    def get_request_receipt(self):
         parent = self.parent()
-        if parent.find("{%s}%s" % (self.namespace, self.name)) is not None:
+        if parent.find("{%s}request" % self.namespace) is not None:
             return True
         else:
             return False
 
-    def del_request_reciept(self):
-        self.xml = ET.Element('')
+    def del_request_receipt(self):
+        self.parent()._del_sub("{%s}request" % self.namespace)
 
 
 class Received(ElementBase):
     namespace = 'urn:xmpp:receipts'
     name = 'received'
-    plugin_attrib = 'reciept_received'
-    interfaces = set(('id',))
+    plugin_attrib = 'receipt'
+    interfaces = set(['receipt'])
+    sub_interfaces = interfaces
+    is_extension = True
+
+    def setup(self, xml=None):
+        self.xml = ET.Element('')
+        return True
+
+    def set_receipt(self, value):
+        self.del_receipt()
+        if value:
+            parent = self.parent()
+            xml = ET.Element("{%s}received" % self.namespace)
+            xml.attrib['id'] = value
+            parent.append(xml)
+
+    def get_receipt(self):
+        parent = self.parent()
+        xml = parent.find("{%s}received" % self.namespace)
+        if xml is not None:
+            return xml.attrib.get('id', '')
+        return ''
+
+    def del_receipt(self):
+        self.parent()._del_sub('{%s}received' % self.namespace)

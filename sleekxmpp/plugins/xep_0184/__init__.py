@@ -9,7 +9,7 @@
 from sleekxmpp.plugins.base import register_plugin
 
 from sleekxmpp.plugins.xep_0184.stanza import Request, Received
-from sleekxmpp.plugins.xep_0184.reciept import XEP_0184
+from sleekxmpp.plugins.xep_0184.receipt import XEP_0184
 
 
 register_plugin(XEP_0184)

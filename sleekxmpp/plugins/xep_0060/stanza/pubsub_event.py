@@ -6,9 +6,12 @@
     See the file LICENSE for copying permission.
 """
 
+import datetime as dt
+
 from sleekxmpp import Message
 from sleekxmpp.xmlstream import register_stanza_plugin, ElementBase, ET, JID
 from sleekxmpp.plugins.xep_0004 import Form
+from sleekxmpp.plugins import xep_0082
 
 
 class Event(ElementBase):
@@ -115,6 +118,15 @@ class EventSubscription(ElementBase):
     name = 'subscription'
     plugin_attrib = name
     interfaces = set(('node', 'expiry', 'jid', 'subid', 'subscription'))
+
+    def get_expiry(self):
+        expiry = self._get_attr('expiry')
+        return xep_0082.parse(expiry)
+
+    def set_expiry(self, value):
+        if isinstance(value, dt.datetime):
+            value = xep_0082.format_datetime(value)
+        self._set_attr('expiry', value)
 
     def set_jid(self, value):
         self._set_attr('jid', str(value))

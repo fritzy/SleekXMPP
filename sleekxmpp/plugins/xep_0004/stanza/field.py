@@ -138,6 +138,8 @@ class FormField(ElementBase):
                 valXML.text = '0'
                 self.xml.append(valXML)
         elif self._type in self.multi_value_types or self._type in ('', None):
+            if isinstance(value, bool):
+                value = [value]
             if not isinstance(value, list):
                 value = value.replace('\r', '')
                 value = value.split('\n')

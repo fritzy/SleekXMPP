@@ -26,6 +26,8 @@ class Request(ElementBase):
         if val:
             parent = self.parent()
             parent._set_sub_text("{%s}request" % self.namespace, keep=True)
+            if not parent['id']:
+                parent['id'] = parent.stream.new_id()
 
     def get_request_receipt(self):
         parent = self.parent()

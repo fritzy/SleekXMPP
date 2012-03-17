@@ -121,6 +121,8 @@ class EventSubscription(ElementBase):
 
     def get_expiry(self):
         expiry = self._get_attr('expiry')
+        if expiry.lower() == 'presence':
+            return expiry
         return xep_0082.parse(expiry)
 
     def set_expiry(self, value):

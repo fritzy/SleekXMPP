@@ -44,6 +44,14 @@ class XEP_0060(BasePlugin):
                 Callback('Pubsub Event: Delete',
                     StanzaPath('message/pubsub_event/delete'),
                     self._handle_event_delete))
+        self.xmpp.register_handler(
+                Callback('Pubsub Event: Configuration',
+                    StanzaPath('message/pubsub_event/configuration'),
+                    self._handle_event_configuration))
+        self.xmpp.register_handler(
+                Callback('Pubsub Event: Subscription',
+                    StanzaPath('message/pubsub_event/subscription'),
+                    self._handle_event_subscription))
 
     def _handle_event_items(self, msg):
         """Raise events for publish and retraction notifications."""
@@ -92,6 +100,24 @@ class XEP_0060(BasePlugin):
         self.xmpp.event('pubsub_delete', msg)
         if event_name:
             self.xmpp.event('%s_delete' % event_name, msg)
+
+    def _handle_event_configuration(self, msg):
+        """Raise events for node configuration notifications."""
+        node = msg['pubsub_event']['configuration']['node']
+        event_name = self.node_event_map.get(node, None)
+
+        self.xmpp.event('pubsub_config', msg)
+        if event_name:
+            self.xmpp.event('%s_config' % event_name, msg)
+
+    def _handle_event_subscription(self, msg):
+        """Raise events for node subscription notifications."""
+        node = msg['pubsub_event']['subscription']['node']
+        event_name = self.node_event_map.get(node, None)
+
+        self.xmpp.event('pubsub_subscription', msg)
+        if event_name:
+            self.xmpp.event('%s_subscription' % event_name, msg)
 
     def map_node_event(self, node, event_name):
         """

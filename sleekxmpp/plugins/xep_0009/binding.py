@@ -10,6 +10,10 @@ from sleekxmpp.xmlstream import ET
 import base64
 import logging
 import time
+import sys
+
+if sys.version_info > (3, 0):
+    unicode = str
 
 log = logging.getLogger(__name__)
 
@@ -152,7 +156,7 @@ class rpctime(object):
 
     def __init__(self,data=None):
         #assume string data is in iso format YYYYMMDDTHH:MM:SS
-        if type(data) is str:
+        if type(data) in (str, unicode):
             self.timestamp = time.strptime(data,"%Y%m%dT%H:%M:%S")
         elif type(data) is time.struct_time:
             self.timestamp = data

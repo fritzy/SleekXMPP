@@ -8,7 +8,10 @@
     See the file LICENSE for copying permission.
 """
 
+from __future__ import unicode_literals
+
 import base64
+import sys
 
 from sleekxmpp.plugins.xep_0009.stanza.RPC import RPCQuery, MethodCall, \
     MethodResponse
@@ -20,6 +23,9 @@ from sleekxmpp.xmlstream.stanzabase import register_stanza_plugin
 from sleekxmpp.xmlstream.tostring import tostring
 import unittest
 
+
+if sys.version_info > (3, 0):
+    unicode = str
 
 
 class TestJabberRPC(SleekTest):
@@ -117,7 +123,7 @@ class TestJabberRPC(SleekTest):
                         "XML to string conversion")
 
     def testConvertUnicodeString(self):
-        params = [u"おはよう"]
+        params = ["おはよう"]
         params_xml = py2xml(*params)
         expected_xml = self.parse_xml("""
             <params xmlns="jabber:iq:rpc">

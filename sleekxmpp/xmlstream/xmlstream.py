@@ -370,8 +370,10 @@ class XMLStream(object):
                 use_tls=True, reattempt=True):
         """Create a new socket and connect to the server.
 
-        Setting ``reattempt`` to ``True`` will cause connection attempts to
-        be made every second until a successful connection is established.
+        Setting ``reattempt`` to ``True`` will cause connection
+        attempts to be made with an exponential backoff delay (max of
+        :attr:`reconnect_max_delay` which defaults to 10 minute) until a
+        successful connection is established.
 
         :param host: The name of the desired server for the connection.
         :param port: Port to connect to on the server.
@@ -401,7 +403,7 @@ class XMLStream(object):
         # is established.
         attempts = self.reconnect_max_attempts
         connected = self.state.transition('disconnected', 'connected',
-                                          func=self._connect)
+                                          func=self._connect, args=(reattempt,))
         while reattempt and not connected and not self.stop.is_set():
             connected = self.state.transition('disconnected', 'connected',
                                               func=self._connect)
@@ -413,14 +415,14 @@ class XMLStream(object):
                         return False
         return connected
 
-    def _connect(self):
+    def _connect(self, reattempt=True):
         self.scheduler.remove('Session timeout check')
         self.stop.clear()
         if self.default_domain:
             self.address = self.pick_dns_answer(self.default_domain,
                                                 self.address[1])
         
-        if self.reconnect_delay is None:
+        if self.reconnect_delay is None or not reattempt:
             delay = 1.0
         else:
             delay = min(self.reconnect_delay * 2, self.reconnect_max_delay)
@@ -454,7 +456,8 @@ class XMLStream(object):
         except Socket.gaierror:
             log.warning("Socket could not be opened: no connectivity" + \
                         " or wrong IP versions.")
-            self.reconnect_delay = delay
+            if reattempt:
+                self.reconnect_delay = delay
             return False
 
         self.configure_socket()
@@ -462,7 +465,8 @@ class XMLStream(object):
         if self.use_proxy:
             connected = self._connect_proxy()
             if not connected:
-                self.reconnect_delay = delay
+                if reattempt: 
+                    self.reconnect_delay = delay
                 return False
 
         if self.use_ssl and self.ssl_support:
@@ -504,7 +508,8 @@ class XMLStream(object):
             self.event('socket_error', serr, direct=True)
             log.error(error_msg, self.address[0], self.address[1],
                                  serr.errno, serr.strerror)
-            self.reconnect_delay = delay
+            if reattempt:
+                self.reconnect_delay = delay
             return False
 
     def _connect_proxy(self):

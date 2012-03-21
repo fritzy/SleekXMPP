@@ -648,7 +648,7 @@ class XMLStream(object):
 
         log.debug("connecting...")
         connected = self.state.transition('disconnected', 'connected',
-                                          wait=2.0, func=self._connect)
+                                          wait=2.0, func=self._connect, args=(reattempt,))
         while reattempt and not connected and not self.stop.is_set():
             connected = self.state.transition('disconnected', 'connected',
                                               wait=2.0, func=self._connect)

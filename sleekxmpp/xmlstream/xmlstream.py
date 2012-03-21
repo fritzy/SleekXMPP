@@ -268,6 +268,7 @@ class XMLStream(object):
         #: A queue of string data to be sent over the stream.
         self.send_queue = queue.Queue()
         self.send_queue_lock = threading.Lock()
+        self.send_lock = threading.RLock()
 
         #: A :class:`~sleekxmpp.xmlstream.scheduler.Scheduler` instance for
         #: executing callbacks in the future based on time delays.
@@ -1180,21 +1181,22 @@ class XMLStream(object):
                 sent = 0
                 count = 0
                 tries = 0
-                while sent < total and not self.stop.is_set():
-                    try:
-                        sent += self.socket.send(data[sent:])
-                        count += 1
-                    except ssl.SSLError as serr:
-                        if tries >= self.ssl_retry_max:
-                            log.debug('SSL error - max retries reached')
-                            self.exception(serr)
-                            log.warning("Failed to send %s", data)
-                            if reconnect is None:
-                                reconnect = self.auto_reconnect
-                            self.disconnect(reconnect)
-                        log.warning('SSL write error - reattempting')
-                        time.sleep(self.ssl_retry_delay)
-                        tries += 1
+                with self.send_lock:
+                    while sent < total and not self.stop.is_set():
+                        try:
+                            sent += self.socket.send(data[sent:])
+                            count += 1
+                        except ssl.SSLError as serr:
+                            if tries >= self.ssl_retry_max:
+                                log.debug('SSL error - max retries reached')
+                                self.exception(serr)
+                                log.warning("Failed to send %s", data)
+                                if reconnect is None:
+                                    reconnect = self.auto_reconnect
+                                self.disconnect(reconnect)
+                            log.warning('SSL write error - reattempting')
+                            time.sleep(self.ssl_retry_delay)
+                            tries += 1
                 if count > 1:
                     log.debug('SENT: %d chunks', count)
             except Socket.error as serr:
@@ -1531,19 +1533,20 @@ class XMLStream(object):
                 count = 0
                 tries = 0
                 try:
-                    while sent < total and not self.stop.is_set():
-                        try:
-                            sent += self.socket.send(enc_data[sent:])
-                            count += 1
-                        except ssl.SSLError as serr:
-                            if tries >= self.ssl_retry_max:
-                                log.debug('SSL error - max retries reached')
-                                self.exception(serr)
-                                log.warning("Failed to send %s", data)
-                                self.disconnect(self.auto_reconnect)
-                            log.warning('SSL write error - reattempting')
-                            time.sleep(self.ssl_retry_delay)
-                            tries += 1
+                    with self.send_lock:
+                        while sent < total and not self.stop.is_set():
+                            try:
+                                sent += self.socket.send(enc_data[sent:])
+                                count += 1
+                            except ssl.SSLError as serr:
+                                if tries >= self.ssl_retry_max:
+                                    log.debug('SSL error - max retries reached')
+                                    self.exception(serr)
+                                    log.warning("Failed to send %s", data)
+                                    self.disconnect(self.auto_reconnect)
+                                log.warning('SSL write error - reattempting')
+                                time.sleep(self.ssl_retry_delay)
+                                tries += 1
                     if count > 1:
                         log.debug('SENT: %d chunks', count)
                     self.send_queue.task_done()

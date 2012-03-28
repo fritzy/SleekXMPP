@@ -228,6 +228,13 @@ class ElementBase(object):
     #: needing to define custom methods.
     sub_interfaces = tuple()
 
+    #: A subset of :attr:`interfaces` which maps the presence of
+    #: subelements to boolean values. Using this set allows for quickly
+    #: checking for the existence of empty subelements like ``<required />``.
+    #:
+    #: .. versionadded:: 1.1
+    bool_interfaces = tuple()
+
     #: In some cases you may wish to override the behaviour of one of the
     #: parent stanza's interfaces. The ``overrides`` list specifies the
     #: interface name and access method to be overridden. For example,
@@ -489,9 +496,11 @@ class ElementBase(object):
             4. The result of calling ``getFoo``.
             5. The contents of the ``foo`` subelement, if ``foo`` is listed
                in :attr:`sub_interfaces`.
-            6. The value of the ``foo`` attribute of the XML object.
-            7. The plugin named ``'foo'``
-            8. An empty string.
+            6. True or False depending on the existence of a ``foo``
+               subelement and ``foo`` is in :attr:`bool_interfaces`.
+            7. The value of the ``foo`` attribute of the XML object.
+            8. The plugin named ``'foo'``
+            9. An empty string.
 
         :param string attrib: The name of the requested stanza interface.
         """
@@ -517,6 +526,9 @@ class ElementBase(object):
             else:
                 if attrib in self.sub_interfaces:
                     return self._get_sub_text(attrib)
+                elif attrib in self.bool_interfaces:
+                    elem = self.xml.find('{%s}%s' % (self.namespace, attrib))
+                    return elem is not None
                 else:
                     return self._get_attr(attrib)
         elif attrib in self.plugin_attrib_map:
@@ -550,10 +562,12 @@ class ElementBase(object):
             4. Call ``setFoo``, if it exists.
             5. Set the text of a ``foo`` element, if ``'foo'`` is
                in :attr:`sub_interfaces`.
-            6. Set the value of a top level XML attribute named ``foo``.
-            7. Attempt to pass the value to a plugin named ``'foo'`` using
+            6. Add or remove an empty subelement ``foo``
+               if ``foo`` is in :attr:`bool_interfaces`.
+            7. Set the value of a top level XML attribute named ``foo``.
+            8. Attempt to pass the value to a plugin named ``'foo'`` using
                the plugin's ``'foo'`` interface.
-            8. Do nothing.
+            9. Do nothing.
 
         :param string attrib: The name of the stanza interface to modify.
         :param value: The new value of the stanza interface.
@@ -580,6 +594,11 @@ class ElementBase(object):
                 else:
                     if attrib in self.sub_interfaces:
                         return self._set_sub_text(attrib, text=value)
+                    elif attrib in self.bool_interfaces:
+                        if value:
+                            return self._set_sub_text(attrib, '', keep=True)
+                        else:
+                            return self._set_sub_text(attrib, '', keep=False)
                     else:
                         self._set_attr(attrib, value)
             else:
@@ -614,9 +633,11 @@ class ElementBase(object):
             3. Call ``delFoo``, if it exists.
             4. Delete ``foo`` element, if ``'foo'`` is in
                :attr:`sub_interfaces`.
-            5. Delete top level XML attribute named ``foo``.
-            6. Remove the ``foo`` plugin, if it was loaded.
-            7. Do nothing.
+            5. Remove ``foo`` element if ``'foo'`` is in
+               :attr:`bool_interfaces`.
+            6. Delete top level XML attribute named ``foo``.
+            7. Remove the ``foo`` plugin, if it was loaded.
+            8. Do nothing.
 
         :param attrib: The name of the affected stanza interface.
         """
@@ -639,6 +660,8 @@ class ElementBase(object):
                 getattr(self, del_method2)()
             else:
                 if attrib in self.sub_interfaces:
+                    return self._del_sub(attrib)
+                elif attrib in self.bool_interfaces:
                     return self._del_sub(attrib)
                 else:
                     self._del_attr(attrib)

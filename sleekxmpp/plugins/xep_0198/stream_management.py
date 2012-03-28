@@ -226,11 +226,15 @@ class XEP_0198(BasePlugin):
 
         with self.ack_lock:
             num_acked = (ack['h'] - self.last_ack) % MAX_SEQ
-            log.debug("Ack: %s, Last Ack: %s, Num Acked: %s, Unacked: %s",
+            num_unacked = len(self.unacked_queue)
+            log.debug("Ack: %s, Last Ack: %s, " + \
+                      "Unacked: %s, Num Acked: %s, " + \
+                      "Remaining: %s",
                 ack['h'], 
                 self.last_ack, 
+                num_unacked,
                 num_acked, 
-                len(self.unacked_queue))
+                num_unacked - num_acked)
             for x in range(num_acked):
                 seq, stanza = self.unacked_queue.popleft()
                 self.xmpp.event('stanza_acked', stanza)

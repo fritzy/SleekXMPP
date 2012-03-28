@@ -82,6 +82,10 @@ class XEP_0198(BasePlugin):
         self.xmpp.register_stanza(stanza.Ack)
         self.xmpp.register_stanza(stanza.RequestAck)
 
+        # Only end the session when a </stream> element is sent,
+        # not just because the connection has died.
+        self.xmpp.end_session_on_disconnect = False
+
         # Register the feature twice because it may be ordered two
         # different ways: enabling after binding and resumption
         # before binding.
@@ -127,7 +131,16 @@ class XEP_0198(BasePlugin):
         self.xmpp.add_filter('in', self._handle_incoming)
         self.xmpp.add_filter('out_sync', self._handle_outgoing)
 
-        self.xmpp.add_event_handler('need_ack', self.request_ack)
+        self.xmpp.add_event_handler('session_end', self.session_end)
+
+    def session_end(self, event):
+        """Reset stream management state."""
+        self.enabled.clear()
+        self.unacked_queue.clear()
+        self.sm_id = None
+        self.handled = 0
+        self.seq = 0
+        self.last_ack = 0
 
     def send_ack(self):
         """Send the current ack count to the server."""

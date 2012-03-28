@@ -760,14 +760,11 @@ class XMLStream(object):
 
             self.whitespace_keepalive_interval = 300
         """
-
-        def send_keepalive():
-            if self.send_queue.empty():
-                self.send_raw(' ')
-
         self.schedule('Whitespace Keepalive',
                       self.whitespace_keepalive_interval,
-                      send_keepalive,
+                      self.send_raw,
+                      args = (' ',),
+                      kwargs = {'now': True},
                       repeat=True)
 
     def _end_keepalive(self, event):

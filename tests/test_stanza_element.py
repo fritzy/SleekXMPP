@@ -742,5 +742,37 @@ class TestElementBase(SleekTest):
           <foo xmlns="foo" bar="override-foo" />
         """)
 
+    def testBoolInterfaces(self):
+        """Test using boolean interfaces."""
+
+        class TestStanza(ElementBase):
+            name = "foo"
+            namespace = "foo"
+            interfaces = set(['bar'])
+            bool_interfaces = interfaces
+
+        stanza = TestStanza()
+        self.check(stanza, """
+          <foo xmlns="foo" />
+        """)
+
+        self.assertFalse(stanza['bar'], 
+                "Returned True for missing bool interface element.")
+
+        stanza['bar'] = True
+        self.check(stanza, """
+          <foo xmlns="foo">
+            <bar />
+          </foo>
+        """)
+
+        self.assertTrue(stanza['bar'],
+                "Returned False for present bool interface element.")
+
+        stanza['bar'] = False
+        self.check(stanza, """
+          <foo xmlns="foo" />
+        """)
+
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestElementBase)

@@ -628,17 +628,20 @@ class XMLStream(object):
         elif self.disconnect_wait:
             self.send_queue.join()
 
+        # Clearing this event will pause the send loop.
+        self.session_started_event.clear()
+
         # Send the end of stream marker.
         if send_close:
             self.send_raw(self.stream_footer, now=True)
-        self.session_started_event.clear()
+
         # Wait for confirmation that the stream was
         # closed in the other direction. If we didn't
         # send a stream footer we don't need to wait
         # since the server won't know to respond.
         self.auto_reconnect = reconnect
         if send_close:
-            log.debug('Waiting for %s from server', self.stream_footer)
+            log.info('Waiting for %s from server', self.stream_footer)
             self.stream_end_event.wait(4)
         else:
             self.stream_end_event.set()

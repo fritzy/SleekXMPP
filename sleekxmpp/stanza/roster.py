@@ -141,9 +141,7 @@ class RosterItem(ElementBase):
 
     def del_groups(self):
         for group in self.xml.findall('{%s}group' % self.namespace):
-            self.xmp.remove(group)
-
-
+            self.xml.remove(group)
 
 
 register_stanza_plugin(Iq, Roster)

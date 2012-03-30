@@ -421,10 +421,7 @@ class XMLStream(object):
     def _connect(self, reattempt=True):
         self.scheduler.remove('Session timeout check')
         self.stop.clear()
-        if self.default_domain:
-            self.address = self.pick_dns_answer(self.default_domain,
-                                                self.address[1])
-        
+                
         if self.reconnect_delay is None or not reattempt:
             delay = 1.0
         else:
@@ -441,6 +438,17 @@ class XMLStream(object):
                 return False
             except SystemExit:
                 self.stop.set()
+                return False
+
+        if self.default_domain:
+            try:
+                self.address = self.pick_dns_answer(self.default_domain,
+                                                    self.address[1])
+            except StopIteration:
+                log.debug("No remaining DNS records to try.")
+                self.dns_answers = None
+                if reattempt:
+                    self.reconnect_delay = delay
                 return False
 
         af = Socket.AF_INET
@@ -499,8 +507,6 @@ class XMLStream(object):
                 domain = '[%s]' % domain
             log.error(error_msg, domain, self.address[1],
                                  serr.errno, serr.strerror)
-            if reattempt:
-                self.reconnect_delay = delay
             return False
 
     def _connect_proxy(self):
@@ -919,14 +925,10 @@ class XMLStream(object):
         if not self.dns_answers:
             self.dns_answers = self.get_dns_records(domain, port)
 
-        try:
-            if sys.version_info < (3, 0):
-                return self.dns_answers.next()
-            else:
-                return next(self.dns_answers)
-        except StopIteration:
-            self.dns_answers = None
-            return (domain, port)
+        if sys.version_info < (3, 0):
+            return self.dns_answers.next()
+        else:
+            return next(self.dns_answers)
             
     def add_event_handler(self, name, pointer,
                           threaded=False, disposable=False):
@@ -1251,7 +1253,7 @@ class XMLStream(object):
                 self.exception(e)
             except Socket.error as serr:
                 self.event('socket_error', serr, direct=True)
-                log.exception('Socket Error')
+                log.error('Socket Error #%s: %s', serr.errno, serr.strerror)
             except Exception as e:
                 if not self.stop.is_set():
                     log.exception('Connection error.')

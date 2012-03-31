@@ -78,7 +78,9 @@ class XEP_0115(BasePlugin):
         self.static = StaticCaps(self.xmpp, disco.static)
 
         for op in self._disco_ops:
-            disco._add_disco_op(op, getattr(self.static, op))
+            self.api.register(getattr(self.static, op), 'xep_0115', op)
+            self.api.register_default(getattr(self.static, op), 
+                    'xep_0115', op)
 
         self._run_node_handler = disco._run_node_handler
 
@@ -279,19 +281,19 @@ class XEP_0115(BasePlugin):
             jid = self.xmpp.boundjid.full
         if isinstance(jid, JID):
             jid = jid.full
-        return self._run_node_handler('get_verstring', jid)
+        return self.api['get_verstring'](jid)
 
     def assign_verstring(self, jid=None, verstring=None):
         if jid in (None, ''):
             jid = self.xmpp.boundjid.full
         if isinstance(jid, JID):
             jid = jid.full
-        return self._run_node_handler('assign_verstring', jid, 
-                                      data={'verstring': verstring})
+        return self.api['assign_verstring'](jid, args={
+            'verstring': verstring})
 
     def cache_caps(self, verstring=None, info=None):
         data = {'verstring': verstring, 'info': info}
-        return self._run_node_handler('cache_caps', None, None, data=data)
+        return self.api['cache_caps'](args=data)
 
     def get_caps(self, jid=None, verstring=None):
         if verstring is None:
@@ -302,4 +304,4 @@ class XEP_0115(BasePlugin):
         if isinstance(jid, JID):
             jid = jid.full
         data = {'verstring': verstring}
-        return self._run_node_handler('get_caps', jid, None, None, data)
+        return self.api['get_caps'](jid, args=data)

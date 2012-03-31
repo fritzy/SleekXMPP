@@ -61,7 +61,8 @@ class XEP_0128(BasePlugin):
         self.disco.del_extended_info = self.del_extended_info
 
         for op in self._disco_ops:
-            self.disco._add_disco_op(op, getattr(self.static, op))
+            self.api.register(getattr(self.static, op), op)
+            self.api.register_default(getattr(self.static, op), op)
 
     def set_extended_info(self, jid=None, node=None, **kwargs):
         """
@@ -76,7 +77,7 @@ class XEP_0128(BasePlugin):
                     as extended information, replacing any
                     existing extensions.
         """
-        self.disco._run_node_handler('set_extended_info', jid, node, None, kwargs)
+        self.api['set_extended_info'](jid, node, None, kwargs)
 
     def add_extended_info(self, jid=None, node=None, **kwargs):
         """
@@ -88,7 +89,7 @@ class XEP_0128(BasePlugin):
             data -- Either a form, or a list of forms to add
                     as extended information.
         """
-        self.disco._run_node_handler('add_extended_info', jid, node, None, kwargs)
+        self.api['add_extended_info'](jid, node, None, kwargs)
 
     def del_extended_info(self, jid=None, node=None, **kwargs):
         """
@@ -98,4 +99,4 @@ class XEP_0128(BasePlugin):
             jid  -- The JID to modify.
             node -- The node to modify.
         """
-        self.disco._run_node_handler('del_extended_info', jid, node, None, kwargs)
+        self.api['del_extended_info'](jid, node, None, kwargs)

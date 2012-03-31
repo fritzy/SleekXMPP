@@ -19,6 +19,7 @@ import logging
 
 import sleekxmpp
 from sleekxmpp import plugins, features, roster
+from sleekxmpp.api import APIRegistry
 from sleekxmpp.exceptions import IqError, IqTimeout
 
 from sleekxmpp.stanza import Message, Presence, Iq, StreamError
@@ -96,6 +97,22 @@ class BaseXMPP(XMLStream):
         #: important, primarily for choosing how to handle the
         #: ``'to'`` and ``'from'`` JIDs of stanzas.
         self.is_component = False
+
+        #: The API registry is a way to process callbacks based on
+        #: JID+node combinations. Each callback in the registry is
+        #: marked with:
+        #: 
+        #:   - An API name, e.g. xep_0030
+        #:   - The name of an action, e.g. get_info
+        #:   - The JID that will be affected
+        #:   - The node that will be affected
+        #:
+        #: API handlers with no JID or node will act as global handlers,
+        #: while those with a JID and no node will service all nodes
+        #: for a JID, and handlers with both a JID and node will be
+        #: used only for that specific combination. The handler that
+        #: provides the most specificity will be used.
+        self.api = APIRegistry(self)
 
         #: Flag indicating that the initial presence broadcast has
         #: been sent. Until this happens, some servers may not

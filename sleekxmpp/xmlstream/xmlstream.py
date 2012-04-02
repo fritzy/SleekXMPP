@@ -485,7 +485,10 @@ class XMLStream(object):
 
         try:
             if not self.use_proxy:
-                log.debug("Connecting to %s:%s", *self.address)
+                domain = self.address[0]
+                if ':' in domain:
+                    domain = '[%s]' % domain
+                log.debug("Connecting to %s:%s", domain, self.address[1])
                 self.socket.connect(self.address)
 
                 if self.use_ssl and self.ssl_support:

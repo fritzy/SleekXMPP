@@ -78,9 +78,8 @@ class XEP_0115(BasePlugin):
         self.static = StaticCaps(self.xmpp, disco.static)
 
         for op in self._disco_ops:
-            self.api.register(getattr(self.static, op), 'xep_0115', op)
-            self.api.register_default(getattr(self.static, op), 
-                    'xep_0115', op)
+            self.api.register(getattr(self.static, op), op)
+            self.api.register_default(getattr(self.static, op), op)
 
         self._run_node_handler = disco._run_node_handler
 

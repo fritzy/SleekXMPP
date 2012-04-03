@@ -119,8 +119,7 @@ class XEP_0030(BasePlugin):
                 'get_cached_info', 'supports', 'has_identity']
 
         for op in self._disco_ops:
-            self.api.register(getattr(self.static, op), op)
-            self.api.register_default(getattr(self.static, op), op)
+            self.api.register(getattr(self.static, op), op, default=True)
 
     def _add_disco_op(self, op, default_handler):
         self.api.register(default_handler, op)

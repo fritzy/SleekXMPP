@@ -61,8 +61,7 @@ class XEP_0128(BasePlugin):
         self.disco.del_extended_info = self.del_extended_info
 
         for op in self._disco_ops:
-            self.api.register(getattr(self.static, op), op)
-            self.api.register_default(getattr(self.static, op), op)
+            self.api.register(getattr(self.static, op), op, default=True)
 
     def set_extended_info(self, jid=None, node=None, **kwargs):
         """

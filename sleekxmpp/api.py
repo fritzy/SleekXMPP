@@ -14,9 +14,9 @@ class APIWrapper(object):
         elif attr == 'settings':
             return self.api.settings[self.name]
         elif attr == 'register':
-            def curried_handler(handler, op, jid=None, node=None):
+            def curried_handler(handler, op, jid=None, node=None, default=False):
                 register = getattr(self.api, attr)
-                return register(handler, self.name, op, jid, node)
+                return register(handler, self.name, op, jid, node, default)
             return curried_handler
         elif attr == 'register_default':
             def curried_handler(handler, op, jid=None, node=None):
@@ -152,6 +152,9 @@ class APIRegistry(object):
             self._handlers[ctype][op]['jid'][jid] = handler
         else:
             self._handlers[ctype][op]['node'][(jid, node)] = handler
+
+        if default:
+            self.register_default(handler, ctype, op)
 
     def register_default(self, handler, ctype, op):
         """Register a default, global handler for an operation.

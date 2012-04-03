@@ -565,10 +565,11 @@ class XEP_0050(BasePlugin):
             session -- All stored data relevant to the current
                        command session.
         """
+        sessionid = 'client:' + session['id']
         try:
-            del self.sessions[session['id']]
-        except:
-            pass
+            del self.sessions[sessionid]
+        except Exception as e:
+            log.error("Error deleting adhoc command session: %s" % e.message)
 
     def _handle_command_result(self, iq):
         """

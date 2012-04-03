@@ -269,7 +269,8 @@ class BasePlugin(object):
 
     def __init__(self, xmpp, config=None):
         self.xmpp = xmpp
-        self.api = self.xmpp.api.wrap(self.name)
+        if self.xmpp:
+            self.api = self.xmpp.api.wrap(self.name)
 
         #: A plugin's behaviour may be configurable, in which case those
         #: configuration settings will be provided as a dictionary.

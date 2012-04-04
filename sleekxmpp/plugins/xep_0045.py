@@ -128,7 +128,10 @@ class XEP_0045(BasePlugin):
         self.xmpp.registerHandler(Callback('MUCPresence', MatchXMLMask("<presence xmlns='%s' />" % self.xmpp.default_ns), self.handle_groupchat_presence))
         self.xmpp.registerHandler(Callback('MUCMessage', MatchXMLMask("<message xmlns='%s' type='groupchat'><body/></message>" % self.xmpp.default_ns), self.handle_groupchat_message))
         self.xmpp.registerHandler(Callback('MUCSubject', MatchXMLMask("<message xmlns='%s' type='groupchat'><subject/></message>" % self.xmpp.default_ns), self.handle_groupchat_subject))
-        self.xmpp.registerHandler(Callback('MUCInvite', MatchXPath("{%s}message/{http://jabber.org/protocol/muc#user}x/invite" % self.xmpp.default_ns), self.handle_groupchat_invite))
+        self.xmpp.registerHandler(Callback('MUCInvite', MatchXPath("{%s}message/{%s}x/{%s}invite" % (
+            self.xmpp.default_ns,
+            'http://jabber.org/protocol/muc#user',
+            'http://jabber.org/protocol/muc#user')), self.handle_groupchat_invite))
 
     def handle_groupchat_invite(self, inv):
         """ Handle an invite into a muc.

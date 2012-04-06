@@ -115,6 +115,9 @@ def resolve(host, port=None, service=None, proto='tcp', resolver=None):
 
     for host, port in hosts:
         results = []
+        if host == 'localhost':
+            results.append(('::1', port))
+            results.append(('127.0.0.1', port))
         for address in get_AAAA(host, resolver=resolver):
             results.append((address, port))
         for address in get_A(host, resolver=resolver):

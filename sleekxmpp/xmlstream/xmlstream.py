@@ -1234,9 +1234,8 @@ class XMLStream(object):
                 # be resent and processing will resume.
                 while not self.stop.is_set():
                     # Only process the stream while connected to the server
-                    if not self.state.ensure('connected', wait=0.1,
-                                             block_on_transition=True):
-                        continue
+                    if not self.state.ensure('connected', wait=0.1):
+                        break
                     # Ensure the stream header is sent for any
                     # new connections.
                     if not self.session_started_event.is_set():

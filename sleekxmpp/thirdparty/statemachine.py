@@ -188,16 +188,7 @@ class StateMachine(object):
         # avoid an operation occurring in the wrong state.
         # TODO another option would be an ensure_ctx that uses a semaphore to allow
         # threads to indicate they want to remain in a particular state.
-
-        # will return immediately if no transition is in process.
-        if block_on_transition:
-            # we're not in the middle of a transition; don't hold the lock
-            if self.lock.acquire(False): 
-                self.lock.release()
-            # wait for the transition to complete
-            else: 
-                self.lock.wait()
-
+        self.lock.acquire()
         start = time.time()
         while not self.__current_state in states:
             # detect timeout:
@@ -205,7 +196,9 @@ class StateMachine(object):
             if remainder > 0: 
                 self.lock.wait(remainder)
             else: 
+                self.lock.release()
                 return False
+        self.lock.release()
         return True
 
     def reset(self):

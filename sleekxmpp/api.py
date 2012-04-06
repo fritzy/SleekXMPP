@@ -116,6 +116,8 @@ class APIRegistry(object):
             else:
                 jid = jid.full
 
+        jid = JID(jid)
+
         handler = self._handlers[ctype][op]['node'].get((jid, node), None)
         if handler is None:
             handler = self._handlers[ctype][op]['jid'].get(jid, None)

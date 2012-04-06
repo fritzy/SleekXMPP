@@ -3,5 +3,10 @@ try:
 except:
     from sleekxmpp.thirdparty.ordereddict import OrderedDict
 
+try:
+    from gnupg import GPG
+except:
+    from sleekxmpp.thirdparty.gnupg import GPG
+
 from sleekxmpp.thirdparty import suelta
 from sleekxmpp.thirdparty.mini_dateutil import tzutc, tzoffset, parse_iso

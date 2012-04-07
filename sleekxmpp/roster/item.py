@@ -356,13 +356,14 @@ class RosterItem(object):
         data = {'status': presence['status'],
                 'show': presence['show'],
                 'priority': presence['priority']}
-        if not self.resources:
-            self.xmpp.event('got_online', presence)
+        got_online = not self.resources
         if resource not in self.resources:
             self.resources[resource] = {}
         old_status = self.resources[resource].get('status', '')
         old_show = self.resources[resource].get('show', None)
         self.resources[resource].update(data)
+        if got_online:
+            self.xmpp.event('got_online', presence)
         if old_show != presence['show'] or old_status != presence['status']:
             self.xmpp.event('changed_status', presence)
 

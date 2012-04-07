@@ -24,7 +24,11 @@ class TestStreamRoster(SleekTest):
         def roster_received(iq):
             events.append('roster_received')
 
+        def roster_update(iq):
+            events.append('roster_update')
+
         self.xmpp.add_event_handler('roster_received', roster_received)
+        self.xmpp.add_event_handler('roster_update', roster_update)
 
         # Since get_roster blocks, we need to run it in a thread.
         t = threading.Thread(name='get_roster', target=self.xmpp.get_roster)
@@ -62,8 +66,8 @@ class TestStreamRoster(SleekTest):
         # Give the event queue time to process.
         time.sleep(.1)
 
-        self.failUnless('roster_received' in events,
-                "Roster received event not triggered: %s" % events)
+        self.failUnless(events == ['roster_received', 'roster_update'],
+                "Wrong roster events fired: %s" % events)
 
     def testRosterSet(self):
         """Test handling pushed roster updates."""

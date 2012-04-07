@@ -223,12 +223,12 @@ class ClientXMPP(BaseXMPP):
             iq['roster']['ver'] = self.client_roster.version
 
         if not block and callback is None:
-            callback = lambda resp: self._handle_roster(resp, request=True)
+            callback = lambda resp: self._handle_roster(resp)
 
         response = iq.send(block, timeout, callback)
+        self.event('roster_received', response)
 
         if block: 
-            self.event('roster_received', response)
             self._handle_roster(response)
             return response
 

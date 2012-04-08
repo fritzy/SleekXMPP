@@ -68,6 +68,28 @@ class Name(ElementBase):
         return self._get_component('SUFFIX')
 
 
+class Nickname(ElementBase):
+    name = 'NICKNAME'
+    namespace = 'vcard-temp'
+    plugin_attrib = name
+    interfaces = set([name])
+    is_extension = True
+
+    def set_nickname(self, value):
+        if not value:
+            self.xml.text = ''
+            return
+
+        if not isinstance(value, list):
+            value = [value]
+
+        self.xml.text = ','.join(value)
+
+    def get_nickname(self):
+        if self.xml.text:
+            return self.xml.text.split(',')
+
+
 class Email(ElementBase):
     name = 'EMAIL'
     namespace = 'vcard-temp'
@@ -493,6 +515,7 @@ register_stanza_plugin(VCardTemp, Label, iterable=True)
 register_stanza_plugin(VCardTemp, Logo, iterable=True)
 register_stanza_plugin(VCardTemp, Mailer, iterable=True)
 register_stanza_plugin(VCardTemp, Note, iterable=True)
+register_stanza_plugin(VCardTemp, Nickname, iterable=True)
 register_stanza_plugin(VCardTemp, Photo, iterable=True)
 register_stanza_plugin(VCardTemp, ProdID, iterable=True)
 register_stanza_plugin(VCardTemp, Rev, iterable=True)

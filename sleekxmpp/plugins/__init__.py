@@ -24,6 +24,7 @@ __all__ = [
     'xep_0045',  # Multi-User Chat (Client)
     'xep_0047',  # In-Band Bytestreams
     'xep_0050',  # Ad-hoc Commands
+    'xep_0054',  # vcard-temp
     'xep_0059',  # Result Set Management
     'xep_0060',  # Pubsub (Client)
     'xep_0066',  # Out of Band Data

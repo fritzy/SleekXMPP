@@ -333,8 +333,10 @@ class XEP_0030(BasePlugin):
                 if str(jid) == str(self.xmpp.boundjid):
                     local = True
             jid = jid.full
+        elif jid in (None, ''):
+            local = True
 
-        if local or jid in (None, ''):
+        if local:
             log.debug("Looking up local disco#info data " + \
                       "for %s, node %s.", jid, node)
             info = self.api['get_info'](jid, node, 
@@ -629,6 +631,7 @@ class XEP_0030(BasePlugin):
                                         iq['from'],
                                         iq)
             if isinstance(info, Iq):
+                info['id'] = iq['id']
                 info.send()
             else:
                 iq.reply()

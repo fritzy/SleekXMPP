@@ -6,6 +6,8 @@ class APIWrapper(object):
     def __init__(self, api, name):
         self.api = api
         self.name = name
+        if name not in self.api.settings:
+            self.api.settings[name] = {}
 
     def __getattr__(self, attr):
         """Curry API management commands with the API name."""

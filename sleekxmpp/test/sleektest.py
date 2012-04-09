@@ -330,6 +330,9 @@ class SleekTest(unittest.TestCase):
         else:
             raise ValueError("Unknown XMPP connection mode.")
 
+        # Remove unique ID prefix to make it easier to test
+        self.xmpp._id_prefix = ''
+
         # We will use this to wait for the session_start event
         # for live connections.
         skip_queue = queue.Queue()

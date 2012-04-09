@@ -25,6 +25,7 @@ import threading
 import time
 import random
 import weakref
+import uuid
 try:
     import queue
 except ImportError:
@@ -285,6 +286,9 @@ class XMLStream(object):
         self._id = 0
         self._id_lock = threading.Lock()
 
+        #: We use an ID prefix to ensure that all ID values are unique.
+        self._id_prefix = '%s-' % uuid.uuid4()
+
         #: The :attr:`auto_reconnnect` setting controls whether or not
         #: the stream will be restarted in the event of an error.
         self.auto_reconnect = True
@@ -367,7 +371,7 @@ class XMLStream(object):
 
     def get_id(self):
         """Return the current unique stream ID in hexadecimal form."""
-        return "%X" % self._id
+        return "%s%X" % (self._id_prefix, self._id)
 
     def connect(self, host='', port=0, use_ssl=False,
                 use_tls=True, reattempt=True):

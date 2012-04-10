@@ -94,14 +94,14 @@ def resolve(host, port=None, service=None, proto='tcp', resolver=None):
     try:
         # If `host` is an IPv4 literal, we can return it immediately.
         ipv4 = socket.inet_pton(socket.AF_INET, host)
-        yield [(host, port)]
+        yield (host, port)
     except socket.error:
         pass
 
     try:
         # Likewise, If `host` is an IPv6 literal, we can return it immediately.
         ipv6 = socket.inet_pton(socket.AF_INET6, host)
-        yield [(host, port)]
+        yield (host, port)
     except socket.error:
         pass
 

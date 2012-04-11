@@ -134,6 +134,7 @@ class FeatureMechanisms(BasePlugin):
         else:
             log.error("No appropriate login method.")
             self.xmpp.event("no_auth", direct=True)
+            self.attempted_mechs = set()
             self.xmpp.disconnect()
         return True
 

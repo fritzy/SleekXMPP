@@ -630,6 +630,8 @@ class XMLStream(object):
         # Clearing this event will pause the send loop.
         self.session_started_event.clear()
 
+        self.__failed_send_stanza = None
+
         # Send the end of stream marker.
         if send_close:
             self.send_raw(self.stream_footer, now=True)
@@ -1152,9 +1154,11 @@ class XMLStream(object):
                                 log.warning("Failed to send %s", data)
                                 if reconnect is None:
                                     reconnect = self.auto_reconnect
-                                self.disconnect(reconnect, send_close=False)
+                                if not self.stop.is_set():
+                                    self.disconnect(reconnect, send_close=False)
                             log.warning('SSL write error - reattempting')
-                            time.sleep(self.ssl_retry_delay)
+                            if not self.stop.is_set():
+                                time.sleep(self.ssl_retry_delay)
                             tries += 1
                 if count > 1:
                     log.debug('SENT: %d chunks', count)
@@ -1163,7 +1167,8 @@ class XMLStream(object):
                 log.warning("Failed to send %s", data)
                 if reconnect is None:
                     reconnect = self.auto_reconnect
-                self.disconnect(reconnect, send_close=False)
+                if not self.stop.is_set():
+                    self.disconnect(reconnect, send_close=False)
         else:
             self.send_queue.put(data)
         return True
@@ -1501,9 +1506,11 @@ class XMLStream(object):
                                     log.debug('SSL error - max retries reached')
                                     self.exception(serr)
                                     log.warning("Failed to send %s", data)
-                                    self.disconnect(self.auto_reconnect, send_close=False)
+                                    if not self.stop.is_set():
+                                        self.disconnect(self.auto_reconnect, send_close=False)
                                 log.warning('SSL write error - reattempting')
-                                time.sleep(self.ssl_retry_delay)
+                                if not self.stop.is_set():
+                                    time.sleep(self.ssl_retry_delay)
                                 tries += 1
                     if count > 1:
                         log.debug('SENT: %d chunks', count)
@@ -1511,8 +1518,9 @@ class XMLStream(object):
                 except Socket.error as serr:
                     self.event('socket_error', serr, direct=True)
                     log.warning("Failed to send %s", data)
-                    self.__failed_send_stanza = data
-                    self.disconnect(self.auto_reconnect, send_close=False)
+                    if not self.stop.is_set():
+                        self.__failed_send_stanza = data
+                        self.disconnect(self.auto_reconnect, send_close=False)
         except Exception as ex:
             log.exception('Unexpected error in send thread: %s', ex)
             self.exception(ex)

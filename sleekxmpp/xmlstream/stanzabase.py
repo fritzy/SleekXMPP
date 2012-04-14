@@ -326,7 +326,10 @@ class ElementBase(object):
         #: If not, then :attr:`parent` is ``None``.
         self.parent = None
         if parent is not None:
-            self.parent = weakref.ref(parent)
+            if not isinstance(parent, weakref.ReferenceType):
+                self.parent = weakref.ref(parent)
+            else:
+                self.parent = parent
 
         if self.subitem is not None:
             for sub in self.subitem:

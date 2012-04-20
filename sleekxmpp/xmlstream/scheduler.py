@@ -121,7 +121,7 @@ class Scheduler(object):
         #: Lock for accessing the task queue.
         self.schedule_lock = threading.RLock()
 
-    def process(self, threaded=True):
+    def process(self, threaded=True, daemon=False):
         """Begin accepting and processing scheduled tasks.
 
         :param bool threaded: Indicates if the scheduler should execute
@@ -130,6 +130,7 @@ class Scheduler(object):
         if threaded:
             self.thread = threading.Thread(name='scheduler_process',
                                            target=self._process)
+            self.thread.daemon = daemon
             self.thread.start()
         else:
             self._process()

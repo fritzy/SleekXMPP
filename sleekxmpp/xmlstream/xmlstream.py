@@ -282,6 +282,7 @@ class XMLStream(object):
         self.__event_handlers = {}
         self.__event_handlers_lock = threading.Lock()
         self.__filters = {'in': [], 'out': [], 'out_sync': []}
+        self._use_daemons = False
 
         self._id = 0
         self._id_lock = threading.Lock()
@@ -1206,10 +1207,11 @@ class XMLStream(object):
         else:
             threaded = kwargs.get('threaded', True)
 
-        self.scheduler.process(threaded=True)
+        self.scheduler.process(threaded=True, daemon=self._use_daemons)
 
         def start_thread(name, target):
             self.__thread[name] = threading.Thread(name=name, target=target)
+            self.__thread[name].daemon = self._use_daemons
             self.__thread[name].start()
 
         for t in range(0, HANDLER_THREADS):
@@ -1451,6 +1453,7 @@ class XMLStream(object):
                                     name="Event_%s" % str(func),
                                     target=self._threaded_event_wrapper,
                                     args=(func, args))
+                            x.daemon = self._use_daemons
                             x.start()
                         else:
                             func(*args)

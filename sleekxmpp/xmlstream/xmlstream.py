@@ -52,7 +52,7 @@ RESPONSE_TIMEOUT = 30
 
 #: The time in seconds to wait for events from the event queue, and also the
 #: time between checks for the process stop signal.
-WAIT_TIMEOUT = 1
+WAIT_TIMEOUT = 0.1
 
 #: The number of threads to use to handle XML stream events. This is not the
 #: same as the number of custom event handling threads. 
@@ -285,6 +285,7 @@ class XMLStream(object):
         self.__thread_count = 0
         self.__thread_cond = threading.Condition()
         self._use_daemons = False
+        self._disconnect_wait_for_threads = True
 
         self._id = 0
         self._id_lock = threading.Lock()
@@ -652,7 +653,8 @@ class XMLStream(object):
 
         if not self.auto_reconnect:
             self.stop.set()
-            self._wait_for_threads()
+            if self._disconnect_wait_for_threads:
+                self._wait_for_threads()
 
         try:
             self.socket.shutdown(Socket.SHUT_RDWR)
@@ -1183,8 +1185,9 @@ class XMLStream(object):
         self.__thread[name].daemon = self._use_daemons
         self.__thread[name].start()
 
-        with self.__thread_cond:
-            self.__thread_count += 1
+        if track:
+            with self.__thread_cond:
+                self.__thread_count += 1
 
     def _end_thread(self, name):
         with self.__thread_cond:
@@ -1196,7 +1199,12 @@ class XMLStream(object):
 
     def _wait_for_threads(self):
         with self.__thread_cond:
-            self.__thread_cond.wait()
+            if self.__thread_count != 0:
+                log.debug("Waiting for %s threads to exit." % 
+                        self.__thread_count)
+                self.__thread_cond.wait()
+                if self.__thread_count != 0:
+                    raise Exception("Hanged threads: %s" % threading.enumerate())
 
     def process(self, **kwargs):
         """Initialize the XML streams and begin processing events.
@@ -1501,7 +1509,7 @@ class XMLStream(object):
             while not self.stop.is_set():
                 while not self.stop.is_set() and \
                       not self.session_started_event.is_set():
-                    self.session_started_event.wait(timeout=1)
+                    self.session_started_event.wait(timeout=0.1)
                 if self.__failed_send_stanza is not None:
                     data = self.__failed_send_stanza
                     self.__failed_send_stanza = None
@@ -1541,12 +1549,16 @@ class XMLStream(object):
                     log.warning("Failed to send %s", data)
                     if not self.stop.is_set():
                         self.__failed_send_stanza = data
+                        self._end_thread('send')
                         self.disconnect(self.auto_reconnect, send_close=False)
+                        return
         except Exception as ex:
             log.exception('Unexpected error in send thread: %s', ex)
             self.exception(ex)
             if not self.stop.is_set():
+                self._end_thread('send')
                 self.disconnect(self.auto_reconnect)
+                return
 
         self._end_thread('send')
 

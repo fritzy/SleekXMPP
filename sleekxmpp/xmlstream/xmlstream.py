@@ -400,7 +400,7 @@ class XMLStream(object):
             self.address = (host, int(port))
         try:
             Socket.inet_aton(self.address[0])
-        except Socket.error:
+        except (Socket.error, ssl.SSLError):
             self.default_domain = self.address[0]
 
         # Respect previous SSL and TLS usage directives.
@@ -510,7 +510,7 @@ class XMLStream(object):
             self.event("connected", direct=True)
             self.reconnect_delay = 1.0
             return True
-        except Socket.error as serr:
+        except (Socket.error, ssl.SSLError) as serr:
             error_msg = "Could not connect to %s:%s. Socket Error #%s: %s"
             self.event('socket_error', serr, direct=True)
             domain = self.address[0]
@@ -565,7 +565,7 @@ class XMLStream(object):
             # Proxy connection established, continue connecting
             # with the XMPP server.
             return True
-        except Socket.error as serr:
+        except (Socket.error, ssl.SSLError) as serr:
             error_msg = "Could not connect to %s:%s. Socket Error #%s: %s"
             self.event('socket_error', serr, direct=True)
             log.error(error_msg, self.address[0], self.address[1],
@@ -660,7 +660,7 @@ class XMLStream(object):
             self.socket.shutdown(Socket.SHUT_RDWR)
             self.socket.close()
             self.filesocket.close()
-        except Socket.error as serr:
+        except (Socket.error, ssl.SSLError) as serr:
             self.event('socket_error', serr, direct=True)
         finally:
             #clear your application state
@@ -1169,7 +1169,7 @@ class XMLStream(object):
                             tries += 1
                 if count > 1:
                     log.debug('SENT: %d chunks', count)
-            except Socket.error as serr:
+            except (Socket.error, ssl.SSLError) as serr:
                 self.event('socket_error', serr, direct=True)
                 log.warning("Failed to send %s", data)
                 if reconnect is None:
@@ -1290,7 +1290,7 @@ class XMLStream(object):
             except (SyntaxError, ExpatError) as e:
                 log.error("Error reading from XML stream.")
                 self.exception(e)
-            except Socket.error as serr:
+            except (Socket.error, ssl.SSLError) as serr:
                 self.event('socket_error', serr, direct=True)
                 log.error('Socket Error #%s: %s', serr.errno, serr.strerror)
             except Exception as e:
@@ -1544,7 +1544,7 @@ class XMLStream(object):
                     if count > 1:
                         log.debug('SENT: %d chunks', count)
                     self.send_queue.task_done()
-                except Socket.error as serr:
+                except (Socket.error, ssl.SSLError) as serr:
                     self.event('socket_error', serr, direct=True)
                     log.warning("Failed to send %s", data)
                     if not self.stop.is_set():

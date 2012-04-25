@@ -1176,6 +1176,8 @@ class StanzaBase(ElementBase):
             self['to'] = sto
         if sfrom is not None:
             self['from'] = sfrom
+        if sid is not None:
+            self['id'] = sid
         self.tag = "{%s}%s" % (self.namespace, self.name)
 
     def set_type(self, value):

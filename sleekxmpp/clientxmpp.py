@@ -277,9 +277,11 @@ class ClientXMPP(BaseXMPP):
                  
         self.event("roster_update", iq)
         if iq['type'] == 'set':
-            iq.reply()
-            iq.enable('roster')
-            iq.send()
+            resp = self.Iq(stype='result',
+                           sto=iq['from'],
+                           sid=iq['id'])
+            resp.enable('roster')
+            resp.send()
 
     def _handle_session_bind(self, jid):
         """Set the client roster to the JID set by the server.

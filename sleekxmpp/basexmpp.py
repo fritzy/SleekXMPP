@@ -666,19 +666,17 @@ class BaseXMPP(XMLStream):
 
     def _handle_message(self, msg):
         """Process incoming message stanzas."""
+        if not self.is_component and not msg['to'].bare:
+            msg['to'] = self.boundjid
         self.event('message', msg)
 
     def _handle_available(self, presence):
         pto = presence['to'].bare
-        if not pto:
-            pto = self.boundjid.bare
         pfrom = presence['from'].bare
         self.roster[pto][pfrom].handle_available(presence)
 
     def _handle_unavailable(self, presence):
         pto = presence['to'].bare
-        if not pto:
-            pto = self.boundjid.bare
         pfrom = presence['from'].bare
         self.roster[pto][pfrom].handle_unavailable(presence)
 
@@ -735,6 +733,9 @@ class BaseXMPP(XMLStream):
 
         Update the roster with presence information.
         """
+        if not self.is_component and not presence['to'].bare:
+            presence['to'] = self.boundjid
+
         self.event("presence_%s" % presence['type'], presence)
 
         # Check for changes in subscription state.

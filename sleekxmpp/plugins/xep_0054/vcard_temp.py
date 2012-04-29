@@ -114,7 +114,7 @@ class XEP_0054(BasePlugin):
                 iq.reply()
                 iq.append(vcard)
                 iq.send()
-        else:
+        elif iq['type'] == 'set':
             raise XMPPError('service-unavailable')
 
     # =================================================================

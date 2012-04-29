@@ -66,16 +66,19 @@ class XEP_0153(BasePlugin):
         return stanza
 
     def _reset_hash(self, jid=None):
-        own_jid = jid.bare == self.xmpp.boundjid.bare
+        own_jid = (jid.bare == self.xmpp.boundjid.bare)
         if self.xmpp.is_component:
-            own_jid = jid.domain = self.xmpp.boundjid.domain
+            own_jid = (jid.domain == self.xmpp.boundjid.domain)
      
         if jid is not None:
             jid = jid.bare
         self.api['set_hash'](jid, args=None)
         if own_jid:
             self.xmpp.roster[jid].send_last_presence()
-        iq = self.xmpp['xep_0054'].get_vcard(jid=jid, ifrom=jid)
+
+        iq = self.xmpp['xep_0054'].get_vcard(
+                jid=jid, 
+                ifrom=self.xmpp.boundjid)
         data = iq['vcard_temp']['PHOTO']['BINVAL']
         if not data:
             new_hash = ''

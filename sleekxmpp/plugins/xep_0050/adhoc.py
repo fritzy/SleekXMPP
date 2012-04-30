@@ -475,8 +475,10 @@ class XEP_0050(BasePlugin):
         session['jid'] = jid
         session['node'] = node
         session['timestamp'] = time.time()
-        session['payload'] = None
         session['block'] = block
+        if 'payload' not in session:
+            session['payload'] = None
+
         iq = self.xmpp.Iq()
         iq['type'] = 'set'
         iq['to'] = jid

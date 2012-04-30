@@ -218,6 +218,9 @@ class XEP_0050(BasePlugin):
         for stanza in iq['command']['substanzas']:
             payload.append(stanza)
 
+        if len(payload) == 1:
+            payload = payload[0]
+
         interfaces = set([item.plugin_attrib for item in payload])
         payload_classes = set([item.__class__ for item in payload])
 

@@ -35,7 +35,7 @@ class TestAdHocCommands(SleekTest):
             logging.debug(initial)
             new_payload = TestPayload()
             if initial:
-                new_payload['bar'] = 'Received: %s' % initial[0]['bar'] 
+                new_payload['bar'] = 'Received: %s' % initial['bar'] 
             else:
                 new_payload['bar'] = 'Failed'
 

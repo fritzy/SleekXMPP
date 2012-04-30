@@ -213,13 +213,21 @@ class XEP_0050(BasePlugin):
         name, handler = self.commands.get(key, ('Not found', None))
         if not handler:
             log.debug('Command not found: %s, %s', key, self.commands)
+
+        payload = []
+        for stanza in iq['command']['substanzas']:
+            payload.append(stanza)
+
+        interfaces = set([item.plugin_attrib for item in payload])
+        payload_classes = set([item.__class__ for item in payload])
+
         initial_session = {'id': sessionid,
                            'from': iq['from'],
                            'to': iq['to'],
                            'node': node,
-                           'payload': None,
-                           'interfaces': '',
-                           'payload_classes': None,
+                           'payload': payload,
+                           'interfaces': interfaces,
+                           'payload_classes': payload_classes,
                            'notes': None,
                            'has_next': False,
                            'allow_complete': False,
@@ -269,11 +277,19 @@ class XEP_0050(BasePlugin):
         sessionid = session['id']
 
         payload = session['payload']
+        if payload is None:
+            payload = []
         if not isinstance(payload, list):
             payload = [payload]
 
-        session['interfaces'] = [item.plugin_attrib for item in payload]
-        session['payload_classes'] = [item.__class__ for item in payload]
+        interfaces = session.get('interfaces', set())
+        payload_classes = session.get('payload_classes', set())
+
+        interfaces.update(set([item.plugin_attrib for item in payload]))
+        payload_classes.update(set([item.__class__ for item in payload]))
+
+        session['interfaces'] = interfaces
+        session['payload_classes'] = payload_classes
 
         self.sessions[sessionid] = session
 
@@ -486,6 +502,12 @@ class XEP_0050(BasePlugin):
         session['from'] = ifrom
         iq['command']['node'] = node
         iq['command']['action'] = 'execute'
+        if session['payload'] is not None:
+            payload = session['payload']
+            if not isinstance(payload, list):
+                payload = list(payload)
+            for stanza in payload:
+                iq['command'].append(stanza)
         sessionid = 'client:pending_' + iq['id']
         session['id'] = sessionid
         self.sessions[sessionid] = session

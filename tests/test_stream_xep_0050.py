@@ -1,4 +1,5 @@
 import time
+import logging
 import threading
 
 from sleekxmpp.test import *
@@ -16,6 +17,59 @@ class TestAdHocCommands(SleekTest):
 
     def tearDown(self):
         self.stream_close()
+
+    def testInitialPayloadCommand(self):
+        """Test a command with an initial payload."""
+
+        class TestPayload(ElementBase):
+            name = 'foo'
+            namespace = 'test'
+            interfaces = set(['bar'])
+            plugin_attrib = name
+
+        Command = self.xmpp['xep_0050'].stanza.Command
+        register_stanza_plugin(Command, TestPayload, iterable=True)
+
+        def handle_command(iq, session):
+            initial = session['payload']
+            logging.debug(initial)
+            new_payload = TestPayload()
+            if initial:
+                new_payload['bar'] = 'Received: %s' % initial[0]['bar'] 
+            else:
+                new_payload['bar'] = 'Failed'
+
+            logging.debug(initial)
+
+            session['payload'] = new_payload
+            session['next'] = None
+            session['has_next'] = False
+
+            return session
+
+        self.xmpp['xep_0050'].add_command('tester@localhost', 'foo',
+                                          'Do Foo', handle_command)
+
+        self.recv("""
+          <iq id="11" type="set" to="tester@localhost" from="foo@bar">
+            <command xmlns="http://jabber.org/protocol/commands"
+                     node="foo"
+                     action="execute">
+              <foo xmlns="test" bar="baz" />
+            </command>
+          </iq>
+        """)
+
+        self.send("""
+          <iq id="11" type="result" to="foo@bar">
+            <command xmlns="http://jabber.org/protocol/commands"
+                     node="foo"
+                     status="completed"
+                     sessionid="_sessionid_">
+              <foo xmlns="test" bar="Received: baz" />
+            </command>
+          </iq>
+        """)
 
     def testZeroStepCommand(self):
         """Test running a command with no steps."""

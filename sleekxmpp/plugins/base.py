@@ -18,6 +18,10 @@ import logging
 import threading
 
 
+if sys.version_info >= (3, 0):
+    unicode = str
+
+
 log = logging.getLogger(__name__)
 
 
@@ -84,9 +88,11 @@ def load_plugin(name, module=None):
                 module = 'sleekxmpp.features.%s' % name
                 __import__(module)
                 mod = sys.modules[module]
-        else:
+        elif isinstance(module, (str, unicode)):
             __import__(module)
             mod = sys.modules[module]
+        else:
+            mod = module
 
         # Add older style plugins to the registry.
         if hasattr(mod, name):

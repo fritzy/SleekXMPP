@@ -774,5 +774,165 @@ class TestElementBase(SleekTest):
           <foo xmlns="foo" />
         """)
 
+    def testGetMultiAttrib(self):
+        """Test retrieving multi_attrib substanzas."""
+
+        class TestStanza(ElementBase):
+            name = 'foo'
+            namespace = 'foo'
+            interfaces = set()
+
+        class TestMultiStanza1(ElementBase):
+            name = 'bar'
+            namespace = 'bar'
+            plugin_attrib = name
+            plugin_multi_attrib = 'bars'
+
+        class TestMultiStanza2(ElementBase):
+            name = 'baz'
+            namespace = 'baz'
+            plugin_attrib = name
+            plugin_multi_attrib = 'bazs'
+           
+        register_stanza_plugin(TestStanza, TestMultiStanza1, iterable=True)
+        register_stanza_plugin(TestStanza, TestMultiStanza2, iterable=True)
+
+        stanza = TestStanza()
+        stanza.append(TestMultiStanza1())
+        stanza.append(TestMultiStanza2())
+        stanza.append(TestMultiStanza1())
+        stanza.append(TestMultiStanza2())
+
+        self.check(stanza, """
+          <foo xmlns="foo">
+            <bar xmlns="bar" />
+            <baz xmlns="baz" />
+            <bar xmlns="bar" />
+            <baz xmlns="baz" />
+          </foo>
+        """, use_values=False)
+
+        bars = stanza['bars']
+        bazs = stanza['bazs']
+
+        for bar in bars:
+            self.check(bar, """
+              <bar xmlns="bar" />
+            """)
+
+        for baz in bazs:
+            self.check(baz, """
+              <baz xmlns="baz" />
+            """)
+
+        self.assertEqual(len(bars), 2, 
+                "Wrong number of <bar /> stanzas: %s" % len(bars))
+        self.assertEqual(len(bazs), 2, 
+                "Wrong number of <baz /> stanzas: %s" % len(bazs))
+
+    def testSetMultiAttrib(self):
+        """Test setting multi_attrib substanzas."""
+
+        class TestStanza(ElementBase):
+            name = 'foo'
+            namespace = 'foo'
+            interfaces = set()
+
+        class TestMultiStanza1(ElementBase):
+            name = 'bar'
+            namespace = 'bar'
+            plugin_attrib = name
+            plugin_multi_attrib = 'bars'
+
+        class TestMultiStanza2(ElementBase):
+            name = 'baz'
+            namespace = 'baz'
+            plugin_attrib = name
+            plugin_multi_attrib = 'bazs'
+           
+        register_stanza_plugin(TestStanza, TestMultiStanza1, iterable=True)
+        register_stanza_plugin(TestStanza, TestMultiStanza2, iterable=True)
+
+        stanza = TestStanza()
+        stanza['bars'] = [TestMultiStanza1(), TestMultiStanza1()]
+        stanza['bazs'] = [TestMultiStanza2(), TestMultiStanza2()]
+
+        self.check(stanza, """
+          <foo xmlns="foo">
+            <bar xmlns="bar" />
+            <bar xmlns="bar" />
+            <baz xmlns="baz" />
+            <baz xmlns="baz" />
+          </foo>
+        """, use_values=False)
+
+        self.assertEqual(len(stanza['substanzas']), 4,
+            "Wrong number of substanzas: %s" % len(stanza['substanzas']))
+
+        stanza['bars'] = [TestMultiStanza1()]
+
+        self.check(stanza, """
+          <foo xmlns="foo">
+            <baz xmlns="baz" />
+            <baz xmlns="baz" />
+            <bar xmlns="bar" />
+          </foo>
+        """, use_values=False)
+
+        self.assertEqual(len(stanza['substanzas']), 3,
+            "Wrong number of substanzas: %s" % len(stanza['substanzas']))
+
+
+    def testDelMultiAttrib(self):
+        """Test deleting multi_attrib substanzas."""
+
+        class TestStanza(ElementBase):
+            name = 'foo'
+            namespace = 'foo'
+            interfaces = set()
+
+        class TestMultiStanza1(ElementBase):
+            name = 'bar'
+            namespace = 'bar'
+            plugin_attrib = name
+            plugin_multi_attrib = 'bars'
+
+        class TestMultiStanza2(ElementBase):
+            name = 'baz'
+            namespace = 'baz'
+            plugin_attrib = name
+            plugin_multi_attrib = 'bazs'
+           
+        register_stanza_plugin(TestStanza, TestMultiStanza1, iterable=True)
+        register_stanza_plugin(TestStanza, TestMultiStanza2, iterable=True)
+
+        stanza = TestStanza()
+        bars = [TestMultiStanza1(), TestMultiStanza1()]
+        bazs = [TestMultiStanza2(), TestMultiStanza2()]
+
+        stanza['bars'] = bars
+        stanza['bazs'] = bazs
+
+        self.check(stanza, """
+          <foo xmlns="foo">
+            <bar xmlns="bar" />
+            <bar xmlns="bar" />
+            <baz xmlns="baz" />
+            <baz xmlns="baz" />
+          </foo>
+        """, use_values=False)
+
+        del stanza['bars']
+
+        self.check(stanza, """
+          <foo xmlns="foo">
+            <baz xmlns="baz" />
+            <baz xmlns="baz" />
+          </foo>
+        """, use_values=False)
+
+        self.assertEqual(len(stanza['substanzas']), 2,
+            "Wrong number of substanzas: %s" % len(stanza['substanzas']))
+
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestElementBase)

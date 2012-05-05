@@ -36,6 +36,17 @@ def register_stanza_plugin(stanza, plugin, iterable=False, overrides=False):
     >>> from sleekxmpp.xmlstream import register_stanza_plugin
     >>> register_stanza_plugin(Iq, CustomStanza)
 
+    Plugin stanzas marked as iterable will be included in the list of
+    substanzas for the parent, using ``parent['substanzas']``. If the
+    attribute ``plugin_multi_attrib`` was defined for the plugin, then
+    the substanza set can be filtered to only instances of the plugin
+    class. For example, given a plugin class ``Foo`` with 
+    ``plugin_multi_attrib = 'foos'`` then::
+
+        parent['foos']
+
+    would return a collection of all ``Foo`` substanzas.
+
     :param class stanza: The class of the parent stanza.
     :param class plugin: The class of the plugin stanza.
     :param bool iterable: Indicates if the plugin stanza should be
@@ -67,9 +78,9 @@ def register_stanza_plugin(stanza, plugin, iterable=False, overrides=False):
 
     if iterable:
         stanza.plugin_iterables.add(plugin)
-    if iterable and hasattr(plugin, 'multi_attrib'):
-        multiplugin = multifactory(plugin, plugin.multi_attrib)
-        register_stanza_plugin(stanza, multiplugin)
+        if plugin.plugin_multi_attrib:
+            multiplugin = multifactory(plugin, plugin.plugin_multi_attrib)
+            register_stanza_plugin(stanza, multiplugin)
     if overrides:
         for interface in plugin.overrides:
             stanza.plugin_overrides[interface] = plugin.plugin_attrib
@@ -93,7 +104,7 @@ def multifactory(stanza, plugin_attrib):
     def get_multi(self):
         parent = self.parent()
         res = filter(lambda sub: isinstance(sub, self._multistanza), parent)
-        return tuple(res)
+        return list(res)
 
     def set_multi(self, val):
         parent = self.parent()
@@ -104,7 +115,7 @@ def multifactory(stanza, plugin_attrib):
     def del_multi(self):
         parent = self.parent()
         res = filter(lambda sub: isinstance(sub, self._multistanza), parent)
-        for stanza in res:
+        for stanza in list(res):
             parent.iterables.remove(stanza)
             parent.xml.remove(stanza.xml)
 
@@ -257,6 +268,16 @@ class ElementBase(object):
     #:     msg = Message()
     #:     msg['foo']['an_interface_from_the_foo_plugin']
     plugin_attrib = 'plugin'
+
+    #: For :class:`ElementBase` subclasses that are intended to be an
+    #: iterable group of items, the ``plugin_multi_attrib`` value defines
+    #: an interface for the parent stanza which returns the entire group
+    #: of matching substanzas. So the following are equivalent::
+    #:
+    #:     # Given stanza class Foo, with plugin_multi_attrib = 'foos'
+    #:     parent['foos']
+    #:     filter(isinstance(item, Foo), parent['substanzas'])
+    plugin_multi_attrib = ''
 
     #: The set of keys that the stanza provides for accessing and
     #: manipulating the underlying XML object. This set may be augmented
@@ -445,6 +466,8 @@ class ElementBase(object):
             self.plugins[attrib] = plugin
             if plugin_class in self.plugin_iterables:
                 self.iterables.append(plugin)
+                if plugin_class.plugin_multi_attrib:
+                    self.init_plugin(plugin_class.plugin_multi_attrib)
         return self
 
     def _get_stanza_values(self):
@@ -995,6 +1018,9 @@ class ElementBase(object):
                 raise TypeError
         self.xml.append(item.xml)
         self.iterables.append(item)
+        if item.__class__ in self.plugin_iterables:
+            if item.__class__.plugin_multi_attrib:
+                self.init_plugin(item.__class__.plugin_multi_attrib)
         return self
 
     def appendxml(self, xml):

@@ -67,6 +67,9 @@ def register_stanza_plugin(stanza, plugin, iterable=False, overrides=False):
 
     if iterable:
         stanza.plugin_iterables.add(plugin)
+    if iterable and hasattr(plugin, 'multi_attrib'):
+        multiplugin = multifactory(plugin, plugin.multi_attrib)
+        register_stanza_plugin(stanza, multiplugin)
     if overrides:
         for interface in plugin.overrides:
             stanza.plugin_overrides[interface] = plugin.plugin_attrib
@@ -74,6 +77,45 @@ def register_stanza_plugin(stanza, plugin, iterable=False, overrides=False):
 
 # To maintain backwards compatibility for now, preserve the camel case name.
 registerStanzaPlugin = register_stanza_plugin
+
+
+def multifactory(stanza, plugin_attrib):
+    """
+    Returns a ElementBase class for handling reoccuring child stanzas
+    """
+    class Multi(ElementBase):
+        """
+        Template class for multifactory
+        """
+        def setup(self, xml=None):
+            self.xml = ET.Element('')
+
+    def get_multi(self):
+        parent = self.parent()
+        res = filter(lambda sub: isinstance(sub, self._multistanza), parent)
+        return tuple(res)
+
+    def set_multi(self, val):
+        parent = self.parent()
+        del parent[self.plugin_attrib]
+        for sub in val:
+            parent.append(sub)
+
+    def del_multi(self):
+        parent = self.parent()
+        res = filter(lambda sub: isinstance(sub, self._multistanza), parent)
+        for stanza in res:
+            parent.iterables.remove(stanza)
+            parent.xml.remove(stanza.xml)
+
+    Multi.is_extension = True
+    Multi.plugin_attrib = plugin_attrib
+    Multi._multistanza = stanza
+    Multi.interfaces = (plugin_attrib,)
+    setattr(Multi, "get_%s" % plugin_attrib, get_multi)
+    setattr(Multi, "set_%s" % plugin_attrib, set_multi)
+    setattr(Multi, "del_%s" % plugin_attrib, del_multi)
+    return Multi
 
 
 def fix_ns(xpath, split=False, propagate_ns=True, default_ns=''):

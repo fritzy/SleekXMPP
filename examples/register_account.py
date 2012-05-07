@@ -47,7 +47,7 @@ class RegisterBot(sleekxmpp.ClientXMPP):
         # and the XML streams are ready for use. We want to
         # listen for this event so that we we can initialize
         # our roster.
-        self.add_event_handler("session_start", self.start)
+        self.add_event_handler("session_start", self.start, threaded=True)
 
         # The register event provides an Iq result stanza with
         # a registration form from the server. This may include
@@ -56,7 +56,7 @@ class RegisterBot(sleekxmpp.ClientXMPP):
         # cases, you will need to examine the fields provided
         # and respond accordingly. SleekXMPP provides plugins
         # for data forms and OOB links that will make that easier.
-        self.add_event_handler("register", self.register)
+        self.add_event_handler("register", self.register, threaded=True)
 
     def start(self, event):
         """

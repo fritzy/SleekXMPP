@@ -24,7 +24,7 @@ class LocationBot(ClientXMPP):
     def __init__(self, jid, password):
         super(LocationBot, self).__init__(jid, password)
 
-        self.add_event_handler('session_start', self.start)
+        self.add_event_handler('session_start', self.start, threaded=True)
         self.add_event_handler('user_location_publish', 
                                self.user_location_publish)
 

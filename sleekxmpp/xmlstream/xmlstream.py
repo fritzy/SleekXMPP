@@ -1206,7 +1206,10 @@ class XMLStream(object):
                 if self.__thread_count != 0:
                     log.error("Hanged threads: %s" % threading.enumerate())
                     log.error("This may be due to calling disconnect() " + \
-                              "from a non-threaded event handler.")
+                              "from a non-threaded event handler. Be " + \
+                              "sure that event handlers that call " + \
+                              "disconnect() are registered using: " + \
+                              "add_event_handler(..., threaded=True)")
 
     def process(self, **kwargs):
         """Initialize the XML streams and begin processing events.

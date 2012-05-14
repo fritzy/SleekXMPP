@@ -128,6 +128,7 @@ class XEP_0045(BasePlugin):
         self.xmpp.registerHandler(Callback('MUCPresence', MatchXMLMask("<presence xmlns='%s' />" % self.xmpp.default_ns), self.handle_groupchat_presence))
         self.xmpp.registerHandler(Callback('MUCMessage', MatchXMLMask("<message xmlns='%s' type='groupchat'><body/></message>" % self.xmpp.default_ns), self.handle_groupchat_message))
         self.xmpp.registerHandler(Callback('MUCSubject', MatchXMLMask("<message xmlns='%s' type='groupchat'><subject/></message>" % self.xmpp.default_ns), self.handle_groupchat_subject))
+        self.xmpp.registerHandler(Callback('MUCConfig', MatchXMLMask("<message xmlns='%s' type='groupchat'><x xmlns='http://jabber.org/protocol/muc#user'><status/></x></message>" % self.xmpp.default_ns), self.handle_config_change))
         self.xmpp.registerHandler(Callback('MUCInvite', MatchXPath("{%s}message/{%s}x/{%s}invite" % (
             self.xmpp.default_ns,
             'http://jabber.org/protocol/muc#user',
@@ -139,6 +140,11 @@ class XEP_0045(BasePlugin):
         logging.debug("MUC invite to %s from %s: %s", inv['from'], inv["from"], inv)
         if inv['from'] not in self.rooms.keys():
             self.xmpp.event("groupchat_invite", inv)
+
+    def handle_config_change(self, msg):
+        """Handle a MUC configuration change (with status code)."""
+        self.xmpp.event('groupchat_config_status', msg)
+        self.xmpp.event('muc::%s::config_status' % msg['from'].bare , msg)
 
     def handle_groupchat_presence(self, pr):
         """ Handle a presence in a muc.

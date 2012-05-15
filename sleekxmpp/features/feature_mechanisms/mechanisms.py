@@ -159,6 +159,7 @@ class FeatureMechanisms(BasePlugin):
         self.attempted_mechs = set()
         self.xmpp.authenticated = True
         self.xmpp.features.add('mechanisms')
+        self.xmpp.event('auth_success', stanza, direct=True)
         raise RestartStream()
 
     def _handle_fail(self, stanza):

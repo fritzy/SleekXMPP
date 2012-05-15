@@ -29,3 +29,7 @@ class SASLCancelled(SASLError):
         :type sasl: `suelta.SASL`
         """
         super(SASLCancelled, self).__init__(sasl, "User cancelled", mech)
+
+
+class SASLPrepFailure(UnicodeError):
+    pass

@@ -5,6 +5,9 @@ import stringprep
 import unicodedata
 
 
+from sleekxmpp.thirdparty.suelta.exceptions import SASLPrepFailure
+
+
 def saslprep(text, strict=True):
     """
     Return a processed version of the given string, using the SASLPrep
@@ -41,38 +44,38 @@ def saslprep(text, strict=True):
     if text:
         first_is_randal = stringprep.in_table_d1(text[0])
         if first_is_randal and not stringprep.in_table_d1(text[-1]):
-            raise UnicodeError('Section 6.3 [end]')
+            raise SASLPrepFailure('Section 6.3 [end]')
 
     # Check for prohibited characters
     for x in range(len(text)):
         if strict and stringprep.in_table_a1(text[x]):
-            raise UnicodeError('Unassigned Codepoint')
+            raise SASLPrepFailure('Unassigned Codepoint')
         if stringprep.in_table_c12(text[x]):
-            raise UnicodeError('In table C.1.2')
+            raise SASLPrepFailure('In table C.1.2')
         if stringprep.in_table_c21(text[x]):
-            raise UnicodeError('In table C.2.1')
+            raise SASLPrepFailure('In table C.2.1')
         if stringprep.in_table_c22(text[x]):
-            raise UnicodeError('In table C.2.2')
+            raise SASLPrepFailure('In table C.2.2')
         if stringprep.in_table_c3(text[x]):
-            raise UnicodeError('In table C.3')
+            raise SASLPrepFailure('In table C.3')
         if stringprep.in_table_c4(text[x]):
-            raise UnicodeError('In table C.4')
+            raise SASLPrepFailure('In table C.4')
         if stringprep.in_table_c5(text[x]):
-            raise UnicodeError('In table C.5')
+            raise SASLPrepFailure('In table C.5')
         if stringprep.in_table_c6(text[x]):
-            raise UnicodeError('In table C.6')
+            raise SASLPrepFailure('In table C.6')
         if stringprep.in_table_c7(text[x]):
-            raise UnicodeError('In table C.7')
+            raise SASLPrepFailure('In table C.7')
         if stringprep.in_table_c8(text[x]):
-            raise UnicodeError('In table C.8')
+            raise SASLPrepFailure('In table C.8')
         if stringprep.in_table_c9(text[x]):
-            raise UnicodeError('In table C.9')
+            raise SASLPrepFailure('In table C.9')
         if x:
             if first_is_randal and stringprep.in_table_d2(text[x]):
-                raise UnicodeError('Section 6.2')
+                raise SASLPrepFailure('Section 6.2')
             if not first_is_randal and \
                x != len(text) - 1 and \
                stringprep.in_table_d1(text[x]):
-                raise UnicodeError('Section 6.3')
+                raise SASLPrepFailure('Section 6.3')
 
     return text

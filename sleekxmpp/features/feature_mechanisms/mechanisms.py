@@ -10,6 +10,7 @@ import logging
 
 from sleekxmpp.thirdparty import suelta
 from sleekxmpp.thirdparty.suelta.exceptions import SASLCancelled, SASLError
+from sleekxmpp.thirdparty.suelta.exceptions import SASLPrepFailure
 
 from sleekxmpp.stanza import StreamFeatures
 from sleekxmpp.xmlstream import RestartStream, register_stanza_plugin
@@ -129,7 +130,7 @@ class FeatureMechanisms(BasePlugin):
             except SASLError:
                 self.attempted_mechs.add(self.mech.name)
                 self._send_auth()
-            except UnicodeError as e:
+            except SASLPrepFailure:
                 log.exception("A credential value did not pass SASLprep.")
                 self.xmpp.disconnect()
             else:

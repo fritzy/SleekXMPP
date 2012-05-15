@@ -37,8 +37,8 @@ else:
 class ActionBot(sleekxmpp.ClientXMPP):
 
     """
-    A simple SleekXMPP bot that provides a basic
-    adhoc command.
+    A simple SleekXMPP bot that receives a custom stanza
+    from another client.
     """
 
     def __init__(self, jid, password):
@@ -54,7 +54,12 @@ class ActionBot(sleekxmpp.ClientXMPP):
         self.registerHandler(
           Callback('Some custom iq',
             StanzaPath('iq@type=set/action'),
-            self._handleAction))
+            self._handle_action))
+
+        self.add_event_handler('custom_action', 
+                self._handle_action_event, 
+                threaded=True)
+
         register_stanza_plugin(Iq, Action)
 
     def start(self, event):
@@ -73,17 +78,34 @@ class ActionBot(sleekxmpp.ClientXMPP):
         self.send_presence()
         self.get_roster()
 
-    def _handleAction(self, iq):
-        if iq['action']['method'] == 'is_prime' and iq['action']['param'] == '2':
-            print("got message: " + str(iq))
+    def _handle_action(self, iq):
+        """
+        Raise an event for the stanza so that it can be processed in its
+        own thread without blocking the main stanza processing loop.
+        """
+        self.event('custom_action', iq)
+
+    def _handle_action_event(self, iq):
+        """
+        Respond to the custom action event.
+
+        Since one of the actions is to disconnect, this
+        event handler needs to be run in threaded mode, by
+        using `threaded=True` in the `add_event_handler` call.
+        """
+        method = iq['action']['method']
+        param = iq['action']['param']
+
+        if method == 'is_prime' and param == '2':
+            print("got message: %s" % iq)
             iq.reply()
             iq['action']['status'] = 'done'
             iq.send()
-        elif iq['action']['method'] == 'bye':
-            print("got message: " + str(iq))
+        elif method == 'bye':
+            print("got message: %s" % iq)
             self.disconnect()
         else:
-            print("got message: " + str(iq))
+            print("got message: %s" % iq)
             iq.reply()
             iq['action']['status'] = 'error'
             iq.send()

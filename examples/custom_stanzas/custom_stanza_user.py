@@ -15,8 +15,10 @@ import getpass
 from optparse import OptionParser
 
 import sleekxmpp
-
+from sleekxmpp import Iq
+from sleekxmpp.exceptions import XMPPError
 from sleekxmpp.xmlstream import register_stanza_plugin
+
 from stanza import Action
 
 # Python versions before 3.0 do not use UTF-8 encoding
@@ -33,8 +35,8 @@ else:
 class ActionUserBot(sleekxmpp.ClientXMPP):
 
     """
-    A simple SleekXMPP bot that uses the adhoc command
-    provided by the adhoc_provider.py example.
+    A simple SleekXMPP bot that sends a custom action stanza
+    to another client.
     """
 
     def __init__(self, jid, password, other):
@@ -47,10 +49,10 @@ class ActionUserBot(sleekxmpp.ClientXMPP):
         # and the XML streams are ready for use. We want to
         # listen for this event so that we we can initialize
         # our roster.
-        self.add_event_handler("session_start", self.start)
+        self.add_event_handler("session_start", self.start, threaded=True)
         self.add_event_handler("message", self.message)
 
-        register_stanza_plugin(sleekxmpp.Iq, Action)
+        register_stanza_plugin(Iq, Action)
 
     def start(self, event):
         """
@@ -71,12 +73,16 @@ class ActionUserBot(sleekxmpp.ClientXMPP):
         self.send_custom_iq()
 
     def send_custom_iq(self):
+        """Create and send two custom actions.
+
+        If the first action was successful, then send
+        a shutdown command and then disconnect.
+        """
         iq = self.Iq()
         iq['to'] = self.action_provider
         iq['type'] = 'set'
-        iq.enable('action')
         iq['action']['method'] = 'is_prime'
-        iq['action']['param'] = str(2)
+        iq['action']['param'] = '2'
 
         try:
             resp = iq.send()
@@ -85,12 +91,14 @@ class ActionUserBot(sleekxmpp.ClientXMPP):
                 iq2 = self.Iq()
                 iq2['to'] = self.action_provider
                 iq2['type'] = 'set'
-                iq2.enable('action')
                 iq2['action']['method'] = 'bye'
-                iq2.send(block = False)
-                self.disconnect()
-        except sleekxmpp.exceptions.XMPPError:
-            pass
+                iq2.send(block=False)
+            
+                # The wait=True delays the disconnect until the queue
+                # of stanzas to be sent becomes empty.
+                self.disconnect(wait=True)
+        except XMPPError:
+            print('There was an error sending the custom action.')
 
     def message(self, msg):
         """

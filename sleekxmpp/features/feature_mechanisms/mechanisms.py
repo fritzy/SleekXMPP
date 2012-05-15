@@ -129,6 +129,9 @@ class FeatureMechanisms(BasePlugin):
             except SASLError:
                 self.attempted_mechs.add(self.mech.name)
                 self._send_auth()
+            except UnicodeError as e:
+                log.exception("A credential value did not pass SASLprep.")
+                self.xmpp.disconnect()
             else:
                 resp.send(now=True)
         else:

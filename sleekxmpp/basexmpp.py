@@ -68,6 +68,7 @@ class BaseXMPP(XMLStream):
 
         #: The JabberID (JID) used by this connection. 
         self.boundjid = JID(jid)
+        self._expected_server_name = self.boundjid.host
 
         #: A dictionary mapping plugin names to plugins.
         self.plugin = PluginManager(self)

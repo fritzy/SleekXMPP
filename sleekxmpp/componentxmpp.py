@@ -101,6 +101,9 @@ class ComponentXMPP(BaseXMPP):
             host = self.server_host
         if port is None:
             port = self.server_port
+
+        self.server_name = self.boundjid.host
+
         log.debug("Connecting to %s:%s", host, port)
         return XMLStream.connect(self, host=host, port=port,
                                        use_ssl=use_ssl,

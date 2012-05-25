@@ -22,13 +22,17 @@ class X_FACEBOOK_PLATFORM(Mechanism):
                 values[key] = value
 
             resp_data = {
-                b'method': values[b'method'],
-                b'v': b'1.0',
-                b'call_id': b'1.0',
-                b'nonce': values[b'nonce'],
-                b'access_token': self.values['access_token'],
-                b'api_key': self.values['api_key']
+                'method': values[b'method'],
+                'v': '1.0',
+                'call_id': '1.0',
+                'nonce': values[b'nonce'],
+                'access_token': self.values['access_token'],
+                'api_key': self.values['api_key']
             }
+            
+            for k, v in resp_data.items():
+                resp_data[k] = bytes(v).decode('utf-8')
+
             resp = '&'.join(['%s=%s' % (k, v) for k, v in resp_data.items()])
             return bytes(resp)
         return b''

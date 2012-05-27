@@ -464,9 +464,15 @@ class XMLStream(object):
                 return False
 
         af = Socket.AF_INET
+        proto = 'IPv4'
         if ':' in self.address[0]:
             af = Socket.AF_INET6
-        self.socket = self.socket_class(af, Socket.SOCK_STREAM)
+            proto = 'IPv6'
+        try:
+            self.socket = self.socket_class(af, Socket.SOCK_STREAM)
+        except Socket.error:
+            log.debug("Could not connect using %s", proto)
+            return False
 
         self.configure_socket()
 

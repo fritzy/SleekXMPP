@@ -1612,7 +1612,7 @@ class XMLStream(object):
                 tries = 0
                 try:
                     with self.send_lock:
-                        while sent < total and not self.stop.is_set() and
+                        while sent < total and not self.stop.is_set() and \
                               self.session_started_event.is_set():
                             try:
                                 sent += self.socket.send(enc_data[sent:])

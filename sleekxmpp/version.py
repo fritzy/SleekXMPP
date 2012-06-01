@@ -9,5 +9,5 @@
 # We don't want to have to import the entire library
 # just to get the version info for setup.py
 
-__version__ = '1.0.1dev'
-__version_info__ = (1, 0, 1, 'dev', 0)
+__version__ = '1.1.0dev'
+__version_info__ = (1, 1, 0, 'dev', 0)

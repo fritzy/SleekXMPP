@@ -45,21 +45,13 @@ The latest source code for SleekXMPP may be found on `Github
 ``develop`` branch.
 
 **Latest Release**
-    - `1.0 <http://github.com/fritzy/SleekXMPP/zipball/1.0>`_
+    - `1.1 <http://github.com/fritzy/SleekXMPP/zipball/1.1>`_
 
 **Develop Releases**
     - `Latest Develop Version <http://github.com/fritzy/SleekXMPP/zipball/develop>`_
 
 **Older Stable Releases**
-    - `1.0 RC3 <http://github.com/fritzy/SleekXMPP/zipball/1.0-RC3>`_  
-    - `1.0 RC2 <http://github.com/fritzy/SleekXMPP/zipball/1.0-RC2>`_  
-    - `1.0 RC1 <http://github.com/fritzy/SleekXMPP/zipball/1.0-RC1>`_  
-    - `1.0 Beta6.1 <http://github.com/fritzy/SleekXMPP/zipball/1.0-Beta6.1>`_  
-    - `1.0 Beta5 <http://github.com/fritzy/SleekXMPP/zipball/1.0-Beta5>`_
-    - `1.0 Beta4 <http://github.com/fritzy/SleekXMPP/zipball/1.0-Beta4>`_
-    - `1.0 Beta3 <http://github.com/fritzy/SleekXMPP/zipball/1.0-Beta3>`_
-    - `1.0 Beta2 <http://github.com/fritzy/SleekXMPP/zipball/1.0-Beta2>`_
-    - `1.0 Beta1 <http://github.com/fritzy/SleekXMPP/zipball/1.0-Beta1>`_
+    - `1.0 <http://github.com/fritzy/SleekXMPP/zipball/1.0>`_
 
 Installing DNSPython
 ---------------------

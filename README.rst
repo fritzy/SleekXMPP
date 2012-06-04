@@ -45,7 +45,7 @@ The latest source code for SleekXMPP may be found on `Github
 ``develop`` branch.
 
 **Latest Release**
-    - `1.1 <http://github.com/fritzy/SleekXMPP/zipball/1.1>`_
+    - `1.1.1 <http://github.com/fritzy/SleekXMPP/zipball/1.1.1>`_
 
 **Develop Releases**
     - `Latest Develop Version <http://github.com/fritzy/SleekXMPP/zipball/develop>`_

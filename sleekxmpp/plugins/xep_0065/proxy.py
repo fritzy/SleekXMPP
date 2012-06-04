@@ -123,12 +123,12 @@ class xep_0065(base_plugin):
 
         # Next the Target attempts to open a standard TCP socket on
         # the network address of the Proxy.
-        self.target_thread = Proxy(sid, requester, target, self.proxy_host,
-                                   self.proxy_port, self._handle_on_recv)
-        self.target_thread.start()
+        self.proxy_thread = Proxy(sid, requester, target, self.proxy_host,
+                                  self.proxy_port, self.on_recv)
+        self.proxy_thread.start()
 
         # Wait until the proxy is connected
-        self.target_thread.connected.wait()
+        self.proxy_thread.connected.wait()
 
         # Replies to the incoming iq with a streamhost-used stanza.
         res_iq = iq.reply()
@@ -148,13 +148,13 @@ class xep_0065(base_plugin):
 
         # The Requester will establish a connection to the SOCKS5
         # proxy in the same way the Target did.
-        self.requester_thread = Proxy(iq['q']['sid'], requester, target,
+        self.proxy_thread = Proxy(iq['q']['sid'], requester, target,
                                       self.proxy_host, self.proxy_port,
-                                      self._handle_on_recv)
-        self.requester_thread.start()
+                                      self.on_recv)
+        self.proxy_thread.start()
 
         # Wait until the proxy is connected
-        self.requester_thread.connected.wait()
+        self.proxy_thread.connected.wait()
 
         # Requester sends IQ-set to StreamHost requesting that
         # StreamHost activate the bytestream associated with the
@@ -180,19 +180,21 @@ class xep_0065(base_plugin):
         msg : The message data.
         """
 
-        if hasattr(self, 'requester_thread'):
-            self.requester_thread.send(msg)
-        elif hasattr(self, 'target_thread'):
-            self.target_thread.send(msg)
+        self.proxy_thread.send(msg)
 
-    def _handle_on_recv(self, data):
-        """ A default callback when socket are receiving data.
+    def on_recv(self, data):
+        """ A default behavior when socket are receiving data.
+
+        This method should be overriden.
         """
 
-        log.debug('Received: %s' % data)
+        log.debug('Received data: %s' % data)
 
 
 class Proxy(Thread):
+    """ Establishes in a thread a connection between the client and
+    the server-side Socks5 proxy.
+    """
 
     def __init__(self, sid, requester, target, proxy, proxy_port,
                  on_recv):
@@ -209,6 +211,9 @@ class Proxy(Thread):
 
         # Initializes the thread.
         Thread.__init__(self)
+
+        # This thread is a daemon thread.
+        self.daemon = True
 
         # Because the xep_0065 plugin uses the proxy_port as string,
         # the Proxy class accepts the proxy_port argument as a string
@@ -266,7 +271,7 @@ class Proxy(Thread):
                 self.on_recv(data)
 
     def recv_size(self, the_socket):
-        #data length is packed into 4 bytes
+        # Data length is packed into 4 bytes.
         total_len = 0
         total_data = []
         size = sys.maxint

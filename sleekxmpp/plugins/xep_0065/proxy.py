@@ -97,8 +97,13 @@ class xep_0065(base_plugin):
                     return '%s' % disco_info['from']
 
     def get_network_address(self, streamer):
+        """ Gets the streamhost information of the proxy.
+
+        streamer : The jid of the proxy.
+        """
+
         iq = self.xmpp.Iq(sto=streamer, stype='get')
-        iq['q']
+        iq['q']  # Adds the query eleme to the iq.
 
         return iq.send()
 

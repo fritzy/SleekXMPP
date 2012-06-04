@@ -816,6 +816,9 @@ class XMLStream(object):
     def _cert_expiration(self, event):
         """Schedule an event for when the TLS certificate expires."""
 
+        if not self.use_tls and not self.use_ssl:
+            return
+
         def restart():
             log.warn("The server certificate has expired. Restarting.")
             self.reconnect()

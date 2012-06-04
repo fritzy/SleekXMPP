@@ -119,7 +119,12 @@ class RosterNode(object):
         """Return a dictionary mapping group names to JIDs."""
         result = {}
         for jid in self._jids:
-            for group in self._jids[jid]['groups']:
+            groups = self._jids[jid]['groups']
+            if not groups:
+                if '' not in result:
+                    result[''] = []
+                result[''].append(jid)
+            for group in groups:
                 if group not in result:
                     result[group] = []
                 result[group].append(jid)

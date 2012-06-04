@@ -1,4 +1,6 @@
-from sleekxmpp.xmlstream import ElementBase
+from sleekxmpp import Iq
+from sleekxmpp.xmlstream import ElementBase, register_stanza_plugin
+
 
 # The protocol namespace defined in the Socks5Bytestream (0065) spec.
 namespace = 'http://jabber.org/protocol/bytestreams'
@@ -34,5 +36,6 @@ class Query(ElementBase):
     interfaces = set(('sid', 'activate'))
     sub_interfaces = set(('activate',))
 
-
-
+register_stanza_plugin(Iq, Query)
+register_stanza_plugin(Query, StreamHost)
+register_stanza_plugin(Query, StreamHostUsed)

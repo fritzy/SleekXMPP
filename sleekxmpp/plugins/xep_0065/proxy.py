@@ -8,22 +8,14 @@ from select import select
 from uuid import uuid4
 
 from sleekxmpp.plugins.base import base_plugin
-from sleekxmpp import Iq
-from sleekxmpp.xmlstream import register_stanza_plugin
 from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.xmlstream.matcher import StanzaPath
-
 from socks import socksocket, PROXY_TYPE_SOCKS5
 
-from stanza import Query, StreamHost, StreamHostUsed
+import stanza
 
-# Register the sleekxmpp logger
+# Registers the sleekxmpp logger
 log = logging.getLogger(__name__)
-
-# Register xep_0065 stanzas
-register_stanza_plugin(Iq, Query)
-register_stanza_plugin(Query, StreamHost)
-register_stanza_plugin(Query, StreamHostUsed)
 
 
 class xep_0065(base_plugin):

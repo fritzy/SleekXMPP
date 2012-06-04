@@ -18,7 +18,7 @@ class StreamHostUsed(ElementBase):
     """ The streamhost-used xml element.
     """
 
-    namespace = 'http://jabber.org/protocol/bytestreams'
+    namespace = namespace
     name = 'streamhost-used'
     plugin_attrib = 'streamhost-used'
     interfaces = set(('jid',))
@@ -28,7 +28,7 @@ class Query(ElementBase):
     """ The query xml element.
     """
 
-    namespace = 'http://jabber.org/protocol/bytestreams'
+    namespace = namespace
     name = 'query'
     plugin_attrib = 'q'
     interfaces = set(('sid', 'activate'))

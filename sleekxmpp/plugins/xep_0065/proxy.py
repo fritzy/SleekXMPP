@@ -184,33 +184,39 @@ class xep_0065(base_plugin):
         # Send the IQ.
         act_iq.send()
 
-    def send(self, sid, msg):
-        """ Sends the msg to the socket.
-
-        sid : The SID to retrieve the good proxy stored in the
-              proxy_threads dict
-        msg : The message data.
+    def deactivate(self, sid):
+        """ Closes the Proxy thread associated to this SID.
         """
 
         proxy = self.proxy_threads.get(sid)
         if proxy:
-            proxy.send(msg)
-        else:
-            # TODO: raise an exception.
-            pass
+            proxy.s.close()
+            del self.proxy_threads[sid]
 
-    def on_recv(self, sid, data):
-        """ Called when receiving data
+    def close(self):
+        """ Closes all Proxy threads.
         """
 
-        if not data:
-            try:
-                del self.proxy_threads[sid]
-            except KeyError:
-                # TODO: internal error, raise an exception ?
-                pass
-        else:
-            log.debug('Received data: %s' % data)
+        for sid, proxy in self.proxy_threads.items():
+            proxy.s.close()
+            del self.proxy_threads[sid]
+
+    def send(self, sid, data):
+        """ Sends the data over the Proxy socket associated to the
+        SID.
+        """
+
+        proxy = self.proxy_threads.get(sid)
+        if proxy:
+            proxy.s.sendall(data)
+
+    def on_recv(self, sid, data):
+        """ Calls when data is recv from the Proxy socket associated
+        to the SID.
+        """
+
+        proxy = self.proxy_threads.get(sid)
+        if proxy:
             self.xmpp.event('socks_recv', data)
 
 
@@ -275,10 +281,10 @@ class Proxy(Thread):
         log.info('Socket connected.')
         self.connected.set()
 
-        # Listen for data on the socket
+        # Blocks until the socket need to be closed.
         self.listen()
 
-        # Listen returns when the socket must be closed.
+        # Closes the socket.
         self.s.close()
         log.info('Socket closed.')
 
@@ -289,7 +295,16 @@ class Proxy(Thread):
 
         socket_open = True
         while socket_open:
-            ins, out, err = select([self.s, ], [], [])
+            ins = []
+            try:
+                # Wait any read available data on socket. Timeout
+                # after 5 secs.
+                ins, out, err = select([self.s, ], [], [], 5)
+            except Exception, e:
+                # There's an error with the socket (maybe the socket
+                # has been closed and the file descriptor is bad).
+                log.debug('Socket error: %s' % e)
+                break
 
             for s in ins:
                 data = self.recv_size(self.s)
@@ -324,9 +339,3 @@ class Proxy(Thread):
                 total_data.append(sock_data)
             total_len = sum([len(i) for i in total_data])
         return ''.join(total_data)
-
-    def send(self, msg):
-        """ Sends the data over the socket.
-        """
-
-        self.s.sendall(msg)

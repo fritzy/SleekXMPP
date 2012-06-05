@@ -333,6 +333,9 @@ class SleekTest(unittest.TestCase):
         # Remove unique ID prefix to make it easier to test
         self.xmpp._id_prefix = ''
         self.xmpp._disconnect_wait_for_threads = False
+        self.xmpp.default_lang = None
+        self.xmpp.peer_default_lang = None
+
 
         # We will use this to wait for the session_start event
         # for live connections.
@@ -386,6 +389,7 @@ class SleekTest(unittest.TestCase):
                           sid='',
                           stream_ns="http://etherx.jabber.org/streams",
                           default_ns="jabber:client",
+                          default_lang="en",
                           version="1.0",
                           xml_header=True):
         """
@@ -413,6 +417,8 @@ class SleekTest(unittest.TestCase):
             parts.append('from="%s"' % sfrom)
         if sid:
             parts.append('id="%s"' % sid)
+        if default_lang:
+            parts.append('xml:lang="%s"' % default_lang)
         parts.append('version="%s"' % version)
         parts.append('xmlns:stream="%s"' % stream_ns)
         parts.append('xmlns="%s"' % default_ns)
@@ -564,6 +570,7 @@ class SleekTest(unittest.TestCase):
                           sid='',
                           stream_ns="http://etherx.jabber.org/streams",
                           default_ns="jabber:client",
+                          default_lang="en",
                           version="1.0",
                           xml_header=False,
                           timeout=1):
@@ -585,6 +592,7 @@ class SleekTest(unittest.TestCase):
         header = self.make_header(sto, sfrom, sid,
                                   stream_ns=stream_ns,
                                   default_ns=default_ns,
+                                  default_lang=default_lang,
                                   version=version,
                                   xml_header=xml_header)
         sent_header = self.xmpp.socket.next_sent(timeout)

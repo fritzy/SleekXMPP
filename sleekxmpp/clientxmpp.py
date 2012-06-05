@@ -60,8 +60,8 @@ class ClientXMPP(BaseXMPP):
     :param escape_quotes: **Deprecated.**
     """
 
-    def __init__(self, jid, password, ssl=False, plugin_config={},
-                 plugin_whitelist=[], escape_quotes=True, sasl_mech=None):
+    def __init__(self, jid, password, plugin_config={}, plugin_whitelist=[], 
+                 escape_quotes=True, sasl_mech=None, lang='en'):
         BaseXMPP.__init__(self, jid, 'jabber:client')
 
         self.set_jid(jid)
@@ -69,15 +69,18 @@ class ClientXMPP(BaseXMPP):
         self.plugin_config = plugin_config
         self.plugin_whitelist = plugin_whitelist
         self.default_port = 5222
+        self.default_lang = lang
 
         self.credentials = {}
 
         self.password = password
 
-        self.stream_header = "<stream:stream to='%s' %s %s version='1.0'>" % (
+        self.stream_header = "<stream:stream to='%s' %s %s %s %s>" % (
                 self.boundjid.host,
                 "xmlns:stream='%s'" % self.stream_ns,
-                "xmlns='%s'" % self.default_ns)
+                "xmlns='%s'" % self.default_ns,
+                "xml:lang='%s'" % self.default_lang,
+                "version='1.0'")
         self.stream_footer = "</stream:stream>"
 
         self.features = set()

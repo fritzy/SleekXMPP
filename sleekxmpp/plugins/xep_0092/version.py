@@ -79,5 +79,7 @@ class XEP_0092(BasePlugin):
         result = iq.send()
 
         if result and result['type'] != 'error':
-            return result['software_version'].values
+            values = result['software_version'].values
+            del values['lang']
+            return values
         return False

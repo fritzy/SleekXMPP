@@ -223,6 +223,9 @@ class XMLStream(object):
         #: stream wrapper itself.
         self.default_ns = ''
 
+        self.default_lang = None
+        self.peer_default_lang = None
+
         #: The namespace of the enveloping stream element.
         self.stream_ns = ''
 
@@ -1406,6 +1409,10 @@ class XMLStream(object):
                 if depth == 0:
                     # We have received the start of the root element.
                     root = xml
+                    log.debug('RECV: %s', tostring(root, xmlns=self.default_ns,
+                                                         stream=self, 
+                                                         top_level=True, 
+                                                         open_only=True))
                     # Perform any stream initialization actions, such
                     # as handshakes.
                     self.stream_end_event.clear()
@@ -1453,6 +1460,8 @@ class XMLStream(object):
                 stanza_type = stanza_class
                 break
         stanza = stanza_type(self, xml)
+        if stanza['lang'] is None and self.peer_default_lang:
+            stanza['lang'] = self.peer_default_lang
         return stanza
 
     def __spawn_event(self, xml):

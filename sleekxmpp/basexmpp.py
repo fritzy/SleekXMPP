@@ -31,6 +31,7 @@ from sleekxmpp.xmlstream import XMLStream, JID
 from sleekxmpp.xmlstream import ET, register_stanza_plugin
 from sleekxmpp.xmlstream.matcher import MatchXPath
 from sleekxmpp.xmlstream.handler import Callback
+from sleekxmpp.xmlstream.stanzabase import XML_NS
 
 from sleekxmpp.features import *
 from sleekxmpp.plugins import PluginManager, register_plugin, load_plugin
@@ -180,6 +181,8 @@ class BaseXMPP(XMLStream):
         :param xml: The incoming stream's root element.
         """
         self.stream_id = xml.get('id', '')
+        self.stream_version = xml.get('version', '')
+        self.peer_default_lang = xml.get('{%s}lang' % XML_NS, None)
 
     def process(self, *args, **kwargs):
         """Initialize plugins and begin processing the XML stream.
@@ -272,7 +275,9 @@ class BaseXMPP(XMLStream):
 
     def Message(self, *args, **kwargs):
         """Create a Message stanza associated with this stream."""
-        return Message(self, *args, **kwargs)
+        msg = Message(self, *args, **kwargs)
+        msg['lang'] = self.default_lang
+        return msg
 
     def Iq(self, *args, **kwargs):
         """Create an Iq stanza associated with this stream."""
@@ -280,7 +285,9 @@ class BaseXMPP(XMLStream):
 
     def Presence(self, *args, **kwargs):
         """Create a Presence stanza associated with this stream."""
-        return Presence(self, *args, **kwargs)
+        pres = Presence(self, *args, **kwargs)
+        pres['lang'] = self.default_lang
+        return pres
 
     def make_iq(self, id=0, ifrom=None, ito=None, itype=None, iquery=None):
         """Create a new Iq stanza with a given Id and from JID.

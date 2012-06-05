@@ -42,6 +42,8 @@ class Addresses(ElementBase):
         self.delAddresses(set_type)
         for addr in addresses:
             addr = dict(addr)
+            if 'lang' in addr:
+                del addr['lang']
             # Remap 'type' to 'atype' to match the add method
             if set_type is not None:
                 addr['type'] = set_type

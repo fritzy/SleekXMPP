@@ -23,7 +23,7 @@ class xep_0065(base_plugin):
     XEP-0065 In-Band Bytestreams
     """
 
-    description = "In-Band Bytestreams"
+    description = "Socks5 Bytestreams"
     dependencies = set(['xep_0030', ])
     xep = '0065'
 

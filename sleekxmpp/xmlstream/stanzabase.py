@@ -108,7 +108,7 @@ def multifactory(stanza, plugin_attrib):
 
     def get_multi(self, lang=None):
         parent = self.parent()
-        if lang is None:
+        if not lang or lang == '*':
             res = filter(lambda sub: isinstance(sub, self._multistanza), parent)
         else:
             res = filter(lambda sub: isinstance(sub, self._multistanza) and sub['lang'] == lang, parent)
@@ -116,19 +116,29 @@ def multifactory(stanza, plugin_attrib):
 
     def set_multi(self, val, lang=None):
         parent = self.parent()
-        del parent[self.plugin_attrib]
+        del_multi = getattr(self, 'del_%s' % plugin_attrib)
+        del_multi(lang)
         for sub in val:
             parent.append(sub)
 
     def del_multi(self, lang=None):
         parent = self.parent()
-        if lang is None:
+        if not lang or lang == '*':
             res = filter(lambda sub: isinstance(sub, self._multistanza), parent)
         else:
             res = filter(lambda sub: isinstance(sub, self._multistanza) and sub['lang'] == lang, parent)
-        for stanza in list(res):
-            parent.iterables.remove(stanza)
-            parent.xml.remove(stanza.xml)
+        res = list(res)
+        if not res:
+            del parent.plugins[(plugin_attrib, None)]
+            parent.loaded_plugins.remove(plugin_attrib)
+            try:
+                parent.xml.remove(self.xml)
+            except:
+                pass
+        else:
+            for stanza in list(res):
+                parent.iterables.remove(stanza)
+                parent.xml.remove(stanza.xml)
 
     Multi.is_extension = True
     Multi.plugin_attrib = plugin_attrib
@@ -477,7 +487,12 @@ class ElementBase(object):
     def _get_plugin(self, name, lang=None):
         if lang is None:
             lang = self.get_lang()
+
+        if name not in self.plugin_attrib_map:
+            return None
+
         plugin_class = self.plugin_attrib_map[name]
+
         if plugin_class.is_extension:
             if (name, None) in self.plugins:
                 return self.plugins[(name, None)]
@@ -549,6 +564,8 @@ class ElementBase(object):
         values = {}
         for interface in self.interfaces:
             values[interface] = self[interface]
+            if interface in self.lang_interfaces:
+                values['%s|*' % interface] = self['%s|*' % interface]
         for plugin, stanza in self.plugins.items():
             lang = stanza['lang']
             if lang:
@@ -601,11 +618,12 @@ class ElementBase(object):
                                 self.iterables.append(sub)
                                 break
             elif interface in self.interfaces:
-                self[interface] = value
+                self[full_interface] = value
             elif interface in self.plugin_attrib_map:
                 if interface not in iterable_interfaces:
                     plugin = self._get_plugin(interface, lang)
-                    plugin.values = value
+                    if plugin:
+                        plugin.values = value
         return self
 
     def __getitem__(self, attrib):
@@ -656,9 +674,10 @@ class ElementBase(object):
                 name = self.plugin_overrides.get(get_method, None)
                 if name:
                     plugin = self._get_plugin(name, lang)
-                    handler = getattr(plugin, get_method, None)
-                    if handler:
-                        return handler(**kwargs)
+                    if plugin:
+                        handler = getattr(plugin, get_method, None)
+                        if handler:
+                            return handler(**kwargs)
 
             if hasattr(self, get_method):
                 return getattr(self, get_method)(**kwargs)
@@ -666,7 +685,7 @@ class ElementBase(object):
                 return getattr(self, get_method2)(**kwargs)
             else:
                 if attrib in self.sub_interfaces:
-                    return self._get_sub_text(attrib)
+                    return self._get_sub_text(attrib, lang=lang)
                 elif attrib in self.bool_interfaces:
                     elem = self.xml.find('{%s}%s' % (self.namespace, attrib))
                     return elem is not None
@@ -674,7 +693,7 @@ class ElementBase(object):
                     return self._get_attr(attrib)
         elif attrib in self.plugin_attrib_map:
             plugin = self._get_plugin(attrib, lang)
-            if plugin.is_extension:
+            if plugin and plugin.is_extension:
                 return plugin[full_attrib]
             return plugin
         else:
@@ -730,9 +749,10 @@ class ElementBase(object):
                     name = self.plugin_overrides.get(set_method, None)
                     if name:
                         plugin = self._get_plugin(name, lang)
-                        handler = getattr(plugin, set_method, None)
-                        if handler:
-                            return handler(value, **kwargs)
+                        if plugin:
+                            handler = getattr(plugin, set_method, None)
+                            if handler:
+                                return handler(value, **kwargs)
 
                 if hasattr(self, set_method):
                     getattr(self, set_method)(value, **kwargs)
@@ -740,19 +760,22 @@ class ElementBase(object):
                     getattr(self, set_method2)(value, **kwargs)
                 else:
                     if attrib in self.sub_interfaces:
-                        return self._set_sub_text(attrib, text=value)
+                        if lang == '*':
+                            return self._set_all_sub_text(attrib, value, lang='*')
+                        return self._set_sub_text(attrib, text=value, lang=lang)
                     elif attrib in self.bool_interfaces:
                         if value:
-                            return self._set_sub_text(attrib, '', keep=True)
+                            return self._set_sub_text(attrib, '', keep=True, lang=lang)
                         else:
-                            return self._set_sub_text(attrib, '', keep=False)
+                            return self._set_sub_text(attrib, '', keep=False, lang=lang)
                     else:
                         self._set_attr(attrib, value)
             else:
                 self.__delitem__(attrib)
         elif attrib in self.plugin_attrib_map:
             plugin = self._get_plugin(attrib, lang)
-            plugin[full_attrib] = value
+            if plugin:
+                plugin[full_attrib] = value
         return self
 
     def __delitem__(self, attrib):
@@ -804,9 +827,10 @@ class ElementBase(object):
                 name = self.plugin_overrides.get(del_method, None)
                 if name:
                     plugin = self._get_plugin(attrib, lang)
-                    handler = getattr(plugin, del_method, None)
-                    if handler:
-                        return handler(**kwargs)
+                    if plugin:
+                        handler = getattr(plugin, del_method, None)
+                        if handler:
+                            return handler(**kwargs)
 
             if hasattr(self, del_method):
                 getattr(self, del_method)(**kwargs)
@@ -814,13 +838,15 @@ class ElementBase(object):
                 getattr(self, del_method2)(**kwargs)
             else:
                 if attrib in self.sub_interfaces:
-                    return self._del_sub(attrib)
+                    return self._del_sub(attrib, lang=lang)
                 elif attrib in self.bool_interfaces:
-                    return self._del_sub(attrib)
+                    return self._del_sub(attrib, lang=lang)
                 else:
                     self._del_attr(attrib)
         elif attrib in self.plugin_attrib_map:
             plugin = self._get_plugin(attrib, lang)
+            if not plugin:
+                return self
             if plugin.is_extension:
                 del plugin[full_attrib]
                 del self.plugins[(attrib, None)]
@@ -869,7 +895,7 @@ class ElementBase(object):
         """
         return self.xml.attrib.get(name, default)
 
-    def _get_sub_text(self, name, default=''):
+    def _get_sub_text(self, name, default='', lang=None):
         """Return the text contents of a sub element.
 
         In case the element does not exist, or it has no textual content,
@@ -881,13 +907,37 @@ class ElementBase(object):
                         not exists. An empty string is returned otherwise.
         """
         name = self._fix_ns(name)
-        stanza = self.xml.find(name)
-        if stanza is None or stanza.text is None:
-            return default
-        else:
-            return stanza.text
+        if lang == '*':
+            return self._get_all_sub_text(name, default, None)
 
-    def _set_sub_text(self, name, text=None, keep=False):
+        default_lang = self.get_lang()
+        if not lang:
+            lang = default_lang
+
+        stanzas = self.xml.findall(name)
+        if not stanzas:
+            return default
+        for stanza in stanzas:
+            if stanza.attrib.get('{%s}lang' % XML_NS, default_lang) == lang:
+                if stanza.text is None:
+                    return default
+                return stanza.text
+        return default
+
+    def _get_all_sub_text(self, name, default='', lang=None):
+        name = self._fix_ns(name)
+
+        default_lang = self.get_lang()
+        results = OrderedDict()
+        stanzas = self.xml.findall(name)
+        if stanzas:
+            for stanza in stanzas:
+                stanza_lang = stanza.attrib.get('{%s}lang' % XML_NS, default_lang)
+                if not lang or lang == '*' or stanza_lang == lang:
+                    results[stanza_lang] = stanza.text
+        return results
+
+    def _set_sub_text(self, name, text=None, keep=False, lang=None):
         """Set the text contents of a sub element.
 
         In case the element does not exist, a element will be created,
@@ -905,9 +955,14 @@ class ElementBase(object):
         """
         path = self._fix_ns(name, split=True)
         element = self.xml.find(name)
+        parent = self.xml
+
+        default_lang = self.get_lang()
+        if lang is None:
+            lang = default_lang
 
         if not text and not keep:
-            return self._del_sub(name)
+            return self._del_sub(name, lang=lang)
 
         if element is None:
             # We need to add the element. If the provided name was
@@ -921,14 +976,29 @@ class ElementBase(object):
                 element = self.xml.find("/".join(walked))
                 if element is None:
                     element = ET.Element(ename)
+                    if lang:
+                        element.attrib['{%s}lang' % XML_NS] = lang
                     last_xml.append(element)
+                parent = last_xml
                 last_xml = element
             element = last_xml
+
+        if element.attrib.get('{%s}lang' % XML_NS, default_lang) != lang:
+            element = ET.Element(ename)
+            if lang:
+                element.attrib['{%s}lang' % XML_NS] = lang
+            parent.append(element)
 
         element.text = text
         return element
 
-    def _del_sub(self, name, all=False):
+    def _set_all_sub_text(self, name, values, keep=False, lang=None):
+        self._del_sub(name, lang)
+        for value_lang, value in values.items():
+            if not lang or lang == '*' or value_lang == lang:
+                self._set_sub_text(name, text=value, keep=keep, lang=value_lang)
+
+    def _del_sub(self, name, all=False, lang=None):
         """Remove sub elements that match the given name or XPath.
 
         If the element is in a path, then any parent elements that become
@@ -941,6 +1011,10 @@ class ElementBase(object):
         """
         path = self._fix_ns(name, split=True)
         original_target = path[-1]
+
+        default_lang = self.get_lang()
+        if not lang:
+            lang = default_lang
 
         for level, _ in enumerate(path):
             # Generate the paths to the target elements and their parent.
@@ -958,7 +1032,8 @@ class ElementBase(object):
                         not element.getchildren():
                         # Only delete the originally requested elements, and
                         # any parent elements that have become empty.
-                        parent.remove(element)
+                        if lang == '*' or element.attrib.get('{%s}lang' % XML_NS, default_lang) == lang:
+                            parent.remove(element)
             if not all:
                 # If we don't want to delete elements up the tree, stop
                 # after deleting the first level of elements.
@@ -1022,7 +1097,8 @@ class ElementBase(object):
             next_tag = xpath[1].split('@')[0].split('}')[-1]
             langs = [name[1] for name in self.plugins if name[0] == next_tag]
             for lang in langs:
-                if self._get_plugin(next_tag, lang).match(xpath[1:]):
+                plugin = self._get_plugin(next_tag, lang)
+                if plugin and plugin.match(xpath[1:]):
                     return True
             return False
 

@@ -737,7 +737,8 @@ class BaseXMPP(XMLStream):
         if not self.is_component and not presence['to'].bare:
             presence['to'] = self.boundjid
 
-        self.event("presence_%s" % presence['type'], presence)
+        self.event('presence', presence)
+        self.event('presence_%s' % presence['type'], presence)
 
         # Check for changes in subscription state.
         if presence['type'] in ('subscribe', 'subscribed',

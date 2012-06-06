@@ -6,6 +6,7 @@
     See the file LICENSE for copying permission.
 """
 
+from sleekxmpp.thirdparty import OrderedDict
 from sleekxmpp.xmlstream import StanzaBase
 
 
@@ -28,7 +29,10 @@ class StreamFeatures(StanzaBase):
     def get_features(self):
         """
         """
-        return self.plugins
+        features = OrderedDict()
+        for (name, lang), plugin in self.plugins.items():
+            features[name] = plugin
+        return features
 
     def set_features(self, value):
         """

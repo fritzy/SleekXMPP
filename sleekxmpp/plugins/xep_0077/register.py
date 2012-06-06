@@ -50,7 +50,7 @@ class XEP_0077(BasePlugin):
             # We have already logged in with an account
             return False
 
-        if self.create_account:
+        if self.create_account and self.xmpp.event_handled('register'):
             form = self.get_registration()
             self.xmpp.event('register', form, direct=True)
             return True

@@ -20,7 +20,7 @@ log = logging.getLogger(__name__)
 
 class xep_0065(base_plugin):
     """
-    XEP-0065 In-Band Bytestreams
+    XEP-0065 Socks5 Bytestreams
     """
 
     description = "Socks5 Bytestreams"
@@ -40,13 +40,13 @@ class xep_0065(base_plugin):
 
         # Handler for the streamhost stanza.
         self.xmpp.registerHandler(
-            Callback('In-Band Bytestreams',
+            Callback('Socks5 Bytestreams',
                      StanzaPath('iq@type=set/q/streamhost'),
                      self._handle_streamhost))
 
         # Handler for the streamhost-used stanza.
         self.xmpp.registerHandler(
-            Callback('In-Band Bytestreams',
+            Callback('Socks5 Bytestreams',
                      StanzaPath('iq@type=result/q/streamhost-used'),
                      self._handle_streamhost_used))
 

@@ -217,7 +217,10 @@ class xep_0065(base_plugin):
 
         proxy = self.proxy_threads.get(sid)
         if proxy:
-            self.xmpp.event('socks_recv', data)
+            if not data:
+                self.xmpp.event('socks_closed', sid)
+            else:
+                self.xmpp.event('socks_recv', data)
 
 
 class Proxy(Thread):

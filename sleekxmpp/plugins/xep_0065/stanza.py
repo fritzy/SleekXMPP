@@ -26,16 +26,16 @@ class StreamHostUsed(ElementBase):
     interfaces = set(('jid',))
 
 
-class Query(ElementBase):
+class Socks5(ElementBase):
     """ The query xml element.
     """
 
     namespace = namespace
     name = 'query'
-    plugin_attrib = 'q'
+    plugin_attrib = 'socks'
     interfaces = set(('sid', 'activate'))
     sub_interfaces = set(('activate',))
 
-register_stanza_plugin(Iq, Query)
-register_stanza_plugin(Query, StreamHost)
-register_stanza_plugin(Query, StreamHostUsed)
+register_stanza_plugin(Iq, Socks5)
+register_stanza_plugin(Socks5, StreamHost)
+register_stanza_plugin(Socks5, StreamHostUsed)

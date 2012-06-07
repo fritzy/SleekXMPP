@@ -42,13 +42,13 @@ class xep_0065(base_plugin):
         # Handler for the streamhost stanza.
         self.xmpp.registerHandler(
             Callback('Socks5 Bytestreams',
-                     StanzaPath('iq@type=set/q/streamhost'),
+                     StanzaPath('iq@type=set/socks/streamhost'),
                      self._handle_streamhost))
 
         # Handler for the streamhost-used stanza.
         self.xmpp.registerHandler(
             Callback('Socks5 Bytestreams',
-                     StanzaPath('iq@type=result/q/streamhost-used'),
+                     StanzaPath('iq@type=result/socks/streamhost-used'),
                      self._handle_streamhost_used))
 
     def handshake(self, to, streamer=None):
@@ -61,8 +61,8 @@ class xep_0065(base_plugin):
 
         # Requester requests network address from the proxy.
         streamhost = self.get_network_address(self.streamer)
-        self.proxy_host = streamhost['q']['streamhost']['host']
-        self.proxy_port = streamhost['q']['streamhost']['port']
+        self.proxy_host = streamhost['socks']['streamhost']['host']
+        self.proxy_port = streamhost['socks']['streamhost']['port']
 
         # Generates the SID for this new handshake.
         sid = uuid4().hex
@@ -72,10 +72,10 @@ class xep_0065(base_plugin):
         # StreamHost as well as the StreamID (SID) of the proposed
         # bytestream.
         iq = self.xmpp.Iq(sto=to, stype='set')
-        iq['q']['sid'] = sid
-        iq['q']['streamhost']['jid'] = self.streamer
-        iq['q']['streamhost']['host'] = self.proxy_host
-        iq['q']['streamhost']['port'] = self.proxy_port
+        iq['socks']['sid'] = sid
+        iq['socks']['streamhost']['jid'] = self.streamer
+        iq['socks']['streamhost']['host'] = self.proxy_host
+        iq['socks']['streamhost']['port'] = self.proxy_port
 
         # Sends the new IQ.
         return iq.send()
@@ -108,7 +108,7 @@ class xep_0065(base_plugin):
         """
 
         iq = self.xmpp.Iq(sto=streamer, stype='get')
-        iq['q']  # Adds the query eleme to the iq.
+        iq['socks']  # Adds the query eleme to the iq.
 
         return iq.send()
 
@@ -117,12 +117,12 @@ class xep_0065(base_plugin):
         """
 
         # Registers the streamhost info.
-        self.streamer = iq['q']['streamhost']['jid']
-        self.proxy_host = iq['q']['streamhost']['host']
-        self.proxy_port = iq['q']['streamhost']['port']
+        self.streamer = iq['socks']['streamhost']['jid']
+        self.proxy_host = iq['socks']['streamhost']['host']
+        self.proxy_port = iq['socks']['streamhost']['port']
 
         # Sets the SID, the requester and the target.
-        sid = iq['q']['sid']
+        sid = iq['socks']['sid']
         requester = '%s' % iq['from']
         target = '%s' % self.xmpp.boundjid
 
@@ -140,8 +140,8 @@ class xep_0065(base_plugin):
 
         # Replies to the incoming iq with a streamhost-used stanza.
         res_iq = iq.reply()
-        res_iq['q']['sid'] = sid
-        res_iq['q']['streamhost-used']['jid'] = self.streamer
+        res_iq['socks']['sid'] = sid
+        res_iq['socks']['streamhost-used']['jid'] = self.streamer
 
         # Sends the IQ
         return res_iq.send()
@@ -151,7 +151,7 @@ class xep_0065(base_plugin):
         """
 
         # Sets the SID, the requester and the target.
-        sid = iq['q']['sid']
+        sid = iq['socks']['sid']
         requester = '%s' % self.xmpp.boundjid
         target  = '%s' % iq['from']
 
@@ -170,7 +170,7 @@ class xep_0065(base_plugin):
         # Requester sends IQ-set to StreamHost requesting that
         # StreamHost activate the bytestream associated with the
         # StreamID.
-        self.activate(iq['q']['sid'], target)
+        self.activate(iq['socks']['sid'], target)
 
     def activate(self, sid, to):
         """ IQ-set to StreamHost requesting that StreamHost activate
@@ -179,8 +179,8 @@ class xep_0065(base_plugin):
 
         # Creates the activate IQ.
         act_iq = self.xmpp.Iq(sto=self.streamer, stype='set')
-        act_iq['q']['sid'] = sid
-        act_iq['q']['activate'] = to
+        act_iq['socks']['sid'] = sid
+        act_iq['socks']['activate'] = to
 
         # Send the IQ.
         act_iq.send()

@@ -26,6 +26,7 @@ class xep_0065(base_plugin):
     description = "Socks5 Bytestreams"
     dependencies = set(['xep_0030', ])
     xep = '0065'
+    name = 'xep_0065'
 
     # A dict contains for each SID, the proxy thread currently
     # running.

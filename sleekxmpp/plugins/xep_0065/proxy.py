@@ -214,6 +214,12 @@ class xep_0065(base_plugin):
     def on_recv(self, sid, data):
         """ Calls when data is recv from the Proxy socket associated
         to the SID.
+
+        Triggers a socks_closed event if the socket is closed. The sid
+        is passed to this event.
+
+        Triggers a socks_recv event if there's available data. A dict
+        that contains the sid and the data is passed to this event.
         """
 
         proxy = self.proxy_threads.get(sid)
@@ -221,7 +227,7 @@ class xep_0065(base_plugin):
             if not data:
                 self.xmpp.event('socks_closed', sid)
             else:
-                self.xmpp.event('socks_recv', data)
+                self.xmpp.event('socks_recv', {'sid': sid, 'data': data})
 
 
 class Proxy(Thread):

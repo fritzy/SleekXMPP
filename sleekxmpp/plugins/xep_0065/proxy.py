@@ -7,12 +7,12 @@ from hashlib import sha1
 from select import select
 from uuid import uuid4
 
+import stanza
+
 from sleekxmpp.plugins.base import base_plugin
 from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.xmlstream.matcher import StanzaPath
-from socks import socksocket, PROXY_TYPE_SOCKS5
-
-import stanza
+from sleekxmpp.thirdparty.socks import socksocket, PROXY_TYPE_SOCKS5
 
 # Registers the sleekxmpp logger
 log = logging.getLogger(__name__)

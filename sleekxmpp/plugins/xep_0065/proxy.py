@@ -51,6 +51,14 @@ class xep_0065(base_plugin):
                      StanzaPath('iq@type=result/socks/streamhost-used'),
                      self._handle_streamhost_used))
 
+    def get_socket(self, sid):
+        """ Returns the socket associated to the SID.
+        """
+
+        proxy = self.proxy_threads.get(sid)
+        if proxy:
+            return proxy.s
+
     def handshake(self, to, streamer=None):
         """ Starts the handshake to establish the socks5 bytestreams
         connection.

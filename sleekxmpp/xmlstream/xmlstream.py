@@ -835,6 +835,10 @@ class XMLStream(object):
         if not self.use_tls and not self.use_ssl:
             return
 
+        if not self._der_cert:
+            log.warn("TLS or SSL was enabled, but no certificate was found.")
+            return
+
         def restart():
             if not self.event_handled('ssl_expired_cert'):
                 log.warn("The server certificate has expired. Restarting.")

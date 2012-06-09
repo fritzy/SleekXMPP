@@ -511,18 +511,17 @@ class XMLStream(object):
                 log.debug("Connecting to %s:%s", domain, self.address[1])
                 self.socket.connect(self.address)
 
-                try:
-                    self.socket.do_handshake()
-                except:
-                    log.error('CERT: Invalid certificate trust chain.')
-                    if not self.event_handled('ssl_invalid_chain'):
-                        self.disconnect(self.auto_reconnect, send_close=False)
-                    else:
-                        self.event('ssl_invalid_chain', direct=True)
-                    return False
-
-
                 if self.use_ssl and self.ssl_support:
+                    try:
+                        self.socket.do_handshake()
+                    except (Socket.error, ssl.SSLError):
+                        log.error('CERT: Invalid certificate trust chain.')
+                        if not self.event_handled('ssl_invalid_chain'):
+                            self.disconnect(self.auto_reconnect, send_close=False)
+                        else:
+                            self.event('ssl_invalid_chain', direct=True)
+                        return False
+
                     self._der_cert = self.socket.getpeercert(binary_form=True)
                     pem_cert = ssl.DER_cert_to_PEM_cert(self._der_cert)
                     log.debug('CERT: %s', pem_cert)
@@ -802,7 +801,7 @@ class XMLStream(object):
 
             try:
                 self.socket.do_handshake()
-            except:
+            except (Socket.error, ssl.SSLError):
                 log.error('CERT: Invalid certificate trust chain.')
                 if not self.event_handled('ssl_invalid_chain'):
                     self.disconnect(self.auto_reconnect, send_close=False)

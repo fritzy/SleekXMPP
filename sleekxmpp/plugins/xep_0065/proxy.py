@@ -318,7 +318,7 @@ class Proxy(Thread):
                 # Wait any read available data on socket. Timeout
                 # after 5 secs.
                 ins, out, err = select([self.s, ], [], [], 5)
-            except Exception, e:
+            except Exception as e:
                 # There's an error with the socket (maybe the socket
                 # has been closed and the file descriptor is bad).
                 log.debug('Socket error: %s' % e)

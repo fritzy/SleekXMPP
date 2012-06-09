@@ -104,10 +104,13 @@ class ComponentXMPP(BaseXMPP):
 
         self.server_name = self.boundjid.host
 
+        if use_tls:
+            log.info("XEP-0114 components can not use TLS")
+
         log.debug("Connecting to %s:%s", host, port)
         return XMLStream.connect(self, host=host, port=port,
                                        use_ssl=use_ssl,
-                                       use_tls=use_tls,
+                                       use_tls=False,
                                        reattempt=reattempt)
 
     def incoming_filter(self, xml):

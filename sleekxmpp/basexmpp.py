@@ -530,12 +530,15 @@ class BaseXMPP(XMLStream):
         :param pnick: Optional nickname of the presence's sender.
         """
         # Python2.6 chokes on Unicode strings for dict keys.
-        args = {str('pto'): pto,
-                str('ptype'): ptype,
+        args = {str('ptype'): ptype,
                 str('pshow'): pshow,
                 str('pstatus'): pstatus,
                 str('ppriority'): ppriority,
                 str('pnick'): pnick}
+
+        if ptype in ('probe', 'subscribe', 'subscribed', \
+                     'unsubscribe', 'unsubscribed'):
+            args[str('pto')] = pto.bare
 
         if self.is_component:
             self.roster[pfrom].send_presence(**args)
@@ -554,14 +557,10 @@ class BaseXMPP(XMLStream):
         :param ptype: The type of presence, such as ``'subscribe'``.
         :param pnick: Optional nickname of the presence's sender.
         """
-        presence = self.makePresence(ptype=ptype,
-                                     pfrom=pfrom,
-                                     pto=self.getjidbare(pto))
-        if pnick:
-            nick = ET.Element('{http://jabber.org/protocol/nick}nick')
-            nick.text = pnick
-            presence.append(nick)
-        presence.send()
+        self.send_presence(pto=pto,
+                           pfrom=pfrom,
+                           ptype=ptype,
+                           pnick=pnick)
 
     @property
     def jid(self):

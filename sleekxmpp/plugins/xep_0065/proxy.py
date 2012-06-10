@@ -7,7 +7,7 @@ from hashlib import sha1
 from select import select
 from uuid import uuid4
 
-import stanza
+from sleekxmpp.plugins.xep_0065 import stanza
 
 from sleekxmpp.plugins.base import base_plugin
 from sleekxmpp.xmlstream.handler import Callback
@@ -18,7 +18,7 @@ from sleekxmpp.thirdparty.socks import socksocket, PROXY_TYPE_SOCKS5
 log = logging.getLogger(__name__)
 
 
-class xep_0065(base_plugin):
+class XEP_0065(base_plugin):
     """
     XEP-0065 Socks5 Bytestreams
     """

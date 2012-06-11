@@ -42,7 +42,7 @@ def extract_names(raw_cert):
     cert = decoder.decode(raw_cert, asn1Spec=Certificate())[0]
     tbs = cert.getComponentByName('tbsCertificate')
     subject = tbs.getComponentByName('subject')
-    extensions = tbs.getComponentByName('extensions')
+    extensions = tbs.getComponentByName('extensions') or []
 
     # Extract the CommonName(s) from the cert.
     for rdnss in subject:

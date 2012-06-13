@@ -317,7 +317,7 @@ class XMLStream(object):
         self.dns_service = None
 
         self.add_event_handler('connected', self._handle_connected)
-        self.add_event_handler('disconnected', self._end_keepalive)
+        self.add_event_handler('disconnected', self._remove_schedules)
         self.add_event_handler('session_start', self._start_keepalive)
         self.add_event_handler('session_start', self._cert_expiration)
 
@@ -878,9 +878,10 @@ class XMLStream(object):
                       kwargs = {'now': True},
                       repeat=True)
 
-    def _end_keepalive(self, event):
-        """Stop sending whitespace keepalives"""
+    def _remove_schedules(self, event):
+        """Remove whitespace keepalive and certificate expiration schedules."""
         self.scheduler.remove('Whitespace Keepalive')
+        self.scheduler.remove('Certificate Expiration')
 
     def start_stream_handler(self, xml):
         """Perform any initialization actions, such as handshakes, 

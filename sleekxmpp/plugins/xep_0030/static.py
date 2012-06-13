@@ -182,11 +182,6 @@ class StaticDisco(object):
         data = {'local': data.get('local', False),
                 'cached': data.get('cached', True)}
 
-        if node in (None, ''):
-            info = self.caps.get_caps(jid)
-            if info and identity in info['identities']:
-                return True
-
         try:
             info = self.disco.get_info(jid=jid, node=node,
                                        ifrom=ifrom, **data)

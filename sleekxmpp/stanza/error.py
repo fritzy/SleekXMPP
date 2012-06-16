@@ -51,7 +51,8 @@ class Error(ElementBase):
     namespace = 'jabber:client'
     name = 'error'
     plugin_attrib = 'error'
-    interfaces = set(('code', 'condition', 'text', 'type'))
+    interfaces = set(('code', 'condition', 'text', 'type', 
+                      'gone', 'redirect'))
     sub_interfaces = set(('text',))
     plugin_attrib_map = {}
     plugin_tag_map = {}
@@ -134,6 +135,29 @@ class Error(ElementBase):
         """Remove the <text> element."""
         self._del_sub('{%s}text' % self.condition_ns)
         return self
+
+    def get_gone(self):
+        return self._get_sub_text('{%s}gone' % self.condition_ns, '')
+
+    def get_redirect(self):
+        return self._get_sub_text('{%s}redirect' % self.condition_ns, '')
+
+    def set_gone(self, value):
+        del self['condition']
+        if value:
+            return self._set_sub_text('{%s}gone' % self.condition_ns, value)
+
+    def set_redirect(self, value):
+        del self['condition']
+        if value:
+            ns = self.condition_ns
+            return self._set_sub_text('{%s}redirect' % ns, value)
+
+    def del_gone(self):
+        self._del_sub('{%s}gone' % self.condition_ns)
+
+    def del_redirect(self):
+        self._del_sub('{%s}redirect' % self.condition_ns)
 
 
 # To comply with PEP8, method names now use underscores.

@@ -36,9 +36,53 @@ class Content(ElementBase):
     name = 'content'
     namespace = 'urn:xmpp:jingle:1'
     plugin_attrib = 'content'
-    interfaces = set(['creator', 'disposition', 'name', 'senders'])
+    multi_plugin_attrib = 'content_items'
+    interfaces = set(['creator', 'disposition', 'name', 'senders', 
+                      'description', 'transport', 'security'])
 
     senders = set(['initiator', 'none', 'responder', 'both'])
+
+    def _get_section(self, name):
+        for _, plugin in self.plugins.items():
+            if plugin.name == name:
+                return plugin
+        return ''
+
+    def _del_section(self, name):
+        for _, plugin in self.plugins.items():
+            if plugin.name == name:
+                del self[plugin.plugin_attrib]
+
+    def _set_section(self, name, value):
+        self._del_section(name)
+        self.append(value)
+
+    def get_description(self):
+        return self._get_section('description')
+
+    def get_transport(self):
+        return self._get_section('transport')
+
+    def get_security(self):
+        return self._get_section('security')
+
+    def set_description(self, value):
+        return self._set_section('description', value)
+
+    def set_transport(self, value):
+        return self._set_section('transport', value)
+
+    def set_security(self, value):
+        return self._set_section('security', value)
+
+    def del_description(self):
+        return self._del_section('description')
+
+    def del_transport(self):
+        return self._del_section('transport')
+
+    def del_security(self):
+        return self._del_section('security')
 
     def set_creator(self, value):
         if not value:

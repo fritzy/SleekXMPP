@@ -107,7 +107,7 @@ class XEP_0054(BasePlugin):
             self.api['set_vcard'](jid=iq['from'], args=iq['vcard_temp'])
             return
         elif iq['type'] == 'get':
-            vcard = self.api['get_vard'](iq['from'].bare)
+            vcard = self.api['get_vcard'](iq['from'].bare)
             if isinstance(vcard, Iq):
                 vcard.send()
             else:

@@ -53,6 +53,7 @@ __all__ = [
     'xep_0152',  # Reachability Addresses
     'xep_0153',  # vCard-Based Avatars
     'xep_0163',  # Personal Eventing Protocol
+    'xep_0166',  # Jingle
     'xep_0172',  # User Nickname
     'xep_0184',  # Message Receipts
     'xep_0186',  # Invisible Command

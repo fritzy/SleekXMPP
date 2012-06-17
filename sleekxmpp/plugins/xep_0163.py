@@ -109,6 +109,7 @@ class XEP_0163(BasePlugin):
             node = stanza.namespace
 
         return self.xmpp['xep_0060'].publish(ifrom, node,
+                id=id,
                 payload=stanza.xml,
                 options=options,
                 ifrom=ifrom,

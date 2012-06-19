@@ -536,18 +536,8 @@ class BaseXMPP(XMLStream):
         :param pfrom: The sender of the presence.
         :param pnick: Optional nickname of the presence's sender.
         """
-        # Python2.6 chokes on Unicode strings for dict keys.
-        args = {str('pto'): pto,
-                str('ptype'): ptype,
-                str('pshow'): pshow,
-                str('pstatus'): pstatus,
-                str('ppriority'): ppriority,
-                str('pnick'): pnick}
-
-        if self.is_component:
-            self.roster[pfrom].send_presence(**args)
-        else:
-            self.client_roster.send_presence(**args)
+        self.make_presence(pshow, pstatus, ppriority, pto, 
+                           ptype, pfrom, pnick).send()
 
     def send_presence_subscription(self, pto, pfrom=None,
                                    ptype='subscribe', pnick=None):

@@ -88,7 +88,7 @@ class Catalog(ElementBase):
         self._del_attr('restrict')
         if value:
             self._set_attr('restrict', 'true')
-        elif value == False:
+        elif value is False:
             self._set_attr('restrict', 'false')
 
 
@@ -109,7 +109,7 @@ class CatalogItem(ElementBase):
         self._del_attr('default')
         if value:
             self._set_attr('default', 'true')
-        elif value == False:
+        elif value is False:
             self._set_attr('default', 'false')
 
 

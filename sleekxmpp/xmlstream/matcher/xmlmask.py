@@ -151,8 +151,8 @@ class MatchXMLMask(MatcherBase):
         """
         tag = tag.split('}')[-1]
         try:
-            children = [c.tag.split('}')[-1] for c in xml.getchildren()]
+            children = [c.tag.split('}')[-1] for c in xml]
             index = children.index(tag)
         except ValueError:
             return None
-        return xml.getchildren()[index]
+        return list(xml)[index]

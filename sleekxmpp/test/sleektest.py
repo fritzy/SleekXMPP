@@ -76,7 +76,7 @@ class SleekTest(unittest.TestCase):
                             known_prefixes[prefix],
                             xml_string)
                 xml = self.parse_xml(xml_string)
-                xml = xml.getchildren()[0]
+                xml = list(xml)[0]
                 return xml
             else:
                 self.fail("XML data was mal-formed:\n%s" % xml_string)
@@ -517,9 +517,9 @@ class SleekTest(unittest.TestCase):
         if '{%s}lang' % xml_ns in recv_xml.attrib:
             del recv_xml.attrib['{%s}lang' % xml_ns]
 
-        if recv_xml.getchildren:
+        if list(recv_xml):
             # We received more than just the header
-            for xml in recv_xml.getchildren():
+            for xml in recv_xml:
                 self.xmpp.socket.recv_data(tostring(xml))
 
             attrib = recv_xml.attrib
@@ -698,7 +698,7 @@ class SleekTest(unittest.TestCase):
         if xml.tag.startswith('{'):
             return
         xml.tag = '{%s}%s' % (ns, xml.tag)
-        for child in xml.getchildren():
+        for child in xml:
             self.fix_namespaces(child, ns)
 
     def compare(self, xml, *other):
@@ -741,7 +741,7 @@ class SleekTest(unittest.TestCase):
             return False
 
         # Step 4: Check children count
-        if len(xml.getchildren()) != len(other.getchildren()):
+        if len(list(xml)) != len(list(other)):
             return False
 
         # Step 5: Recursively check children

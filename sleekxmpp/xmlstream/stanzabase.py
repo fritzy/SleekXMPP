@@ -445,7 +445,7 @@ class ElementBase(object):
             return
 
         # Initialize values using provided XML
-        for child in self.xml.getchildren():
+        for child in self.xml:
             if child.tag in self.plugin_tag_map:
                 plugin_class = self.plugin_tag_map[child.tag]
                 self.init_plugin(plugin_class.plugin_attrib,
@@ -1050,8 +1050,7 @@ class ElementBase(object):
                 if parent is None:
                     parent = self.xml
                 for element in elements:
-                    if element.tag == original_target or \
-                        not element.getchildren():
+                    if element.tag == original_target or not list(element):
                         # Only delete the originally requested elements, and
                         # any parent elements that have become empty.
                         elem_lang = element.attrib.get('{%s}lang' % XML_NS,
@@ -1491,7 +1490,7 @@ class StanzaBase(ElementBase):
 
     def get_payload(self):
         """Return a list of XML objects contained in the stanza."""
-        return self.xml.getchildren()
+        return list(self.xml)
 
     def set_payload(self, value):
         """Add XML content to the stanza.

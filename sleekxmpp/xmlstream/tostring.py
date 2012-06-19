@@ -107,7 +107,7 @@ def tostring(xml=None, xmlns='', stanza_ns='', stream=None,
         if xml.text:
             output.append(xml_escape(xml.text))
         if len(xml):
-            for child in xml.getchildren():
+            for child in xml:
                 output.append(tostring(child, tag_xmlns, stanza_ns, stream))
         output.append("</%s>" % tag_name)
     elif xml.text:

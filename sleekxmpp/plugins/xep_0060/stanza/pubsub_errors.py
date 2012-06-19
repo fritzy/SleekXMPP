@@ -33,7 +33,7 @@ class PubsubErrorCondition(ElementBase):
 
     def get_condition(self):
         """Return the condition element's name."""
-        for child in self.parent().xml.getchildren():
+        for child in self.parent().xml:
             if "{%s}" % self.condition_ns in child.tag:
                 cond = child.tag.split('}', 1)[-1]
                 if cond in self.conditions:
@@ -55,7 +55,7 @@ class PubsubErrorCondition(ElementBase):
 
     def del_condition(self):
         """Remove the condition element."""
-        for child in self.parent().xml.getchildren():
+        for child in self.parent().xml:
             if "{%s}" % self.condition_ns in child.tag:
                 tag = child.tag.split('}', 1)[-1]
                 if tag in self.conditions:

@@ -307,7 +307,7 @@ class RosterItem(object):
             p['from'] = self.owner
         p.send()
 
-    def send_presence(self, **kwargs): 
+    def send_presence(self, **kwargs):
         """
         Create, initialize, and send a Presence stanza.
 

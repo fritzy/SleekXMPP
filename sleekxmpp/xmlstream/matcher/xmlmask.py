@@ -34,9 +34,9 @@ class MatchXMLMask(MatcherBase):
 
         <message xmlns="jabber:client"><body /></message>
 
-    Use of XMLMask is discouraged, and 
-    :class:`~sleekxmpp.xmlstream.matcher.xpath.MatchXPath` or 
-    :class:`~sleekxmpp.xmlstream.matcher.stanzapath.StanzaPath` 
+    Use of XMLMask is discouraged, and
+    :class:`~sleekxmpp.xmlstream.matcher.xpath.MatchXPath` or
+    :class:`~sleekxmpp.xmlstream.matcher.stanzapath.StanzaPath`
     should be used instead.
 
     The use of namespaces in the mask comparison is controlled by

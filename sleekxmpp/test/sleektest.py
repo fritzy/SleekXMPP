@@ -336,7 +336,6 @@ class SleekTest(unittest.TestCase):
         self.xmpp.default_lang = None
         self.xmpp.peer_default_lang = None
 
-
         # We will use this to wait for the session_start event
         # for live connections.
         skip_queue = queue.Queue()

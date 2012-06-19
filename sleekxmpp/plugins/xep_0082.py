@@ -42,6 +42,7 @@ def format_date(time_obj):
         time_obj = time_obj.date()
     return time_obj.isoformat()
 
+
 def format_time(time_obj):
     """
     Return a formatted string version of a time object.
@@ -60,6 +61,7 @@ def format_time(time_obj):
         return '%sZ' % timestamp
     return timestamp
 
+
 def format_datetime(time_obj):
     """
     Return a formatted string version of a datetime object.
@@ -75,6 +77,7 @@ def format_datetime(time_obj):
         timestamp = timestamp[:-6]
         return '%sZ' % timestamp
     return timestamp
+
 
 def date(year=None, month=None, day=None, obj=False):
     """
@@ -98,8 +101,9 @@ def date(year=None, month=None, day=None, obj=False):
         day = today.day
     value = dt.date(year, month, day)
     if obj:
-        return value 
+        return value
     return format_date(value)
+
 
 def time(hour=None, min=None, sec=None, micro=None, offset=None, obj=False):
     """
@@ -135,6 +139,7 @@ def time(hour=None, min=None, sec=None, micro=None, offset=None, obj=False):
     if obj:
         return value
     return format_time(value)
+
 
 def datetime(year=None, month=None, day=None, hour=None,
              min=None, sec=None, micro=None, offset=None,
@@ -181,7 +186,7 @@ def datetime(year=None, month=None, day=None, hour=None,
     value = dt.datetime(year, month, day, hour,
                        min, sec, micro, offset)
     if obj:
-        return value 
+        return value
     return format_datetime(value)
 
 

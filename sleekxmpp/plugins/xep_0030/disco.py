@@ -339,8 +339,8 @@ class XEP_0030(BasePlugin):
         if local:
             log.debug("Looking up local disco#info data " + \
                       "for %s, node %s.", jid, node)
-            info = self.api['get_info'](jid, node, 
-                    kwargs.get('ifrom', None), 
+            info = self.api['get_info'](jid, node,
+                    kwargs.get('ifrom', None),
                     kwargs)
             info = self._fix_default_info(info)
             return self._wrap(kwargs.get('ifrom', None), jid, info)
@@ -348,8 +348,8 @@ class XEP_0030(BasePlugin):
         if cached:
             log.debug("Looking up cached disco#info data " + \
                       "for %s, node %s.", jid, node)
-            info = self.api['get_cached_info'](jid, node, 
-                    kwargs.get('ifrom', None), 
+            info = self.api['get_cached_info'](jid, node,
+                    kwargs.get('ifrom', None),
                     kwargs)
             if info is not None:
                 return self._wrap(kwargs.get('ifrom', None), jid, info)
@@ -405,8 +405,8 @@ class XEP_0030(BasePlugin):
                         Otherwise the parameter is ignored.
         """
         if local or jid is None:
-            items = self.api['get_items'](jid, node, 
-                    kwargs.get('ifrom', None), 
+            items = self.api['get_items'](jid, node,
+                    kwargs.get('ifrom', None),
                     kwargs)
             return self._wrap(kwargs.get('ifrom', None), jid, items)
 

@@ -100,13 +100,13 @@ class XEP_0184(BasePlugin):
 
         if not isinstance(stanza, Message):
             return stanza
-                
+
         if stanza['request_receipt']:
             return stanza
 
         if not stanza['type'] in self.ack_types:
             return stanza
-                    
+
         if stanza['receipt']:
             return stanza
 

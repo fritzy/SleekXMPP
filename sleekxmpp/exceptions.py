@@ -69,9 +69,10 @@ class IqTimeout(XMPPError):
                 condition='remote-server-timeout',
                 etype='cancel')
 
-        #: The :class:`~sleekxmpp.stanza.iq.Iq` stanza whose response 
+        #: The :class:`~sleekxmpp.stanza.iq.Iq` stanza whose response
         #: did not arrive before the timeout expired.
         self.iq = iq
+
 
 class IqError(XMPPError):
 

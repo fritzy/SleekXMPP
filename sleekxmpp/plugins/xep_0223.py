@@ -18,7 +18,7 @@ log = logging.getLogger(__name__)
 class XEP_0223(BasePlugin):
 
     """
-    XEP-0223: Persistent Storage of Private Data via PubSub 
+    XEP-0223: Persistent Storage of Private Data via PubSub
     """
 
     name = 'xep_0223'
@@ -72,8 +72,8 @@ class XEP_0223(BasePlugin):
             options = self.xmpp['xep_0004'].stanza.Form()
             options['type'] = 'submit'
             options.add_field(
-                var='FORM_TYPE', 
-                ftype='hidden', 
+                var='FORM_TYPE',
+                ftype='hidden',
                 value='http://jabber.org/protocol/pubsub#publish-options')
 
         for field, value in self.profile.items():

@@ -16,24 +16,24 @@ class APIWrapper(object):
         elif attr == 'settings':
             return self.api.settings[self.name]
         elif attr == 'register':
-            def curried_handler(handler, op, jid=None, node=None, default=False):
+            def partial(handler, op, jid=None, node=None, default=False):
                 register = getattr(self.api, attr)
                 return register(handler, self.name, op, jid, node, default)
-            return curried_handler
+            return partial
         elif attr == 'register_default':
-            def curried_handler(handler, op, jid=None, node=None):
+            def partial(handler, op, jid=None, node=None):
                 return getattr(self.api, attr)(handler, self.name, op)
-            return curried_handler
+            return partial
         elif attr in ('run', 'restore_default', 'unregister'):
-            def curried_handler(*args, **kwargs):
+            def partial(*args, **kwargs):
                 return getattr(self.api, attr)(self.name, *args, **kwargs)
-            return curried_handler
+            return partial
         return None
 
     def __getitem__(self, attr):
-        def curried_handler(jid=None, node=None, ifrom=None, args=None):
+        def partial(jid=None, node=None, ifrom=None, args=None):
             return self.api.run(self.name, attr, jid, node, ifrom, args)
-        return curried_handler
+        return partial
 
 
 class APIRegistry(object):
@@ -42,7 +42,7 @@ class APIRegistry(object):
         self._handlers = {}
         self._handler_defaults = {}
         self.xmpp = xmpp
-        self.settings = {} 
+        self.settings = {}
 
     def _setup(self, ctype, op):
         """Initialize the API callback dictionaries.
@@ -138,8 +138,8 @@ class APIRegistry(object):
         """Register an API callback, with JID+node specificity.
 
         The API callback can later be executed based on the
-        specificity of the provided JID+node combination. 
-        
+        specificity of the provided JID+node combination.
+
         See :meth:`~ApiRegistry.run` for more details.
 
         :param string ctype: The name of the API to use.

@@ -30,7 +30,7 @@ class XEP_0258(BasePlugin):
         register_stanza_plugin(Message, SecurityLabel)
         register_stanza_plugin(Iq, Catalog)
 
-    def get_catalog(self, jid, ifrom=None, block=True, 
+    def get_catalog(self, jid, ifrom=None, block=True,
                           callback=None, timeout=None):
         iq = self.xmpp.Iq()
         iq['to'] = jid

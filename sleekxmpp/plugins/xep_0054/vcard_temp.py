@@ -53,7 +53,7 @@ class XEP_0054(BasePlugin):
     def make_vcard(self):
         return VCardTemp()
 
-    def get_vcard(self, jid=None, ifrom=None, local=False, cached=False, 
+    def get_vcard(self, jid=None, ifrom=None, local=False, cached=False,
                   block=True, callback=None, timeout=None):
         if self.xmpp.is_component and jid.domain == self.xmpp.boundjid.domain:
             local = True
@@ -84,12 +84,12 @@ class XEP_0054(BasePlugin):
         iq.enable('vcard_temp')
 
         vcard = iq.send(block=block, callback=callback, timeout=timeout)
-        
+
         if block:
             self.api['set_vcard'](vcard['from'], args=vcard['vcard_temp'])
             return vcard
 
-    def publish_vcard(self, vcard=None, jid=None, block=True, ifrom=None, 
+    def publish_vcard(self, vcard=None, jid=None, block=True, ifrom=None,
                       callback=None, timeout=None):
         if self.xmpp.is_component:
             self.api['set_vcard'](jid, None, ifrom, vcard)

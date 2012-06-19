@@ -45,7 +45,7 @@ def register_stanza_plugin(stanza, plugin, iterable=False, overrides=False):
     substanzas for the parent, using ``parent['substanzas']``. If the
     attribute ``plugin_multi_attrib`` was defined for the plugin, then
     the substanza set can be filtered to only instances of the plugin
-    class. For example, given a plugin class ``Foo`` with 
+    class. For example, given a plugin class ``Foo`` with
     ``plugin_multi_attrib = 'foos'`` then::
 
         parent['foos']
@@ -99,6 +99,14 @@ def multifactory(stanza, plugin_attrib):
     """
     Returns a ElementBase class for handling reoccuring child stanzas
     """
+
+    def plugin_filter(self):
+        return lambda x: isinstance(x, self._multistanza)
+
+    def plugin_lang_filter(self, lang):
+        return lambda x: isinstance(x, self._multistanza) and \
+                         x['lang'] == lang
+
     class Multi(ElementBase):
         """
         Template class for multifactory
@@ -109,9 +117,9 @@ def multifactory(stanza, plugin_attrib):
     def get_multi(self, lang=None):
         parent = self.parent()
         if not lang or lang == '*':
-            res = filter(lambda sub: isinstance(sub, self._multistanza), parent)
+            res = filter(plugin_filter(self), parent)
         else:
-            res = filter(lambda sub: isinstance(sub, self._multistanza) and sub['lang'] == lang, parent)
+            res = filter(plugin_filter(self, lang), parent)
         return list(res)
 
     def set_multi(self, val, lang=None):
@@ -124,9 +132,9 @@ def multifactory(stanza, plugin_attrib):
     def del_multi(self, lang=None):
         parent = self.parent()
         if not lang or lang == '*':
-            res = filter(lambda sub: isinstance(sub, self._multistanza), parent)
+            res = filter(plugin_filter(self), parent)
         else:
-            res = filter(lambda sub: isinstance(sub, self._multistanza) and sub['lang'] == lang, parent)
+            res = filter(plugin_filter(self, lang), parent)
         res = list(res)
         if not res:
             del parent.plugins[(plugin_attrib, None)]
@@ -253,8 +261,10 @@ class ElementBase(object):
     directly from the parent stanza, as shown below, but retrieving
     information will require all interfaces to be used, as so::
 
-        >>> message['custom'] = 'bar' # Same as using message['custom']['custom']
-        >>> message['custom']['custom'] # Must use all interfaces
+        >>> # Same as using message['custom']['custom']
+        >>> message['custom'] = 'bar'
+        >>> # Must use all interfaces
+        >>> message['custom']['custom']
         'bar'
 
     If the plugin sets :attr:`is_extension` to ``True``, then both setting
@@ -272,8 +282,8 @@ class ElementBase(object):
     """
 
     #: The XML tag name of the element, not including any namespace
-    #: prefixes. For example, an :class:`ElementBase` object for ``<message />``
-    #: would use ``name = 'message'``.
+    #: prefixes. For example, an :class:`ElementBase` object for
+    #: ``<message />`` would use ``name = 'message'``.
     name = 'stanza'
 
     #: The XML namespace for the element. Given ``<foo xmlns="bar" />``,
@@ -522,8 +532,10 @@ class ElementBase(object):
 
         if existing_xml is None:
             existing_xml = self.xml.find(plugin_class.tag_name())
-        if existing_xml is not None and existing_xml.attrib.get('{%s}lang' % XML_NS, '') != lang:
-            existing_xml = None
+
+        if existing_xml is not None:
+            if existing_xml.attrib.get('{%s}lang' % XML_NS, '') != lang:
+                existing_xml = None
 
         plugin = plugin_class(parent=self, xml=existing_xml)
 
@@ -761,13 +773,20 @@ class ElementBase(object):
                 else:
                     if attrib in self.sub_interfaces:
                         if lang == '*':
-                            return self._set_all_sub_text(attrib, value, lang='*')
-                        return self._set_sub_text(attrib, text=value, lang=lang)
+                            return self._set_all_sub_text(attrib,
+                                                          value,
+                                                          lang='*')
+                        return self._set_sub_text(attrib, text=value,
+                                                          lang=lang)
                     elif attrib in self.bool_interfaces:
                         if value:
-                            return self._set_sub_text(attrib, '', keep=True, lang=lang)
+                            return self._set_sub_text(attrib, '',
+                                    keep=True,
+                                    lang=lang)
                         else:
-                            return self._set_sub_text(attrib, '', keep=False, lang=lang)
+                            return self._set_sub_text(attrib, '',
+                                    keep=False,
+                                    lang=lang)
                     else:
                         self._set_attr(attrib, value)
             else:
@@ -932,7 +951,8 @@ class ElementBase(object):
         stanzas = self.xml.findall(name)
         if stanzas:
             for stanza in stanzas:
-                stanza_lang = stanza.attrib.get('{%s}lang' % XML_NS, default_lang)
+                stanza_lang = stanza.attrib.get('{%s}lang' % XML_NS,
+                                                default_lang)
                 if not lang or lang == '*' or stanza_lang == lang:
                     results[stanza_lang] = stanza.text
         return results
@@ -996,7 +1016,9 @@ class ElementBase(object):
         self._del_sub(name, lang)
         for value_lang, value in values.items():
             if not lang or lang == '*' or value_lang == lang:
-                self._set_sub_text(name, text=value, keep=keep, lang=value_lang)
+                self._set_sub_text(name, text=value,
+                                         keep=keep,
+                                         lang=value_lang)
 
     def _del_sub(self, name, all=False, lang=None):
         """Remove sub elements that match the given name or XPath.
@@ -1032,7 +1054,9 @@ class ElementBase(object):
                         not element.getchildren():
                         # Only delete the originally requested elements, and
                         # any parent elements that have become empty.
-                        if lang == '*' or element.attrib.get('{%s}lang' % XML_NS, default_lang) == lang:
+                        elem_lang = element.attrib.get('{%s}lang' % XML_NS,
+                                                       default_lang)
+                        if lang == '*' or elem_lang == lang:
                             parent.remove(element)
             if not all:
                 # If we don't want to delete elements up the tree, stop
@@ -1272,8 +1296,8 @@ class ElementBase(object):
         return self
 
     def _fix_ns(self, xpath, split=False, propagate_ns=True):
-        return fix_ns(xpath, split=split, 
-                             propagate_ns=propagate_ns, 
+        return fix_ns(xpath, split=split,
+                             propagate_ns=propagate_ns,
                              default_ns=self.namespace)
 
     def __eq__(self, other):

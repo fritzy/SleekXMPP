@@ -67,7 +67,7 @@ class BaseXMPP(XMLStream):
         #: An identifier for the stream as given by the server.
         self.stream_id = None
 
-        #: The JabberID (JID) used by this connection. 
+        #: The JabberID (JID) used by this connection.
         self.boundjid = JID(jid)
         self._expected_server_name = self.boundjid.host
 
@@ -103,7 +103,7 @@ class BaseXMPP(XMLStream):
         #: The API registry is a way to process callbacks based on
         #: JID+node combinations. Each callback in the registry is
         #: marked with:
-        #: 
+        #:
         #:   - An API name, e.g. xep_0030
         #:   - The name of an action, e.g. get_info
         #:   - The JID that will be affected
@@ -202,7 +202,7 @@ class BaseXMPP(XMLStream):
                     Defaults to ``True``. This does **not** mean that no
                     threads are used at all if ``threaded=False``.
 
-        Regardless of these threading options, these threads will 
+        Regardless of these threading options, these threads will
         always exist:
 
         - The event queue processor
@@ -294,11 +294,11 @@ class BaseXMPP(XMLStream):
 
         :param id: An ideally unique ID value for this stanza thread.
                    Defaults to 0.
-        :param ifrom: The from :class:`~sleekxmpp.xmlstream.jid.JID` 
+        :param ifrom: The from :class:`~sleekxmpp.xmlstream.jid.JID`
                       to use for this stanza.
         :param ito: The destination :class:`~sleekxmpp.xmlstream.jid.JID`
                     for this stanza.
-        :param itype: The :class:`~sleekxmpp.stanza.iq.Iq`'s type, 
+        :param itype: The :class:`~sleekxmpp.stanza.iq.Iq`'s type,
                       one of: ``'get'``, ``'set'``, ``'result'``,
                       or ``'error'``.
         :param iquery: Optional namespace for adding a query element.
@@ -336,7 +336,7 @@ class BaseXMPP(XMLStream):
 
     def make_iq_result(self, id=None, ito=None, ifrom=None, iq=None):
         """
-        Create an :class:`~sleekxmpp.stanza.iq.Iq` stanza of type 
+        Create an :class:`~sleekxmpp.stanza.iq.Iq` stanza of type
         ``'result'`` with the given ID value.
 
         :param id: An ideally unique ID value. May use :meth:`new_id()`.
@@ -366,10 +366,10 @@ class BaseXMPP(XMLStream):
         Optionally, a substanza may be given to use as the
         stanza's payload.
 
-        :param sub: Either an 
+        :param sub: Either an
                     :class:`~sleekxmpp.xmlstream.stanzabase.ElementBase`
                     stanza object or an
-                    :class:`~xml.etree.ElementTree.Element` XML object 
+                    :class:`~xml.etree.ElementTree.Element` XML object
                     to use as the :class:`~sleekxmpp.stanza.iq.Iq`'s payload.
         :param ito: The destination :class:`~sleekxmpp.xmlstream.jid.JID`
                     for this stanza.
@@ -396,9 +396,9 @@ class BaseXMPP(XMLStream):
         Create an :class:`~sleekxmpp.stanza.iq.Iq` stanza of type ``'error'``.
 
         :param id: An ideally unique ID value. May use :meth:`new_id()`.
-        :param type: The type of the error, such as ``'cancel'`` or 
+        :param type: The type of the error, such as ``'cancel'`` or
                      ``'modify'``. Defaults to ``'cancel'``.
-        :param condition: The error condition. Defaults to 
+        :param condition: The error condition. Defaults to
                           ``'feature-not-implemented'``.
         :param text: A message describing the cause of the error.
         :param ito: The destination :class:`~sleekxmpp.xmlstream.jid.JID`
@@ -422,7 +422,7 @@ class BaseXMPP(XMLStream):
 
     def make_iq_query(self, iq=None, xmlns='', ito=None, ifrom=None):
         """
-        Create or modify an :class:`~sleekxmpp.stanza.iq.Iq` stanza 
+        Create or modify an :class:`~sleekxmpp.stanza.iq.Iq` stanza
         to use the given query namespace.
 
         :param iq: Optionally use an existing stanza instead
@@ -455,7 +455,7 @@ class BaseXMPP(XMLStream):
     def make_message(self, mto, mbody=None, msubject=None, mtype=None,
                      mhtml=None, mfrom=None, mnick=None):
         """
-        Create and initialize a new 
+        Create and initialize a new
         :class:`~sleekxmpp.stanza.message.Message` stanza.
 
         :param mto: The recipient of the message.
@@ -481,7 +481,7 @@ class BaseXMPP(XMLStream):
     def make_presence(self, pshow=None, pstatus=None, ppriority=None,
                       pto=None, ptype=None, pfrom=None, pnick=None):
         """
-        Create and initialize a new 
+        Create and initialize a new
         :class:`~sleekxmpp.stanza.presence.Presence` stanza.
 
         :param pshow: The presence's show value.
@@ -505,7 +505,7 @@ class BaseXMPP(XMLStream):
     def send_message(self, mto, mbody, msubject=None, mtype=None,
                      mhtml=None, mfrom=None, mnick=None):
         """
-        Create, initialize, and send a new 
+        Create, initialize, and send a new
         :class:`~sleekxmpp.stanza.message.Message` stanza.
 
         :param mto: The recipient of the message.
@@ -525,7 +525,7 @@ class BaseXMPP(XMLStream):
     def send_presence(self, pshow=None, pstatus=None, ppriority=None,
                       pto=None, pfrom=None, ptype=None, pnick=None):
         """
-        Create, initialize, and send a new 
+        Create, initialize, and send a new
         :class:`~sleekxmpp.stanza.presence.Presence` stanza.
 
         :param pshow: The presence's show value.
@@ -536,13 +536,13 @@ class BaseXMPP(XMLStream):
         :param pfrom: The sender of the presence.
         :param pnick: Optional nickname of the presence's sender.
         """
-        self.make_presence(pshow, pstatus, ppriority, pto, 
+        self.make_presence(pshow, pstatus, ppriority, pto,
                            ptype, pfrom, pnick).send()
 
     def send_presence_subscription(self, pto, pfrom=None,
                                    ptype='subscribe', pnick=None):
         """
-        Create, initialize, and send a new 
+        Create, initialize, and send a new
         :class:`~sleekxmpp.stanza.presence.Presence` stanza of
         type ``'subscribe'``.
 
@@ -743,7 +743,7 @@ class BaseXMPP(XMLStream):
             return
 
     def exception(self, exception):
-        """Process any uncaught exceptions, notably 
+        """Process any uncaught exceptions, notably
         :class:`~sleekxmpp.exceptions.IqError` and
         :class:`~sleekxmpp.exceptions.IqTimeout` exceptions.
 

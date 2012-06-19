@@ -38,7 +38,7 @@ class XEP_0084(BasePlugin):
 
     def retrieve_avatar(self, jid, id, url=None, ifrom=None, block=True,
                               callback=None, timeout=None):
-        return self.xmpp['xep_0060'].get_item(jid, Data.namespace, id, 
+        return self.xmpp['xep_0060'].get_item(jid, Data.namespace, id,
                 ifrom=ifrom,
                 block=block,
                 callback=callback,

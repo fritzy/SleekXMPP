@@ -68,7 +68,7 @@ class RosterNode(object):
                 self._version = self.db.version(self.jid)
             for jid in self.db.entries(self.jid):
                 self.add(jid)
-    
+
     @property
     def version(self):
         """Retrieve the roster's version ID."""
@@ -149,7 +149,7 @@ class RosterNode(object):
         self.db = db
         existing_entries = set(self._jids)
         new_entries = set(self.db.entries(self.jid, {}))
-        
+
         for jid in existing_entries:
             self._jids[jid].set_backend(db, save)
         for jid in new_entries - existing_entries:
@@ -294,7 +294,7 @@ class RosterNode(object):
         for jid in self:
             self[jid].reset()
 
-    def send_presence(self, **kwargs): 
+    def send_presence(self, **kwargs):
         """
         Create, initialize, and send a Presence stanza.
 

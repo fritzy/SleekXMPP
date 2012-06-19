@@ -81,7 +81,8 @@ class XEP_0027(BasePlugin):
 
     def _sign_presence(self, stanza):
         if isinstance(stanza, Presence):
-            if stanza['type'] == 'available' or stanza['type'] in Presence.showtypes:
+            if stanza['type'] == 'available' or \
+                    stanza['type'] in Presence.showtypes:
                 stanza['signed'] = stanza['status']
         return stanza
 

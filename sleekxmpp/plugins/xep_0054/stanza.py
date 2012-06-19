@@ -106,8 +106,8 @@ class Address(ElementBase):
     namespace = 'vcard-temp'
     plugin_attrib = name
     plugin_multi_attrib = 'addresses'
-    interfaces = set(['HOME', 'WORK', 'POSTAL', 'PARCEL', 'DOM', 'INTL', 
-                      'PREF', 'POBOX', 'EXTADD', 'STREET', 'LOCALITY', 
+    interfaces = set(['HOME', 'WORK', 'POSTAL', 'PARCEL', 'DOM', 'INTL',
+                      'PREF', 'POBOX', 'EXTADD', 'STREET', 'LOCALITY',
                       'REGION', 'PCODE', 'CTRY'])
     sub_interfaces = set(['POBOX', 'EXTADD', 'STREET', 'LOCALITY',
                           'REGION', 'PCODE', 'CTRY'])
@@ -123,8 +123,8 @@ class Telephone(ElementBase):
                       'CELL', 'VIDEO', 'BBS', 'MODEM', 'ISDN', 'PCS',
                       'PREF', 'NUMBER'])
     sub_interfaces = set(['NUMBER'])
-    bool_interfaces = set(['HOME', 'WORK', 'VOICE', 'FAX', 'PAGER', 
-                           'MSG', 'CELL', 'VIDEO', 'BBS', 'MODEM', 
+    bool_interfaces = set(['HOME', 'WORK', 'VOICE', 'FAX', 'PAGER',
+                           'MSG', 'CELL', 'VIDEO', 'BBS', 'MODEM',
                            'ISDN', 'PCS', 'PREF'])
 
     def setup(self, xml=None):
@@ -145,7 +145,7 @@ class Label(ElementBase):
     plugin_multi_attrib = 'labels'
     interfaces = set(['HOME', 'WORK', 'POSTAL', 'PARCEL', 'DOM', 'INT',
                       'PREF', 'lines'])
-    bool_interfaces = set(['HOME', 'WORK', 'POSTAL', 'PARCEL', 'DOM', 
+    bool_interfaces = set(['HOME', 'WORK', 'POSTAL', 'PARCEL', 'DOM',
                            'INT', 'PREF'])
 
     def add_line(self, value):
@@ -515,7 +515,7 @@ class TimeZone(ElementBase):
     is_extension = True
 
     def set_tz(self, value):
-        time = xep_0082.time(offset=value) 
+        time = xep_0082.time(offset=value)
         if time[-1] == 'Z':
             self.xml.text = 'Z'
         else:

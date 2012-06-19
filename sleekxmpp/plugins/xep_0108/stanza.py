@@ -21,7 +21,7 @@ class UserActivity(ElementBase):
                    'talking', 'traveling', 'undefined', 'working'])
     specific = set(['at_the_spa', 'brushing_teeth', 'buying_groceries',
                     'cleaning', 'coding', 'commuting', 'cooking', 'cycling',
-                    'dancing', 'day_off', 'doing_maintenance', 
+                    'dancing', 'day_off', 'doing_maintenance',
                     'doing_the_dishes', 'doing_the_laundry', 'driving',
                     'fishing', 'gaming', 'gardening', 'getting_a_haircut',
                     'going_out', 'hanging_out', 'having_a_beer',
@@ -31,11 +31,11 @@ class UserActivity(ElementBase):
                     'jogging', 'on_a_bus', 'on_a_plane', 'on_a_train',
                     'on_a_trip', 'on_the_phone', 'on_vacation',
                     'on_video_phone', 'other', 'partying', 'playing_sports',
-                    'praying', 'reading', 'rehearsing', 'running', 
+                    'praying', 'reading', 'rehearsing', 'running',
                     'running_an_errand', 'scheduled_holiday', 'shaving',
                     'shopping', 'skiing', 'sleeping', 'smoking',
                     'socializing', 'studying', 'sunbathing', 'swimming',
-                    'taking_a_bath', 'taking_a_shower', 'thinking', 
+                    'taking_a_bath', 'taking_a_shower', 'thinking',
                     'walking', 'walking_the_dog', 'watching_a_movie',
                     'watching_tv', 'working_out', 'writing'])
 
@@ -46,7 +46,7 @@ class UserActivity(ElementBase):
         if isinstance(value, tuple) or isinstance(value, list):
             general = value[0]
             specific = value[1]
-           
+
         if general in self.general:
             gen_xml = ET.Element('{%s}%s' % (self.namespace, general))
             if specific:

@@ -51,7 +51,7 @@ class Error(ElementBase):
     namespace = 'jabber:client'
     name = 'error'
     plugin_attrib = 'error'
-    interfaces = set(('code', 'condition', 'text', 'type', 
+    interfaces = set(('code', 'condition', 'text', 'type',
                       'gone', 'redirect'))
     sub_interfaces = set(('text',))
     plugin_attrib_map = {}

@@ -35,7 +35,7 @@ class XEP_0115(BasePlugin):
     stanza = stanza
 
     def plugin_init(self):
-        self.hashes = {'sha-1': hashlib.sha1, 
+        self.hashes = {'sha-1': hashlib.sha1,
                        'sha1': hashlib.sha1,
                        'md5': hashlib.md5}
 
@@ -124,7 +124,7 @@ class XEP_0115(BasePlugin):
         existing_verstring = self.get_verstring(pres['from'].full)
         if str(existing_verstring) == str(pres['caps']['ver']):
             return
-     
+
         if pres['caps']['hash'] not in self.hashes:
             try:
                 log.debug("Unknown caps hash: %s", pres['caps']['hash'])
@@ -132,7 +132,7 @@ class XEP_0115(BasePlugin):
                 return
             except XMPPError:
                 return
-   
+
         log.debug("New caps verification string: %s", pres['caps']['ver'])
         try:
             node = '%s#%s' % (pres['caps']['node'], pres['caps']['ver'])
@@ -140,7 +140,7 @@ class XEP_0115(BasePlugin):
 
             if isinstance(caps, Iq):
                 caps = caps['disco_info']
-                    
+
             if self._validate_caps(caps, pres['caps']['hash'],
                                          pres['caps']['ver']):
                 self.assign_verstring(pres['from'], pres['caps']['ver'])
@@ -173,7 +173,8 @@ class XEP_0115(BasePlugin):
                     form_types.append(f_type)
                     deduped_form_types.add(f_type)
                     if len(form_types) != len(deduped_form_types):
-                        log.debug("Duplicated FORM_TYPE values, invalid for caps")
+                        log.debug("Duplicated FORM_TYPE values, " + \
+                                  "invalid for caps")
                         return False
 
                     if len(f_type) > 1:
@@ -183,7 +184,8 @@ class XEP_0115(BasePlugin):
                             return False
 
                     if stanza['fields']['FORM_TYPE']['type'] != 'hidden':
-                        log.debug("Field FORM_TYPE type not 'hidden', ignoring form for caps")
+                        log.debug("Field FORM_TYPE type not 'hidden', " + \
+                                  "ignoring form for caps")
                         caps.xml.remove(stanza.xml)
                 else:
                     log.debug("No FORM_TYPE found, ignoring form for caps")
@@ -212,7 +214,7 @@ class XEP_0115(BasePlugin):
 
         identities = sorted(('/'.join(i) for i in identities))
         features = sorted(info['features'])
- 
+
         S += '<'.join(identities) + '<'
         S += '<'.join(features) + '<'
 
@@ -254,7 +256,7 @@ class XEP_0115(BasePlugin):
                 info = info['disco_info']
             ver = self.generate_verstring(info, self.hash)
             self.xmpp['xep_0030'].set_info(
-                    jid=jid, 
+                    jid=jid,
                     node='%s#%s' % (self.caps_node, ver),
                     info=info)
             self.cache_caps(ver, info)

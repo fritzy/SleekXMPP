@@ -54,13 +54,13 @@ class ClientXMPP(BaseXMPP):
     :param password: The password for the XMPP user account.
     :param ssl: **Deprecated.**
     :param plugin_config: A dictionary of plugin configurations.
-    :param plugin_whitelist: A list of approved plugins that 
-                    will be loaded when calling 
+    :param plugin_whitelist: A list of approved plugins that
+                    will be loaded when calling
                     :meth:`~sleekxmpp.basexmpp.BaseXMPP.register_plugins()`.
     :param escape_quotes: **Deprecated.**
     """
 
-    def __init__(self, jid, password, plugin_config={}, plugin_whitelist=[], 
+    def __init__(self, jid, password, plugin_config={}, plugin_whitelist=[],
                  escape_quotes=True, sasl_mech=None, lang='en'):
         BaseXMPP.__init__(self, jid, 'jabber:client')
 
@@ -189,7 +189,7 @@ class ClientXMPP(BaseXMPP):
                       occurs. Defaults to ``True``.
         :param timeout: The length of time (in seconds) to wait
                         for a response before continuing if blocking
-                        is used. Defaults to 
+                        is used. Defaults to
             :attr:`~sleekxmpp.xmlstream.xmlstream.XMLStream.response_timeout`.
         :param callback: Optional reference to a stream handler function.
                          Will be executed when the roster is received.
@@ -200,7 +200,7 @@ class ClientXMPP(BaseXMPP):
 
     def del_roster_item(self, jid):
         """Remove an item from the roster.
-        
+
         This is done by setting its subscription status to ``'remove'``.
 
         :param jid: The JID of the item to remove.
@@ -215,7 +215,7 @@ class ClientXMPP(BaseXMPP):
                       Defaults to ``True``.
         :param timeout: The length of time (in seconds) to wait for a response
                         before continuing if blocking is used.
-                        Defaults to 
+                        Defaults to
             :attr:`~sleekxmpp.xmlstream.xmlstream.XMLStream.response_timeout`.
         :param callback: Optional reference to a stream handler function. Will
                          be executed when the roster is received.
@@ -233,7 +233,7 @@ class ClientXMPP(BaseXMPP):
         response = iq.send(block, timeout, callback)
         self.event('roster_received', response)
 
-        if block: 
+        if block:
             self._handle_roster(response)
             return response
 
@@ -279,7 +279,7 @@ class ClientXMPP(BaseXMPP):
             roster[jid]['pending_out'] = (item['ask'] == 'subscribe')
 
             roster[jid].save(remove=(item['subscription'] == 'remove'))
-                 
+
         self.event("roster_update", iq)
         if iq['type'] == 'set':
             resp = self.Iq(stype='result',

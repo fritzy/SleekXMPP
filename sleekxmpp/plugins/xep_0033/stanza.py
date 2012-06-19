@@ -16,7 +16,7 @@ class Addresses(ElementBase):
     plugin_attrib = 'addresses'
     interfaces = set()
 
-    def add_address(self, atype='to', jid='', node='', uri='', 
+    def add_address(self, atype='to', jid='', node='', uri='',
                           desc='', delivered=False):
         addr = Address(parent=self)
         addr['type'] = atype
@@ -116,7 +116,7 @@ for atype in ('all', 'bcc', 'cc', 'noreply', 'replyroom', 'replyto', 'to'):
     setattr(Addresses, "get_%s" % atype, get_multi)
     setattr(Addresses, "set_%s" % atype, set_multi)
     setattr(Addresses, "del_%s" % atype, del_multi)
-    
+
     # To retain backwards compatibility:
     setattr(Addresses, "get%s" % atype.title(), get_multi)
     setattr(Addresses, "set%s" % atype.title(), set_multi)

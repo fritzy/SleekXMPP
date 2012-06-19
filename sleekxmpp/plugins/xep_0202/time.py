@@ -40,8 +40,12 @@ class XEP_0202(BasePlugin):
         # custom function can be supplied which accepts
         # the JID of the entity to query for the time.
         self.local_time = self.config.get('local_time', None)
+
+        def default_local_time(jid):
+            return xep_0082.datetime(offset=self.tz_offset)
+
         if not self.local_time:
-            self.local_time = lambda x: xep_0082.datetime(offset=self.tz_offset)
+            self.local_time = default_local_time
 
         self.xmpp.registerHandler(
             Callback('Entity Time',

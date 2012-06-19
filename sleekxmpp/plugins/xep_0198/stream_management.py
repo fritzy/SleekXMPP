@@ -21,7 +21,7 @@ from sleekxmpp.plugins.xep_0198 import stanza
 log = logging.getLogger(__name__)
 
 
-MAX_SEQ = 2**32
+MAX_SEQ = 2 ** 32
 
 
 class XEP_0198(BasePlugin):
@@ -69,7 +69,7 @@ class XEP_0198(BasePlugin):
 
         self.enabled = threading.Event()
         self.unacked_queue = collections.deque()
-    
+
         self.seq_lock = threading.Lock()
         self.handled_lock = threading.Lock()
         self.ack_lock = threading.Lock()
@@ -197,7 +197,7 @@ class XEP_0198(BasePlugin):
 
     def _handle_enabled(self, stanza):
         """Save the SM-ID, if provided.
-        
+
         Raises an :term:`sm_enabled` event.
         """
         self.xmpp.features.add('stream_management')
@@ -231,7 +231,7 @@ class XEP_0198(BasePlugin):
 
     def _handle_ack(self, ack):
         """Process a server ack by freeing acked stanzas from the queue.
-        
+
         Raises a :term:`stanza_acked` event for each acked stanza.
         """
         if ack['h'] == self.last_ack:
@@ -243,10 +243,10 @@ class XEP_0198(BasePlugin):
             log.debug("Ack: %s, Last Ack: %s, " + \
                       "Unacked: %s, Num Acked: %s, " + \
                       "Remaining: %s",
-                ack['h'], 
-                self.last_ack, 
+                ack['h'],
+                self.last_ack,
                 num_unacked,
-                num_acked, 
+                num_acked,
                 num_unacked - num_acked)
             for x in range(num_acked):
                 seq, stanza = self.unacked_queue.popleft()

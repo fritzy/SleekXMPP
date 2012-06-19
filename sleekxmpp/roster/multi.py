@@ -150,7 +150,7 @@ class Roster(object):
         for node in self:
             self[node].reset()
 
-    def send_presence(self, **kwargs): 
+    def send_presence(self, **kwargs):
         """
         Create, initialize, and send a Presence stanza.
 

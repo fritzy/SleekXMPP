@@ -79,4 +79,3 @@ class StreamError(Error, StanzaBase):
 
     def del_see_other_host(self):
         self._del_sub('{%s}see-other-host' % self.condition_ns)
-

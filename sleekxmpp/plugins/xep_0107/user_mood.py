@@ -34,7 +34,7 @@ class XEP_0107(BasePlugin):
         register_stanza_plugin(Message, UserMood)
         self.xmpp['xep_0163'].register_pep('user_mood', UserMood)
 
-    def publish_mood(self, value=None, text=None, options=None, 
+    def publish_mood(self, value=None, text=None, options=None,
                      ifrom=None, block=True, callback=None, timeout=None):
         """
         Publish the user's current mood.
@@ -79,7 +79,7 @@ class XEP_0107(BasePlugin):
                         be executed when a reply stanza is received.
         """
         mood = UserMood()
-        return self.xmpp['xep_0163'].publish(mood, 
+        return self.xmpp['xep_0163'].publish(mood,
                 node=UserMood.namespace,
                 ifrom=ifrom,
                 block=block,

@@ -56,7 +56,7 @@ class XEP_0163(BasePlugin):
             jid       -- Optionally specify the JID.
         """
         if not isinstance(namespace, set) and not isinstance(namespace, list):
-           namespace = [namespace]
+            namespace = [namespace]
 
         for ns in namespace:
             self.xmpp['xep_0030'].add_feature('%s+notify' % ns,
@@ -75,7 +75,7 @@ class XEP_0163(BasePlugin):
             jid       -- Optionally specify the JID.
         """
         if not isinstance(namespace, set) and not isinstance(namespace, list):
-           namespace = [namespace]
+            namespace = [namespace]
 
         for ns in namespace:
             self.xmpp['xep_0030'].del_feature(jid=jid,

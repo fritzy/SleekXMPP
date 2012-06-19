@@ -57,7 +57,7 @@ class Task(object):
 
         #: The keyword arguments to pass to :attr:`callback`.
         self.kwargs = kwargs or {}
-        
+
         #: Indicates if the task should repeat after executing,
         #: using the same :attr:`seconds` delay.
         self.repeat = repeat
@@ -103,7 +103,7 @@ class Scheduler(object):
     def __init__(self, parentstop=None):
         #: A queue for storing tasks
         self.addq = queue.Queue()
-        
+
         #: A list of tasks in order of execution time.
         self.schedule = []
 

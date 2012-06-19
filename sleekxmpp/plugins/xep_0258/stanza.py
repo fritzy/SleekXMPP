@@ -33,7 +33,7 @@ class Label(ElementBase):
 class DisplayMarking(ElementBase):
     name = 'displaymarking'
     namespace = 'urn:xmpp:sec-label:0'
-    plugin_attrib = 'display_marking' 
+    plugin_attrib = 'display_marking'
     interfaces = set(['fgcolor', 'bgcolor', 'value'])
 
     def get_fgcolor(self):

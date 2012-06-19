@@ -14,5 +14,3 @@ from sleekxmpp.plugins.xep_0084.avatar import XEP_0084
 
 
 register_plugin(XEP_0084)
-
-

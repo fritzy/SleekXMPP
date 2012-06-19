@@ -143,15 +143,19 @@ class Error(ElementBase):
         return self._get_sub_text('{%s}redirect' % self.condition_ns, '')
 
     def set_gone(self, value):
-        del self['condition']
         if value:
+            del self['condition']
             return self._set_sub_text('{%s}gone' % self.condition_ns, value)
+        elif self['condition'] == 'gone':
+            del self['condition']
 
     def set_redirect(self, value):
-        del self['condition']
         if value:
+            del self['condition']
             ns = self.condition_ns
             return self._set_sub_text('{%s}redirect' % ns, value)
+        elif self['condition'] == 'redirect':
+            del self['condition']
 
     def del_gone(self):
         self._del_sub('{%s}gone' % self.condition_ns)

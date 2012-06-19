@@ -72,10 +72,12 @@ class StreamError(Error, StanzaBase):
         return self._get_sub_text('{%s}see-other-host' % ns, '')
 
     def set_see_other_host(self, value):
-        del self['condition']
         if value:
+            del self['condition']
             ns = self.condition_ns
             return self._set_sub_text('{%s}see-other-host' % ns, value)
+        elif self['condition'] == 'see-other-host':
+            del self['condition']
 
     def del_see_other_host(self):
         self._del_sub('{%s}see-other-host' % self.condition_ns)

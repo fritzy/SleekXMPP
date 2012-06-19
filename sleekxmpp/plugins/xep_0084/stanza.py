@@ -70,7 +70,7 @@ class Pointer(ElementBase):
     name = 'pointer'
     namespace = 'urn:xmpp:avatar:metadata'
     plugin_attrib = 'pointer'
-    multi_plugin_attrib = 'pointers'
+    plugin_multi_attrib = 'pointers'
     interfaces = set()
 
 

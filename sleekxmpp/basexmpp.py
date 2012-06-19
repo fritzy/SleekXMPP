@@ -551,14 +551,10 @@ class BaseXMPP(XMLStream):
         :param ptype: The type of presence, such as ``'subscribe'``.
         :param pnick: Optional nickname of the presence's sender.
         """
-        presence = self.makePresence(ptype=ptype,
-                                     pfrom=pfrom,
-                                     pto=self.getjidbare(pto))
-        if pnick:
-            nick = ET.Element('{http://jabber.org/protocol/nick}nick')
-            nick.text = pnick
-            presence.append(nick)
-        presence.send()
+        self.make_presence(ptype=ptype,
+                           pfrom=pfrom,
+                           pto=JID(pto).bare,
+                           pnick=pnick).send()
 
     @property
     def jid(self):

@@ -277,7 +277,7 @@ class ElementBase(object):
 
 
     :param xml: Initialize the stanza object with an existing XML object.
-    :param parent: Optionally specify a parent stanza object will will
+    :param parent: Optionally specify a parent stanza object will
                    contain this substanza.
     """
 
@@ -1424,6 +1424,8 @@ class StanzaBase(ElementBase):
     :param sfrom: Optional string or :class:`sleekxmpp.xmlstream.JID`
                   object of the sender's JID.
     :param string sid: Optional ID value for the stanza.
+    :param parent: Optionally specify a parent stanza object will
+                   contain this substanza.
     """
 
     #: The default XMPP client namespace
@@ -1438,11 +1440,11 @@ class StanzaBase(ElementBase):
     types = set(('get', 'set', 'error', None, 'unavailable', 'normal', 'chat'))
 
     def __init__(self, stream=None, xml=None, stype=None,
-                 sto=None, sfrom=None, sid=None):
+                 sto=None, sfrom=None, sid=None, parent=None):
         self.stream = stream
         if stream is not None:
             self.namespace = stream.default_ns
-        ElementBase.__init__(self, xml)
+        ElementBase.__init__(self, xml, parent)
         if stype is not None:
             self['type'] = stype
         if sto is not None:

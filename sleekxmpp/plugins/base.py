@@ -84,7 +84,7 @@ def load_plugin(name, module=None):
                 module = 'sleekxmpp.plugins.%s' % name
                 __import__(module)
                 mod = sys.modules[module]
-            except:
+            except ImportError:
                 module = 'sleekxmpp.features.%s' % name
                 __import__(module)
                 mod = sys.modules[module]
@@ -103,7 +103,7 @@ def load_plugin(name, module=None):
                 # we can work around dependency issues.
                 plugin.old_style = True
             register_plugin(plugin, name)
-    except:
+    except ImportError:
         log.exception("Unable to load plugin: %s", name)
 
 

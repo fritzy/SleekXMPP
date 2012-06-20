@@ -307,34 +307,29 @@ class RosterItem(object):
             p['from'] = self.owner
         p.send()
 
-    def send_presence(self, ptype=None, pshow=None, pstatus=None,
-                            ppriority=None, pnick=None):
+    def send_presence(self, **kwargs):
         """
         Create, initialize, and send a Presence stanza.
+
+        If no recipient is specified, send the presence immediately.
+        Otherwise, forward the send request to the recipient's roster
+        entry for processing.
 
         Arguments:
             pshow     -- The presence's show value.
             pstatus   -- The presence's status message.
             ppriority -- This connections' priority.
+            pto       -- The recipient of a directed presence.
+            pfrom     -- The sender of a directed presence, which should
+                         be the owner JID plus resource.
             ptype     -- The type of presence, such as 'subscribe'.
             pnick     -- Optional nickname of the presence's sender.
         """
-        p = self.xmpp.make_presence(pshow=pshow,
-                                    pstatus=pstatus,
-                                    ppriority=ppriority,
-                                    ptype=ptype,
-                                    pnick=pnick,
-                                    pto=self.jid)
-        if self.xmpp.is_component:
-            p['from'] = self.owner
-        if p['type'] in p.showtypes or \
-           p['type'] in ['available', 'unavailable']:
-            self.last_status = p
-        p.send()
-
-        if not self.xmpp.sentpresence:
-            self.xmpp.event('sent_presence')
-            self.xmpp.sentpresence = True
+        if self.xmpp.is_component and not kwargs.get('pfrom', ''):
+            kwargs['pfrom'] = self.owner
+        if not kwargs.get('pto', ''):
+            kwargs['pto'] = self.jid
+        self.xmpp.send_presence(**kwargs)
 
     def send_last_presence(self):
         if self.last_status is None:

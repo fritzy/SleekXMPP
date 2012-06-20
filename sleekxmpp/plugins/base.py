@@ -31,10 +31,10 @@ log = logging.getLogger(__name__)
 PLUGIN_REGISTRY = {}
 
 #: In order to do cascading plugin disabling, reverse dependencies
-#: must be tracked. 
+#: must be tracked.
 PLUGIN_DEPENDENTS = {}
 
-#: Only allow one thread to manipulate the plugin registry at a time. 
+#: Only allow one thread to manipulate the plugin registry at a time.
 REGISTRY_LOCK = threading.RLock()
 
 
@@ -75,7 +75,7 @@ def load_plugin(name, module=None):
                      plugins are in packages matching their name,
                      even though the plugin class name does not
                      have to match.
-    :param str module: The name of the base module to search 
+    :param str module: The name of the base module to search
                        for the plugin.
     """
     try:
@@ -84,7 +84,7 @@ def load_plugin(name, module=None):
                 module = 'sleekxmpp.plugins.%s' % name
                 __import__(module)
                 mod = sys.modules[module]
-            except:
+            except ImportError:
                 module = 'sleekxmpp.features.%s' % name
                 __import__(module)
                 mod = sys.modules[module]
@@ -103,11 +103,11 @@ def load_plugin(name, module=None):
                 # we can work around dependency issues.
                 plugin.old_style = True
             register_plugin(plugin, name)
-    except:
+    except ImportError:
         log.exception("Unable to load plugin: %s", name)
 
 
-class PluginManager(object): 
+class PluginManager(object):
     def __init__(self, xmpp, config=None):
         #: We will track all enabled plugins in a set so that we
         #: can enable plugins in batches and pull in dependencies
@@ -181,7 +181,7 @@ class PluginManager(object):
 
     def enable_all(self, names=None, config=None):
         """Enable all registered plugins.
-        
+
         :param list names: A list of plugin names to enable. If
                            none are provided, all registered plugins
                            will be enabled.
@@ -292,7 +292,7 @@ class BasePlugin(object):
 
     def post_init(self):
         """Initialize any cross-plugin state.
-       
+
         Only needed if the plugin has circular dependencies.
         """
         pass

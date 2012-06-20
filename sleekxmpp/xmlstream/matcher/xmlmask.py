@@ -34,9 +34,9 @@ class MatchXMLMask(MatcherBase):
 
         <message xmlns="jabber:client"><body /></message>
 
-    Use of XMLMask is discouraged, and 
-    :class:`~sleekxmpp.xmlstream.matcher.xpath.MatchXPath` or 
-    :class:`~sleekxmpp.xmlstream.matcher.stanzapath.StanzaPath` 
+    Use of XMLMask is discouraged, and
+    :class:`~sleekxmpp.xmlstream.matcher.xpath.MatchXPath` or
+    :class:`~sleekxmpp.xmlstream.matcher.stanzapath.StanzaPath`
     should be used instead.
 
     The use of namespaces in the mask comparison is controlled by
@@ -151,8 +151,8 @@ class MatchXMLMask(MatcherBase):
         """
         tag = tag.split('}')[-1]
         try:
-            children = [c.tag.split('}')[-1] for c in xml.getchildren()]
+            children = [c.tag.split('}')[-1] for c in xml]
             index = children.index(tag)
         except ValueError:
             return None
-        return xml.getchildren()[index]
+        return list(xml)[index]

@@ -51,6 +51,3 @@ class Encrypted(ElementBase):
         if self.xml.text:
             return xmpp['xep_0027'].decrypt(self.xml.text, parent['to'])
         return None
-
-
-

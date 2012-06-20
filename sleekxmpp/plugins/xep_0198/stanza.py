@@ -82,7 +82,6 @@ class Resumed(StanzaBase):
         self._set_attr('h', str(val))
 
 
-
 class Failed(StanzaBase, Error):
     name = 'failed'
     namespace = 'urn:xmpp:sm:3'
@@ -106,7 +105,7 @@ class StreamManagement(ElementBase):
         self.del_required()
         if val:
             self._set_sub_text('required', '', keep=True)
-        
+
     def del_required(self):
         self._del_sub('required')
 
@@ -117,7 +116,7 @@ class StreamManagement(ElementBase):
         self.del_optional()
         if val:
             self._set_sub_text('optional', '', keep=True)
-        
+
     def del_optional(self):
         self._del_sub('optional')
 

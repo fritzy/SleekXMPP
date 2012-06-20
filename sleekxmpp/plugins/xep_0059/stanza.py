@@ -74,7 +74,7 @@ class Set(ElementBase):
         if fi is not None:
             if val:
                 fi.attrib['index'] = val
-            else:
+            elif 'index' in fi.attrib:
                 del fi.attrib['index']
         elif val:
             fi = ET.Element("{%s}first" % (self.namespace))
@@ -93,7 +93,7 @@ class Set(ElementBase):
 
     def set_before(self, val):
         b = self.xml.find("{%s}before" % (self.namespace))
-        if b is None and val == True:
+        if b is None and val is True:
             self._set_sub_text('{%s}before' % self.namespace, '', True)
         else:
             self._set_sub_text('{%s}before' % self.namespace, val)

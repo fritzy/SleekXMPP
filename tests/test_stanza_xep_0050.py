@@ -49,7 +49,7 @@ class TestAdHocCommandStanzas(SleekTest):
         iq['command']['actions'] = ['prev', 'next']
 
         results = iq['command']['actions']
-        expected = ['prev', 'next']
+        expected = set(['prev', 'next'])
         self.assertEqual(results, expected,
                          "Incorrect next actions: %s" % results)
 

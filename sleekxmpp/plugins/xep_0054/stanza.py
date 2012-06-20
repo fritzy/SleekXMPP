@@ -72,6 +72,7 @@ class Nickname(ElementBase):
     name = 'NICKNAME'
     namespace = 'vcard-temp'
     plugin_attrib = name
+    plugin_multi_attrib = 'nicknames'
     interfaces = set([name])
     is_extension = True
 
@@ -94,6 +95,7 @@ class Email(ElementBase):
     name = 'EMAIL'
     namespace = 'vcard-temp'
     plugin_attrib = name
+    plugin_multi_attrib = 'emails'
     interfaces = set(['HOME', 'WORK', 'INTERNET', 'PREF', 'X400', 'USERID'])
     sub_interfaces = set(['USERID'])
     bool_interfaces = set(['HOME', 'WORK', 'INTERNET', 'PREF', 'X400'])
@@ -103,8 +105,9 @@ class Address(ElementBase):
     name = 'ADR'
     namespace = 'vcard-temp'
     plugin_attrib = name
-    interfaces = set(['HOME', 'WORK', 'POSTAL', 'PARCEL', 'DOM', 'INTL', 
-                      'PREF', 'POBOX', 'EXTADD', 'STREET', 'LOCALITY', 
+    plugin_multi_attrib = 'addresses'
+    interfaces = set(['HOME', 'WORK', 'POSTAL', 'PARCEL', 'DOM', 'INTL',
+                      'PREF', 'POBOX', 'EXTADD', 'STREET', 'LOCALITY',
                       'REGION', 'PCODE', 'CTRY'])
     sub_interfaces = set(['POBOX', 'EXTADD', 'STREET', 'LOCALITY',
                           'REGION', 'PCODE', 'CTRY'])
@@ -115,12 +118,13 @@ class Telephone(ElementBase):
     name = 'TEL'
     namespace = 'vcard-temp'
     plugin_attrib = name
+    plugin_multi_attrib = 'telephone_numbers'
     interfaces = set(['HOME', 'WORK', 'VOICE', 'FAX', 'PAGER', 'MSG',
                       'CELL', 'VIDEO', 'BBS', 'MODEM', 'ISDN', 'PCS',
                       'PREF', 'NUMBER'])
     sub_interfaces = set(['NUMBER'])
-    bool_interfaces = set(['HOME', 'WORK', 'VOICE', 'FAX', 'PAGER', 
-                           'MSG', 'CELL', 'VIDEO', 'BBS', 'MODEM', 
+    bool_interfaces = set(['HOME', 'WORK', 'VOICE', 'FAX', 'PAGER',
+                           'MSG', 'CELL', 'VIDEO', 'BBS', 'MODEM',
                            'ISDN', 'PCS', 'PREF'])
 
     def setup(self, xml=None):
@@ -138,9 +142,10 @@ class Label(ElementBase):
     name = 'LABEL'
     namespace = 'vcard-temp'
     plugin_attrib = name
+    plugin_multi_attrib = 'labels'
     interfaces = set(['HOME', 'WORK', 'POSTAL', 'PARCEL', 'DOM', 'INT',
                       'PREF', 'lines'])
-    bool_interfaces = set(['HOME', 'WORK', 'POSTAL', 'PARCEL', 'DOM', 
+    bool_interfaces = set(['HOME', 'WORK', 'POSTAL', 'PARCEL', 'DOM',
                            'INT', 'PREF'])
 
     def add_line(self, value):
@@ -171,6 +176,7 @@ class Geo(ElementBase):
     name = 'GEO'
     namespace = 'vcard-temp'
     plugin_attrib = name
+    plugin_multi_attrib = 'geolocations'
     interfaces = set(['LAT', 'LON'])
     sub_interfaces = interfaces
 
@@ -179,6 +185,7 @@ class Org(ElementBase):
     name = 'ORG'
     namespace = 'vcard-temp'
     plugin_attrib = name
+    plugin_multi_attrib = 'organizations'
     interfaces = set(['ORGNAME', 'ORGUNIT', 'orgunits'])
     sub_interfaces = set(['ORGNAME', 'ORGUNIT'])
 
@@ -210,6 +217,7 @@ class Photo(ElementBase):
     name = 'PHOTO'
     namespace = 'vcard-temp'
     plugin_attrib = name
+    plugin_multi_attrib = 'photos'
     interfaces = set(['TYPE', 'EXTVAL'])
     sub_interfaces = interfaces
 
@@ -218,14 +226,16 @@ class Logo(ElementBase):
     name = 'LOGO'
     namespace = 'vcard-temp'
     plugin_attrib = name
+    plugin_multi_attrib = 'logos'
     interfaces = set(['TYPE', 'EXTVAL'])
     sub_interfaces = interfaces
 
 
 class Sound(ElementBase):
-    name = 'LOGO'
+    name = 'SOUND'
     namespace = 'vcard-temp'
     plugin_attrib = name
+    plugin_multi_attrib = 'sounds'
     interfaces = set(['PHONETC', 'EXTVAL'])
     sub_interfaces = interfaces
 
@@ -264,6 +274,7 @@ class Classification(ElementBase):
     name = 'CLASS'
     namespace = 'vcard-temp'
     plugin_attrib = name
+    plugin_multi_attrib = 'classifications'
     interfaces = set(['PUBLIC', 'PRIVATE', 'CONFIDENTIAL'])
     bool_interfaces = interfaces
 
@@ -272,6 +283,7 @@ class Categories(ElementBase):
     name = 'CATEGORIES'
     namespace = 'vcard-temp'
     plugin_attrib = name
+    plugin_multi_attrib = 'categories'
     interfaces = set([name])
     is_extension = True
 
@@ -301,6 +313,7 @@ class Birthday(ElementBase):
     name = 'BDAY'
     namespace = 'vcard-temp'
     plugin_attrib = name
+    plugin_multi_attrib = 'birthdays'
     interfaces = set([name])
     is_extension = True
 
@@ -319,6 +332,7 @@ class Rev(ElementBase):
     name = 'REV'
     namespace = 'vcard-temp'
     plugin_attrib = name
+    plugin_multi_attrib = 'revision_dates'
     interfaces = set([name])
     is_extension = True
 
@@ -337,6 +351,7 @@ class Title(ElementBase):
     name = 'TITLE'
     namespace = 'vcard-temp'
     plugin_attrib = name
+    plugin_multi_attrib = 'titles'
     interfaces = set([name])
     is_extension = True
 
@@ -351,6 +366,7 @@ class Role(ElementBase):
     name = 'ROLE'
     namespace = 'vcard-temp'
     plugin_attrib = name
+    plugin_multi_attrib = 'roles'
     interfaces = set([name])
     is_extension = True
 
@@ -365,6 +381,7 @@ class Note(ElementBase):
     name = 'NOTE'
     namespace = 'vcard-temp'
     plugin_attrib = name
+    plugin_multi_attrib = 'notes'
     interfaces = set([name])
     is_extension = True
 
@@ -379,6 +396,7 @@ class Desc(ElementBase):
     name = 'DESC'
     namespace = 'vcard-temp'
     plugin_attrib = name
+    plugin_multi_attrib = 'descriptions'
     interfaces = set([name])
     is_extension = True
 
@@ -393,6 +411,7 @@ class URL(ElementBase):
     name = 'URL'
     namespace = 'vcard-temp'
     plugin_attrib = name
+    plugin_multi_attrib = 'urls'
     interfaces = set([name])
     is_extension = True
 
@@ -407,6 +426,7 @@ class UID(ElementBase):
     name = 'UID'
     namespace = 'vcard-temp'
     plugin_attrib = name
+    plugin_multi_attrib = 'uids'
     interfaces = set([name])
     is_extension = True
 
@@ -421,6 +441,7 @@ class ProdID(ElementBase):
     name = 'PRODID'
     namespace = 'vcard-temp'
     plugin_attrib = name
+    plugin_multi_attrib = 'product_ids'
     interfaces = set([name])
     is_extension = True
 
@@ -435,6 +456,7 @@ class Mailer(ElementBase):
     name = 'MAILER'
     namespace = 'vcard-temp'
     plugin_attrib = name
+    plugin_multi_attrib = 'mailers'
     interfaces = set([name])
     is_extension = True
 
@@ -449,6 +471,7 @@ class SortString(ElementBase):
     name = 'SORT-STRING'
     namespace = 'vcard-temp'
     plugin_attrib = 'SORT_STRING'
+    plugin_multi_attrib = 'sort_strings'
     interfaces = set([name])
     is_extension = True
 
@@ -463,6 +486,7 @@ class Agent(ElementBase):
     name = 'AGENT'
     namespace = 'vcard-temp'
     plugin_attrib = name
+    plugin_multi_attrib = 'agents'
     interfaces = set(['EXTVAL'])
     sub_interfaces = interfaces
 
@@ -471,6 +495,7 @@ class JabberID(ElementBase):
     name = 'JABBERID'
     namespace = 'vcard-temp'
     plugin_attrib = name
+    plugin_multi_attrib = 'jids'
     interfaces = set([name])
     is_extension = True
 
@@ -485,11 +510,12 @@ class TimeZone(ElementBase):
     name = 'TZ'
     namespace = 'vcard-temp'
     plugin_attrib = name
+    plugin_multi_attrib = 'timezones'
     interfaces = set([name])
     is_extension = True
 
     def set_tz(self, value):
-        time = xep_0082.time(offset=value) 
+        time = xep_0082.time(offset=value)
         if time[-1] == 'Z':
             self.xml.text = 'Z'
         else:

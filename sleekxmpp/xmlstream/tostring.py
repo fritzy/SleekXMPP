@@ -13,14 +13,19 @@
     :license: MIT, see LICENSE for more details
 """
 
+from __future__ import unicode_literals
+
 import sys
 
 if sys.version_info < (3, 0):
     import types
 
 
+XML_NS = 'http://www.w3.org/XML/1998/namespace'
+
+
 def tostring(xml=None, xmlns='', stanza_ns='', stream=None,
-             outbuffer='', top_level=False):
+             outbuffer='', top_level=False, open_only=False):
     """Serialize an XML object to a Unicode string.
 
     If namespaces are provided using ``xmlns`` or ``stanza_ns``, then
@@ -88,6 +93,13 @@ def tostring(xml=None, xmlns='', stanza_ns='', stream=None,
                     output.append(' %s:%s="%s"' % (mapped_ns,
                                                    attrib,
                                                    value))
+            elif attrib_ns == XML_NS:
+                output.append(' xml:%s="%s"' % (attrib, value))
+
+    if open_only:
+        # Only output the opening tag, regardless of content.
+        output.append(">")
+        return ''.join(output)
 
     if len(xml) or xml.text:
         # If there are additional child elements to serialize.
@@ -95,7 +107,7 @@ def tostring(xml=None, xmlns='', stanza_ns='', stream=None,
         if xml.text:
             output.append(xml_escape(xml.text))
         if len(xml):
-            for child in xml.getchildren():
+            for child in xml:
                 output.append(tostring(child, tag_xmlns, stanza_ns, stream))
         output.append("</%s>" % tag_name)
     elif xml.text:

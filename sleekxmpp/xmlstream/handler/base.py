@@ -49,7 +49,7 @@ class BaseHandler(object):
     def match(self, xml):
         """Compare a stanza or XML object with the handler's matcher.
 
-        :param xml: An XML or 
+        :param xml: An XML or
             :class:`~sleekxmpp.xmlstream.stanzabase.ElementBase` object
         """
         return self._matcher.match(xml)
@@ -73,7 +73,7 @@ class BaseHandler(object):
         self._payload = payload
 
     def check_delete(self):
-        """Check if the handler should be removed from the list 
+        """Check if the handler should be removed from the list
         of stream handlers.
         """
         return self._destroy

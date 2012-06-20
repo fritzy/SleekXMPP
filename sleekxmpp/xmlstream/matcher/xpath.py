@@ -77,10 +77,10 @@ class MatchXPath(MatcherBase):
                     # Skip empty tag name artifacts from the cleanup phase.
                     continue
 
-                children = [c.tag.split('}')[-1] for c in xml.getchildren()]
+                children = [c.tag.split('}')[-1] for c in xml]
                 try:
                     index = children.index(tag)
                 except ValueError:
                     return False
-                xml = xml.getchildren()[index]
+                xml = list(xml)[index]
             return True

@@ -69,7 +69,7 @@ class StaticCaps(object):
                 return True
 
         try:
-            info = self.disco.get_info(jid=jid, node=node, 
+            info = self.disco.get_info(jid=jid, node=node,
                                        ifrom=ifrom, **data)
             info = self.disco._wrap(ifrom, jid, info, True)
             return feature in info['disco_info']['features']
@@ -99,7 +99,7 @@ class StaticCaps(object):
                         be skipped, even if a result has already been
                         cached. Defaults to false.
         """
-        identity = (data.get('category', None), 
+        identity = (data.get('category', None),
                     data.get('itype', None),
                     data.get('lang', None))
 
@@ -114,7 +114,7 @@ class StaticCaps(object):
                 return True
 
         try:
-            info = self.disco.get_info(jid=jid, node=node, 
+            info = self.disco.get_info(jid=jid, node=node,
                                        ifrom=ifrom, **data)
             info = self.disco._wrap(ifrom, jid, info, True)
             return identity in map(trunc, info['disco_info']['identities'])

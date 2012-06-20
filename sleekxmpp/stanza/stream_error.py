@@ -54,7 +54,7 @@ class StreamError(Error, StanzaBase):
     """
 
     namespace = 'http://etherx.jabber.org/streams'
-    interfaces = set(('condition', 'text'))
+    interfaces = set(('condition', 'text', 'see_other_host'))
     conditions = set((
         'bad-format', 'bad-namespace-prefix', 'conflict',
         'connection-timeout', 'host-gone', 'host-unknown',
@@ -66,3 +66,18 @@ class StreamError(Error, StanzaBase):
         'unsupported-feature', 'unsupported-stanza-type',
         'unsupported-version'))
     condition_ns = 'urn:ietf:params:xml:ns:xmpp-streams'
+
+    def get_see_other_host(self):
+        ns = self.condition_ns
+        return self._get_sub_text('{%s}see-other-host' % ns, '')
+
+    def set_see_other_host(self, value):
+        if value:
+            del self['condition']
+            ns = self.condition_ns
+            return self._set_sub_text('{%s}see-other-host' % ns, value)
+        elif self['condition'] == 'see-other-host':
+            del self['condition']
+
+    def del_see_other_host(self):
+        self._del_sub('{%s}see-other-host' % self.condition_ns)

@@ -30,7 +30,7 @@ class XEP_0118(BasePlugin):
         self.xmpp['xep_0163'].register_pep('user_tune', UserTune)
 
     def publish_tune(self, artist=None, length=None, rating=None, source=None,
-                     title=None, track=None, uri=None, options=None, 
+                     title=None, track=None, uri=None, options=None,
                      ifrom=None, block=True, callback=None, timeout=None):
         """
         Publish the user's current tune.
@@ -61,7 +61,7 @@ class XEP_0118(BasePlugin):
         tune['title'] = title
         tune['track'] = track
         tune['uri'] = uri
-        return self.xmpp['xep_0163'].publish(tune, 
+        return self.xmpp['xep_0163'].publish(tune,
                 node=UserTune.namespace,
                 options=options,
                 ifrom=ifrom,
@@ -84,7 +84,7 @@ class XEP_0118(BasePlugin):
                         be executed when a reply stanza is received.
         """
         tune = UserTune()
-        return self.xmpp['xep_0163'].publish(tune, 
+        return self.xmpp['xep_0163'].publish(tune,
                 node=UserTune.namespace,
                 ifrom=ifrom,
                 block=block,

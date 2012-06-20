@@ -29,7 +29,7 @@ class XEP_0108(BasePlugin):
     def plugin_init(self):
         self.xmpp['xep_0163'].register_pep('user_activity', UserActivity)
 
-    def publish_activity(self, general, specific=None, text=None, options=None, 
+    def publish_activity(self, general, specific=None, text=None, options=None,
                      ifrom=None, block=True, callback=None, timeout=None):
         """
         Publish the user's current activity.
@@ -76,7 +76,7 @@ class XEP_0108(BasePlugin):
                         be executed when a reply stanza is received.
         """
         activity = UserActivity()
-        return self.xmpp['xep_0163'].publish(activity, 
+        return self.xmpp['xep_0163'].publish(activity,
                 node=UserActivity.namespace,
                 ifrom=ifrom,
                 block=block,

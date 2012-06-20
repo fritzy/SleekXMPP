@@ -76,7 +76,7 @@ class SleekTest(unittest.TestCase):
                             known_prefixes[prefix],
                             xml_string)
                 xml = self.parse_xml(xml_string)
-                xml = xml.getchildren()[0]
+                xml = list(xml)[0]
                 return xml
             else:
                 self.fail("XML data was mal-formed:\n%s" % xml_string)
@@ -333,6 +333,8 @@ class SleekTest(unittest.TestCase):
         # Remove unique ID prefix to make it easier to test
         self.xmpp._id_prefix = ''
         self.xmpp._disconnect_wait_for_threads = False
+        self.xmpp.default_lang = None
+        self.xmpp.peer_default_lang = None
 
         # We will use this to wait for the session_start event
         # for live connections.
@@ -386,6 +388,7 @@ class SleekTest(unittest.TestCase):
                           sid='',
                           stream_ns="http://etherx.jabber.org/streams",
                           default_ns="jabber:client",
+                          default_lang="en",
                           version="1.0",
                           xml_header=True):
         """
@@ -413,6 +416,8 @@ class SleekTest(unittest.TestCase):
             parts.append('from="%s"' % sfrom)
         if sid:
             parts.append('id="%s"' % sid)
+        if default_lang:
+            parts.append('xml:lang="%s"' % default_lang)
         parts.append('version="%s"' % version)
         parts.append('xmlns:stream="%s"' % stream_ns)
         parts.append('xmlns="%s"' % default_ns)
@@ -512,9 +517,9 @@ class SleekTest(unittest.TestCase):
         if '{%s}lang' % xml_ns in recv_xml.attrib:
             del recv_xml.attrib['{%s}lang' % xml_ns]
 
-        if recv_xml.getchildren:
+        if list(recv_xml):
             # We received more than just the header
-            for xml in recv_xml.getchildren():
+            for xml in recv_xml:
                 self.xmpp.socket.recv_data(tostring(xml))
 
             attrib = recv_xml.attrib
@@ -564,6 +569,7 @@ class SleekTest(unittest.TestCase):
                           sid='',
                           stream_ns="http://etherx.jabber.org/streams",
                           default_ns="jabber:client",
+                          default_lang="en",
                           version="1.0",
                           xml_header=False,
                           timeout=1):
@@ -585,6 +591,7 @@ class SleekTest(unittest.TestCase):
         header = self.make_header(sto, sfrom, sid,
                                   stream_ns=stream_ns,
                                   default_ns=default_ns,
+                                  default_lang=default_lang,
                                   version=version,
                                   xml_header=xml_header)
         sent_header = self.xmpp.socket.next_sent(timeout)
@@ -691,7 +698,7 @@ class SleekTest(unittest.TestCase):
         if xml.tag.startswith('{'):
             return
         xml.tag = '{%s}%s' % (ns, xml.tag)
-        for child in xml.getchildren():
+        for child in xml:
             self.fix_namespaces(child, ns)
 
     def compare(self, xml, *other):
@@ -734,7 +741,7 @@ class SleekTest(unittest.TestCase):
             return False
 
         # Step 4: Check children count
-        if len(xml.getchildren()) != len(other.getchildren()):
+        if len(list(xml)) != len(list(other)):
             return False
 
         # Step 5: Recursively check children

@@ -40,8 +40,8 @@ class ComponentXMPP(BaseXMPP):
     :param host: The server accepting the component.
     :param port: The port used to connect to the server.
     :param plugin_config: A dictionary of plugin configurations.
-    :param plugin_whitelist: A list of approved plugins that 
-                    will be loaded when calling 
+    :param plugin_whitelist: A list of approved plugins that
+                    will be loaded when calling
                     :meth:`~sleekxmpp.basexmpp.BaseXMPP.register_plugins()`.
     :param use_jc_ns: Indicates if the ``'jabber:client'`` namespace
                       should be used instead of the standard
@@ -78,7 +78,7 @@ class ComponentXMPP(BaseXMPP):
         self.add_event_handler('presence_probe',
                                self._handle_probe)
 
-    def connect(self, host=None, port=None, use_ssl=False, 
+    def connect(self, host=None, port=None, use_ssl=False,
                       use_tls=False, reattempt=True):
         """Connect to the server.
 

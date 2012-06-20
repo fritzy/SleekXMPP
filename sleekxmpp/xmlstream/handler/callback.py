@@ -33,7 +33,7 @@ class Callback(BaseHandler):
     :param matcher: A :class:`~sleekxmpp.xmlstream.matcher.base.MatcherBase`
                     derived object for matching stanza objects.
     :param pointer: The function to execute during callback.
-    :param bool thread: **DEPRECATED.** Remains only for 
+    :param bool thread: **DEPRECATED.** Remains only for
                         backwards compatibility.
     :param bool once: Indicates if the handler should be used only
                       once. Defaults to False.

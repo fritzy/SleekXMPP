@@ -33,6 +33,7 @@ __all__ = [
 #   'xep_0078',  # Non-SASL auth. Don't automatically load
     'xep_0080',  # User Location
     'xep_0082',  # XMPP Date and Time Profiles
+    'xep_0084',  # User Avatar
     'xep_0085',  # Chat State Notifications
     'xep_0086',  # Legacy Error Codes
     'xep_0092',  # Software Version
@@ -49,7 +50,10 @@ __all__ = [
     'xep_0199',  # Ping
     'xep_0202',  # Entity Time
     'xep_0203',  # Delayed Delivery
+    'xep_0222',  # Persistent Storage of Public Data via Pubsub
+    'xep_0223',  # Persistent Storage of Private Data via Pubsub
     'xep_0224',  # Attention
     'xep_0231',  # Bits of Binary
     'xep_0249',  # Direct MUC Invitations
+    'xep_0258',  # Security Labels in XMPP
 ]

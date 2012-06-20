@@ -64,14 +64,18 @@ class TestElementBase(SleekTest):
         stanza.append(substanza)
 
         values = stanza.getStanzaValues()
-        expected = {'bar': 'a',
+        expected = {'lang': '',
+                    'bar': 'a',
                     'baz': '',
-                    'foo2': {'bar': '',
+                    'foo2': {'lang': '',
+                             'bar': '',
                              'baz': 'b'},
                     'substanzas': [{'__childtag__': '{foo}foo2',
+                                    'lang': '',
                                     'bar': '',
                                     'baz': 'b'},
                                    {'__childtag__': '{foo}subfoo',
+                                    'lang': '',
                                     'bar': 'c',
                                     'baz': ''}]}
         self.failUnless(values == expected,
@@ -555,12 +559,12 @@ class TestElementBase(SleekTest):
 
         stanza = TestStanza()
 
-        self.failUnless(set(stanza.keys()) == set(('bar', 'baz')),
+        self.failUnless(set(stanza.keys()) == set(('lang', 'bar', 'baz')),
             "Returned set of interface keys does not match expected.")
 
         stanza.enable('qux')
 
-        self.failUnless(set(stanza.keys()) == set(('bar', 'baz', 'qux')),
+        self.failUnless(set(stanza.keys()) == set(('lang', 'bar', 'baz', 'qux')),
             "Incorrect set of interface and plugin keys.")
 
     def testGet(self):

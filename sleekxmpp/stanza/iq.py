@@ -122,7 +122,7 @@ class Iq(RootStanza):
 
     def get_query(self):
         """Return the namespace of the <query> element."""
-        for child in self.xml.getchildren():
+        for child in self.xml:
             if child.tag.endswith('query'):
                 ns = child.tag.split('}')[0]
                 if '{' in ns:
@@ -132,7 +132,7 @@ class Iq(RootStanza):
 
     def del_query(self):
         """Remove the <query> element."""
-        for child in self.xml.getchildren():
+        for child in self.xml:
             if child.tag.endswith('query'):
                 self.xml.remove(child)
         return self

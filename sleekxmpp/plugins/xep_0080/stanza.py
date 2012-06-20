@@ -31,33 +31,33 @@ class Geoloc(ElementBase):
         accuracy    -- Horizontal GPS error in meters.
         alt         -- Altitude in meters above or below sea level.
         area        -- A named area such as a campus or neighborhood.
-        bearing     -- GPS bearing (direction in which the entity is 
-                       heading to reach its next waypoint), measured in 
+        bearing     -- GPS bearing (direction in which the entity is
+                       heading to reach its next waypoint), measured in
                        decimal degrees relative to true north.
         building    -- A specific building on a street or in an area.
         country     -- The nation where the user is located.
         countrycode -- The ISO 3166 two-letter country code.
         datum       -- GPS datum.
-        description -- A natural-language name for or description of 
+        description -- A natural-language name for or description of
                        the location.
         error       -- Horizontal GPS error in arc minutes. Obsoleted by
                        the accuracy parameter.
         floor       -- A particular floor in a building.
         lat         -- Latitude in decimal degrees North.
-        locality    -- A locality within the administrative region, such 
+        locality    -- A locality within the administrative region, such
                        as a town or city.
         lon         -- Longitude in decimal degrees East.
         postalcode  -- A code used for postal delivery.
-        region      -- An administrative region of the nation, such 
+        region      -- An administrative region of the nation, such
                        as a state or province.
         room        -- A particular room in a building.
-        speed       -- The speed at which the entity is moving, 
+        speed       -- The speed at which the entity is moving,
                        in meters per second.
         street      -- A thoroughfare within the locality, or a crossing
                        of two thoroughfares.
-        text        -- A catch-all element that captures any other 
+        text        -- A catch-all element that captures any other
                        information about the location.
-        timestamp   -- UTC timestamp specifying the moment when the 
+        timestamp   -- UTC timestamp specifying the moment when the
                        reading was taken.
         uri         -- A URI or URL pointing to information about
                        the location.
@@ -65,10 +65,10 @@ class Geoloc(ElementBase):
 
     namespace = 'http://jabber.org/protocol/geoloc'
     name = 'geoloc'
-    interfaces = set(('accuracy', 'alt', 'area', 'bearing', 'building', 
-                      'country', 'countrycode', 'datum', 'dscription', 
-                      'error', 'floor', 'lat', 'locality', 'lon', 
-                      'postalcode', 'region', 'room', 'speed', 'street', 
+    interfaces = set(('accuracy', 'alt', 'area', 'bearing', 'building',
+                      'country', 'countrycode', 'datum', 'dscription',
+                      'error', 'floor', 'lat', 'locality', 'lon',
+                      'postalcode', 'region', 'room', 'speed', 'street',
                       'text', 'timestamp', 'uri'))
     sub_interfaces = interfaces
     plugin_attrib = name
@@ -88,7 +88,7 @@ class Geoloc(ElementBase):
         """
         self._set_sub_text('accuracy', text=str(accuracy))
         return self
-    
+
     def get_accuracy(self):
         """
         Return the value of the <accuracy> element as an integer.
@@ -111,7 +111,7 @@ class Geoloc(ElementBase):
         """
         self._set_sub_text('alt', text=str(alt))
         return self
-    
+
     def get_alt(self):
         """
         Return the value of the <alt> element as an integer.
@@ -130,8 +130,8 @@ class Geoloc(ElementBase):
         Set the value of the <bearing> element.
 
         Arguments:
-            bearing -- GPS bearing (direction in which the entity is heading 
-                       to reach its next waypoint), measured in decimal 
+            bearing -- GPS bearing (direction in which the entity is heading
+                       to reach its next waypoint), measured in decimal
                        degrees relative to true north
         """
         self._set_sub_text('bearing', text=str(bearing))
@@ -155,7 +155,7 @@ class Geoloc(ElementBase):
         Set the value of the <error> element.
 
         Arguments:
-            error -- Horizontal GPS error in arc minutes; this 
+            error -- Horizontal GPS error in arc minutes; this
                      element is deprecated in favor of <accuracy/>
         """
         self._set_sub_text('error', text=str(error))
@@ -183,7 +183,7 @@ class Geoloc(ElementBase):
         """
         self._set_sub_text('lat', text=str(lat))
         return self
-    
+
     def get_lat(self):
         """
         Return the value of the <lat> element as a float.
@@ -196,7 +196,7 @@ class Geoloc(ElementBase):
                 return float(p)
             except ValueError:
                 return None
-  
+
     def set_lon(self, lon):
         """
         Set the value of the <lon> element.
@@ -225,12 +225,12 @@ class Geoloc(ElementBase):
         Set the value of the <speed> element.
 
         Arguments:
-            speed -- The speed at which the entity is moving, 
+            speed -- The speed at which the entity is moving,
                      in meters per second
         """
         self._set_sub_text('speed', text=str(speed))
         return self
-    
+
     def get_speed(self):
         """
         Return the value of the <speed> element as a float.

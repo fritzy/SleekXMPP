@@ -78,7 +78,7 @@ class XEP_0172(BasePlugin):
                         be executed when a reply stanza is received.
         """
         nick = UserNick()
-        return self.xmpp['xep_0163'].publish(nick, 
+        return self.xmpp['xep_0163'].publish(nick,
                 node=UserNick.namespace,
                 ifrom=ifrom,
                 block=block,

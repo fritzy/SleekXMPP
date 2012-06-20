@@ -39,5 +39,3 @@ class AuthFeature(ElementBase):
     interfaces = set()
     plugin_tag_map = {}
     plugin_attrib_map = {}
-
-

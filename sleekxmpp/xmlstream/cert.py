@@ -7,10 +7,11 @@ try:
     from pyasn1.type.univ import Any, ObjectIdentifier, OctetString
     from pyasn1.type.char import BMPString, IA5String, UTF8String
     from pyasn1.type.useful import GeneralizedTime
-    from pyasn1_modules.rfc2459 import Certificate, DirectoryString, SubjectAltName, GeneralNames, GeneralName
+    from pyasn1_modules.rfc2459 import (Certificate, DirectoryString,
+                                        SubjectAltName, GeneralNames,
+                                        GeneralName)
     from pyasn1_modules.rfc2459 import id_ce_subjectAltName as SUBJECT_ALT_NAME
     from pyasn1_modules.rfc2459 import id_at_commonName as COMMON_NAME
-
 
     XMPP_ADDR = ObjectIdentifier('1.3.6.1.5.5.7.8.5')
     SRV_NAME = ObjectIdentifier('1.3.6.1.5.5.7.8.7')
@@ -149,7 +150,7 @@ def verify(expected, raw_cert):
     expected_wild = expected[expected.index('.'):]
     expected_srv = '_xmpp-client.%s' % expected
 
-    for name in cert_names['XMPPAddr']: 
+    for name in cert_names['XMPPAddr']:
         if name == expected:
             return True
     for name in cert_names['SRV']:

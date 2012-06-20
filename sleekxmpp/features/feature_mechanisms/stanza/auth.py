@@ -23,7 +23,7 @@ class Auth(StanzaBase):
     interfaces = set(('mechanism', 'value'))
     plugin_attrib = name
 
-    #: Some SASL mechs require sending values as is, 
+    #: Some SASL mechs require sending values as is,
     #: without converting base64.
     plain_mechs = set(['X-MESSENGER-OAUTH2'])
 

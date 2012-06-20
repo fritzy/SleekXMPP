@@ -1,6 +1,6 @@
 """
     SleekXMPP: The Sleek XMPP Library
-    Copyright (C) 2012 Nathanael C. Fritz, 
+    Copyright (C) 2012 Nathanael C. Fritz,
                        Emmanuel Gil Peyrot <linkmauve@linkmauve.fr>
     This file is part of SleekXMPP.
 
@@ -58,7 +58,6 @@ class XEP_0231(BasePlugin):
         self.api.register(self._set_bob, 'set_bob', default=True)
         self.api.register(self._del_bob, 'del_bob', default=True)
 
-
     def set_bob(self, data, mtype, cid=None, max_age=None):
         if cid is None:
             cid = 'sha1+%s@bob.xmpp.org' % hashlib.sha1(data).hexdigest()
@@ -73,7 +72,7 @@ class XEP_0231(BasePlugin):
 
         return cid
 
-    def get_bob(self, jid=None, cid=None, cached=True, ifrom=None, 
+    def get_bob(self, jid=None, cid=None, cached=True, ifrom=None,
                 block=True, timeout=None, callback=None):
         if cached:
             data = self.api['get_bob'](None, None, ifrom, args=cid)
@@ -112,7 +111,7 @@ class XEP_0231(BasePlugin):
             iq.send()
 
     def _handle_bob(self, stanza):
-        self.api['set_bob'](stanza['from'], None, 
+        self.api['set_bob'](stanza['from'], None,
                             stanza['to'], args=stanza['bob'])
         self.xmpp.event('bob', stanza)
 

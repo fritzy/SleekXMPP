@@ -47,7 +47,7 @@ class Roster(ElementBase):
         roster versioning.
         """
         return self.xml.attrib.get('ver', None)
- 
+
     def set_ver(self, ver):
         """
         Ensure handling an empty ver attribute propery.
@@ -101,7 +101,8 @@ class Roster(ElementBase):
                 items[item['jid']] = item.values
                 # Remove extra JID reference to keep everything
                 # backward compatible
-                del items[item['jid']]['jid'] 
+                del items[item['jid']]['jid']
+                del items[item['jid']]['lang']
         return items
 
     def del_items(self):

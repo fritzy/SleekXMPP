@@ -14,7 +14,7 @@ class UserTune(ElementBase):
     name = 'tune'
     namespace = 'http://jabber.org/protocol/tune'
     plugin_attrib = 'tune'
-    interfaces = set(['artist', 'length', 'rating', 'source', 
+    interfaces = set(['artist', 'length', 'rating', 'source',
                       'title', 'track', 'uri'])
     sub_interfaces = interfaces
 

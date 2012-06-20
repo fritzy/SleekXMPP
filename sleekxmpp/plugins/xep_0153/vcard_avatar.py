@@ -45,7 +45,7 @@ class XEP_0153(BasePlugin):
         self.api.register(self._set_hash, 'set_hash', default=True)
         self.api.register(self._get_hash, 'get_hash', default=True)
 
-    def set_avatar(self, jid=None, avatar=None, mtype=None, block=True, 
+    def set_avatar(self, jid=None, avatar=None, mtype=None, block=True,
                    timeout=None, callback=None):
         vcard = self.xmpp['xep_0054'].get_vcard(jid, cached=True)
         vcard = vcard['vcard_temp']
@@ -69,7 +69,7 @@ class XEP_0153(BasePlugin):
         own_jid = (jid.bare == self.xmpp.boundjid.bare)
         if self.xmpp.is_component:
             own_jid = (jid.domain == self.xmpp.boundjid.domain)
-     
+
         if jid is not None:
             jid = jid.bare
         self.api['set_hash'](jid, args=None)
@@ -77,7 +77,7 @@ class XEP_0153(BasePlugin):
             self.xmpp.roster[jid].send_last_presence()
 
         iq = self.xmpp['xep_0054'].get_vcard(
-                jid=jid, 
+                jid=jid,
                 ifrom=self.xmpp.boundjid)
         data = iq['vcard_temp']['PHOTO']['BINVAL']
         if not data:

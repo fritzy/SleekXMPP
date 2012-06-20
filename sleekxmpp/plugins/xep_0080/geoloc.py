@@ -40,33 +40,33 @@ class XEP_0080(BasePlugin):
             accuracy    -- Horizontal GPS error in meters.
             alt         -- Altitude in meters above or below sea level.
             area        -- A named area such as a campus or neighborhood.
-            bearing     -- GPS bearing (direction in which the entity is 
-                           heading to reach its next waypoint), measured in 
+            bearing     -- GPS bearing (direction in which the entity is
+                           heading to reach its next waypoint), measured in
                            decimal degrees relative to true north.
             building    -- A specific building on a street or in an area.
             country     -- The nation where the user is located.
             countrycode -- The ISO 3166 two-letter country code.
             datum       -- GPS datum.
-            description -- A natural-language name for or description of 
+            description -- A natural-language name for or description of
                            the location.
             error       -- Horizontal GPS error in arc minutes. Obsoleted by
                            the accuracy parameter.
             floor       -- A particular floor in a building.
             lat         -- Latitude in decimal degrees North.
-            locality    -- A locality within the administrative region, such 
+            locality    -- A locality within the administrative region, such
                            as a town or city.
             lon         -- Longitude in decimal degrees East.
             postalcode  -- A code used for postal delivery.
-            region      -- An administrative region of the nation, such 
+            region      -- An administrative region of the nation, such
                            as a state or province.
             room        -- A particular room in a building.
-            speed       -- The speed at which the entity is moving, 
+            speed       -- The speed at which the entity is moving,
                            in meters per second.
             street      -- A thoroughfare within the locality, or a crossing
                            of two thoroughfares.
-            text        -- A catch-all element that captures any other 
+            text        -- A catch-all element that captures any other
                            information about the location.
-            timestamp   -- UTC timestamp specifying the moment when the 
+            timestamp   -- UTC timestamp specifying the moment when the
                            reading was taken.
             uri         -- A URI or URL pointing to information about
                            the location.
@@ -115,7 +115,7 @@ class XEP_0080(BasePlugin):
                         be executed when a reply stanza is received.
         """
         geoloc = Geoloc()
-        return self.xmpp['xep_0163'].publish(geoloc, 
+        return self.xmpp['xep_0163'].publish(geoloc,
                 ifrom=ifrom,
                 block=block,
                 callback=callback,

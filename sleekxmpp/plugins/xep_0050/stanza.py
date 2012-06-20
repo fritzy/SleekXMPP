@@ -110,14 +110,14 @@ class Command(ElementBase):
         """
         Return the set of allowable next actions.
         """
-        actions = []
+        actions = set()
         actions_xml = self.find('{%s}actions' % self.namespace)
         if actions_xml is not None:
             for action in self.next_actions:
                 action_xml = actions_xml.find('{%s}%s' % (self.namespace,
                                                           action))
                 if action_xml is not None:
-                    actions.append(action)
+                    actions.add(action)
         return actions
 
     def del_actions(self):

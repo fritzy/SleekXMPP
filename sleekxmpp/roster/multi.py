@@ -6,8 +6,10 @@
     See the file LICENSE for copying permission.
 """
 
+from sleekxmpp.stanza import Presence
 from sleekxmpp.xmlstream import JID
 from sleekxmpp.roster import RosterNode
+
 
 class Roster(object):
 
@@ -54,6 +56,33 @@ class Roster(object):
         if self.db:
             for node in self.db.entries(None, {}):
                 self.add(node)
+
+        self.xmpp.add_filter('out', self._save_last_status)
+
+    def _save_last_status(self, stanza):
+
+        if isinstance(stanza, Presence):
+            sfrom = stanza['from'].full
+            sto = stanza['to'].full
+
+            if not sfrom:
+                sfrom = self.xmpp.boundjid
+
+            if stanza['type'] in stanza.showtypes or \
+               stanza['type'] in ('available', 'unavailable'):
+                if sto:
+                    self[sfrom][sto].last_status = stanza
+                else:
+                    self[sfrom].last_status = stanza
+                    with self[sfrom]._last_status_lock:
+                        for jid in self[sfrom]:
+                            self[sfrom][jid].last_status = None
+
+                if not self.xmpp.sentpresence:
+                    self.xmpp.event('sent_presence')
+                    self.xmpp.sentpresence = True
+
+        return stanza
 
     def __getitem__(self, key):
         """
@@ -121,29 +150,27 @@ class Roster(object):
         for node in self:
             self[node].reset()
 
-    def send_presence(self, pshow=None, pstatus=None, ppriority=None,
-                      pto=None, pfrom=None, ptype=None, pnick=None):
+    def send_presence(self, **kwargs):
         """
         Create, initialize, and send a Presence stanza.
 
-        Forwards the send request to the appropriate roster to
-        perform the actual sending.
+        If no recipient is specified, send the presence immediately.
+        Otherwise, forward the send request to the recipient's roster
+        entry for processing.
 
         Arguments:
             pshow     -- The presence's show value.
             pstatus   -- The presence's status message.
             ppriority -- This connections' priority.
             pto       -- The recipient of a directed presence.
+            pfrom     -- The sender of a directed presence, which should
+                         be the owner JID plus resource.
             ptype     -- The type of presence, such as 'subscribe'.
-            pfrom     -- The sender of the presence.
             pnick     -- Optional nickname of the presence's sender.
         """
-        self[pfrom].send_presence(ptype=ptype,
-                                  pshow=pshow,
-                                  pstatus=pstatus,
-                                  ppriority=ppriority,
-                                  pnick=pnick,
-                                  pto=pto)
+        if self.xmpp.is_component and not kwargs.get('pfrom', ''):
+            kwargs['pfrom'] = self.jid
+        self.xmpp.send_presence(**kwargs)
 
     @property
     def auto_authorize(self):

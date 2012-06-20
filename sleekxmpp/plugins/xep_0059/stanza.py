@@ -74,7 +74,7 @@ class Set(ElementBase):
         if fi is not None:
             if val:
                 fi.attrib['index'] = val
-            else:
+            elif 'index' in fi.attrib:
                 del fi.attrib['index']
         elif val:
             fi = ET.Element("{%s}first" % (self.namespace))

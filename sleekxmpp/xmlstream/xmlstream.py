@@ -1018,7 +1018,8 @@ class XMLStream(object):
         self.configure_dns(resolver, domain=domain, port=port)
 
         return resolve(domain, port, service=self.dns_service,
-                                     resolver=resolver)
+                                     resolver=resolver,
+                                     use_ipv6=self.use_ipv6)
 
     def pick_dns_answer(self, domain, port=None):
         """Pick a server and port from DNS answers.

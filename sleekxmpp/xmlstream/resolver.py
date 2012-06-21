@@ -52,7 +52,8 @@ def default_resolver():
     return None
 
 
-def resolve(host, port=None, service=None, proto='tcp', resolver=None):
+def resolve(host, port=None, service=None, proto='tcp',
+            resolver=None, use_ipv6=True):
     """Peform DNS resolution for a given hostname.
 
     Resolution may perform SRV record lookups if a service and protocol
@@ -73,16 +74,23 @@ def resolve(host, port=None, service=None, proto='tcp', resolver=None):
     :param    proto: Optional SRV protocol name without leading underscore.
     :param resolver: Optionally provide a DNS resolver object that has
                      been custom configured.
+    :param use_ipv6: Optionally control the use of IPv6 in situations
+                     where it is either not available, or performance
+                     is degraded. Defaults to ``True``.
 
     :type     host: string
     :type     port: int
     :type  service: string
     :type    proto: string
     :type resolver: :class:`dns.resolver.Resolver`
+    :type use_ipv6: bool
 
     :return: An iterable of IP address, port pairs in the order
              dictated by SRV priorities and weights, if applicable.
     """
+    if not use_ipv6:
+        log.debug("DNS: Use of IPv6 has been disabled.")
+
     if resolver is None and USE_DNSPYTHON:
         resolver = dns.resolver.get_default_resolver()
 
@@ -98,13 +106,15 @@ def resolve(host, port=None, service=None, proto='tcp', resolver=None):
     except socket.error:
         pass
 
-    try:
-        # Likewise, If `host` is an IPv6 literal, we can return it immediately.
-        if hasattr(socket, 'inet_pton'):
-            ipv6 = socket.inet_pton(socket.AF_INET6, host)
-            yield (host, port)
-    except socket.error:
-        pass
+    if use_ipv6:
+        try:
+            # Likewise, If `host` is an IPv6 literal, we can return
+            # it immediately.
+            if hasattr(socket, 'inet_pton'):
+                ipv6 = socket.inet_pton(socket.AF_INET6, host)
+                yield (host, port)
+        except socket.error:
+            pass
 
     # If no service was provided, then we can just do A/AAAA lookups on the
     # provided host. Otherwise we need to get an ordered list of hosts to
@@ -117,10 +127,12 @@ def resolve(host, port=None, service=None, proto='tcp', resolver=None):
     for host, port in hosts:
         results = []
         if host == 'localhost':
-            results.append(('::1', port))
+            if use_ipv6:
+                results.append(('::1', port))
             results.append(('127.0.0.1', port))
-        for address in get_AAAA(host, resolver=resolver):
-            results.append((address, port))
+        if use_ipv6:
+            for address in get_AAAA(host, resolver=resolver):
+                results.append((address, port))
         for address in get_A(host, resolver=resolver):
             results.append((address, port))
 
@@ -160,13 +172,13 @@ def get_A(host, resolver=None):
         recs = resolver.query(host, dns.rdatatype.A)
         return [rec.to_text() for rec in recs]
     except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
-        log.debug("DNS: No A records for %s." % host)
+        log.debug("DNS: No A records for %s" % host)
         return []
     except dns.exception.Timeout:
-        log.debug("DNS: A record resolution timed out for %s." % host)
+        log.debug("DNS: A record resolution timed out for %s" % host)
         return []
     except dns.exception.DNSException as e:
-        log.debug("DNS: Error querying A records for %s." % host)
+        log.debug("DNS: Error querying A records for %s" % host)
         log.exception(e)
         return []
 
@@ -204,13 +216,13 @@ def get_AAAA(host, resolver=None):
         recs = resolver.query(host, dns.rdatatype.AAAA)
         return [rec.to_text() for rec in recs]
     except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
-        log.debug("DNS: No AAAA records for %s." % host)
+        log.debug("DNS: No AAAA records for %s" % host)
         return []
     except dns.exception.Timeout:
-        log.debug("DNS: AAAA record resolution timed out for %s." % host)
+        log.debug("DNS: AAAA record resolution timed out for %s" % host)
         return []
     except dns.exception.DNSException as e:
-        log.debug("DNS: Error querying AAAA records for %s." % host)
+        log.debug("DNS: Error querying AAAA records for %s" % host)
         log.exception(e)
         return []
 
@@ -244,7 +256,7 @@ def get_SRV(host, port, service, proto='tcp', resolver=None):
     if resolver is None:
         return [(host, port)]
 
-    log.debug("Querying SRV records for %s" % host)
+    log.debug("DNS: Querying SRV records for %s" % host)
     try:
         recs = resolver.query('_%s._%s.%s' % (service, proto, host),
                               dns.rdatatype.SRV)

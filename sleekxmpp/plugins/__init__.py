@@ -50,6 +50,7 @@ __all__ = [
     'xep_0199',  # Ping
     'xep_0202',  # Entity Time
     'xep_0203',  # Delayed Delivery
+    'xep_0221',  # Data Forms Media Element
     'xep_0222',  # Persistent Storage of Public Data via Pubsub
     'xep_0223',  # Persistent Storage of Private Data via Pubsub
     'xep_0224',  # Attention

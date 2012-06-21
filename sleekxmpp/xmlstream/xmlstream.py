@@ -212,6 +212,9 @@ class XMLStream(object):
         #: proxy based on the settings in :attr:`proxy_config`.
         self.use_proxy = False
 
+        #: If set to ``True``, attempt to use IPv6.
+        self.use_ipv6 = True
+
         #: An optional dictionary of proxy settings. It may provide:
         #: :host: The host offering proxy services.
         #: :port: The port for the proxy service.

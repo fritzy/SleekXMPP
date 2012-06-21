@@ -1003,11 +1003,11 @@ class ElementBase(object):
                 last_xml = element
             element = last_xml
 
-        if element.attrib.get('{%s}lang' % XML_NS, default_lang) != lang:
-            element = ET.Element(ename)
-            if lang:
+        if lang:
+            if element.attrib.get('{%s}lang' % XML_NS, default_lang) != lang:
+                element = ET.Element(ename)
                 element.attrib['{%s}lang' % XML_NS] = lang
-            parent.append(element)
+                parent.append(element)
 
         element.text = text
         return element

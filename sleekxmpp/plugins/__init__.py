@@ -46,10 +46,12 @@ __all__ = [
     'xep_0163',  # Personal Eventing Protocol
     'xep_0172',  # User Nickname
     'xep_0184',  # Message Receipts
+    'xep_0186',  # Invisible Command
     'xep_0198',  # Stream Management
     'xep_0199',  # Ping
     'xep_0202',  # Entity Time
     'xep_0203',  # Delayed Delivery
+    'xep_0221',  # Data Forms Media Element
     'xep_0222',  # Persistent Storage of Public Data via Pubsub
     'xep_0223',  # Persistent Storage of Private Data via Pubsub
     'xep_0224',  # Attention

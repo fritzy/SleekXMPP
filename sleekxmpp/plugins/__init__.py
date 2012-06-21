@@ -45,6 +45,7 @@ __all__ = [
     'xep_0163',  # Personal Eventing Protocol
     'xep_0172',  # User Nickname
     'xep_0184',  # Message Receipts
+    'xep_0186',  # Invisible Command
     'xep_0198',  # Stream Management
     'xep_0199',  # Ping
     'xep_0202',  # Entity Time

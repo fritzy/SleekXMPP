@@ -60,16 +60,17 @@ class Presence(RootStanza):
         set_priority -- Set the value of the <priority> element.
     """
 
-    namespace = 'jabber:client'
     name = 'presence'
-    interfaces = set(('type', 'to', 'from', 'id', 'show',
-                      'status', 'priority'))
-    sub_interfaces = set(('show', 'status', 'priority'))
+    namespace = 'jabber:client'
     plugin_attrib = name
+    interfaces = set(['type', 'to', 'from', 'id', 'show',
+                      'status', 'priority'])
+    sub_interfaces = set(['show', 'status', 'priority'])
+    lang_interfaces = set(['status'])
 
-    types = set(('available', 'unavailable', 'error', 'probe', 'subscribe',
-                 'subscribed', 'unsubscribe', 'unsubscribed'))
-    showtypes = set(('dnd', 'chat', 'xa', 'away'))
+    types = set(['available', 'unavailable', 'error', 'probe', 'subscribe',
+                 'subscribed', 'unsubscribe', 'unsubscribed'])
+    showtypes = set(['dnd', 'chat', 'xa', 'away'])
 
     def exception(self, e):
         """

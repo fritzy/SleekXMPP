@@ -134,6 +134,7 @@ class BaseXMPP(XMLStream):
             Callback('Presence',
                      MatchXPath("{%s}presence" % self.default_ns),
                      self._handle_presence))
+
         self.register_handler(
             Callback('Stream Error',
                      MatchXPath("{%s}error" % self.stream_ns),
@@ -657,6 +658,27 @@ class BaseXMPP(XMLStream):
 
     def _handle_stream_error(self, error):
         self.event('stream_error', error)
+
+        if error['condition'] == 'see-other-host':
+            other_host = error['see_other_host']
+
+            host = other_host
+            port = 5222
+
+            if '[' in other_host and ']' in other_host:
+                host = other_host.split(']')[0][1:]
+            elif ':' in other_host:
+                host = other_host.split(':')[0]
+
+            port_sec = other_host.split(']')[-1]
+            if ':' in port_sec:
+                port = int(port_sec.split(':')[1])
+
+            self.address = (host, port)
+            self.default_domain = host
+            self.dns_records = None
+            self.reconnect_delay = None
+            self.reconnect()
 
     def _handle_message(self, msg):
         """Process incoming message stanzas."""

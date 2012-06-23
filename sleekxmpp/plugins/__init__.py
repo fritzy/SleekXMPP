@@ -57,5 +57,8 @@ __all__ = [
     'xep_0224',  # Attention
     'xep_0231',  # Bits of Binary
     'xep_0249',  # Direct MUC Invitations
+    'xep_0256',  # Last Activity in Presence
     'xep_0258',  # Security Labels in XMPP
+    'xep_0270',  # XMPP Compliance Suites 2010
+    'xep_0302',  # XMPP Compliance Suites 2012
 ]

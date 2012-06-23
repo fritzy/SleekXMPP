@@ -1,5 +1,6 @@
 from sleekxmpp.test import *
 from sleekxmpp.xmlstream.stanzabase import ElementBase
+from sleekxmpp.thirdparty import OrderedDict
 
 
 class TestElementBase(SleekTest):
@@ -760,7 +761,7 @@ class TestElementBase(SleekTest):
           <foo xmlns="foo" />
         """)
 
-        self.assertFalse(stanza['bar'], 
+        self.assertFalse(stanza['bar'],
                 "Returned True for missing bool interface element.")
 
         stanza['bar'] = True
@@ -797,7 +798,7 @@ class TestElementBase(SleekTest):
             namespace = 'baz'
             plugin_attrib = name
             plugin_multi_attrib = 'bazs'
-           
+
         register_stanza_plugin(TestStanza, TestMultiStanza1, iterable=True)
         register_stanza_plugin(TestStanza, TestMultiStanza2, iterable=True)
 
@@ -829,9 +830,9 @@ class TestElementBase(SleekTest):
               <baz xmlns="baz" />
             """)
 
-        self.assertEqual(len(bars), 2, 
+        self.assertEqual(len(bars), 2,
                 "Wrong number of <bar /> stanzas: %s" % len(bars))
-        self.assertEqual(len(bazs), 2, 
+        self.assertEqual(len(bazs), 2,
                 "Wrong number of <baz /> stanzas: %s" % len(bazs))
 
     def testSetMultiAttrib(self):
@@ -853,7 +854,7 @@ class TestElementBase(SleekTest):
             namespace = 'baz'
             plugin_attrib = name
             plugin_multi_attrib = 'bazs'
-           
+
         register_stanza_plugin(TestStanza, TestMultiStanza1, iterable=True)
         register_stanza_plugin(TestStanza, TestMultiStanza2, iterable=True)
 
@@ -906,7 +907,7 @@ class TestElementBase(SleekTest):
             namespace = 'baz'
             plugin_attrib = name
             plugin_multi_attrib = 'bazs'
-           
+
         register_stanza_plugin(TestStanza, TestMultiStanza1, iterable=True)
         register_stanza_plugin(TestStanza, TestMultiStanza2, iterable=True)
 
@@ -937,6 +938,314 @@ class TestElementBase(SleekTest):
 
         self.assertEqual(len(stanza['substanzas']), 2,
             "Wrong number of substanzas: %s" % len(stanza['substanzas']))
+
+    def testDefaultLang(self):
+        """Test setting a normal subinterface when a default language is set"""
+
+        class TestStanza(ElementBase):
+            name = 'foo'
+            namespace = 'test'
+            interfaces = set(['test'])
+            sub_interfaces = interfaces
+            lang_interfaces = interfaces
+
+        stanza = TestStanza()
+        stanza['lang'] = 'sv'
+        stanza['test'] = 'hej'
+
+        self.check(stanza, """
+          <foo xmlns="test" xml:lang="sv">
+            <test>hej</test>
+          </foo>
+        """)
+
+        self.assertEqual(stanza['test'], 'hej',
+                "Incorrect subinterface value: %s" % stanza['test'])
+
+        self.assertEqual(stanza['test|sv'], 'hej',
+                "Incorrect subinterface value: %s" % stanza['test|sv'])
+
+    def testSpecifyLangWithDefault(self):
+        """Test specifying various languages."""
+
+        class TestStanza(ElementBase):
+            name = 'foo'
+            namespace = 'test'
+            interfaces = set(['test'])
+            sub_interfaces = interfaces
+            lang_interfaces = interfaces
+
+        stanza = TestStanza()
+        stanza['lang'] = 'sv'
+        stanza['test'] = 'hej'
+        stanza['test|en'] = 'hi'
+        stanza['test|es'] = 'hola'
+
+        self.check(stanza, """
+          <foo xmlns="test" xml:lang="sv">
+            <test>hej</test>
+            <test xml:lang="en">hi</test>
+            <test xml:lang="es">hola</test>
+          </foo>
+        """)
+
+        self.assertEqual(stanza['test'], 'hej',
+                "Incorrect subinterface value: %s" % stanza['test'])
+
+        self.assertEqual(stanza['test|sv'], 'hej',
+                "Incorrect subinterface value: %s" % stanza['test|sv'])
+
+        self.assertEqual(stanza['test|en'], 'hi',
+                "Incorrect subinterface value: %s" % stanza['test|en'])
+
+        self.assertEqual(stanza['test|es'], 'hola',
+                "Incorrect subinterface value: %s" % stanza['test|es'])
+
+    def testSpecifyLangWithNoDefault(self):
+        """Test specifying various languages."""
+
+        class TestStanza(ElementBase):
+            name = 'foo'
+            namespace = 'test'
+            interfaces = set(['test'])
+            sub_interfaces = interfaces
+            lang_interfaces = interfaces
+
+        stanza = TestStanza()
+        stanza['test'] = 'hej'
+        stanza['test|en'] = 'hi'
+        stanza['test|es'] = 'hola'
+
+        self.check(stanza, """
+          <foo xmlns="test">
+            <test>hej</test>
+            <test xml:lang="en">hi</test>
+            <test xml:lang="es">hola</test>
+          </foo>
+        """)
+
+        self.assertEqual(stanza['test'], 'hej',
+                "Incorrect subinterface value: %s" % stanza['test'])
+
+        self.assertEqual(stanza['test|en'], 'hi',
+                "Incorrect subinterface value: %s" % stanza['test|en'])
+
+        self.assertEqual(stanza['test|es'], 'hola',
+                "Incorrect subinterface value: %s" % stanza['test|es'])
+
+    def testModifyLangInterfaceWithDefault(self):
+        """Test resetting an interface when a default lang is used."""
+
+        class TestStanza(ElementBase):
+            name = 'foo'
+            namespace = 'test'
+            interfaces = set(['test'])
+            sub_interfaces = interfaces
+            lang_interfaces = interfaces
+
+        stanza = TestStanza()
+        stanza['lang'] = 'es'
+        stanza['test'] = 'hola'
+        stanza['test|en'] = 'hi'
+
+        self.check(stanza, """
+          <foo xmlns="test" xml:lang="es">
+            <test>hola</test>
+            <test xml:lang="en">hi</test>
+          </foo>
+        """)
+
+        stanza['test'] = 'adios'
+        stanza['test|en'] = 'bye'
+
+        self.check(stanza, """
+          <foo xmlns="test" xml:lang="es">
+            <test>adios</test>
+            <test xml:lang="en">bye</test>
+          </foo>
+        """)
+
+        self.assertEqual(stanza['test'], 'adios',
+                "Incorrect subinterface value: %s" % stanza['test'])
+
+        self.assertEqual(stanza['test|es'], 'adios',
+                "Incorrect subinterface value: %s" % stanza['test|es'])
+
+        self.assertEqual(stanza['test|en'], 'bye',
+                "Incorrect subinterface value: %s" % stanza['test|en'])
+
+        stanza['test|es'] = 'hola'
+
+        self.check(stanza, """
+          <foo xmlns="test" xml:lang="es">
+            <test>hola</test>
+            <test xml:lang="en">bye</test>
+          </foo>
+        """)
+
+        self.assertEqual(stanza['test'], 'hola',
+                "Incorrect subinterface value: %s" % stanza['test'])
+
+        self.assertEqual(stanza['test|es'], 'hola',
+                "Incorrect subinterface value: %s" % stanza['test|es'])
+
+    def testModifyLangInterfaceWithNoDefault(self):
+        """Test resetting an interface when no default lang is used."""
+
+        class TestStanza(ElementBase):
+            name = 'foo'
+            namespace = 'test'
+            interfaces = set(['test'])
+            sub_interfaces = interfaces
+            lang_interfaces = interfaces
+
+        stanza = TestStanza()
+        stanza['test'] = 'hola'
+        stanza['test|en'] = 'hi'
+
+        self.check(stanza, """
+          <foo xmlns="test">
+            <test>hola</test>
+            <test xml:lang="en">hi</test>
+          </foo>
+        """)
+
+        stanza['test'] = 'adios'
+        stanza['test|en'] = 'bye'
+
+        self.check(stanza, """
+          <foo xmlns="test">
+            <test>adios</test>
+            <test xml:lang="en">bye</test>
+          </foo>
+        """)
+
+        self.assertEqual(stanza['test'], 'adios',
+                "Incorrect subinterface value: %s" % stanza['test'])
+
+        self.assertEqual(stanza['test'], 'adios',
+                "Incorrect subinterface value: %s" % stanza['test|es'])
+
+        self.assertEqual(stanza['test|en'], 'bye',
+                "Incorrect subinterface value: %s" % stanza['test|en'])
+
+    def testDelInterfacesWithDefaultLang(self):
+        """Test deleting interfaces with a default lang set."""
+
+        class TestStanza(ElementBase):
+            name = 'foo'
+            namespace = 'test'
+            interfaces = set(['test'])
+            sub_interfaces = interfaces
+            lang_interfaces = interfaces
+
+        stanza = TestStanza()
+        stanza['lang'] = 'en'
+        stanza['test'] = 'hi'
+        stanza['test|no'] = 'hej'
+        stanza['test|fr'] = 'bonjour'
+
+        self.check(stanza, """
+          <foo xmlns="test" xml:lang="en">
+            <test>hi</test>
+            <test xml:lang="no">hej</test>
+            <test xml:lang="fr">bonjour</test>
+          </foo>
+        """)
+
+        del stanza['test']
+
+        self.check(stanza, """
+          <foo xmlns="test" xml:lang="en">
+            <test xml:lang="no">hej</test>
+            <test xml:lang="fr">bonjour</test>
+          </foo>
+        """)
+
+        del stanza['test|no']
+
+        self.check(stanza, """
+          <foo xmlns="test" xml:lang="en">
+            <test xml:lang="fr">bonjour</test>
+          </foo>
+        """)
+
+    def testDelInterfacesWithNoDefaultLang(self):
+        """Test deleting interfaces with no default lang set."""
+
+        class TestStanza(ElementBase):
+            name = 'foo'
+            namespace = 'test'
+            interfaces = set(['test'])
+            sub_interfaces = interfaces
+            lang_interfaces = interfaces
+
+        stanza = TestStanza()
+        stanza['test'] = 'hi'
+        stanza['test|no'] = 'hej'
+        stanza['test|fr'] = 'bonjour'
+
+        self.check(stanza, """
+          <foo xmlns="test">
+            <test>hi</test>
+            <test xml:lang="no">hej</test>
+            <test xml:lang="fr">bonjour</test>
+          </foo>
+        """)
+
+        del stanza['test']
+
+        self.check(stanza, """
+          <foo xmlns="test">
+            <test xml:lang="no">hej</test>
+            <test xml:lang="fr">bonjour</test>
+          </foo>
+        """)
+
+        del stanza['test|no']
+
+        self.check(stanza, """
+          <foo xmlns="test">
+            <test xml:lang="fr">bonjour</test>
+          </foo>
+        """)
+
+    def testStarLang(self):
+        """Test using interface|*."""
+
+        class TestStanza(ElementBase):
+            name = 'foo'
+            namespace = 'test'
+            interfaces = set(['test'])
+            sub_interfaces = interfaces
+            lang_interfaces = interfaces
+
+        data = OrderedDict()
+        data['en'] = 'hi'
+        data['fr'] = 'bonjour'
+        data['no'] = 'hej'
+
+        stanza = TestStanza()
+        stanza['test|*'] = data
+
+        self.check(stanza, """
+          <foo xmlns="test">
+            <test xml:lang="en">hi</test>
+            <test xml:lang="fr">bonjour</test>
+            <test xml:lang="no">hej</test>
+          </foo>
+        """)
+
+        data2 = stanza['test|*']
+
+        self.assertEqual(data, data2,
+                "Did not extract expected language data: %s" % data2)
+
+        del stanza['test|*']
+
+        self.check(stanza, """
+          <foo xmlns="test" />
+        """)
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestElementBase)

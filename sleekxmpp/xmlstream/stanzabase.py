@@ -421,12 +421,6 @@ class ElementBase(object):
         #: ``'{namespace}elementname'``.
         self.tag = self.tag_name()
 
-        if 'lang' not in self.interfaces:
-            if isinstance(self.interfaces, tuple):
-                self.interfaces += ('lang',)
-            else:
-                self.interfaces.add('lang')
-
         #: A :class:`weakref.weakref` to the parent stanza, if there is one.
         #: If not, then :attr:`parent` is ``None``.
         self.parent = None
@@ -574,6 +568,7 @@ class ElementBase(object):
         .. versionadded:: 1.0-Beta1
         """
         values = {}
+        values['lang'] = self['lang']
         for interface in self.interfaces:
             values[interface] = self[interface]
             if interface in self.lang_interfaces:
@@ -629,6 +624,8 @@ class ElementBase(object):
                                 sub.values = subdict
                                 self.iterables.append(sub)
                                 break
+            elif interface == 'lang':
+                self[interface] = value
             elif interface in self.interfaces:
                 self[full_interface] = value
             elif interface in self.plugin_attrib_map:
@@ -678,7 +675,7 @@ class ElementBase(object):
 
         if attrib == 'substanzas':
             return self.iterables
-        elif attrib in self.interfaces:
+        elif attrib in self.interfaces or attrib == 'lang':
             get_method = "get_%s" % attrib.lower()
             get_method2 = "get%s" % attrib.title()
 
@@ -752,7 +749,7 @@ class ElementBase(object):
         if lang and attrib in self.lang_interfaces:
             kwargs['lang'] = lang
 
-        if attrib in self.interfaces:
+        if attrib in self.interfaces or attrib == 'lang':
             if value is not None:
                 set_method = "set_%s" % attrib.lower()
                 set_method2 = "set%s" % attrib.title()
@@ -838,7 +835,7 @@ class ElementBase(object):
         if lang and attrib in self.lang_interfaces:
             kwargs['lang'] = lang
 
-        if attrib in self.interfaces:
+        if attrib in self.interfaces or attrib == 'lang':
             del_method = "del_%s" % attrib.lower()
             del_method2 = "del%s" % attrib.title()
 
@@ -973,10 +970,6 @@ class ElementBase(object):
         :param keep: Indicates if the element should be kept if its text is
                      removed. Defaults to False.
         """
-        path = self._fix_ns(name, split=True)
-        element = self.xml.find(name)
-        parent = self.xml
-
         default_lang = self.get_lang()
         if lang is None:
             lang = default_lang
@@ -984,32 +977,51 @@ class ElementBase(object):
         if not text and not keep:
             return self._del_sub(name, lang=lang)
 
-        if element is None:
-            # We need to add the element. If the provided name was
-            # an XPath expression, some of the intermediate elements
-            # may already exist. If so, we want to use those instead
-            # of generating new elements.
-            last_xml = self.xml
-            walked = []
-            for ename in path:
-                walked.append(ename)
-                element = self.xml.find("/".join(walked))
-                if element is None:
-                    element = ET.Element(ename)
-                    if lang:
-                        element.attrib['{%s}lang' % XML_NS] = lang
-                    last_xml.append(element)
-                parent = last_xml
-                last_xml = element
-            element = last_xml
+        path = self._fix_ns(name, split=True)
+        name = path[-1]
+        parent = self.xml
 
-        if lang:
-            if element.attrib.get('{%s}lang' % XML_NS, default_lang) != lang:
-                element = ET.Element(ename)
-                element.attrib['{%s}lang' % XML_NS] = lang
-                parent.append(element)
+        # The first goal is to find the parent of the subelement, or, if
+        # we can't find that, the closest grandparent element.
+        missing_path = []
+        search_order = path[:-1]
+        while search_order:
+            parent = self.xml.find('/'.join(search_order))
+            ename = search_order.pop()
+            if parent is not None:
+                break
+            else:
+                missing_path.append(ename)
+        missing_path.reverse()
 
+        # Find all existing elements that match the desired
+        # element path (there may be multiples due to different
+        # languages values).
+        if parent is not None:
+            elements = self.xml.findall('/'.join(path))
+        else:
+            parent = self.xml
+            elements = []
+
+        # Insert the remaining grandparent elements that don't exist yet.
+        for ename in missing_path:
+            element = ET.Element(ename)
+            parent.append(element)
+            parent = element
+
+        # Re-use an existing element with the proper language, if one exists.
+        for element in elements:
+            elang = element.attrib.get('{%s}lang' % XML_NS, default_lang)
+            if not lang and elang == default_lang or lang and lang == elang:
+                element.text = text
+                return element
+
+        # No useable element exists, so create a new one.
+        element = ET.Element(name)
         element.text = text
+        if lang and lang != default_lang:
+            element.attrib['{%s}lang' % XML_NS] = lang
+        parent.append(element)
         return element
 
     def _set_all_sub_text(self, name, values, keep=False, lang=None):
@@ -1184,6 +1196,7 @@ class ElementBase(object):
         out = []
         out += [x for x in self.interfaces]
         out += [x for x in self.loaded_plugins]
+        out.append('lang')
         if self.iterables:
             out.append('substanzas')
         return out
@@ -1263,7 +1276,7 @@ class ElementBase(object):
         """
         return "{%s}%s" % (cls.namespace, cls.name)
 
-    def get_lang(self):
+    def get_lang(self, lang=None):
         result = self.xml.attrib.get('{%s}lang' % XML_NS, '')
         if not result and self.parent and self.parent():
             return self.parent()['lang']

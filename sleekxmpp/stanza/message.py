@@ -54,13 +54,14 @@ class Message(RootStanza):
         del_mucnick -- Dummy method to prevent deletion.
     """
 
-    namespace = 'jabber:client'
     name = 'message'
-    interfaces = set(('type', 'to', 'from', 'id', 'body', 'subject',
-                      'mucroom', 'mucnick'))
-    sub_interfaces = set(('body', 'subject'))
+    namespace = 'jabber:client'
     plugin_attrib = name
-    types = set((None, 'normal', 'chat', 'headline', 'error', 'groupchat'))
+    interfaces = set(['type', 'to', 'from', 'id', 'body', 'subject',
+                      'mucroom', 'mucnick'])
+    sub_interfaces = set(['body', 'subject'])
+    lang_interfaces = sub_interfaces
+    types = set([None, 'normal', 'chat', 'headline', 'error', 'groupchat'])
 
     def get_type(self):
         """

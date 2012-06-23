@@ -7,7 +7,7 @@
 """
 
 from sleekxmpp.stanza.rootstanza import RootStanza
-from sleekxmpp.xmlstream import StanzaBase
+from sleekxmpp.xmlstream import StanzaBase, ET
 
 
 class Message(RootStanza):
@@ -58,10 +58,10 @@ class Message(RootStanza):
     namespace = 'jabber:client'
     plugin_attrib = name
     interfaces = set(['type', 'to', 'from', 'id', 'body', 'subject',
-                      'mucroom', 'mucnick'])
-    sub_interfaces = set(['body', 'subject'])
+                      'thread', 'parent_thread', 'mucroom', 'mucnick'])
+    sub_interfaces = set(['body', 'subject', 'thread'])
     lang_interfaces = sub_interfaces
-    types = set([None, 'normal', 'chat', 'headline', 'error', 'groupchat'])
+    types = set(['normal', 'chat', 'headline', 'error', 'groupchat'])
 
     def get_type(self):
         """
@@ -72,6 +72,31 @@ class Message(RootStanza):
         Returns 'normal' if no type attribute is present.
         """
         return self._get_attr('type', 'normal')
+
+    def get_parent_thread(self):
+        """Return the message thread's parent thread."""
+        thread = self.xml.find('{%s}thread' % self.namespace)
+        if thread is not None:
+            return thread.attrib.get('parent', '')
+        return ''
+
+    def set_parent_thread(self, value):
+        """Add or change the message thread's parent thread."""
+        thread = self.xml.find('{%s}thread' % self.namespace)
+        if value:
+            if thread is None:
+                thread = ET.Element('{%s}thread' % self.namespace)
+                self.xml.append(thread)
+            thread.attrib['parent'] = value
+        else:
+            if thread is not None and 'parent' in thread.attrib:
+                del thread.attrib['parent']
+
+    def del_parent_thread(self):
+        """Delete the message thread's parent reference."""
+        thread = self.xml.find('{%s}thread' % self.namespace)
+        if thread is not None and 'parent' in thread.attrib:
+            del thread.attrib['parent']
 
     def chat(self):
         """Set the message type to 'chat'."""
@@ -97,9 +122,15 @@ class Message(RootStanza):
             clear -- Indicates if existing content should be removed
                      before replying. Defaults to True.
         """
+        thread = self['thread']
+        parent = self['parent_thread']
+
         StanzaBase.reply(self, clear)
         if self['type'] == 'groupchat':
             self['to'] = self['to'].bare
+
+        self['thread'] = thread
+        self['parent_thread'] = parent
 
         del self['id']
 

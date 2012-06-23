@@ -9,7 +9,7 @@
 import logging
 
 from sleekxmpp import Presence
-from sleekxmpp.plugins import BasePlugin
+from sleekxmpp.plugins import BasePlugin, register_plugin
 from sleekxmpp.xmlstream import register_stanza_plugin
 
 from sleekxmpp.plugins.xep_0012 import stanza, LastActivity
@@ -62,3 +62,6 @@ class XEP_0256(BasePlugin):
                 if seconds is not None:
                     stanza['last_activity']['seconds'] = seconds
         return stanza
+
+
+register_plugin(XEP_0256)

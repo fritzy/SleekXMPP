@@ -6,7 +6,7 @@
     See the file LICENSE for copying permission.
 """
 
-from sleekxmpp.plugins import BasePlugin
+from sleekxmpp.plugins import BasePlugin, register_plugin
 
 
 class XEP_0302(BasePlugin):
@@ -16,3 +16,6 @@ class XEP_0302(BasePlugin):
     dependencies = set(['xep_0030', 'xep_0115', 'xep_0054',
                         'xep_0163', 'xep_0045', 'xep_0085',
                         'xep_0184', 'xep_0198'])
+
+
+register_plugin(XEP_0302)

@@ -122,6 +122,19 @@ if __name__ == '__main__':
     xmpp.register_plugin('xep_0060') # PubSub
     xmpp.register_plugin('xep_0199') # XMPP Ping
 
+    # If you are connecting to Facebook and wish to use the
+    # X-FACEBOOK-PLATFORM authentication mechanism, you will need
+    # your API key and an access token. Then you'll set:
+    # xmpp.credentials['api_key'] = 'THE_API_KEY'
+    # xmpp.credentials['access_token'] = 'THE_ACCESS_TOKEN'
+
+    # If you are connecting to MSN, then you will need an
+    # access token, and it does not matter what JID you
+    # specify other than that the domain is 'messenger.live.com',
+    # so '_@messenger.live.com' will work. You can specify
+    # the access token as so:
+    # xmpp.credentials['access_token'] = 'THE_ACCESS_TOKEN'
+
     # If you are working with an OpenFire server, you may need
     # to adjust the SSL version used:
     # xmpp.ssl_version = ssl.PROTOCOL_SSLv3

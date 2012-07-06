@@ -270,8 +270,9 @@ class ClientXMPP(BaseXMPP):
         roster = self.client_roster
         if iq['roster']['ver']:
             roster.version = iq['roster']['ver']
-        for jid in iq['roster']['items']:
-            item = iq['roster']['items'][jid]
+        items = iq['roster']['items']
+        for jid in items:
+            item = items[jid]
             roster[jid]['name'] = item['name']
             roster[jid]['groups'] = item['groups']
             roster[jid]['from'] = item['subscription'] in ['from', 'both']

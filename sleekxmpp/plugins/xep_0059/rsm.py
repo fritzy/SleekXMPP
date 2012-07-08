@@ -47,6 +47,7 @@ class ResultIterator():
         self.start = start
         self.interface = interface
         self.reverse = reverse
+        self._stop = False
 
     def __iter__(self):
         return self
@@ -62,6 +63,8 @@ class ResultIterator():
               results will be the items before the current page
               of items.
         """
+        if self._stop:
+            raise StopIteration
         self.query[self.interface]['rsm']['before'] = self.reverse
         self.query['id'] = self.query.stream.new_id()
         self.query[self.interface]['rsm']['max'] = str(self.amount)
@@ -84,7 +87,7 @@ class ResultIterator():
                 first = int(r[self.interface]['rsm']['first_index'])
                 num_items = len(r[self.interface]['substanzas'])
                 if first + num_items == count:
-                    raise StopIteration
+                    self._stop = True
 
             if self.reverse:
                 self.start = r[self.interface]['rsm']['first']

@@ -16,6 +16,7 @@ from __future__ import with_statement, unicode_literals
 
 import sys
 import logging
+import threading
 
 import sleekxmpp
 from sleekxmpp import plugins, features, roster
@@ -69,7 +70,10 @@ class BaseXMPP(XMLStream):
 
         #: The JabberID (JID) used by this connection.
         self.boundjid = JID(jid)
+
         self._expected_server_name = self.boundjid.host
+
+        self.session_bind_event = threading.Event()
 
         #: A dictionary mapping plugin names to plugins.
         self.plugin = PluginManager(self)
@@ -655,6 +659,7 @@ class BaseXMPP(XMLStream):
     def _handle_disconnected(self, event):
         """When disconnected, reset the roster"""
         self.roster.reset()
+        self.session_bind_event.clear()
 
     def _handle_stream_error(self, error):
         self.event('stream_error', error)

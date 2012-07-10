@@ -173,6 +173,12 @@ class ClientXMPP(BaseXMPP):
         self._stream_feature_order.append((order, name))
         self._stream_feature_order.sort()
 
+    def unregister_feature(self, name, order):
+        if name in self._stream_feature_handlers:
+            del self._stream_feature_handlers[name]
+        self._stream_feature_order.remove((order, name))
+        self._stream_feature_order.sort()
+
     def update_roster(self, jid, name=None, subscription=None, groups=[],
                             block=True, timeout=None, callback=None):
         """Add or change a roster item.

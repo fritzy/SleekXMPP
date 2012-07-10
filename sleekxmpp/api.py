@@ -99,7 +99,7 @@ class APIRegistry(object):
         """
         self._setup(ctype, op)
 
-        if jid in (None, ''):
+        if not jid:
             jid = self.xmpp.boundjid
         if jid and not isinstance(jid, JID):
             jid = JID(jid)
@@ -113,7 +113,7 @@ class APIRegistry(object):
             else:
                 jid = jid.full
         else:
-            if self.settings[ctype].get('client_bare', True):
+            if self.settings[ctype].get('client_bare', False):
                 jid = jid.bare
             else:
                 jid = jid.full

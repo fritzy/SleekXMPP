@@ -32,6 +32,12 @@ class XEP_0107(BasePlugin):
 
     def plugin_init(self):
         register_stanza_plugin(Message, UserMood)
+
+    def plugin_end(self):
+        self.xmpp['xep_0030'].del_feature(feature=UserMood.namespace)
+        self.xmpp['xep_0163'].remove_interest(UserMood.namespace)
+
+    def session_bind(self, jid):
         self.xmpp['xep_0163'].register_pep('user_mood', UserMood)
 
     def publish_mood(self, value=None, text=None, options=None,

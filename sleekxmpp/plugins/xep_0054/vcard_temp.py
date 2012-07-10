@@ -37,7 +37,6 @@ class XEP_0054(BasePlugin):
         """
         register_stanza_plugin(Iq, VCardTemp)
 
-        self.xmpp['xep_0030'].add_feature('vcard-temp')
 
         self.api.register(self._set_vcard, 'set_vcard', default=True)
         self.api.register(self._get_vcard, 'get_vcard', default=True)
@@ -49,6 +48,13 @@ class XEP_0054(BasePlugin):
                 Callback('VCardTemp',
                     StanzaPath('iq/vcard_temp'),
                     self._handle_get_vcard))
+
+    def plugin_end(self):
+        self.xmpp.remove_handler('VCardTemp')
+        self.xmpp['xep_0030'].del_feature(feature='vcard-temp')
+
+    def session_bind(self, jid):
+        self.xmpp['xep_0030'].add_feature('vcard-temp')
 
     def make_vcard(self):
         return VCardTemp()

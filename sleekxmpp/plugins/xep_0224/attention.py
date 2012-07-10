@@ -39,6 +39,11 @@ class XEP_0224(BasePlugin):
                     StanzaPath('message/attention'),
                     self._handle_attention))
 
+    def plugin_end(self):
+        self.xmpp['xep_0030'].del_feature(feature=stanza.Attention.namespace)
+        self.xmpp.remove_handler('Attention')
+
+    def session_bind(self, jid):
         self.xmpp['xep_0030'].add_feature(stanza.Attention.namespace)
 
     def request_attention(self, to, mfrom=None, mbody=''):

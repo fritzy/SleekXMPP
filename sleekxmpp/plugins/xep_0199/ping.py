@@ -74,6 +74,16 @@ class XEP_0199(BasePlugin):
             self.xmpp.add_event_handler('session_end',
                                         self._handle_session_end)
 
+    def plugin_end(self):
+        self.xmpp['xep_0030'].del_feature(feature=Ping.namespace)
+        self.xmpp.remove_handler('Ping')
+        if self.keepalive:
+            self.xmpp.del_event_handler('session_start',
+                                        self._handle_keepalive)
+            self.xmpp.del_event_handler('session_end',
+                                        self._handle_session_end)
+
+    def session_bind(self, jid):
         self.xmpp['xep_0030'].add_feature(Ping.namespace)
 
     def _handle_keepalive(self, event):

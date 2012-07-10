@@ -53,6 +53,13 @@ class XEP_0060(BasePlugin):
                     StanzaPath('message/pubsub_event/subscription'),
                     self._handle_event_subscription))
 
+    def plugin_end(self):
+        self.xmpp.remove_handler('Pubsub Event: Items')
+        self.xmpp.remove_handler('Pubsub Event: Purge')
+        self.xmpp.remove_handler('Pubsub Event: Delete')
+        self.xmpp.remove_handler('Pubsub Event: Configuration')
+        self.xmpp.remove_handler('Pubsub Event: Subscription')
+
     def _handle_event_items(self, msg):
         """Raise events for publish and retraction notifications."""
         node = msg['pubsub_event']['items']['node']

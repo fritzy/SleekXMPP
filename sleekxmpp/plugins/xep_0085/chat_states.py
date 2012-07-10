@@ -43,6 +43,10 @@ class XEP_0085(BasePlugin):
         register_stanza_plugin(Message, stanza.Inactive)
         register_stanza_plugin(Message, stanza.Paused)
 
+    def plugin_end(self):
+        self.xmpp.remove_handler('Chat State')
+
+    def session_bind(self, jid):
         self.xmpp.plugin['xep_0030'].add_feature(ChatState.namespace)
 
     def _handle_chat_state(self, msg):

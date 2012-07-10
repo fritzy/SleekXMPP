@@ -62,6 +62,12 @@ class XEP_0066(BasePlugin):
                          StanzaPath('iq@type=set/oob_transfer'),
                          self._handle_transfer))
 
+    def plugin_end(self):
+        self.xmpp.remove_handler('OOB Transfer')
+        self.xmpp['xep_0030'].del_feature(feature=stanza.OOBTransfer.namespace)
+        self.xmpp['xep_0030'].del_feature(feature=stanza.OOB.namespace)
+
+    def session_bind(self, jid):
         self.xmpp['xep_0030'].add_feature(stanza.OOBTransfer.namespace)
         self.xmpp['xep_0030'].add_feature(stanza.OOB.namespace)
 

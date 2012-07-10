@@ -28,8 +28,11 @@ class XEP_0080(BasePlugin):
     dependencies = set(['xep_0163'])
     stanza = stanza
 
-    def plugin_init(self):
-        """Start the XEP-0080 plugin."""
+    def plugin_end(self):
+        self.xmpp['xep_0163'].remove_interest(Geoloc.namespace)
+        self.xmpp['xep_0030'].del_feature(feature=Geoloc.namespace)
+
+    def session_bind(self, jid):
         self.xmpp['xep_0163'].register_pep('user_location', Geoloc)
 
     def publish_location(self, **kwargs):

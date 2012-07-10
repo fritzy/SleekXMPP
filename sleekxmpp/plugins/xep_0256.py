@@ -36,6 +36,10 @@ class XEP_0256(BasePlugin):
 
         self._initial_presence = set()
 
+    def plugin_end(self):
+        self.xmpp.del_filter('out', self._initial_presence_activity)
+        self.xmpp.del_event_handler('connected', self._reset_presence_activity)
+
     def _reset_presence_activity(self, e):
         self._initial_presence = set()
 

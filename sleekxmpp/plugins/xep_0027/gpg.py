@@ -79,6 +79,13 @@ class XEP_0027(BasePlugin):
                     StanzaPath('message/encrypted'),
                     self._handle_encrypted_message))
 
+    def plugin_end(self):
+        self.xmpp.remove_handler('Encrypted Message')
+        self.xmpp.remove_handler('Signed Presence')
+        self.xmpp.del_filter('out', self._sign_presence)
+        self.xmpp.del_event_handler('unverified_signed_presence',
+                self._handle_unverified_signed_presence)
+
     def _sign_presence(self, stanza):
         if isinstance(stanza, Presence):
             if stanza['type'] == 'available' or \

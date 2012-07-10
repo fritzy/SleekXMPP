@@ -74,7 +74,7 @@ class XEP_0163(BasePlugin):
                          be a list of such namespaces.
             jid       -- Optionally specify the JID.
         """
-        if not isinstance(namespace, set) and not isinstance(namespace, list):
+        if not isinstance(namespace, (set, list)):
             namespace = [namespace]
 
         for ns in namespace:

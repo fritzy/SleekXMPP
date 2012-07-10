@@ -26,7 +26,11 @@ class XEP_0108(BasePlugin):
     dependencies = set(['xep_0163'])
     stanza = stanza
 
-    def plugin_init(self):
+    def plugin_end(self):
+        self.xmpp['xep_0030'].del_feature(feature=UserActivity.namespace)
+        self.xmpp['xep_0163'].remove_interest(UserActivity.namespace)
+
+    def session_bind(self, jid):
         self.xmpp['xep_0163'].register_pep('user_activity', UserActivity)
 
     def publish_activity(self, general, specific=None, text=None, options=None,

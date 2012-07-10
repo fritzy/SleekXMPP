@@ -133,6 +133,27 @@ class XEP_0198(BasePlugin):
 
         self.xmpp.add_event_handler('session_end', self.session_end)
 
+    def plugin_end(self):
+        if self.xmpp.is_component:
+            return
+
+        self.xmpp.unregister_feature('sm', self.config.get('order', 10100))
+        self.xmpp.unregister_feature('sm', self.config.get('resume_order', 9000))
+        self.xmpp.del_event_handler('session_end', self.session_end)
+        self.xmpp.del_filter('in', self._handle_incoming)
+        self.xmpp.del_filter('out_sync', self._handle_outgoing)
+        self.xmpp.remove_handler('Stream Management Enabled')
+        self.xmpp.remove_handler('Stream Management Resumed')
+        self.xmpp.remove_handler('Stream Management Failed')
+        self.xmpp.remove_handler('Stream Management Ack')
+        self.xmpp.remove_handler('Stream Management Request Ack')
+        self.xmpp.remove_stanza(stanza.Enable)
+        self.xmpp.remove_stanza(stanza.Enabled)
+        self.xmpp.remove_stanza(stanza.Resume)
+        self.xmpp.remove_stanza(stanza.Resumed)
+        self.xmpp.remove_stanza(stanza.Ack)
+        self.xmpp.remove_stanza(stanza.RequestAck)
+
     def session_end(self, event):
         """Reset stream management state."""
         self.enabled.clear()

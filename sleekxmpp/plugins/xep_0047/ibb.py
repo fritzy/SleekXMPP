@@ -51,6 +51,13 @@ class XEP_0047(BasePlugin):
             StanzaPath('iq@type=set/ibb_data'),
             self._handle_data))
 
+    def plugin_end(self):
+        self.xmpp.remove_handler('IBB Open')
+        self.xmpp.remove_handler('IBB Close')
+        self.xmpp.remove_handler('IBB Data')
+        self.xmpp['xep_0030'].del_feature(feature='http://jabber.org/protocol/ibb')
+
+    def session_bind(self, jid):
         self.xmpp['xep_0030'].add_feature('http://jabber.org/protocol/ibb')
 
     def _accept_stream(self, iq):

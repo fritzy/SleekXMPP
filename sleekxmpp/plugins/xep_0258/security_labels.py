@@ -25,10 +25,14 @@ class XEP_0258(BasePlugin):
     stanza = stanza
 
     def plugin_init(self):
-        self.xmpp['xep_0030'].add_feature(SecurityLabel.namespace)
-
         register_stanza_plugin(Message, SecurityLabel)
         register_stanza_plugin(Iq, Catalog)
+
+    def plugin_end(self):
+        self.xmpp['xep_0030'].del_feature(feature=SecurityLabel.namespace)
+
+    def session_bind(self, jid):
+        self.xmpp['xep_0030'].add_feature(SecurityLabel.namespace)
 
     def get_catalog(self, jid, ifrom=None, block=True,
                           callback=None, timeout=None):

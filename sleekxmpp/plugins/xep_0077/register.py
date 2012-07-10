@@ -34,9 +34,7 @@ class XEP_0077(BasePlugin):
         register_stanza_plugin(StreamFeatures, RegisterFeature)
         register_stanza_plugin(Iq, Register)
 
-        if self.xmpp.is_component:
-            pass
-        else:
+        if not self.xmpp.is_component:
             self.xmpp.register_feature('register',
                 self._handle_register_feature,
                 restart=False,
@@ -44,6 +42,10 @@ class XEP_0077(BasePlugin):
 
         register_stanza_plugin(Register, self.xmpp['xep_0004'].stanza.Form)
         register_stanza_plugin(Register, self.xmpp['xep_0066'].stanza.OOB)
+
+    def plugin_end(self):
+        if not self.xmpp.is_component:
+            self.xmpp.unregister_feature('register', self.config.get('order', 50))
 
     def _handle_register_feature(self, features):
         if 'mechanisms' in self.xmpp.features:

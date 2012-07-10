@@ -954,6 +954,10 @@ class XMLStream(object):
         else:
             self.__filters[mode].append(handler)
 
+    def del_filter(self, mode, handler):
+        """Remove an incoming or outgoing filter."""
+        self.__filters[mode].remove(handler)
+
     def add_handler(self, mask, pointer, name=None, disposable=False,
                     threaded=False, filter=False, instream=False):
         """A shortcut method for registering a handler using XML masks.

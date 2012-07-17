@@ -50,7 +50,8 @@ class FeatureBind(BasePlugin):
 
         self.xmpp.set_jid(response['bind']['jid'])
         self.xmpp.bound = True
-        self.xmpp.event('session_bind', self.xmpp.boundjid, direct=True)
+        self.xmpp.event('session_bind', self.xmpp.boundjid.full, direct=True)
+        self.xmpp.session_bind_event.set()
 
         self.xmpp.features.add('bind')
 

@@ -39,6 +39,11 @@ class XEP_0249(BasePlugin):
 
         register_stanza_plugin(Message, Invite)
 
+    def plugin_end(self):
+        self.xmpp['xep_0030'].del_feature(feature=Invite.namespace)
+        self.xmpp.remove_handler('Direct MUC Invitations')
+
+    def session_bind(self, jid):
         self.xmpp['xep_0030'].add_feature(Invite.namespace)
 
     def _handle_invite(self, msg):

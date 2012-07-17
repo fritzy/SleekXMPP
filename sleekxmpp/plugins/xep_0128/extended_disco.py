@@ -51,8 +51,6 @@ class XEP_0128(BasePlugin):
 
         register_stanza_plugin(DiscoInfo, Form, iterable=True)
 
-    def post_init(self):
-        """Handle cross-plugin dependencies."""
         self.disco = self.xmpp['xep_0030']
         self.static = StaticExtendedDisco(self.disco.static)
 

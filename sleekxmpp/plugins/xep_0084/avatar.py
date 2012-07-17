@@ -28,13 +28,18 @@ class XEP_0084(BasePlugin):
     stanza = stanza
 
     def plugin_init(self):
-        self.xmpp['xep_0163'].register_pep('avatar_metadata', MetaData)
-
         pubsub_stanza = self.xmpp['xep_0060'].stanza
         register_stanza_plugin(pubsub_stanza.Item, Data)
         register_stanza_plugin(pubsub_stanza.EventItem, Data)
 
         self.xmpp['xep_0060'].map_node_event(Data.namespace, 'avatar_data')
+
+    def plugin_end(self):
+        self.xmpp['xep_0030'].del_feature(feature=MetaData.namespace)
+        self.xmpp['xep_0163'].remove_interest(MetaData.namespace)
+
+    def session_bind(self, jid):
+        self.xmpp['xep_0163'].register_pep('avatar_metadata', MetaData)
 
     def retrieve_avatar(self, jid, id, url=None, ifrom=None, block=True,
                               callback=None, timeout=None):

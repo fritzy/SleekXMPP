@@ -9,6 +9,7 @@
 import logging
 
 from sleekxmpp import Presence
+from sleekxmpp.exceptions import XMPPError
 from sleekxmpp.plugins import BasePlugin, register_plugin
 from sleekxmpp.xmlstream import register_stanza_plugin
 
@@ -34,6 +35,10 @@ class XEP_0256(BasePlugin):
         self.xmpp.add_event_handler('connected', self._reset_presence_activity)
 
         self._initial_presence = set()
+
+    def plugin_end(self):
+        self.xmpp.del_filter('out', self._initial_presence_activity)
+        self.xmpp.del_event_handler('connected', self._reset_presence_activity)
 
     def _reset_presence_activity(self, e):
         self._initial_presence = set()

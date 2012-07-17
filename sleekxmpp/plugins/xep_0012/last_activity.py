@@ -37,12 +37,10 @@ class XEP_0012(BasePlugin):
 
         self._last_activities = {}
 
-        self.xmpp.registerHandler(
+        self.xmpp.register_handler(
             Callback('Last Activity',
                  StanzaPath('iq@type=get/last_activity'),
                  self._handle_get_last_activity))
-
-        self.xmpp.plugin['xep_0030'].add_feature('jabber:iq:last')
 
         self.api.register(self._default_get_last_activity,
                 'get_last_activity',
@@ -53,6 +51,13 @@ class XEP_0012(BasePlugin):
         self.api.register(self._default_del_last_activity,
                 'del_last_activity',
                 default=True)
+
+    def plugin_end(self):
+        self.xmpp.remove_handler('Last Activity')
+        self.xmpp['xep_0030'].del_feature(feature='jabber:iq:last')
+
+    def session_bind(self, jid):
+        self.xmpp['xep_0030'].add_feature('jabber:iq:last')
 
     def begin_idle(self, jid=None, status=None):
         self.set_last_activity(jid, 0, status)

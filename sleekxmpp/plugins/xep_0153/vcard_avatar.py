@@ -45,6 +45,15 @@ class XEP_0153(BasePlugin):
         self.api.register(self._set_hash, 'set_hash', default=True)
         self.api.register(self._get_hash, 'get_hash', default=True)
 
+    def plugin_end(self):
+        self.xmpp.del_filter('out', self._update_presence)
+        self.xmpp.del_event_handler('session_start', self._start)
+        self.xmpp.del_event_handler('presence_available', self._recv_presence)
+        self.xmpp.del_event_handler('presence_dnd', self._recv_presence)
+        self.xmpp.del_event_handler('presence_xa', self._recv_presence)
+        self.xmpp.del_event_handler('presence_chat', self._recv_presence)
+        self.xmpp.del_event_handler('presence_away', self._recv_presence)
+
     def set_avatar(self, jid=None, avatar=None, mtype=None, block=True,
                    timeout=None, callback=None):
         vcard = self.xmpp['xep_0054'].get_vcard(jid, cached=True)

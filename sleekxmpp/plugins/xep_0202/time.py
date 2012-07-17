@@ -53,6 +53,11 @@ class XEP_0202(BasePlugin):
                  self._handle_time_request))
         register_stanza_plugin(Iq, stanza.EntityTime)
 
+    def plugin_end(self):
+        self.xmpp['xep_0030'].del_feature(feature='urn:xmpp:time')
+        self.xmpp.remove_handler('Entity Time')
+
+    def session_bind(self, jid):
         self.xmpp['xep_0030'].add_feature('urn:xmpp:time')
 
     def _handle_time_request(self, iq):

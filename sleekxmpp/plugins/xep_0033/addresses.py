@@ -26,7 +26,12 @@ class XEP_0033(BasePlugin):
     stanza = stanza
 
     def plugin_init(self):
-        self.xmpp['xep_0030'].add_feature(Addresses.namespace)
-
         register_stanza_plugin(Message, Addresses)
         register_stanza_plugin(Presence, Addresses)
+
+    def plugin_end(self):
+        self.xmpp['xep_0030'].del_feature(feature=Addresses.namespace)
+
+    def session_bind(self, jid):
+        self.xmpp['xep_0030'].add_feature(Addresses.namespace)
+

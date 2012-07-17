@@ -167,8 +167,7 @@ class PluginManager(object):
                 self._plugins[name] = plugin
                 for dep in plugin.dependencies:
                     self.enable(dep, enabled=enabled)
-                plugin.plugin_init()
-                log.debug("Loaded Plugin: %s", plugin.description)
+                plugin._init()
 
         if top_level:
             for name in enabled:
@@ -229,7 +228,7 @@ class PluginManager(object):
                     raise PluginNotFound(name)
                 for dep in PLUGIN_DEPENDENTS[name]:
                     self.disable(dep, _disabled)
-                plugin.plugin_end()
+                plugin._end()
                 if name in self._enabled:
                     self._enabled.remove(name)
                 del self._plugins[name]
@@ -282,12 +281,38 @@ class BasePlugin(object):
         #: configuration settings will be provided as a dictionary.
         self.config = config if config is not None else {}
 
+    def _init(self):
+        """Initialize plugin state, such as registering event handlers.
+
+        Also sets up required event handlers.
+        """
+        if self.xmpp is not None:
+            self.xmpp.add_event_handler('session_bind', self.session_bind)
+            if self.xmpp.session_bind_event.is_set():
+                self.session_bind(self.xmpp.boundjid.full)
+        self.plugin_init()
+        log.debug('Loaded Plugin: %s', self.description)
+
+    def _end(self):
+        """Cleanup plugin state, and prepare for plugin removal.
+
+        Also removes required event handlers.
+        """
+        if self.xmpp is not None:
+            self.xmpp.del_event_handler('session_bind', self.session_bind)
+        self.plugin_end()
+        log.debug('Disabled Plugin: %s' % self.description)
+
     def plugin_init(self):
         """Initialize plugin state, such as registering event handlers."""
         pass
 
     def plugin_end(self):
         """Cleanup plugin state, and prepare for plugin removal."""
+        pass
+
+    def session_bind(self, jid):
+        """Initialize plugin state based on the bound JID."""
         pass
 
     def post_init(self):

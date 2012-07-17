@@ -73,15 +73,14 @@ class XEP_0115(BasePlugin):
                     restart=False,
                     order=10010)
 
-        self.xmpp['xep_0030'].add_feature(stanza.Capabilities.namespace)
-
         disco = self.xmpp['xep_0030']
         self.static = StaticCaps(self.xmpp, disco.static)
 
-        self.api.settings['client_bare'] = False
-        self.api.settings['component_bare'] = False
         for op in self._disco_ops:
             self.api.register(getattr(self.static, op), op, default=True)
+
+        for op in ('supports', 'has_identity'):
+            self.xmpp['xep_0030'].api.register(getattr(self.static, op), op)
 
         self._run_node_handler = disco._run_node_handler
 
@@ -89,6 +88,19 @@ class XEP_0115(BasePlugin):
         disco.update_caps = self.update_caps
         disco.assign_verstring = self.assign_verstring
         disco.get_verstring = self.get_verstring
+
+    def plugin_end(self):
+        self.xmpp['xep_0030'].del_feature(feature=stanza.Capabilities.namespace)
+        self.xmpp.del_filter('out', self._filter_add_caps)
+        self.xmpp.del_event_handler('entity_caps', self._process_caps)
+        self.xmpp.remove_handler('Entity Capabilities')
+        if not self.xmpp.is_component:
+            self.xmpp.unregister_feature('caps', 10010)
+        for op in ('supports', 'has_identity'):
+            self.xmpp['xep_0030'].restore_defaults(op)
+
+    def session_bind(self, jid):
+        self.xmpp['xep_0030'].add_feature(stanza.Capabilities.namespace)
 
     def _filter_add_caps(self, stanza):
         if isinstance(stanza, Presence) and self.broadcast:

@@ -237,7 +237,7 @@ class StaticDisco(object):
         with self.lock:
             if not self.node_exists(jid, node):
                 if not node:
-                    return DiscoInfo()
+                    return DiscoItems()
                 else:
                     raise XMPPError(condition='item-not-found')
             else:
@@ -424,9 +424,6 @@ class StaticDisco(object):
         The data parameter is not used.
         """
         with self.lock:
-            if isinstance(jid, JID):
-                jid = jid.full
-
             if not self.node_exists(jid, node, ifrom):
                 return None
             else:

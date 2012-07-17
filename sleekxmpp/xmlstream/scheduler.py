@@ -172,7 +172,8 @@ class Scheduler(object):
                 else:
                     updated = True
                     self.schedule_lock.acquire()
-                    self.schedule.append(newtask)
+                    if newtask is not None:
+                        self.schedule.append(newtask)
                 finally:
                     if updated:
                         self.schedule = sorted(self.schedule,

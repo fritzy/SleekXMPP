@@ -622,11 +622,7 @@ class XEP_0030(BasePlugin):
         if iq['type'] == 'get':
             log.debug("Received disco info query from " + \
                       "<%s> to <%s>.", iq['from'], iq['to'])
-            if self.xmpp.is_component:
-                jid = iq['to'].full
-            else:
-                jid = iq['to'].bare
-            info = self.api['get_info'](jid,
+            info = self.api['get_info'](iq['to'],
                                         iq['disco_info']['node'],
                                         iq['from'],
                                         iq)
@@ -649,7 +645,7 @@ class XEP_0030(BasePlugin):
                     ito = iq['to'].full
                 else:
                     ito = None
-                self.api['cache_info'](iq['from'].full,
+                self.api['cache_info'](iq['from'],
                                        iq['disco_info']['node'],
                                        ito,
                                        iq)
@@ -667,13 +663,9 @@ class XEP_0030(BasePlugin):
         if iq['type'] == 'get':
             log.debug("Received disco items query from " + \
                       "<%s> to <%s>.", iq['from'], iq['to'])
-            if self.xmpp.is_component:
-                jid = iq['to'].full
-            else:
-                jid = iq['to'].bare
-            items = self.api['get_items'](jid,
+            items = self.api['get_items'](iq['to'],
                                           iq['disco_items']['node'],
-                                          iq['from'].full,
+                                          iq['from'],
                                           iq)
             if isinstance(items, Iq):
                 items.send()

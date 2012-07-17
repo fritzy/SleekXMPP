@@ -26,7 +26,11 @@ class XEP_0118(BasePlugin):
     dependencies = set(['xep_0163'])
     stanza = stanza
 
-    def plugin_init(self):
+    def plugin_end(self):
+        self.xmpp['xep_0030'].del_feature(feature=UserTune.namespace)
+        self.xmpp['xep_0163'].remove_interest(UserTune.namespace)
+
+    def session_bind(self, jid):
         self.xmpp['xep_0163'].register_pep('user_tune', UserTune)
 
     def publish_tune(self, artist=None, length=None, rating=None, source=None,

@@ -44,6 +44,9 @@ class XEP_0078(BasePlugin):
         register_stanza_plugin(Iq, stanza.IqAuth)
         register_stanza_plugin(StreamFeatures, stanza.AuthFeature)
 
+    def plugin_end(self):
+        self.xmpp.unregister_feature('auth', self.config.get('order', 15))
+
     def _handle_auth(self, features):
         # If we can or have already authenticated with SASL, do nothing.
         if 'mechanisms' in features['features']:

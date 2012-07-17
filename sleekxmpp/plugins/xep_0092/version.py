@@ -48,6 +48,11 @@ class XEP_0092(BasePlugin):
 
         register_stanza_plugin(Iq, Version)
 
+    def plugin_end(self):
+        self.xmpp.remove_handler('Software Version')
+        self.xmpp['xep_0030'].del_feature(feature='jabber:iq:version')
+
+    def session_bind(self, jid):
         self.xmpp.plugin['xep_0030'].add_feature('jabber:iq:version')
 
     def _handle_version(self, iq):

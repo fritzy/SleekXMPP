@@ -254,6 +254,7 @@ def get_SRV(host, port, service, proto='tcp', resolver=None):
              by SRV priorities and weights.
     """
     if resolver is None:
+        log.warning("DNS: dnspython not found. Can not use SRV lookup.")
         return [(host, port)]
 
     log.debug("DNS: Querying SRV records for %s" % host)

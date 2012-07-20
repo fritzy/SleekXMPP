@@ -143,3 +143,6 @@ class JID(object):
     def __hash__(self):
         """Hash a JID based on the string version of its full JID."""
         return hash(self.full)
+
+    def __copy__(self):
+        return JID(self.jid)

@@ -89,8 +89,11 @@ class RosterNode(object):
 
         A new item entry will be created if one does not already exist.
         """
-        if isinstance(key, JID):
-            key = key.bare
+        if key is None:
+            key = JID('')
+        if not isinstance(key, JID):
+            key = JID(key)
+        key = key.bare
         if key not in self._jids:
             self.add(key, save=True)
         return self._jids[key]
@@ -101,8 +104,11 @@ class RosterNode(object):
 
         To remove an item from the server, use the remove() method.
         """
-        if isinstance(key, JID):
-            key = key.bare
+        if key is None:
+            key = JID('')
+        if not isinstance(key, JID):
+            key = JID(key)
+        key = key.bare
         if key in self._jids:
             del self._jids[key]
 

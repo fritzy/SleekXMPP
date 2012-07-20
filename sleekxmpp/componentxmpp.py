@@ -158,10 +158,8 @@ class ComponentXMPP(BaseXMPP):
         """
         self.session_bind_event.set()
         self.session_started_event.set()
-        self.event("session_bind", self.xmpp.boundjid.full, direct=True)
+        self.event("session_bind", self.xmpp.boundjid, direct=True)
         self.event("session_start")
 
-    def _handle_probe(self, presence):
-        pto = presence['to'].bare
-        pfrom = presence['from'].bare
-        self.roster[pto][pfrom].handle_probe(presence)
+    def _handle_probe(self, pres):
+        self.roster[pres['to']][pres['from']].handle_probe(pres)

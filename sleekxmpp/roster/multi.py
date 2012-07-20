@@ -94,10 +94,12 @@ class Roster(object):
         Arguments:
             key -- Return the roster for this JID.
         """
-        if isinstance(key, JID):
-            key = key.bare
         if key is None:
-            key = self.xmpp.boundjid.bare
+            key = self.xmpp.boundjid
+        if not isinstance(key, JID):
+            key = JID(key)
+        key = key.bare
+
         if key not in self._rosters:
             self.add(key)
             self._rosters[key].auto_authorize = self.auto_authorize
@@ -119,8 +121,10 @@ class Roster(object):
         Arguments:
             node -- The JID for the new roster node.
         """
-        if isinstance(node, JID):
-            node = node.bare
+        if not isinstance(node, JID):
+            node = JID(node)
+
+        node = node.bare
         if node not in self._rosters:
             self._rosters[node] = RosterNode(self.xmpp, node, self.db)
 

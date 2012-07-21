@@ -72,6 +72,11 @@ class BaseXMPP(XMLStream):
         self.boundjid = JID(jid)
 
         self._expected_server_name = self.boundjid.host
+        self._redirect_attempts = 0
+
+        #: The maximum number of consecutive see-other-host
+        #: redirections that will be followed before quitting.
+        self.max_redirects = 5
 
         self.session_bind_event = threading.Event()
 
@@ -144,6 +149,8 @@ class BaseXMPP(XMLStream):
                      MatchXPath("{%s}error" % self.stream_ns),
                      self._handle_stream_error))
 
+        self.add_event_handler('session_start',
+                               self._handle_session_start)
         self.add_event_handler('disconnected',
                                self._handle_disconnected)
         self.add_event_handler('presence_available',
@@ -656,6 +663,10 @@ class BaseXMPP(XMLStream):
     def getjidbare(self, fulljid):
         return fulljid.split('/', 1)[0]
 
+    def _handle_session_start(self, event):
+        """Reset redirection attempt count."""
+        self._redirect_attempts = 0
+
     def _handle_disconnected(self, event):
         """When disconnected, reset the roster"""
         self.roster.reset()
@@ -666,6 +677,15 @@ class BaseXMPP(XMLStream):
 
         if error['condition'] == 'see-other-host':
             other_host = error['see_other_host']
+            if not other_host:
+                log.warning("No other host specified.")
+                return
+
+            if self._redirect_attempts > self.max_redirects:
+                log.error("Exceeded maximum number of redirection attempts.")
+                return
+
+            self._redirect_attempts += 1
 
             host = other_host
             port = 5222

@@ -106,6 +106,7 @@ class XEP_0153(BasePlugin):
             return
         elif data == '' or data != self.api['get_hash'](pres['to']):
             self._reset_hash(pres['from'])
+            self.xmpp.event('vcard_avatar_update', pres)
 
     # =================================================================
 

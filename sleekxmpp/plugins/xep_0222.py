@@ -22,7 +22,7 @@ class XEP_0222(BasePlugin):
     """
 
     name = 'xep_0222'
-    description = 'XEP-0222: Persistent Storage of Private Data via PubSub'
+    description = 'XEP-0222: Persistent Storage of Public Data via PubSub'
     dependencies = set(['xep_0163', 'xep_0060', 'xep_0004'])
 
     profile = {'pubsub#persist_items': True,

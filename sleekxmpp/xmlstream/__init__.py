@@ -6,7 +6,7 @@
     See the file LICENSE for copying permission.
 """
 
-from sleekxmpp.xmlstream.jid import JID
+from sleekxmpp.jid import JID
 from sleekxmpp.xmlstream.scheduler import Scheduler
 from sleekxmpp.xmlstream.stanzabase import StanzaBase, ElementBase, ET
 from sleekxmpp.xmlstream.stanzabase import register_stanza_plugin

@@ -1,5 +1,5 @@
 from sleekxmpp.test import *
-from sleekxmpp.xmlstream.jid import JID
+from sleekxmpp import JID
 
 
 class TestJIDClass(SleekTest):

@@ -598,7 +598,7 @@ class BaseXMPP(XMLStream):
 
     @resource.setter
     def resource(self, value):
-        log.warning("fulljid property deprecated. Use boundjid.full")
+        log.warning("fulljid property deprecated. Use boundjid.resource")
         self.boundjid.resource = value
 
     @property

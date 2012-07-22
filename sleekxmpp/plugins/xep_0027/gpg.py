@@ -24,7 +24,7 @@ def _extract_data(data, kind):
         if not begin_headers and 'BEGIN PGP %s' % kind in line:
             begin_headers = True
             continue
-        if begin_headers and line == '':
+        if begin_headers and line.stripped() == '':
             begin_data = True
             continue
         if 'END PGP %s' % kind in line:

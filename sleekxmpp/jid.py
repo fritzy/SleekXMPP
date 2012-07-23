@@ -140,7 +140,13 @@ def _validate_node(node):
     """
     try:
         if node is not None:
+            if not node:
+                raise InvalidJID('Localpart must not be 0 bytes')
+
             node = nodeprep(node)
+
+            if not node:
+                raise InvalidJID('Localpart must not be 0 bytes')
             return node
     except stringprep_profiles.StringPrepError:
         raise InvalidJID('Invalid local part')
@@ -202,7 +208,7 @@ def _validate_domain(domain):
         domain = '.'.join(domain_parts)
 
     if not domain:
-        raise InvalidJID('Missing domain')
+        raise InvalidJID('Domain must not be 0 bytes')
 
     return domain
 
@@ -216,7 +222,13 @@ def _validate_resource(resource):
     """
     try:
         if resource is not None:
+            if not resource:
+                raise InvalidJID('Resource must not be 0 bytes')
+
             resource = resourceprep(resource)
+
+            if not resource:
+                raise InvalidJID('Resource must not be 0 bytes')
             return resource
     except stringprep_profiles.StringPrepError:
         raise InvalidJID('Invalid resource')

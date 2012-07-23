@@ -296,8 +296,13 @@ def _format_jid(local=None, domain=None, resource=None):
 
 
 class InvalidJID(ValueError):
-    pass
+    """
+    Raised when attempting to create a JID that does not pass validation.
 
+    It can also be raised if modifying an existing JID in such a way as
+    to make it invalid, such trying to remove the domain from an existing
+    full JID while the local and resource portions still exist.
+    """
 
 # pylint: disable=R0903
 class UnescapedJID(object):

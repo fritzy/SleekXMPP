@@ -3,8 +3,7 @@
     sleekxmpp.jid
     ~~~~~~~~~~~~~~~~~~~~~~~
 
-    This module allows for working with Jabber IDs (JIDs) by
-    providing accessors for the various components of a JID.
+    This module allows for working with Jabber IDs (JIDs).
 
     Part of SleekXMPP: The Sleek XMPP Library
 
@@ -21,17 +20,24 @@ import encodings.idna
 
 from sleekxmpp.util import stringprep_profiles
 
-
+#: These characters are not allowed to appear in a JID.
 ILLEGAL_CHARS = '\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\x0c\r' + \
                 '\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19' + \
                 '\x1a\x1b\x1c\x1d\x1e\x1f' + \
                 ' !"#$%&\'()*+,./:;<=>?@[\\]^_`{|}~\x7f'
 
+#: The basic regex pattern that a JID must match in order to determine
+#: the local, domain, and resource parts. This regex does NOT do any
+#: validation, which requires application of nodeprep, resourceprep, etc.
 JID_PATTERN = "^(?:([^\"&'/:<>@]{1,1023})@)?([^/@]{1,1023})(?:/(.{1,1023}))?$"
 
+#: The set of escape sequences for the characters not allowed by nodeprep.
 JID_ESCAPE_SEQUENCES = set(['\\20', '\\22', '\\26', '\\27', '\\2f',
                             '\\3a', '\\3c', '\\3e', '\\40', '\\5c'])
 
+#: A mapping of unallowed characters to their escape sequences. An escape
+#: sequence for '\' is also included since it must also be escaped in
+#: certain situations.
 JID_ESCAPE_TRANSFORMATIONS = {' ': '\\20',
                               '"': '\\22',
                               '&': '\\26',
@@ -40,8 +46,10 @@ JID_ESCAPE_TRANSFORMATIONS = {' ': '\\20',
                               ':': '\\3a',
                               '<': '\\3c',
                               '>': '\\3e',
-                              '@': '\\40'}
+                              '@': '\\40',
+                              '\\': '\\5c'}
 
+#: The reverse mapping of escape sequences to their original forms.
 JID_UNESCAPE_TRANSFORMATIONS = {'\\20': ' ',
                                 '\\22': '"',
                                 '\\26': '&',
@@ -54,6 +62,9 @@ JID_UNESCAPE_TRANSFORMATIONS = {'\\20': ' ',
                                 '\\5c': '\\'}
 
 
+# pylint: disable=c0103
+#: The nodeprep profile of stringprep used to validate the local,
+#: or username, portion of a JID.
 nodeprep = stringprep_profiles.create(
     nfkc=True,
     bidi=True,
@@ -75,7 +86,9 @@ nodeprep = stringprep_profiles.create(
         lambda c: c in ' \'"&/:<>@'],
     unassigned=[stringprep.in_table_a1])
 
-
+# pylint: disable=c0103
+#: The resourceprep profile of stringprep, which is used to validate
+#: the resource portion of a JID.
 resourceprep = stringprep_profiles.create(
     nfkc=True,
     bidi=True,
@@ -97,7 +110,13 @@ resourceprep = stringprep_profiles.create(
 def _parse_jid(data):
     """
     Parse string data into the node, domain, and resource
-    components of a JID.
+    components of a JID, if possible.
+
+    :param string data: A string that is potentially a JID.
+
+    :raises InvalidJID:
+
+    :returns: tuple of the validated local, domain, and resource strings
     """
     match = re.match(JID_PATTERN, data)
     if not match:
@@ -105,30 +124,52 @@ def _parse_jid(data):
 
     (node, domain, resource) = match.groups()
 
-    _validate_node(node)
-    _validate_domain(domain)
-    _validate_resource(resource)
+    node = _validate_node(node)
+    domain = _validate_domain(domain)
+    resource = _validate_resource(resource)
 
     return node, domain, resource
 
 
 def _validate_node(node):
+    """Validate the local, or username, portion of a JID.
+
+    :raises InvalidJID:
+
+    :returns: The local portion of a JID, as validated by nodeprep.
+    """
     try:
         if node is not None:
             node = nodeprep(node)
+            return node
     except stringprep_profiles.StringPrepError:
         raise InvalidJID('Invalid local part')
 
 
 def _validate_domain(domain):
+    """Validate the domain portion of a JID.
+
+    IP literal addresses are left as-is, if valid. Domain names
+    are stripped of any trailing label separators (`.`), and are
+    checked with the nameprep profile of stringprep. If the given
+    domain is actually a punyencoded version of a domain name, it
+    is converted back into its original Unicode form. Domains must
+    also not start or end with a dash (`-`).
+
+    :raises InvalidJID:
+
+    :returns: The validated domain name
+    """
     ip_addr = False
 
+    # First, check if this is an IPv4 address
     try:
         socket.inet_aton(domain)
         ip_addr = True
     except socket.error:
         pass
 
+    # Check if this is an IPv6 address
     if not ip_addr and hasattr(socket, 'inet_pton'):
         try:
             socket.inet_pton(socket.AF_INET6, domain.strip('[]'))
@@ -137,6 +178,8 @@ def _validate_domain(domain):
             pass
 
     if not ip_addr:
+        # This is a domain name, which must be checked further
+
         domain_parts = []
         for label in domain.split('.'):
             try:
@@ -144,6 +187,9 @@ def _validate_domain(domain):
                 encodings.idna.ToASCII(label)
             except UnicodeError:
                 raise InvalidJID('Could not encode domain as ASCII')
+
+            if label.startswith('xn--'):
+                label = encodings.idna.ToUnicode(label)
 
             for char in label:
                 if char in ILLEGAL_CHARS:
@@ -158,27 +204,38 @@ def _validate_domain(domain):
     if not domain:
         raise InvalidJID('Missing domain')
 
+    return domain
+
 
 def _validate_resource(resource):
+    """Validate the resource portion of a JID.
+
+    :raises InvalidJID:
+
+    :returns: The local portion of a JID, as validated by resourceprep.
+    """
     try:
         if resource is not None:
             resource = resourceprep(resource)
+            return resource
     except stringprep_profiles.StringPrepError:
         raise InvalidJID('Invalid resource')
 
 
 def _escape_node(node):
+    """Escape the local portion of a JID."""
     result = []
 
     for i, char in enumerate(node):
         if char == '\\':
-            if ''.join((data[i:i+3])) in JID_ESCAPE_SEQUENCES:
+            if ''.join((node[i:i+3])) in JID_ESCAPE_SEQUENCES:
                 result.append('\\5c')
                 continue
         result.append(char)
 
     for i, char in enumerate(result):
-        result[i] = JID_ESCAPE_TRANSFORMATIONS.get(char, char)
+        if char != '\\':
+            result[i] = JID_ESCAPE_TRANSFORMATIONS.get(char, char)
 
     escaped = ''.join(result)
 
@@ -191,6 +248,12 @@ def _escape_node(node):
 
 
 def _unescape_node(node):
+    """Unescape a local portion of a JID.
+
+    .. note::
+        The unescaped local portion is meant ONLY for presentation,
+        and should not be used for other purposes.
+    """
     unescaped = []
     seq = ''
     for i, char in enumerate(node):
@@ -212,6 +275,14 @@ def _unescape_node(node):
 
 
 def _format_jid(local=None, domain=None, resource=None):
+    """Format the given JID components into a full or bare JID.
+
+    :param string local: Optional. The local portion of the JID.
+    :param string domain: Required. The domain name portion of the JID.
+    :param strin resource: Optional. The resource portion of the JID.
+
+    :return: A full or bare JID string.
+    """
     result = []
     if local:
         result.append(local)
@@ -228,13 +299,20 @@ class InvalidJID(ValueError):
     pass
 
 
+# pylint: disable=R0903
 class UnescapedJID(object):
+
+    """
+    .. versionadded:: 1.1.10
+    """
 
     def __init__(self, local, domain, resource):
         self._jid = (local, domain, resource)
 
+    # pylint: disable=R0911
     def __getattr__(self, name):
-        """
+        """Retrieve the given JID component.
+
         :param name: one of: user, server, domain, resource,
                      full, or bare.
         """
@@ -258,6 +336,7 @@ class UnescapedJID(object):
         return _format_jid(*self._jid)
 
     def __repr__(self):
+        """Use the full JID as the representation."""
         return self.__str__()
 
 
@@ -285,11 +364,27 @@ class JID(object):
         :host: Alias for ``domain``.
         :resource: The resource portion of the JID.
 
-    :param string jid: A string of the form ``'[user@]domain[/resource]'``.
+    :param string jid:
+        A string of the form ``'[user@]domain[/resource]'``.
+    :param string local:
+        Optional. Specify the local, or username, portion
+        of the JID. If provided, it will override the local
+        value provided by the `jid` parameter. The given
+        local value will also be escaped if necessary.
+    :param string domain:
+        Optional. Specify the domain of the JID. If
+        provided, it will override the domain given by
+        the `jid` parameter.
+    :param string resource:
+        Optional. Specify the resource value of the JID.
+        If provided, it will override the domain given
+        by the `jid` parameter.
+
+    :raises InvalidJID:
     """
 
+    # pylint: disable=W0212
     def __init__(self, jid=None, **kwargs):
-        """Initialize a new JID"""
         self._jid = (None, None, None)
 
         if jid is None or jid == '':
@@ -300,7 +395,6 @@ class JID(object):
             jid = jid._jid
 
         local, domain, resource = jid
-        validated = True
 
         local = kwargs.get('local', local)
         domain = kwargs.get('domain', domain)
@@ -309,30 +403,47 @@ class JID(object):
         if 'local' in kwargs:
             local = _escape_node(local)
         if 'domain' in kwargs:
-            _validate_domain(domain)
+            domain = _validate_domain(domain)
         if 'resource' in kwargs:
-            _validate_resource(resource)
+            resource = _validate_resource(resource)
 
         self._jid = (local, domain, resource)
 
     def unescape(self):
+        """Return an unescaped JID object.
+
+        Using an unescaped JID is preferred for displaying JIDs
+        to humans, and they should NOT be used for any other
+        purposes than for presentation.
+
+        :return: :class:`UnescapedJID`
+
+        .. versionadded:: 1.1.10
+        """
         return UnescapedJID(_unescape_node(self._jid[0]),
                             self._jid[1],
                             self._jid[2])
 
     def regenerate(self):
-        """Deprecated"""
+        """No-op
+
+        .. deprecated:: 1.1.10
+        """
         pass
 
     def reset(self, data):
         """Start fresh from a new JID string.
 
         :param string data: A string of the form ``'[user@]domain[/resource]'``.
+
+        .. deprecated:: 1.1.10
         """
         self._jid = JID(data)._jid
 
+    # pylint: disable=R0911
     def __getattr__(self, name):
-        """
+        """Retrieve the given JID component.
+
         :param name: one of: user, server, domain, resource,
                      full, or bare.
         """
@@ -351,8 +462,10 @@ class JID(object):
         else:
             return None
 
+    # pylint: disable=W0212
     def __setattr__(self, name, value):
-        """
+        """Update the given JID component.
+
         :param name: one of: ``user``, ``username``, ``local``,
                              ``node``, ``server``, ``domain``, ``host``,
                              ``resource``, ``full``, ``jid``, or ``bare``.
@@ -377,21 +490,22 @@ class JID(object):
         return _format_jid(*self._jid)
 
     def __repr__(self):
+        """Use the full JID as the representation."""
         return self.__str__()
 
+    # pylint: disable=W0212
     def __eq__(self, other):
-        """
-        Two JIDs are considered equal if they have the same full JID value.
-        """
+        """Two JIDs are equal if they have the same full JID value."""
         if isinstance(other, UnescapedJID):
             return False
 
         other = JID(other)
         return self._jid == other._jid
 
+    # pylint: disable=W0212
     def __ne__(self, other):
         """Two JIDs are considered unequal if they are not equal."""
-        return not self._jid == other._jid
+        return not self == other
 
     def __hash__(self):
         """Hash a JID based on the string version of its full JID."""

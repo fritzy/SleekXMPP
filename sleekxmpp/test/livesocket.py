@@ -8,10 +8,8 @@
 
 import socket
 import threading
-try:
-    import queue
-except ImportError:
-    import Queue as queue
+
+from sleekxmpp.util import Queue
 
 
 class TestLiveSocket(object):
@@ -39,8 +37,8 @@ class TestLiveSocket(object):
         """
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.recv_buffer = []
-        self.recv_queue = queue.Queue()
-        self.send_queue = queue.Queue()
+        self.recv_queue = Queue()
+        self.send_queue = Queue()
         self.send_queue_lock = threading.Lock()
         self.recv_queue_lock = threading.Lock()
         self.is_live = True

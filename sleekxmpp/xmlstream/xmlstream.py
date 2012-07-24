@@ -26,14 +26,11 @@ import time
 import random
 import weakref
 import uuid
-try:
-    import queue
-except ImportError:
-    import Queue as queue
 
 from xml.parsers.expat import ExpatError
 
 import sleekxmpp
+from sleekxmpp.util import Queue, QueueEmpty
 from sleekxmpp.thirdparty.statemachine import StateMachine
 from sleekxmpp.xmlstream import Scheduler, tostring, cert
 from sleekxmpp.xmlstream.stanzabase import StanzaBase, ET, ElementBase
@@ -270,10 +267,10 @@ class XMLStream(object):
         self.end_session_on_disconnect = True
 
         #: A queue of stream, custom, and scheduled events to be processed.
-        self.event_queue = queue.Queue()
+        self.event_queue = Queue()
 
         #: A queue of string data to be sent over the stream.
-        self.send_queue = queue.Queue()
+        self.send_queue = Queue()
         self.send_queue_lock = threading.Lock()
         self.send_lock = threading.RLock()
 
@@ -1586,7 +1583,7 @@ class XMLStream(object):
                 try:
                     wait = self.wait_timeout
                     event = self.event_queue.get(True, timeout=wait)
-                except queue.Empty:
+                except QueueEmpty:
                     event = None
                 if event is None:
                     continue
@@ -1655,7 +1652,7 @@ class XMLStream(object):
                 else:
                     try:
                         data = self.send_queue.get(True, 1)
-                    except queue.Empty:
+                    except QueueEmpty:
                         continue
                 log.debug("SEND: %s", data)
                 enc_data = data.encode('utf-8')

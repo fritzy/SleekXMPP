@@ -1,7 +1,7 @@
 from sleekxmpp.test import *
 from sleekxmpp.stanza import Message
 from sleekxmpp.xmlstream.stanzabase import ET, ElementBase
-from sleekxmpp.xmlstream.tostring import tostring, xml_escape
+from sleekxmpp.xmlstream.tostring import tostring, escape
 
 
 class TestToString(SleekTest):
@@ -30,7 +30,7 @@ class TestToString(SleekTest):
     def testXMLEscape(self):
         """Test escaping XML special characters."""
         original = """<foo bar="baz">'Hi & welcome!'</foo>"""
-        escaped = xml_escape(original)
+        escaped = escape(original)
         desired = """&lt;foo bar=&quot;baz&quot;&gt;&apos;Hi"""
         desired += """ &amp; welcome!&apos;&lt;/foo&gt;"""
 

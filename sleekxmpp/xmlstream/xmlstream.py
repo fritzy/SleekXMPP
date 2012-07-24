@@ -212,6 +212,10 @@ class XMLStream(object):
         #: If set to ``True``, attempt to use IPv6.
         self.use_ipv6 = True
 
+        #: Use CDATA for escaping instead of XML entities. Defaults
+        #: to ``False``.
+        self.use_cdata = False
+
         #: An optional dictionary of proxy settings. It may provide:
         #: :host: The host offering proxy services.
         #: :port: The port for the proxy service.

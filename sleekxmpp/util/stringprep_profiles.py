@@ -77,6 +77,9 @@ def check_bidi(data):
        character MUST be the first character of the string, and a
        RandALCat character MUST be the last character of the string.
     """
+    if not data:
+        return data
+
     has_lcat = False
     has_randal = False
 

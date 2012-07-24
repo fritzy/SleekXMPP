@@ -140,13 +140,12 @@ def _validate_node(node):
     """
     try:
         if node is not None:
-            if not node:
-                raise InvalidJID('Localpart must not be 0 bytes')
-
             node = nodeprep(node)
 
             if not node:
                 raise InvalidJID('Localpart must not be 0 bytes')
+            if len(node) > 1023:
+                raise InvalidJID('Localpart must be less than 1024 bytes')
             return node
     except stringprep_profiles.StringPrepError:
         raise InvalidJID('Invalid local part')
@@ -179,6 +178,7 @@ def _validate_domain(domain):
     if not ip_addr and hasattr(socket, 'inet_pton'):
         try:
             socket.inet_pton(socket.AF_INET6, domain.strip('[]'))
+            domain = '[%s]' % domain.strip('[]')
             ip_addr = True
         except socket.error:
             pass
@@ -186,12 +186,19 @@ def _validate_domain(domain):
     if not ip_addr:
         # This is a domain name, which must be checked further
 
+        if domain and domain[-1] == '.':
+            domain = domain[:-1]
+
         domain_parts = []
         for label in domain.split('.'):
             try:
                 label = encodings.idna.nameprep(label)
                 encodings.idna.ToASCII(label)
+                pass_nameprep = True
             except UnicodeError:
+                pass_nameprep = False
+
+            if not pass_nameprep:
                 raise InvalidJID('Could not encode domain as ASCII')
 
             if label.startswith('xn--'):
@@ -209,6 +216,8 @@ def _validate_domain(domain):
 
     if not domain:
         raise InvalidJID('Domain must not be 0 bytes')
+    if len(domain) > 1023:
+        raise InvalidJID('Domain must be less than 1024 bytes')
 
     return domain
 
@@ -222,13 +231,12 @@ def _validate_resource(resource):
     """
     try:
         if resource is not None:
-            if not resource:
-                raise InvalidJID('Resource must not be 0 bytes')
-
             resource = resourceprep(resource)
 
             if not resource:
                 raise InvalidJID('Resource must not be 0 bytes')
+            if len(resource) > 1023:
+                raise InvalidJID('Resource must be less than 1024 bytes')
             return resource
     except stringprep_profiles.StringPrepError:
         raise InvalidJID('Invalid resource')

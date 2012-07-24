@@ -179,8 +179,7 @@ class ClientXMPP(BaseXMPP):
         self._stream_feature_order.remove((order, name))
         self._stream_feature_order.sort()
 
-    def update_roster(self, jid, name=None, subscription=None, groups=[],
-                            block=True, timeout=None, callback=None):
+    def update_roster(self, jid, **kwargs):
         """Add or change a roster item.
 
         :param jid: The JID of the entry to modify.
@@ -201,6 +200,16 @@ class ClientXMPP(BaseXMPP):
                          Will be executed when the roster is received.
                          Implies ``block=False``.
         """
+        current = self.client_roster[jid]
+
+        name = kwargs.get('name', current['name'])
+        subscription = kwargs.get('subscription', current['subscription'])
+        groups = kwargs.get('groups', current['groups'])
+
+        block = kwargs.get('block', True)
+        timeout = kwargs.get('timeout', None)
+        callback = kwargs.get('callback', None)
+
         return self.client_roster.update(jid, name, subscription, groups,
                                          block, timeout, callback)
 

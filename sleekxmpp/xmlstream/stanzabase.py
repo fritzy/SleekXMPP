@@ -514,8 +514,9 @@ class ElementBase(object):
         :param string attrib: The :attr:`plugin_attrib` value of the
                               plugin to enable.
         """
-        if lang is None:
-            lang = self.get_lang()
+        default_lang = self.get_lang()
+        if not lang:
+            lang = default_lang
 
         plugin_class = self.plugin_attrib_map[attrib]
 
@@ -528,7 +529,7 @@ class ElementBase(object):
             existing_xml = self.xml.find(plugin_class.tag_name())
 
         if existing_xml is not None:
-            if existing_xml.attrib.get('{%s}lang' % XML_NS, '') != lang:
+            if existing_xml.attrib.get('{%s}lang' % XML_NS, default_lang) != lang:
                 existing_xml = None
 
         plugin = plugin_class(parent=self, xml=existing_xml)
@@ -536,7 +537,8 @@ class ElementBase(object):
         if plugin.is_extension:
             self.plugins[(attrib, None)] = plugin
         else:
-            plugin['lang'] = lang
+            if lang != default_lang:
+                plugin['lang'] = lang
             self.plugins[(attrib, lang)] = plugin
 
         if plugin_class in self.plugin_iterables:
@@ -576,7 +578,7 @@ class ElementBase(object):
         for plugin, stanza in self.plugins.items():
             lang = stanza['lang']
             if lang:
-                values['%s|%s' % (plugin, lang)] = stanza.values
+                values['%s|%s' % (plugin[0], lang)] = stanza.values
             else:
                 values[plugin[0]] = stanza.values
         if self.iterables:

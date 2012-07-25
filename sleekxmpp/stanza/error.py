@@ -52,7 +52,7 @@ class Error(ElementBase):
     name = 'error'
     plugin_attrib = 'error'
     interfaces = set(('code', 'condition', 'text', 'type',
-                      'gone', 'redirect'))
+                      'gone', 'redirect', 'by'))
     sub_interfaces = set(('text',))
     plugin_attrib_map = {}
     plugin_tag_map = {}

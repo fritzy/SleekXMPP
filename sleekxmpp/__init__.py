@@ -10,6 +10,7 @@ from sleekxmpp.basexmpp import BaseXMPP
 from sleekxmpp.clientxmpp import ClientXMPP
 from sleekxmpp.componentxmpp import ComponentXMPP
 from sleekxmpp.stanza import Message, Presence, Iq
+from sleekxmpp.jid import JID, InvalidJID
 from sleekxmpp.xmlstream.handler import *
 from sleekxmpp.xmlstream import XMLStream, RestartStream
 from sleekxmpp.xmlstream.matcher import *

@@ -8,13 +8,10 @@
 
 import unittest
 from xml.parsers.expat import ExpatError
-try:
-    import Queue as queue
-except:
-    import queue
 
 import sleekxmpp
 from sleekxmpp import ClientXMPP, ComponentXMPP
+from sleekxmpp.util import Queue
 from sleekxmpp.stanza import Message, Iq, Presence
 from sleekxmpp.test import TestSocket, TestLiveSocket
 from sleekxmpp.exceptions import XMPPError, IqTimeout, IqError
@@ -338,7 +335,7 @@ class SleekTest(unittest.TestCase):
 
         # We will use this to wait for the session_start event
         # for live connections.
-        skip_queue = queue.Queue()
+        skip_queue = Queue()
 
         if socket == 'mock':
             self.xmpp.set_socket(TestSocket())

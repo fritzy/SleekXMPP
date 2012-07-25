@@ -43,7 +43,7 @@ class MetaData(ElementBase):
         info = Info()
         info.values = {'id': id,
                        'type': itype,
-                       'bytes': ibytes,
+                       'bytes': '%s' % ibytes,
                        'height': height,
                        'width': width,
                        'url': url}

@@ -75,6 +75,9 @@ class XEP_0153(BasePlugin):
         return stanza
 
     def _reset_hash(self, jid=None):
+        if jid is None:
+            jid = self.xmpp.boundjid
+
         own_jid = (jid.bare == self.xmpp.boundjid.bare)
         if self.xmpp.is_component:
             own_jid = (jid.domain == self.xmpp.boundjid.domain)

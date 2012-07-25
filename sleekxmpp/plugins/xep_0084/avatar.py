@@ -41,6 +41,9 @@ class XEP_0084(BasePlugin):
     def session_bind(self, jid):
         self.xmpp['xep_0163'].register_pep('avatar_metadata', MetaData)
 
+    def generate_id(self, data):
+        return hashlib.sha1(data).hexdigest()
+
     def retrieve_avatar(self, jid, id, url=None, ifrom=None, block=True,
                               callback=None, timeout=None):
         return self.xmpp['xep_0060'].get_item(jid, Data.namespace, id,
@@ -54,8 +57,7 @@ class XEP_0084(BasePlugin):
         payload = Data()
         payload['value'] = data
         return self.xmpp['xep_0163'].publish(payload,
-                node=Data.namespace,
-                id=hashlib.sha1(data).hexdigest(),
+                id=self.generate_id(data),
                 ifrom=ifrom,
                 block=block,
                 callback=callback,
@@ -72,12 +74,12 @@ class XEP_0084(BasePlugin):
                     height=info.get('height', ''),
                     width=info.get('width', ''),
                     url=info.get('url', ''))
-        for pointer in pointers:
-            metadata.add_pointer(pointer)
 
-        return self.xmpp['xep_0163'].publish(payload,
-                node=Data.namespace,
-                id=hashlib.sha1(data).hexdigest(),
+        if pointers is not None:
+            for pointer in pointers:
+                metadata.add_pointer(pointer)
+
+        return self.xmpp['xep_0163'].publish(metadata,
                 ifrom=ifrom,
                 block=block,
                 callback=callback,

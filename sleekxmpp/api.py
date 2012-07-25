@@ -101,8 +101,10 @@ class APIRegistry(object):
 
         if not jid:
             jid = self.xmpp.boundjid
-        if jid and not isinstance(jid, JID):
+        elif jid and not isinstance(jid, JID):
             jid = JID(jid)
+        elif jid == JID(''):
+            jid = self.xmpp.boundjid
 
         if node is None:
             node = ''

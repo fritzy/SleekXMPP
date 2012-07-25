@@ -8,7 +8,9 @@
 
 import hashlib
 import logging
+import threading
 
+from sleekxmpp import JID
 from sleekxmpp.stanza import Presence
 from sleekxmpp.xmlstream import register_stanza_plugin
 from sleekxmpp.xmlstream.matcher import StanzaPath
@@ -30,11 +32,14 @@ class XEP_0153(BasePlugin):
     def plugin_init(self):
         self._hashes = {}
 
+        self._allow_advertising = threading.Event()
+
         register_stanza_plugin(Presence, VCardTempUpdate)
 
         self.xmpp.add_filter('out', self._update_presence)
 
         self.xmpp.add_event_handler('session_start', self._start)
+        self.xmpp.add_event_handler('session_end', self._end)
 
         self.xmpp.add_event_handler('presence_available', self._recv_presence)
         self.xmpp.add_event_handler('presence_dnd', self._recv_presence)
@@ -44,10 +49,12 @@ class XEP_0153(BasePlugin):
 
         self.api.register(self._set_hash, 'set_hash', default=True)
         self.api.register(self._get_hash, 'get_hash', default=True)
+        self.api.register(self._reset_hash, 'reset_hash', default=True)
 
     def plugin_end(self):
         self.xmpp.del_filter('out', self._update_presence)
         self.xmpp.del_event_handler('session_start', self._start)
+        self.xmpp.del_event_handler('session_end', self._end)
         self.xmpp.del_event_handler('presence_available', self._recv_presence)
         self.xmpp.del_event_handler('presence_dnd', self._recv_presence)
         self.xmpp.del_event_handler('presence_xa', self._recv_presence)
@@ -56,15 +63,25 @@ class XEP_0153(BasePlugin):
 
     def set_avatar(self, jid=None, avatar=None, mtype=None, block=True,
                    timeout=None, callback=None):
+        if jid is None:
+            jid = self.xmpp.boundjid.bare
+
         vcard = self.xmpp['xep_0054'].get_vcard(jid, cached=True)
         vcard = vcard['vcard_temp']
         vcard['PHOTO']['TYPE'] = mtype
         vcard['PHOTO']['BINVAL'] = avatar
+
         self.xmpp['xep_0054'].publish_vcard(jid=jid, vcard=vcard)
-        self._reset_hash(jid)
+
+        self.api['reset_hash'](jid)
+        self.xmpp.roster[jid].send_last_presence()
 
     def _start(self, event):
-        self.xmpp['xep_0054'].get_vcard()
+        vcard = self.xmpp['xep_0054'].get_vcard()
+        self._allow_advertising.set()
+
+    def _end(self, event):
+        self._allow_advertising.clear()
 
     def _update_presence(self, stanza):
         if not isinstance(stanza, Presence):
@@ -74,41 +91,35 @@ class XEP_0153(BasePlugin):
         stanza['vcard_temp_update']['photo'] = current_hash
         return stanza
 
-    def _reset_hash(self, jid=None):
-        if jid is None:
-            jid = self.xmpp.boundjid
-
+    def _reset_hash(self, jid, node, ifrom, args):
         own_jid = (jid.bare == self.xmpp.boundjid.bare)
         if self.xmpp.is_component:
             own_jid = (jid.domain == self.xmpp.boundjid.domain)
 
-        if jid is not None:
-            jid = jid.bare
         self.api['set_hash'](jid, args=None)
         if own_jid:
             self.xmpp.roster[jid].send_last_presence()
 
-        iq = self.xmpp['xep_0054'].get_vcard(
-                jid=jid,
-                ifrom=self.xmpp.boundjid)
+        iq = self.xmpp['xep_0054'].get_vcard(jid=jid.bare, ifrom=ifrom)
+
         data = iq['vcard_temp']['PHOTO']['BINVAL']
         if not data:
             new_hash = ''
         else:
             new_hash = hashlib.sha1(data).hexdigest()
+
         self.api['set_hash'](jid, args=new_hash)
-        if own_jid:
-            self.xmpp.roster[jid].send_last_presence()
 
     def _recv_presence(self, pres):
         if not pres.match('presence/vcard_temp_update'):
             self.api['set_hash'](pres['from'], args=None)
             return
+
         data = pres['vcard_temp_update']['photo']
         if data is None:
             return
         elif data == '' or data != self.api['get_hash'](pres['to']):
-            self._reset_hash(pres['from'])
+            self.api['reset_hash'](pres['from'], ifrom=pres['to'])
             self.xmpp.event('vcard_avatar_update', pres)
 
     # =================================================================

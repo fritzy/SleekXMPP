@@ -33,15 +33,16 @@ class XEP_0115(BasePlugin):
     description = 'XEP-0115: Entity Capabilities'
     dependencies = set(['xep_0030', 'xep_0128', 'xep_0004'])
     stanza = stanza
+    default_config = {
+        'hash': 'sha-1',
+        'caps_node': None,
+        'broadcast': True
+    }
 
     def plugin_init(self):
         self.hashes = {'sha-1': hashlib.sha1,
                        'sha1': hashlib.sha1,
                        'md5': hashlib.md5}
-
-        self.hash = self.config.get('hash', 'sha-1')
-        self.caps_node = self.config.get('caps_node', None)
-        self.broadcast = self.config.get('broadcast', True)
 
         if self.caps_node is None:
             ver = sleekxmpp.__version__

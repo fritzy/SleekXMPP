@@ -34,6 +34,32 @@ class XEP_0198(BasePlugin):
     description = 'XEP-0198: Stream Management'
     dependencies = set()
     stanza = stanza
+    default_config = {
+        #: The last ack number received from the server.
+        'last_ack': 0,
+
+        #: The number of stanzas to wait between sending ack requests to
+        #: the server. Setting this to ``1`` will send an ack request after
+        #: every sent stanza. Defaults to ``5``.
+        'window': 5,
+
+        #: The stream management ID for the stream. Knowing this value is
+        #: required in order to do stream resumption.
+        'sm_id': None,
+
+        #: A counter of handled incoming stanzas, mod 2^32.
+        'handled': 0,
+
+        #: A counter of unacked outgoing stanzas, mod 2^32.
+        'seq': 0,
+
+        #: Control whether or not the ability to resume the stream will be
+        #: requested when enabling stream management. Defaults to ``True``.
+        'allow_resume': True,
+
+        'order': 10100,
+        'resume_order': 9000
+    }
 
     def plugin_init(self):
         """Start the XEP-0198 plugin."""
@@ -43,29 +69,8 @@ class XEP_0198(BasePlugin):
         if self.xmpp.is_component:
             return
 
-        #: The stream management ID for the stream. Knowing this value is
-        #: required in order to do stream resumption.
-        self.sm_id = self.config.get('sm_id', None)
-
-        #: A counter of handled incoming stanzas, mod 2^32.
-        self.handled = self.config.get('handled', 0)
-
-        #: A counter of unacked outgoing stanzas, mod 2^32.
-        self.seq = self.config.get('seq', 0)
-
-        #: The last ack number received from the server.
-        self.last_ack = self.config.get('last_ack', 0)
-
-        #: The number of stanzas to wait between sending ack requests to
-        #: the server. Setting this to ``1`` will send an ack request after
-        #: every sent stanza. Defaults to ``5``.
-        self.window = self.config.get('window', 5)
         self.window_counter = self.window
         self.window_counter_lock = threading.Lock()
-
-        #: Control whether or not the ability to resume the stream will be
-        #: requested when enabling stream management. Defaults to ``True``.
-        self.allow_resume = self.config.get('allow_resume', True)
 
         self.enabled = threading.Event()
         self.unacked_queue = collections.deque()
@@ -92,11 +97,11 @@ class XEP_0198(BasePlugin):
         self.xmpp.register_feature('sm',
                 self._handle_sm_feature,
                 restart=True,
-                order=self.config.get('order', 10100))
+                order=self.order)
         self.xmpp.register_feature('sm',
                 self._handle_sm_feature,
                 restart=True,
-                order=self.config.get('resume_order', 9000))
+                order=self.resume_order)
 
         self.xmpp.register_handler(
                 Callback('Stream Management Enabled',
@@ -137,8 +142,8 @@ class XEP_0198(BasePlugin):
         if self.xmpp.is_component:
             return
 
-        self.xmpp.unregister_feature('sm', self.config.get('order', 10100))
-        self.xmpp.unregister_feature('sm', self.config.get('resume_order', 9000))
+        self.xmpp.unregister_feature('sm', self.order)
+        self.xmpp.unregister_feature('sm', self.resume_order)
         self.xmpp.del_event_handler('session_end', self.session_end)
         self.xmpp.del_filter('in', self._handle_incoming)
         self.xmpp.del_filter('out_sync', self._handle_outgoing)

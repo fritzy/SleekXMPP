@@ -34,18 +34,21 @@ class XEP_0078(BasePlugin):
     description = 'XEP-0078: Non-SASL Authentication'
     dependencies = set()
     stanza = stanza
+    default_config = {
+        'order': 15
+    }
 
     def plugin_init(self):
         self.xmpp.register_feature('auth',
                 self._handle_auth,
                 restart=False,
-                order=self.config.get('order', 15))
+                order=self.order)
 
         register_stanza_plugin(Iq, stanza.IqAuth)
         register_stanza_plugin(StreamFeatures, stanza.AuthFeature)
 
     def plugin_end(self):
-        self.xmpp.unregister_feature('auth', self.config.get('order', 15))
+        self.xmpp.unregister_feature('auth', self.order)
 
     def _handle_auth(self, features):
         # If we can or have already authenticated with SASL, do nothing.

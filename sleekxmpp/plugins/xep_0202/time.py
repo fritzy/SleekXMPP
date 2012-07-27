@@ -30,21 +30,22 @@ class XEP_0202(BasePlugin):
     description = 'XEP-0202: Entity Time'
     dependencies = set(['xep_0030', 'xep_0082'])
     stanza = stanza
+    default_config = {
+        #: As a default, respond to time requests with the
+        #: local time returned by XEP-0082. However, a
+        #: custom function can be supplied which accepts
+        #: the JID of the entity to query for the time.
+        'local_time': None,
+        'tz_offset': 0
+    }
 
     def plugin_init(self):
         """Start the XEP-0203 plugin."""
-        self.tz_offset = self.config.get('tz_offset', 0)
-
-        # As a default, respond to time requests with the
-        # local time returned by XEP-0082. However, a
-        # custom function can be supplied which accepts
-        # the JID of the entity to query for the time.
-        self.local_time = self.config.get('local_time', None)
-
-        def default_local_time(jid):
-            return xep_0082.datetime(offset=self.tz_offset)
 
         if not self.local_time:
+            def default_local_time(jid):
+                return xep_0082.datetime(offset=self.tz_offset)
+
             self.local_time = default_local_time
 
         self.xmpp.registerHandler(

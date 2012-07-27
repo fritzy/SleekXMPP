@@ -40,14 +40,15 @@ class XEP_0027(BasePlugin):
     description = 'XEP-0027: Current Jabber OpenPGP Usage'
     dependencies = set()
     stanza = stanza
+    default_config = {
+        'gpg_binary': 'gpg',
+        'gpg_home': '',
+        'use_agent': True,
+        'keyring': None,
+        'key_server': 'pgp.mit.edu'
+    }
 
     def plugin_init(self):
-        self.gpg_binary = self.config.get('gpg_binary', 'gpg')
-        self.gpg_home = self.config.get('gpg_home', '')
-        self.use_agent = self.config.get('use_agent', True)
-        self.keyring = self.config.get('keyring', None)
-        self.key_server = self.config.get('key_server', 'pgp.mit.edu')
-
         self.gpg = GPG(gnupghome=self.gpg_home,
                        gpgbinary=self.gpg_binary,
                        use_agent=self.use_agent,

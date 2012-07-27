@@ -1,3 +1,19 @@
+# -*- coding: utf-8 -*-
+"""
+    sleekxmpp.util.stringprep_profiles
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    This module makes it easier to define profiles of stringprep,
+    such as nodeprep and resourceprep for JID validation, and
+    SASLprep for SASL.
+
+    Part of SleekXMPP: The Sleek XMPP Library
+
+    :copyright: (c) 2012 Nathanael C. Fritz, Lance J.T. Stout
+    :license: MIT, see LICENSE for more details
+"""
+
+
 from __future__ import unicode_literals
 
 import sys
@@ -10,6 +26,7 @@ class StringPrepError(UnicodeError):
 
 
 def to_unicode(data):
+    """Ensure that a given string is Unicode, regardless of Python version."""
     if sys.version_info < (3, 0):
         return unicode(data)
     else:
@@ -17,10 +34,12 @@ def to_unicode(data):
 
 
 def b1_mapping(char):
-    return '' if stringprep.in_table_c12(char) else None
+    """Map characters that are commonly mapped to nothing."""
+    return '' if stringprep.in_table_b1(char) else None
 
 
 def c12_mapping(char):
+    """Map non-ASCII whitespace to spaces."""
     return ' ' if stringprep.in_table_c12(char) else None
 
 
@@ -102,6 +121,26 @@ def check_bidi(data):
 
 def create(nfkc=True, bidi=True, mappings=None,
            prohibited=None, unassigned=None):
+    """Create a profile of stringprep.
+
+    :param bool nfkc:
+        If `True`, perform NFKC Unicode normalization. Defaults to `True`.
+    :param bool bidi:
+        If `True`, perform bidirectional text checks. Defaults to `True`.
+    :param list mappings:
+        Optional list of functions for mapping characters to
+        suitable replacements.
+    :param list prohibited:
+        Optional list of functions which check for the presence of
+        prohibited characters.
+    :param list unassigned:
+        Optional list of functions for detecting the use of unassigned
+        code points.
+
+    :raises: StringPrepError
+    :return: Unicode string of the resulting text passing the
+             profile's requirements.
+    """
     def profile(data, query=False):
         try:
             data = to_unicode(data)

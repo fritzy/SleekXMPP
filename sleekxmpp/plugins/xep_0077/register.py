@@ -27,10 +27,12 @@ class XEP_0077(BasePlugin):
     description = 'XEP-0077: In-Band Registration'
     dependencies = set(['xep_0004', 'xep_0066'])
     stanza = stanza
+    default_config = {
+        'create_account': True,
+        'order': 50
+    }
 
     def plugin_init(self):
-        self.create_account = self.config.get('create_account', True)
-
         register_stanza_plugin(StreamFeatures, RegisterFeature)
         register_stanza_plugin(Iq, Register)
 
@@ -38,14 +40,14 @@ class XEP_0077(BasePlugin):
             self.xmpp.register_feature('register',
                 self._handle_register_feature,
                 restart=False,
-                order=self.config.get('order', 50))
+                order=self.order)
 
         register_stanza_plugin(Register, self.xmpp['xep_0004'].stanza.Form)
         register_stanza_plugin(Register, self.xmpp['xep_0066'].stanza.OOB)
 
     def plugin_end(self):
         if not self.xmpp.is_component:
-            self.xmpp.unregister_feature('register', self.config.get('order', 50))
+            self.xmpp.unregister_feature('register', self.order)
 
     def _handle_register_feature(self, features):
         if 'mechanisms' in self.xmpp.features:

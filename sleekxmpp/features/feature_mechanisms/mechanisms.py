@@ -29,10 +29,13 @@ class FeatureMechanisms(BasePlugin):
     description = 'RFC 6120: Stream Feature: SASL'
     dependencies = set()
     stanza = stanza
+    default_config = {
+        'use_mech': None,
+        'sasl_callback': None,
+        'order': 100
+    }
 
     def plugin_init(self):
-        self.use_mech = self.config.get('use_mech', None)
-
         if not self.use_mech and not self.xmpp.boundjid.user:
             self.use_mech = 'ANONYMOUS'
 
@@ -53,15 +56,14 @@ class FeatureMechanisms(BasePlugin):
                     values[value] = creds[value]
             mech.fulfill(values)
 
-        sasl_callback = self.config.get('sasl_callback', None)
-        if sasl_callback is None:
-            sasl_callback = basic_callback
+        if self.sasl_callback is None:
+            self.sasl_callback = basic_callback
 
         self.mech = None
         self.sasl = suelta.SASL(self.xmpp.boundjid.domain, 'xmpp',
                                 username=self.xmpp.boundjid.user,
                                 sec_query=suelta.sec_query_allow,
-                                request_values=sasl_callback,
+                                request_values=self.sasl_callback,
                                 tls_active=tls_active,
                                 mech=self.use_mech)
 
@@ -95,7 +97,7 @@ class FeatureMechanisms(BasePlugin):
         self.xmpp.register_feature('mechanisms',
                 self._handle_sasl_auth,
                 restart=True,
-                order=self.config.get('order', 100))
+                order=self.order)
 
     def _handle_sasl_auth(self, features):
         """

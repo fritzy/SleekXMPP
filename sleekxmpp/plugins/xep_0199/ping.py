@@ -51,15 +51,16 @@ class XEP_0199(BasePlugin):
     description = 'XEP-0199: XMPP Ping'
     dependencies = set(['xep_0030'])
     stanza = stanza
+    default_config = {
+        'keepalive': False,
+        'frequency': 300,
+        'timeout': 30
+    }
 
     def plugin_init(self):
         """
         Start the XEP-0199 plugin.
         """
-        self.keepalive = self.config.get('keepalive', False)
-        self.frequency = float(self.config.get('frequency', 300))
-        self.timeout = self.config.get('timeout', 30)
-
         register_stanza_plugin(Iq, Ping)
 
         self.xmpp.register_handler(

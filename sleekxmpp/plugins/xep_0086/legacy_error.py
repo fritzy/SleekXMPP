@@ -37,7 +37,10 @@ class XEP_0086(BasePlugin):
     description = 'XEP-0086: Error Condition Mappings'
     dependencies = set()
     stanza = stanza
+    default_config = {
+        'override': True
+    }
 
     def plugin_init(self):
         register_stanza_plugin(Error, LegacyError,
-                               overrides=self.config.get('override', True))
+                               overrides=self.override)

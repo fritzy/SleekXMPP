@@ -82,12 +82,18 @@ class XEP_0050(BasePlugin):
     description = 'XEP-0050: Ad-Hoc Commands'
     dependencies = set(['xep_0030', 'xep_0004'])
     stanza = stanza
+    default_config = {
+        'threaded': True,
+        'session_db': None
+    }
 
     def plugin_init(self):
         """Start the XEP-0050 plugin."""
-        self.threaded = self.config.get('threaded', True)
+        self.sessions = self.session_db
+        if self.sessions is None:
+            self.sessions = {}
+
         self.commands = {}
-        self.sessions = self.config.get('session_db', {})
 
         self.xmpp.register_handler(
                 Callback("Ad-Hoc Execute",

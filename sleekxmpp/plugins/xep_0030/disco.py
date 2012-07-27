@@ -88,6 +88,10 @@ class XEP_0030(BasePlugin):
     description = 'XEP-0030: Service Discovery'
     dependencies = set()
     stanza = stanza
+    default_config = {
+        'use_cache': True,
+        'wrap_results': False
+    }
 
     def plugin_init(self):
         """
@@ -107,9 +111,6 @@ class XEP_0030(BasePlugin):
         register_stanza_plugin(Iq, DiscoItems)
 
         self.static = StaticDisco(self.xmpp, self)
-
-        self.use_cache = self.config.get('use_cache', True)
-        self.wrap_results = self.config.get('wrap_results', False)
 
         self._disco_ops = [
                 'get_info', 'set_info', 'set_identities', 'set_features',

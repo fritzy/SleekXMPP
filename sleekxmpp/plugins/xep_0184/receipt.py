@@ -26,13 +26,14 @@ class XEP_0184(BasePlugin):
     description = 'XEP-0184: Message Delivery Receipts'
     dependencies = set(['xep_0030'])
     stanza = stanza
+    default_config = {
+        'auto_ack': True,
+        'auto_request': False
+    }
 
     ack_types = ('normal', 'chat', 'headline')
 
     def plugin_init(self):
-        self.auto_ack = self.config.get('auto_ack', True)
-        self.auto_request = self.config.get('auto_request', False)
-
         register_stanza_plugin(Message, Request)
         register_stanza_plugin(Message, Received)
 

@@ -14,6 +14,7 @@
 """
 
 import sys
+import copy
 import logging
 import threading
 
@@ -272,6 +273,14 @@ class BasePlugin(object):
     #: be initialized as needed if this plugin is enabled.
     dependencies = set()
 
+    #: The basic, standard configuration for the plugin, which may
+    #: be overridden when initializing the plugin. The configuration
+    #: fields included here may be accessed directly as attributes of
+    #: the plugin. For example, including the configuration field 'foo'
+    #: would mean accessing `plugin.foo` returns the current value of
+    #: `plugin.config['foo']`.
+    default_config = {}
+
     def __init__(self, xmpp, config=None):
         self.xmpp = xmpp
         if self.xmpp:
@@ -279,7 +288,32 @@ class BasePlugin(object):
 
         #: A plugin's behaviour may be configurable, in which case those
         #: configuration settings will be provided as a dictionary.
-        self.config = config if config is not None else {}
+        self.config = copy.copy(self.default_config)
+        if config:
+            self.config.update(config)
+
+    def __getattr__(self, key):
+        """Provide direct access to configuration fields.
+
+        If the standard configuration includes the option `'foo'`, then
+        accessing `self.foo` should be the same as `self.config['foo']`.
+        """
+        if key in self.default_config:
+            return self.config.get(key, None)
+        else:
+            return object.__getattribute__(self, key)
+
+    def __setattr__(self, key, value):
+        """Provide direct assignment to configuration fields.
+
+        If the standard configuration includes the option `'foo'`, then
+        assigning to `self.foo` should be the same as assigning to
+        `self.config['foo']`.
+        """
+        if key in self.default_config:
+            self.config[key] = value
+        else:
+            super(BasePlugin, self).__setattr__(key, value)
 
     def _init(self):
         """Initialize plugin state, such as registering event handlers.

@@ -25,10 +25,11 @@ class XEP_0256(BasePlugin):
     description = 'XEP-0256: Last Activity in Presence'
     dependencies = set(['xep_0012'])
     stanza = stanza
+    default_config = {
+        'auto_last_activity': False
+    }
 
     def plugin_init(self):
-        self.auto_last_activity = self.config.get('auto_last_activity', False)
-
         register_stanza_plugin(Presence, LastActivity)
 
         self.xmpp.add_filter('out', self._initial_presence_activity)

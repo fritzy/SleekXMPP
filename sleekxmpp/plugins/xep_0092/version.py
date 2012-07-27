@@ -30,16 +30,18 @@ class XEP_0092(BasePlugin):
     description = 'XEP-0092: Software Version'
     dependencies = set(['xep_0030'])
     stanza = stanza
+    default_config = {
+        'software_name': 'SleekXMPP',
+        'version': sleekxmpp.__version__,
+        'os': ''
+    }
 
     def plugin_init(self):
         """
         Start the XEP-0092 plugin.
         """
-        self.name = self.config.get('name', 'SleekXMPP')
-        self.version = self.config.get('version', sleekxmpp.__version__)
-        self.os = self.config.get('os', '')
-
-        self.getVersion = self.get_version
+        if 'name' in self.config:
+            self.software_name = self.config['name']
 
         self.xmpp.register_handler(
                 Callback('Software Version',
@@ -63,7 +65,7 @@ class XEP_0092(BasePlugin):
             iq -- The Iq stanza containing the software version query.
         """
         iq.reply()
-        iq['software_version']['name'] = self.name
+        iq['software_version']['name'] = self.software_name
         iq['software_version']['version'] = self.version
         iq['software_version']['os'] = self.os
         iq.send()
@@ -88,3 +90,6 @@ class XEP_0092(BasePlugin):
             del values['lang']
             return values
         return False
+
+
+XEP_0092.getVersion = XEP_0092.get_version

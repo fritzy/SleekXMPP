@@ -20,17 +20,18 @@ class XEP_0047(BasePlugin):
     description = 'XEP-0047: In-band Bytestreams'
     dependencies = set(['xep_0030'])
     stanza = stanza
+    default_config = {
+        'max_block_size': 8192,
+        'window_size': 1,
+        'auto_accept': True,
+        'accept_stream': None
+    }
 
     def plugin_init(self):
         self.streams = {}
-        self.pending_streams = {3: 5}
+        self.pending_streams = {}
         self.pending_close_streams = {}
         self._stream_lock = threading.Lock()
-
-        self.max_block_size = self.config.get('max_block_size', 8192)
-        self.window_size = self.config.get('window_size', 1)
-        self.auto_accept = self.config.get('auto_accept', True)
-        self.accept_stream = self.config.get('accept_stream', None)
 
         register_stanza_plugin(Iq, Open)
         register_stanza_plugin(Iq, Close)

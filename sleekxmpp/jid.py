@@ -29,7 +29,9 @@ ILLEGAL_CHARS = '\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\x0c\r' + \
 #: The basic regex pattern that a JID must match in order to determine
 #: the local, domain, and resource parts. This regex does NOT do any
 #: validation, which requires application of nodeprep, resourceprep, etc.
-JID_PATTERN = "^(?:([^\"&'/:<>@]{1,1023})@)?([^/@]{1,1023})(?:/(.{1,1023}))?$"
+JID_PATTERN = re.compile(
+    "^(?:([^\"&'/:<>@]{1,1023})@)?([^/@]{1,1023})(?:/(.{1,1023}))?$"
+)
 
 #: The set of escape sequences for the characters not allowed by nodeprep.
 JID_ESCAPE_SEQUENCES = set(['\\20', '\\22', '\\26', '\\27', '\\2f',
@@ -118,7 +120,7 @@ def _parse_jid(data):
 
     :returns: tuple of the validated local, domain, and resource strings
     """
-    match = re.match(JID_PATTERN, data)
+    match = JID_PATTERN.match(data)
     if not match:
         raise InvalidJID('JID could not be parsed')
 

@@ -87,6 +87,9 @@ class XEP_0153(BasePlugin):
         if not isinstance(stanza, Presence):
             return stanza
 
+        if stanza['type'] not in ('available', 'dnd', 'chat', 'away', 'xa'):
+            return stanza
+
         current_hash = self.api['get_hash'](stanza['from'])
         stanza['vcard_temp_update']['photo'] = current_hash
         return stanza

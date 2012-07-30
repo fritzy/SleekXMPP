@@ -98,6 +98,7 @@ class Mech(object):
     channel_binding = False
     required_credentials = set()
     optional_credentials = set()
+    security = set()
 
     def __init__(self, name, credentials, security_settings):
         self.credentials = credentials

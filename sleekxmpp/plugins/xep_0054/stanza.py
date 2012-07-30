@@ -1,8 +1,7 @@
 import base64
 import datetime as dt
 
-from sleekxmpp.thirdparty.suelta.util import bytes
-
+from sleekxmpp.util import bytes
 from sleekxmpp.xmlstream import ElementBase, ET, register_stanza_plugin, JID
 from sleekxmpp.plugins import xep_0082
 

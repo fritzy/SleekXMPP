@@ -1,9 +1,9 @@
 import re
 import base64
 
+from sleekxmpp.util import bytes
 from sleekxmpp.exceptions import XMPPError
 from sleekxmpp.xmlstream import ElementBase
-from sleekxmpp.thirdparty.suelta.util import bytes
 
 
 VALID_B64 = re.compile(r'[A-Za-z0-9\+\/]*=*')

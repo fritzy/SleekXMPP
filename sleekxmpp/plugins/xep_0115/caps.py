@@ -104,12 +104,17 @@ class XEP_0115(BasePlugin):
         self.xmpp['xep_0030'].add_feature(stanza.Capabilities.namespace)
 
     def _filter_add_caps(self, stanza):
-        if isinstance(stanza, Presence) and self.broadcast:
-            ver = self.get_verstring(stanza['from'])
-            if ver:
-                stanza['caps']['node'] = self.caps_node
-                stanza['caps']['hash'] = self.hash
-                stanza['caps']['ver'] = ver
+        if not isinstance(stanza, Presence) or not self.broadcast:
+            return stanza
+
+        if stanza['type'] not in ('available', 'chat', 'away', 'dnd', 'xa'):
+            return stanza
+
+        ver = self.get_verstring(stanza['from'])
+        if ver:
+            stanza['caps']['node'] = self.caps_node
+            stanza['caps']['hash'] = self.hash
+            stanza['caps']['ver'] = ver
         return stanza
 
     def _handle_caps(self, presence):

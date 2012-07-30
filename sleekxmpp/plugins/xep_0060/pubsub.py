@@ -26,7 +26,7 @@ class XEP_0060(BasePlugin):
 
     name = 'xep_0060'
     description = 'XEP-0060: Publish-Subscribe'
-    dependencies = set(['xep_0030', 'xep_0004'])
+    dependencies = set(['xep_0030', 'xep_0004', 'xep_0082', 'xep_0131'])
     stanza = stanza
 
     def plugin_init(self):
@@ -52,6 +52,8 @@ class XEP_0060(BasePlugin):
                 Callback('Pubsub Event: Subscription',
                     StanzaPath('message/pubsub_event/subscription'),
                     self._handle_event_subscription))
+
+        self.xmpp['xep_0131'].supported_headers.add('SubID')
 
     def plugin_end(self):
         self.xmpp.remove_handler('Pubsub Event: Items')

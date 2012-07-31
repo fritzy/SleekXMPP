@@ -50,6 +50,7 @@ packages     = [ 'sleekxmpp',
                  'sleekxmpp/test',
                  'sleekxmpp/roster',
                  'sleekxmpp/util',
+                 'sleekxmpp/util/sasl',
                  'sleekxmpp/xmlstream',
                  'sleekxmpp/xmlstream/matcher',
                  'sleekxmpp/xmlstream/handler',
@@ -104,9 +105,8 @@ packages     = [ 'sleekxmpp',
                  'sleekxmpp/features/feature_bind',
                  'sleekxmpp/features/feature_session',
                  'sleekxmpp/features/feature_rosterver',
+                 'sleekxmpp/features/feature_preapproval',
                  'sleekxmpp/thirdparty',
-                 'sleekxmpp/thirdparty/suelta',
-                 'sleekxmpp/thirdparty/suelta/mechanisms',
                  ]
 
 setup(

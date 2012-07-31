@@ -11,5 +11,6 @@ __all__ = [
     'feature_mechanisms',
     'feature_bind',
     'feature_session',
-    'feature_rosterver'
+    'feature_rosterver',
+    'feature_preapproval'
 ]

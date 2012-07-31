@@ -11,9 +11,13 @@
     :license: MIT, see LICENSE for more details
 """
 
+import logging
 import stringprep
 
 from sleekxmpp.util import hashes, bytes, stringprep_profiles
+
+
+log = logging.getLogger(__name__)
 
 
 #: Global registry mapping mechanism names to implementation classes.
@@ -157,7 +161,7 @@ def choose(mech_list, credentials, security_settings, limit=None, min_mech=None)
 
         return mech_class(best_mech, creds, security_opts)
     except SASLCancelled as e:
-        log.debug('SASL: %s: %s', (best_mech, e.message))
+        log.info('SASL: %s: %s', best_mech, e.message)
         mech_list.remove(best_mech)
         return choose(mech_list, credentials, security_settings,
                 limit=limit,

@@ -187,12 +187,6 @@ class XEP_0050(BasePlugin):
             jid = JID(jid)
         item_jid = jid.full
 
-        # Client disco uses only the bare JID
-        if self.xmpp.is_component:
-            jid = jid.full
-        else:
-            jid = jid.bare
-
         self.xmpp['xep_0030'].add_identity(category='automation',
                                            itype='command-list',
                                            name='Ad-Hoc commands',

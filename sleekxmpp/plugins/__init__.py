@@ -18,6 +18,7 @@ __all__ = [
     'xep_0004',  # Data Forms
     'xep_0009',  # Jabber-RPC
     'xep_0012',  # Last Activity
+    'xep_0016',  # Privacy Lists
     'xep_0027',  # Current Jabber OpenPGP Usage
     'xep_0030',  # Service Discovery
     'xep_0033',  # Extended Stanza Addresses

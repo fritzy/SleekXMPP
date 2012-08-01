@@ -99,7 +99,7 @@ class FeatureMechanisms(BasePlugin):
                 result[value] = creds.get('email', jid)
             elif value == 'channel_binding':
                 if sys.version_info >= (3, 3):
-                    result[value] = self.xmpp.socket.channel_binding()
+                    result[value] = self.xmpp.socket.get_channel_binding()
                 else:
                     result[value] = None
             elif value == 'host':

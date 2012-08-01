@@ -72,7 +72,7 @@ nodeprep = stringprep_profiles.create(
     bidi=True,
     mappings=[
         stringprep_profiles.b1_mapping,
-        stringprep_profiles.c12_mapping],
+        stringprep.map_table_b2],
     prohibited=[
         stringprep.in_table_c11,
         stringprep.in_table_c12,

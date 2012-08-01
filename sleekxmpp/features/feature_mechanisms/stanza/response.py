@@ -8,8 +8,7 @@
 
 import base64
 
-from sleekxmpp.thirdparty.suelta.util import bytes
-
+from sleekxmpp.util import bytes
 from sleekxmpp.xmlstream import StanzaBase
 
 

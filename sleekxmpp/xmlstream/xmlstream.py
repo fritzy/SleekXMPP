@@ -138,6 +138,15 @@ class XMLStream(object):
         #:     be consulted, even if they are not in the provided file.
         self.ca_certs = None
 
+        #: Path to a file containing a client certificate to use for
+        #: authenticating via SASL EXTERNAL. If set, there must also
+        #: be a corresponding `:attr:keyfile` value.
+        self.certfile = None
+
+        #: Path to a file containing the private key for the selected
+        #: client certificate to use for authenticating via SASL EXTERNAL.
+        self.keyfile = None
+
         #: The time in seconds to wait for events from the event queue,
         #: and also the time between checks for the process stop signal.
         self.wait_timeout = WAIT_TIMEOUT
@@ -499,6 +508,8 @@ class XMLStream(object):
                 cert_policy = ssl.CERT_REQUIRED
 
             ssl_socket = ssl.wrap_socket(self.socket,
+                                         certfile=self.certfile,
+                                         keyfile=self.keyfile,
                                          ca_certs=self.ca_certs,
                                          cert_reqs=cert_policy,
                                          do_handshake_on_connect=False)
@@ -799,6 +810,8 @@ class XMLStream(object):
                 cert_policy = ssl.CERT_REQUIRED
 
             ssl_socket = ssl.wrap_socket(self.socket,
+                                         certfile=self.certfile,
+                                         keyfile=self.keyfile,
                                          ssl_version=self.ssl_version,
                                          do_handshake_on_connect=False,
                                          ca_certs=self.ca_certs,

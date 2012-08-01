@@ -1,8 +1,12 @@
-"""
-"""
-
 import sys
 import hashlib
+
+
+def unicode(text):
+    if sys.version_info < (3, 0):
+        import __builtin__
+        return __builtin__.unicode(text)
+    return str(text)
 
 
 def bytes(text):
@@ -15,9 +19,6 @@ def bytes(text):
     :param text: Unicode text to convert to bytes
     :rtype: bytes (Python3), str (Python2.6+)
     """
-    if text is None:
-        return b''
-
     if sys.version_info < (3, 0):
         import __builtin__
         return __builtin__.bytes(text)

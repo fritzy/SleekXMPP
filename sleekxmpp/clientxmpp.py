@@ -113,9 +113,10 @@ class ClientXMPP(BaseXMPP):
         self.register_plugin('feature_starttls')
         self.register_plugin('feature_bind')
         self.register_plugin('feature_session')
+        self.register_plugin('feature_rosterver')
+        self.register_plugin('feature_preapproval')
         self.register_plugin('feature_mechanisms',
                 pconfig={'use_mech': sasl_mech} if sasl_mech else None)
-        self.register_plugin('feature_rosterver')
 
     @property
     def password(self):
@@ -286,15 +287,17 @@ class ClientXMPP(BaseXMPP):
         if iq['roster']['ver']:
             roster.version = iq['roster']['ver']
         items = iq['roster']['items']
-        for jid in items:
-            item = items[jid]
-            roster[jid]['name'] = item['name']
-            roster[jid]['groups'] = item['groups']
-            roster[jid]['from'] = item['subscription'] in ['from', 'both']
-            roster[jid]['to'] = item['subscription'] in ['to', 'both']
-            roster[jid]['pending_out'] = (item['ask'] == 'subscribe')
 
-            roster[jid].save(remove=(item['subscription'] == 'remove'))
+        valid_subscriptions = ('to', 'from', 'both', 'none', 'remove')
+        for jid, item in items.items():
+            if item['subscription'] in valid_subscriptions:
+                roster[jid]['name'] = item['name']
+                roster[jid]['groups'] = item['groups']
+                roster[jid]['from'] = item['subscription'] in ('from', 'both')
+                roster[jid]['to'] = item['subscription'] in ('to', 'both')
+                roster[jid]['pending_out'] = (item['ask'] == 'subscribe')
+
+                roster[jid].save(remove=(item['subscription'] == 'remove'))
 
         self.event("roster_update", iq)
         if iq['type'] == 'set':

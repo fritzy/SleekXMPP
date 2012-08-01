@@ -8,8 +8,7 @@
 
 from base64 import b64encode, b64decode
 
-from sleekxmpp.thirdparty.suelta.util import bytes
-
+from sleekxmpp.util import bytes
 from sleekxmpp.xmlstream import ElementBase, ET, register_stanza_plugin
 
 

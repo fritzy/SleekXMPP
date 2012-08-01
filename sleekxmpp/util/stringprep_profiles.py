@@ -20,17 +20,11 @@ import sys
 import stringprep
 import unicodedata
 
+from sleekxmpp.util import unicode
+
 
 class StringPrepError(UnicodeError):
     pass
-
-
-def to_unicode(data):
-    """Ensure that a given string is Unicode, regardless of Python version."""
-    if sys.version_info < (3, 0):
-        return unicode(data)
-    else:
-        return str(data)
 
 
 def b1_mapping(char):
@@ -143,7 +137,7 @@ def create(nfkc=True, bidi=True, mappings=None,
     """
     def profile(data, query=False):
         try:
-            data = to_unicode(data)
+            data = unicode(data)
         except UnicodeError:
             raise StringPrepError
 

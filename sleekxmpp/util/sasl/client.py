@@ -79,19 +79,23 @@ def sasl_mech(score):
 
 
 class SASLNoAppropriateMechanism(Exception):
-    pass
+    def __init__(self, value=''):
+        self.message = value
 
 
 class SASLCancelled(Exception):
-    pass
+    def __init__(self, value=''):
+        self.message = value
 
 
 class SASLFailed(Exception):
-    pass
+    def __init__(self, value=''):
+        self.message = value
 
 
 class SASLMutualAuthFailed(SASLFailed):
-    pass
+    def __init__(self, value=''):
+        self.message = value
 
 
 class Mech(object):

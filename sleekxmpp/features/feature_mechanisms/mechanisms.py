@@ -94,6 +94,8 @@ class FeatureMechanisms(BasePlugin):
                 result[value] = self.xmpp.boundjid.user
             elif value == 'password':
                 result[value] = creds['password']
+            elif value == 'authzid':
+                result[value] = creds.get('authzid', '')
             elif value == 'email':
                 jid = self.xmpp.boundjid.bare
                 result[value] = creds.get('email', jid)

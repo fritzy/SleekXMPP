@@ -692,11 +692,13 @@ class XMLStream(object):
         if send_close:
             self.send_raw(self.stream_footer, now=True)
 
+        if not reconnect:
+            self.auto_reconnect = False
+
         # Wait for confirmation that the stream was
         # closed in the other direction. If we didn't
         # send a stream footer we don't need to wait
         # since the server won't know to respond.
-        self.auto_reconnect = reconnect
         if send_close:
             log.info('Waiting for %s from server', self.stream_footer)
             self.stream_end_event.wait(4)

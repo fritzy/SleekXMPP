@@ -147,6 +147,8 @@ class XMLStream(object):
         #: client certificate to use for authenticating via SASL EXTERNAL.
         self.keyfile = None
 
+        self._der_cert = None
+
         #: The time in seconds to wait for events from the event queue,
         #: and also the time between checks for the process stop signal.
         self.wait_timeout = WAIT_TIMEOUT

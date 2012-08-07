@@ -147,6 +147,8 @@ class XMLStream(object):
         #: client certificate to use for authenticating via SASL EXTERNAL.
         self.keyfile = None
 
+        self._der_cert = None
+
         #: The time in seconds to wait for events from the event queue,
         #: and also the time between checks for the process stop signal.
         self.wait_timeout = WAIT_TIMEOUT
@@ -477,7 +479,7 @@ class XMLStream(object):
                 log.debug("No remaining DNS records to try.")
                 self.dns_answers = None
                 if reattempt:
-                    self.reconnect_delay = None
+                    self.reconnect_delay = delay
                 return False
 
         af = Socket.AF_INET
@@ -692,11 +694,13 @@ class XMLStream(object):
         if send_close:
             self.send_raw(self.stream_footer, now=True)
 
+        if not reconnect:
+            self.auto_reconnect = False
+
         # Wait for confirmation that the stream was
         # closed in the other direction. If we didn't
         # send a stream footer we don't need to wait
         # since the server won't know to respond.
-        self.auto_reconnect = reconnect
         if send_close:
             log.info('Waiting for %s from server', self.stream_footer)
             self.stream_end_event.wait(4)

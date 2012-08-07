@@ -15,6 +15,7 @@ import getpass
 from optparse import OptionParser
 
 import sleekxmpp
+from sleekxmpp.exceptions import IqError, IqTimeout
 
 
 # Python versions before 3.0 do not use UTF-8 encoding
@@ -83,50 +84,54 @@ class Disco(sleekxmpp.ClientXMPP):
         self.get_roster()
         self.send_presence()
 
-        if self.get in self.info_types:
-            # By using block=True, the result stanza will be
-            # returned. Execution will block until the reply is
-            # received. Non-blocking options would be to listen
-            # for the disco_info event, or passing a handler
-            # function using the callback parameter.
-            info = self['xep_0030'].get_info(jid=self.target_jid,
-                                             node=self.target_node,
-                                             block=True)
-        if self.get in self.items_types:
-            # The same applies from above. Listen for the
-            # disco_items event or pass a callback function
-            # if you need to process a non-blocking request.
-            items = self['xep_0030'].get_items(jid=self.target_jid,
-                                               node=self.target_node,
-                                               block=True)
+        try:
+            if self.get in self.info_types:
+                # By using block=True, the result stanza will be
+                # returned. Execution will block until the reply is
+                # received. Non-blocking options would be to listen
+                # for the disco_info event, or passing a handler
+                # function using the callback parameter.
+                info = self['xep_0030'].get_info(jid=self.target_jid,
+                                                 node=self.target_node,
+                                                 block=True)
+            elif self.get in self.items_types:
+                # The same applies from above. Listen for the
+                # disco_items event or pass a callback function
+                # if you need to process a non-blocking request.
+                items = self['xep_0030'].get_items(jid=self.target_jid,
+                                                   node=self.target_node,
+                                                   block=True)
+            else:
+                logging.error("Invalid disco request type.")
+                return
+        except IqError as e:
+            logging.error("Entity returned an error: %s" % e.iq['error']['condition'])
+        except IqTimeout:
+            logging.error("No response received.")
         else:
-            logging.error("Invalid disco request type.")
-            self.disconnect()
-            return
-
-        header = 'XMPP Service Discovery: %s' % self.target_jid
-        print(header)
-        print('-' * len(header))
-        if self.target_node != '':
-            print('Node: %s' % self.target_node)
+            header = 'XMPP Service Discovery: %s' % self.target_jid
+            print(header)
             print('-' * len(header))
+            if self.target_node != '':
+                print('Node: %s' % self.target_node)
+                print('-' * len(header))
 
-        if self.get in self.identity_types:
-            print('Identities:')
-            for identity in info['disco_info']['identities']:
-                print('  - %s' % str(identity))
+            if self.get in self.identity_types:
+                print('Identities:')
+                for identity in info['disco_info']['identities']:
+                    print('  - %s' % str(identity))
 
-        if self.get in self.feature_types:
-            print('Features:')
-            for feature in info['disco_info']['features']:
-                print('  - %s' % feature)
+            if self.get in self.feature_types:
+                print('Features:')
+                for feature in info['disco_info']['features']:
+                    print('  - %s' % feature)
 
-        if self.get in self.items_types:
-            print('Items:')
-            for item in items['disco_items']['items']:
-                print('  - %s' % str(item))
-
-        self.disconnect()
+            if self.get in self.items_types:
+                print('Items:')
+                for item in items['disco_items']['items']:
+                    print('  - %s' % str(item))
+        finally:
+            self.disconnect()
 
 
 if __name__ == '__main__':

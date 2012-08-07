@@ -479,7 +479,7 @@ class XMLStream(object):
                 log.debug("No remaining DNS records to try.")
                 self.dns_answers = None
                 if reattempt:
-                    self.reconnect_delay = None
+                    self.reconnect_delay = delay
                 return False
 
         af = Socket.AF_INET

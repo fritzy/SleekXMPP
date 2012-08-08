@@ -156,6 +156,7 @@ class XEP_0045(BasePlugin):
         entry = pr['muc'].getStanzaValues()
         entry['show'] = pr['show']
         entry['status'] = pr['status']
+        entry['alt_nick'] = pr['nick']
         if pr['type'] == 'unavailable':
             if entry['nick'] in self.rooms[entry['room']]:
                 del self.rooms[entry['room']][entry['nick']]

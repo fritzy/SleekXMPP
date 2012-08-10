@@ -29,7 +29,7 @@ class StateMachine(object):
                 if state in self.__states:
                     raise IndexError("The state '%s' is already in the StateMachine." % state)
                 self.__states.append(state)
-        finally: 
+        finally:
             self.lock.release()
 
 
@@ -90,6 +90,9 @@ class StateMachine(object):
                 log.debug("Could not acquire lock")
                 return False
 
+        if self.__current_state == to_state:
+            return True
+
         while not self.__current_state in from_states:
             # detect timeout:
             remainder = start + wait - time.time()
@@ -108,7 +111,7 @@ class StateMachine(object):
 
                 # some 'false' value returned from func,
                 # indicating that transition should not occur:
-                if not return_val: 
+                if not return_val:
                     return return_val
 
                 log.debug(' ==== TRANSITION %s -> %s', self.__current_state, to_state)
@@ -193,9 +196,9 @@ class StateMachine(object):
         while not self.__current_state in states:
             # detect timeout:
             remainder = start + wait - time.time()
-            if remainder > 0: 
+            if remainder > 0:
                 self.lock.wait(remainder)
-            else: 
+            else:
                 self.lock.release()
                 return False
         self.lock.release()
@@ -241,7 +244,7 @@ class _StateCtx:
         while not self.state_machine[self.from_state] or not self.state_machine.lock.acquire(False):
             # detect timeout:
             remainder = start + self.wait - time.time()
-            if remainder > 0: 
+            if remainder > 0:
                 self.state_machine.lock.wait(remainder)
             else:
                 log.debug('StateMachine timeout while waiting for state: %s', self.from_state)

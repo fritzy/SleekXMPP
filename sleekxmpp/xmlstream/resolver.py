@@ -102,7 +102,7 @@ def resolve(host, port=None, service=None, proto='tcp',
     try:
         # If `host` is an IPv4 literal, we can return it immediately.
         ipv4 = socket.inet_aton(host)
-        yield (host, port)
+        yield (host, host, port)
     except socket.error:
         pass
 
@@ -112,7 +112,7 @@ def resolve(host, port=None, service=None, proto='tcp',
             # it immediately.
             if hasattr(socket, 'inet_pton'):
                 ipv6 = socket.inet_pton(socket.AF_INET6, host)
-                yield (host, port)
+                yield (host, host, port)
         except socket.error:
             pass
 
@@ -128,16 +128,16 @@ def resolve(host, port=None, service=None, proto='tcp',
         results = []
         if host == 'localhost':
             if use_ipv6:
-                results.append(('::1', port))
-            results.append(('127.0.0.1', port))
+                results.append((host, '::1', port))
+            results.append((host, '127.0.0.1', port))
         if use_ipv6:
             for address in get_AAAA(host, resolver=resolver):
-                results.append((address, port))
+                results.append((host, address, port))
         for address in get_A(host, resolver=resolver):
-            results.append((address, port))
+            results.append((host, address, port))
 
-        for address, port in results:
-            yield address, port
+        for host, address, port in results:
+            yield host, address, port
 
 
 def get_A(host, resolver=None):
@@ -297,7 +297,10 @@ def get_SRV(host, port, service, proto='tcp', resolver=None):
             for running_sum in sums:
                 if running_sum >= selected:
                     rec = sums[running_sum]
-                    sorted_recs.append((rec.target.to_text(), rec.port))
+                    host = rec.target.to_text()
+                    if host.endswith('.'):
+                        host = host[:-1]
+                    sorted_recs.append((host, rec.port))
                     answers[priority].remove(rec)
                     break
 

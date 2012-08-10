@@ -192,6 +192,7 @@ class XMLStream(object):
 
         #: The expected name of the server, for validation.
         self._expected_server_name = ''
+        self._service_name = ''
 
         #: The desired, or actual, address of the connected server.
         self.address = (host, int(port))
@@ -473,8 +474,10 @@ class XMLStream(object):
 
         if self.default_domain:
             try:
-                self.address = self.pick_dns_answer(self.default_domain,
-                                                    self.address[1])
+                host, address, port = self.pick_dns_answer(self.default_domain,
+                                                           self.address[1])
+                self.address = (address, port)
+                self._service_name = host
             except StopIteration:
                 log.debug("No remaining DNS records to try.")
                 self.dns_answers = None
@@ -722,6 +725,20 @@ class XMLStream(object):
             #clear your application state
             self.event("disconnected", direct=True)
             return True
+
+    def abort(self):
+        self.session_started_event.clear()
+        self.stop.set()
+        if self._disconnect_wait_for_threads:
+            self._wait_for_threads()
+        try:
+            self.socket.shutdown(Socket.SHUT_RDWR)
+            self.socket.close()
+            self.filesocket.close()
+        except Socket.error:
+            pass
+        self.state.transition_any(['connected', 'disconnected'], 'disconnected', func=lambda: True)
+        self.event("killed", direct=True)
 
     def reconnect(self, reattempt=True, wait=False, send_close=True):
         """Reset the stream's state and reconnect to the server."""

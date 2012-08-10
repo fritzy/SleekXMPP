@@ -109,7 +109,7 @@ class FeatureMechanisms(BasePlugin):
             elif value == 'realm':
                 result[value] = self.xmpp.boundjid.domain
             elif value == 'service-name':
-                result[value] = self.xmpp.address[0]
+                result[value] = self.xmpp._service_name
             elif value == 'service':
                 result[value] = 'xmpp'
             elif value in creds:

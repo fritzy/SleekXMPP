@@ -83,15 +83,15 @@ class StateMachine(object):
         if not to_state in self.__states:
             raise ValueError("StateMachine does not contain to_state %s." % to_state)
 
+        if self.__current_state == to_state:
+            return True
+
         start = time.time()
         while not self.lock.acquire(False):
             time.sleep(.001)
             if (start + wait - time.time()) <= 0.0:
-                log.debug("Could not acquire lock")
+                log.debug("==== Could not acquire lock in %s sec: %s -> %s ", wait, self.__current_state, to_state)
                 return False
-
-        if self.__current_state == to_state:
-            return True
 
         while not self.__current_state in from_states:
             # detect timeout:

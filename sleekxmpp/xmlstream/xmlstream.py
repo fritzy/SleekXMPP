@@ -192,6 +192,7 @@ class XMLStream(object):
 
         #: The expected name of the server, for validation.
         self._expected_server_name = ''
+        self._service_name = ''
 
         #: The desired, or actual, address of the connected server.
         self.address = (host, int(port))
@@ -473,8 +474,10 @@ class XMLStream(object):
 
         if self.default_domain:
             try:
-                self.address = self.pick_dns_answer(self.default_domain,
-                                                    self.address[1])
+                host, address, port = self.pick_dns_answer(self.default_domain,
+                                                           self.address[1])
+                self.address = (address, port)
+                self._service_name = host
             except StopIteration:
                 log.debug("No remaining DNS records to try.")
                 self.dns_answers = None

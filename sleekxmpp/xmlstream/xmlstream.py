@@ -726,6 +726,20 @@ class XMLStream(object):
             self.event("disconnected", direct=True)
             return True
 
+    def abort(self):
+        self.session_started_event.clear()
+        self.stop.set()
+        if self._disconnect_wait_for_threads:
+            self._wait_for_threads()
+        try:
+            self.socket.shutdown(Socket.SHUT_RDWR)
+            self.socket.close()
+            self.filesocket.close()
+        except Socket.error:
+            pass
+        self.state.transition_any(['connected', 'disconnected'], 'disconnected', func=lambda: True)
+        self.event("killed", direct=True)
+
     def reconnect(self, reattempt=True, wait=False, send_close=True):
         """Reset the stream's state and reconnect to the server."""
         log.debug("reconnecting...")

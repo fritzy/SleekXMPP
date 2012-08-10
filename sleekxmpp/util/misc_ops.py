@@ -4,6 +4,8 @@ import hashlib
 
 def unicode(text):
     if sys.version_info < (3, 0):
+        if isinstance(text, str):
+            text = text.decode('utf-8')
         import __builtin__
         return __builtin__.unicode(text)
     return str(text)

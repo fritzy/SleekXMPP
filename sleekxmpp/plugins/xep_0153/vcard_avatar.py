@@ -12,6 +12,7 @@ import threading
 
 from sleekxmpp import JID
 from sleekxmpp.stanza import Presence
+from sleekxmpp.exceptions import XMPPError
 from sleekxmpp.xmlstream import register_stanza_plugin
 from sleekxmpp.xmlstream.matcher import StanzaPath
 from sleekxmpp.xmlstream.handler import Callback
@@ -103,15 +104,18 @@ class XEP_0153(BasePlugin):
         if own_jid:
             self.xmpp.roster[jid].send_last_presence()
 
-        iq = self.xmpp['xep_0054'].get_vcard(jid=jid.bare, ifrom=ifrom)
+        try:
+            iq = self.xmpp['xep_0054'].get_vcard(jid=jid.bare, ifrom=ifrom)
 
-        data = iq['vcard_temp']['PHOTO']['BINVAL']
-        if not data:
-            new_hash = ''
-        else:
-            new_hash = hashlib.sha1(data).hexdigest()
+            data = iq['vcard_temp']['PHOTO']['BINVAL']
+            if not data:
+                new_hash = ''
+            else:
+                new_hash = hashlib.sha1(data).hexdigest()
 
-        self.api['set_hash'](jid, args=new_hash)
+            self.api['set_hash'](jid, args=new_hash)
+        except XMPPError:
+            log.debug('Could not retrieve vCard for %s' % jid)
 
     def _recv_presence(self, pres):
         if not pres.match('presence/vcard_temp_update'):

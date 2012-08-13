@@ -166,32 +166,34 @@ except:
         (?P<month>[0-9]{2})?(?P=ymdsep)?
         (?P<day>  [0-9]{2})?
 
-        (?: # time part... optional... at least hour must be specified
-        (?:T|\s+)?
-            (?P<hour>[0-9]{2})
-            (?:
-                # minutes, separated with :, or none, from hours
-                (?P<hmssep>[:]?)
-                (?P<minute>[0-9]{2})
+        (?P<time>
+            (?: # time part... optional... at least hour must be specified
+            (?:T|\s+)?
+                (?P<hour>[0-9]{2})
                 (?:
-                    # same for seconds, separated with :, or none, from hours
-                    (?P=hmssep)
-                    (?P<second>[0-9]{2})
+                    # minutes, separated with :, or none, from hours
+                    (?P<hmssep>[:]?)
+                    (?P<minute>[0-9]{2})
+                    (?:
+                        # same for seconds, separated with :, or none, from hours
+                        (?P=hmssep)
+                        (?P<second>[0-9]{2})
+                    )?
                 )?
-            )?
 
-            # fractions
-            (?: [,.] (?P<frac>[0-9]{1,10}))?
+                # fractions
+                (?: [,.] (?P<frac>[0-9]{1,10}))?
 
-            # timezone, Z, +-hh or +-hh:?mm. MUST BE, but complain if not there.
-            (
-                (?P<tzempty>Z)
-            |
-                (?P<tzh>[+-][0-9]{2})
-                (?: :? # optional separator
-                    (?P<tzm>[0-9]{2})
+                # timezone, Z, +-hh or +-hh:?mm. MUST BE, but complain if not there.
+                (
+                    (?P<tzempty>Z)
+                |
+                    (?P<tzh>[+-][0-9]{2})
+                    (?: :? # optional separator
+                        (?P<tzm>[0-9]{2})
+                    )?
                 )?
-            )?
+            )
         )?
         $
     """, re.X) # """
@@ -211,12 +213,15 @@ except:
         for key in vals:
             if vals[key] is None:
                 vals[key] = def_vals.get(key, 0)
-            elif key not in ['ymdsep', 'hmssep', 'tzempty']:
+            elif key not in ['time', 'ymdsep', 'hmssep', 'tzempty']:
                 vals[key] = int(vals[key])
 
         year  = vals['year']
         month = vals['month']
         day   = vals['day']
+
+        if m.group('time') is None:
+            return datetime.date(year, month, day)
 
         h, min, s, us = None, None, None, 0
         frac = 0

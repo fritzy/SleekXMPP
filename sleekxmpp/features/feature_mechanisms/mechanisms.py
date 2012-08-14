@@ -7,6 +7,7 @@
 """
 
 import sys
+import ssl
 import logging
 
 from sleekxmpp.util import sasl
@@ -120,7 +121,12 @@ class FeatureMechanisms(BasePlugin):
         result = {}
         for value in values:
             if value == 'encrypted':
-                result[value] = 'starttls' in self.xmpp.features
+                if 'starttls' in self.xmpp.features:
+                    result[value] = True
+                elif isinstance(self.xmpp.socket, ssl.SSLSocket):
+                    result[value] = True
+                else:
+                    result[value] = False
             else:
                 result[value] = self.config.get(value, False)
         return result

@@ -678,6 +678,9 @@ class XMLStream(object):
                               args=(reconnect, wait, send_close))
 
     def _disconnect(self, reconnect=False, wait=None, send_close=True):
+        if not reconnect:
+            self.auto_reconnect = False
+
         if self.end_session_on_disconnect or send_close:
             self.event('session_end', direct=True)
 
@@ -696,9 +699,6 @@ class XMLStream(object):
         # Send the end of stream marker.
         if send_close:
             self.send_raw(self.stream_footer, now=True)
-
-        if not reconnect:
-            self.auto_reconnect = False
 
         # Wait for confirmation that the stream was
         # closed in the other direction. If we didn't

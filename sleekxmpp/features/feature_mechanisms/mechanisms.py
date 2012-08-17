@@ -92,13 +92,13 @@ class FeatureMechanisms(BasePlugin):
         values = required_values.union(optional_values)
         for value in values:
             if value == 'username':
-                result[value] = self.xmpp.boundjid.user
+                result[value] = self.xmpp.requested_jid.user
             elif value == 'password':
                 result[value] = creds['password']
             elif value == 'authzid':
                 result[value] = creds.get('authzid', '')
             elif value == 'email':
-                jid = self.xmpp.boundjid.bare
+                jid = self.xmpp.requested_jid.bare
                 result[value] = creds.get('email', jid)
             elif value == 'channel_binding':
                 if sys.version_info >= (3, 3):
@@ -106,9 +106,9 @@ class FeatureMechanisms(BasePlugin):
                 else:
                     result[value] = None
             elif value == 'host':
-                result[value] = self.xmpp.boundjid.domain
+                result[value] = self.xmpp.requested_jid.domain
             elif value == 'realm':
-                result[value] = self.xmpp.boundjid.domain
+                result[value] = self.xmpp.requested_jid.domain
             elif value == 'service-name':
                 result[value] = self.xmpp._service_name
             elif value == 'service':

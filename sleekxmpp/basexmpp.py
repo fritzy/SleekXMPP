@@ -68,7 +68,12 @@ class BaseXMPP(XMLStream):
         #: An identifier for the stream as given by the server.
         self.stream_id = None
 
-        #: The JabberID (JID) used by this connection.
+        #: The JabberID (JID) requested for this connection.
+        self.requested_jid = JID(jid)
+
+        #: The JabberID (JID) used by this connection,
+        #: as set after session binding. This may even be a
+        #: different bare JID than what was requested.
         self.boundjid = JID(jid)
 
         self._expected_server_name = self.boundjid.host

@@ -202,6 +202,88 @@ def fix_ns(xpath, split=False, propagate_ns=True, default_ns=''):
     return '/'.join(fixed)
 
 
+def parse_stanzapath(path):
+    state = 'start'
+    compiled = []
+    name = ''
+    values = {}
+    attrib = ''
+    value = ''
+
+    for char in path:
+        if state == 'start':
+            if char == '/':
+                if name:
+                    compiled.append((name, values))
+                name = ''
+                value = ''
+                values = {}
+                state = 'name'
+            elif char == '@':
+                state = 'attrib'
+            elif char == '{':
+                name += char
+                state = 'namespace'
+            else:
+                name += char
+                state = 'name'
+        elif state == 'namespace':
+            if char == '}':
+                state = 'name'
+            name += char
+        elif state == 'name':
+            if char == '/':
+                if name:
+                    compiled.append((name, values))
+                name = ''
+                value = ''
+                values = {}
+                state = 'name'
+            elif char == '{':
+                state = 'namespace'
+                name += char
+            elif char == '@':
+                state = 'attrib'
+            else:
+                name += char
+        elif state == 'attrib':
+            if char == '=':
+                state = 'value'
+            else:
+                attrib += char
+        elif state == 'value':
+            if char == '"':
+                state = 'quoted_value'
+            elif char == '@':
+                values[attrib] = value
+                attrib = ''
+                value = ''
+                state = 'attrib'
+            elif char == '/':
+                values[attrib] = value
+                compiled.append((name, values))
+                name = ''
+                attrib = ''
+                value = ''
+                values = {}
+                state = 'name'
+            else:
+                value += char
+        elif state == 'quoted_value':
+            if char == '"':
+                values[attrib] = value
+                attrib = ''
+                value = ''
+                state='start'
+            else:
+                value += char
+    if state == 'value':
+        values[attrib] = value
+    if name:
+        compiled.append((name, values))
+    return compiled
+
+
 class ElementBase(object):
 
     """
@@ -1076,7 +1158,7 @@ class ElementBase(object):
                 # after deleting the first level of elements.
                 return
 
-    def match(self, xpath):
+    def match(self, path):
         """Compare a stanza object with an XPath-like expression.
 
         If the XPath matches the contents of the stanza object, the match
@@ -1094,52 +1176,56 @@ class ElementBase(object):
                              may be either a string or a list of element
                              names with attribute checks.
         """
-        if not isinstance(xpath, list):
-            xpath = self._fix_ns(xpath, split=True, propagate_ns=False)
+        if not isinstance(path, list):
+            path = parse_stanzapath(path)
 
-        # Extract the tag name and attribute checks for the first XPath node.
-        components = xpath[0].split('@')
-        tag = components[0]
-        attributes = components[1:]
-
-        if tag not in (self.name, "{%s}%s" % (self.namespace, self.name)) and \
-            tag not in self.loaded_plugins and tag not in self.plugin_attrib:
-            # The requested tag is not in this stanza, so no match.
+        if not path:
+            log.debug('no path failed')
             return False
 
-        # Check the rest of the XPath against any substanzas.
-        matched_substanzas = False
-        for substanza in self.iterables:
-            if xpath[1:] == []:
-                break
-            matched_substanzas = substanza.match(xpath[1:])
-            if matched_substanzas:
-                break
+        log.debug(path)
+        name, values = path[0]
 
-        # Check attribute values.
-        for attribute in attributes:
-            name, value = attribute.split('=')
-            if self[name] != value:
+        if name not in (self.tag_name(), self.name, self.plugin_attrib) and \
+           name not in self.loaded_plugins:
+            log.debug('name failed: %s %s', name, (self.tag_name(), self.name, self.plugin_attrib))
+            return False
+
+        for attrib, value in values.items():
+            if self[attrib] != value:
+                log.debug('attrib failed')
                 return False
 
-        # Check sub interfaces.
-        if len(xpath) > 1:
-            next_tag = xpath[1]
-            if next_tag in self.sub_interfaces and self[next_tag]:
+        if len(path) == 2:
+            sub_name = path[1][0]
+            if sub_name in self.sub_interfaces and self[sub_name]:
                 return True
 
-        # Attempt to continue matching the XPath using the stanza's plugins.
-        if not matched_substanzas and len(xpath) > 1:
-            # Convert {namespace}tag@attribs to just tag
-            next_tag = xpath[1].split('@')[0].split('}')[-1]
-            langs = [name[1] for name in self.plugins if name[0] == next_tag]
-            for lang in langs:
-                plugin = self._get_plugin(next_tag, lang)
-                if plugin and plugin.match(xpath[1:]):
+        if len(path) > 1:
+            for substanza in self.iterables:
+                if path[1:] == []:
+                    break
+                if substanza.match(path[1:]):
                     return True
+
+            name, values = path[1]
+            name, lang = ('%s|' % name).split('|')
+            lang = lang or self.get_lang()
+            langs = []
+            if lang:
+                langs = [lang]
+            else:
+                if '{' in name:
+                    name = name.split('}')[-1]
+                langs = [p[1] for p in self.plugins if name == p[0]]
+            for lang in langs:
+                plugin = self._get_plugin(name, lang)
+                if plugin and plugin.match(path[1:]):
+                    return True
+            log.debug('%s %s %s', self.plugins, name, langs)
+            log.debug('plugin failed')
             return False
 
-        # Everything matched.
         return True
 
     def find(self, xpath):

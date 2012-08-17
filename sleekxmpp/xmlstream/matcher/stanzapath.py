@@ -10,7 +10,7 @@
 """
 
 from sleekxmpp.xmlstream.matcher.base import MatcherBase
-from sleekxmpp.xmlstream.stanzabase import fix_ns
+from sleekxmpp.xmlstream.stanzabase import parse_stanzapath
 
 
 class StanzaPath(MatcherBase):
@@ -24,9 +24,7 @@ class StanzaPath(MatcherBase):
     """
 
     def __init__(self, criteria):
-        self._criteria = fix_ns(criteria, split=True,
-                                          propagate_ns=False,
-                                          default_ns='jabber:client')
+        self._criteria = parse_stanzapath(criteria)
         self._raw_criteria = criteria
 
     def match(self, stanza):

@@ -901,9 +901,15 @@ class XMLStream(object):
             log.warn('CERT: Certificate has expired.')
             restart()
 
+        try:
+            total_seconds = cert_ttl.total_seconds()
+        except AttributeError:
+            # for Python < 2.7
+            total_seconds = (cert_ttl.microseconds + (cert_ttl.seconds + cert_ttl.days * 24 * 3600) * 10**6) / 10**6
+
         log.info('CERT: Time until certificate expiration: %s' % cert_ttl)
         self.schedule('Certificate Expiration',
-                      cert_ttl.seconds,
+                      total_seconds,
                       restart)
 
     def _start_keepalive(self, event):

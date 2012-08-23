@@ -48,7 +48,7 @@ class XEP_0191(BasePlugin):
     def get_blocked(self, ifrom=None, block=True, timeout=None, callback=None):
         iq = self.xmpp.Iq()
         iq['type'] = 'get'
-        iq['from'] = 'ifrom'
+        iq['from'] = ifrom
         iq.enable('blocklist')
         return iq.send(block=block, timeout=timeout, callback=callback)
 

@@ -226,13 +226,6 @@ class BaseXMPP(XMLStream):
         - The send queue processor
         - The scheduler
         """
-        if 'xep_0115' in self.plugin:
-            name = 'xep_0115'
-            if not hasattr(self.plugin[name], 'post_inited'):
-                if hasattr(self.plugin[name], 'post_init'):
-                    self.plugin[name].post_init()
-                self.plugin[name].post_inited = True
-
         for name in self.plugin:
             if not hasattr(self.plugin[name], 'post_inited'):
                 if hasattr(self.plugin[name], 'post_init'):

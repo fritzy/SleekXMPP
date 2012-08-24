@@ -52,4 +52,5 @@ class XEP_0085(BasePlugin):
     def _handle_chat_state(self, msg):
         state = msg['chat_state']
         log.debug("Chat State: %s, %s", state, msg['from'].jid)
+        self.xmpp.event('chatstate', msg)
         self.xmpp.event('chatstate_%s' % state, msg)

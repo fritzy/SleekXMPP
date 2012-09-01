@@ -130,7 +130,10 @@ class RosterItem(ElementBase):
     def get_groups(self):
         groups = []
         for group in self.xml.findall('{%s}group' % self.namespace):
-            groups.append(group.text)
+            if group.text:
+                groups.append(group.text)
+            else:
+                groups.append('')
         return groups
 
     def set_groups(self, values):

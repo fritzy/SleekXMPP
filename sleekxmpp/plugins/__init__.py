@@ -66,5 +66,6 @@ __all__ = [
     'xep_0256',  # Last Activity in Presence
     'xep_0258',  # Security Labels in XMPP
     'xep_0270',  # XMPP Compliance Suites 2010
+    'xep_0279',  # Server IP Check
     'xep_0302',  # XMPP Compliance Suites 2012
 ]

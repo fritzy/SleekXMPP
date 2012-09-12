@@ -123,6 +123,17 @@ class X_MESSENGER_OAUTH2(Mech):
         return self.credentials['access_token']
 
 
+@sasl_mech(10)
+class X_OAUTH2(Mech):
+
+    name = 'X-OAUTH2'
+    required_credentials = set(['username', 'access_token'])
+
+    def process(self, challenge=b''):
+        return b'\x00' + self.credentials['username'] + \
+               b'\x00' + self.credentials['access_token']
+
+
 @sasl_mech(3)
 class X_GOOGLE_TOKEN(Mech):
 

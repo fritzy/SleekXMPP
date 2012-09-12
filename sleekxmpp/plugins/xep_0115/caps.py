@@ -143,6 +143,11 @@ class XEP_0115(BasePlugin):
         if str(existing_verstring) == str(pres['caps']['ver']):
             return
 
+        existing_caps = self.get_caps(verstring=pres['caps']['ver'])
+        if existing_caps is not None:
+            self.assign_verstring(pres['from'], pres['caps']['ver'])
+            return
+
         if pres['caps']['hash'] not in self.hashes:
             try:
                 log.debug("Unknown caps hash: %s", pres['caps']['hash'])

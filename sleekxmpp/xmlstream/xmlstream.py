@@ -420,6 +420,8 @@ class XMLStream(object):
         :param reattempt: Flag indicating if the socket should reconnect
                           after disconnections.
         """
+        self.stop.clear()
+
         if host and port:
             self.address = (host, int(port))
         try:
@@ -452,7 +454,6 @@ class XMLStream(object):
 
     def _connect(self, reattempt=True):
         self.scheduler.remove('Session timeout check')
-        self.stop.clear()
 
         if self.reconnect_delay is None or not reattempt:
             delay = 1.0

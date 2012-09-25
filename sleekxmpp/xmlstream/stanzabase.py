@@ -488,7 +488,7 @@ class ElementBase(object):
         """
         return self.init_plugin(attrib, lang)
 
-    def _get_plugin(self, name, lang=None):
+    def _get_plugin(self, name, lang=None, check=False):
         if lang is None:
             lang = self.get_lang()
 
@@ -501,12 +501,12 @@ class ElementBase(object):
             if (name, None) in self.plugins:
                 return self.plugins[(name, None)]
             else:
-                return self.init_plugin(name, lang)
+                return None if check else self.init_plugin(name, lang)
         else:
             if (name, lang) in self.plugins:
                 return self.plugins[(name, lang)]
             else:
-                return self.init_plugin(name, lang)
+                return None if check else self.init_plugin(name, lang)
 
     def init_plugin(self, attrib, lang=None, existing_xml=None, reuse=True):
         """Enable and initialize a stanza plugin.
@@ -524,13 +524,6 @@ class ElementBase(object):
             return self.plugins[(attrib, None)]
         if reuse and (attrib, lang) in self.plugins:
             return self.plugins[(attrib, lang)]
-
-        if existing_xml is None:
-            existing_xml = self.xml.find(plugin_class.tag_name())
-
-        if existing_xml is not None:
-            if existing_xml.attrib.get('{%s}lang' % XML_NS, default_lang) != lang:
-                existing_xml = None
 
         plugin = plugin_class(parent=self, xml=existing_xml)
 
@@ -862,7 +855,7 @@ class ElementBase(object):
                 else:
                     self._del_attr(attrib)
         elif attrib in self.plugin_attrib_map:
-            plugin = self._get_plugin(attrib, lang)
+            plugin = self._get_plugin(attrib, lang, check=True)
             if not plugin:
                 return self
             if plugin.is_extension:
@@ -1400,10 +1393,8 @@ class ElementBase(object):
         :param bool top_level_ns: Display the top-most namespace.
                                   Defaults to True.
         """
-        stanza_ns = '' if top_level_ns else self.namespace
         return tostring(self.xml, xmlns='',
-                        stanza_ns=stanza_ns,
-                        top_level=not top_level_ns)
+                        top_level=True)
 
     def __repr__(self):
         """Use the stanza's serialized XML as its representation."""
@@ -1592,11 +1583,10 @@ class StanzaBase(ElementBase):
         :param bool top_level_ns: Display the top-most namespace.
                                   Defaults to ``False``.
         """
-        stanza_ns = '' if top_level_ns else self.namespace
-        return tostring(self.xml, xmlns='',
-                        stanza_ns=stanza_ns,
+        xmlns = self.stream.default_ns if self.stream else ''
+        return tostring(self.xml, xmlns=xmlns,
                         stream=self.stream,
-                        top_level=not top_level_ns)
+                        top_level=(self.stream is None))
 
 
 #: A JSON/dictionary version of the XML content exposed through

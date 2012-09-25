@@ -1400,10 +1400,8 @@ class ElementBase(object):
         :param bool top_level_ns: Display the top-most namespace.
                                   Defaults to True.
         """
-        stanza_ns = '' if top_level_ns else self.namespace
         return tostring(self.xml, xmlns='',
-                        stanza_ns=stanza_ns,
-                        top_level=not top_level_ns)
+                        top_level=True)
 
     def __repr__(self):
         """Use the stanza's serialized XML as its representation."""
@@ -1592,11 +1590,10 @@ class StanzaBase(ElementBase):
         :param bool top_level_ns: Display the top-most namespace.
                                   Defaults to ``False``.
         """
-        stanza_ns = '' if top_level_ns else self.namespace
-        return tostring(self.xml, xmlns='',
-                        stanza_ns=stanza_ns,
+        xmlns = self.stream.default_ns if self.stream else ''
+        return tostring(self.xml, xmlns=xmlns,
                         stream=self.stream,
-                        top_level=not top_level_ns)
+                        top_level=(self.stream is None))
 
 
 #: A JSON/dictionary version of the XML content exposed through

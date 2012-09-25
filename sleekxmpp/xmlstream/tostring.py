@@ -24,19 +24,18 @@ if sys.version_info < (3, 0):
 XML_NS = 'http://www.w3.org/XML/1998/namespace'
 
 
-def tostring(xml=None, xmlns='', stanza_ns='', stream=None,
+def tostring(xml=None, xmlns='', stream=None,
              outbuffer='', top_level=False, open_only=False):
     """Serialize an XML object to a Unicode string.
 
-    If namespaces are provided using ``xmlns`` or ``stanza_ns``, then
-    elements that use those namespaces will not include the xmlns attribute
-    in the output.
+    If an outer xmlns is provided using ``xmlns``, then the current element's
+    namespace will not be included if it matches the outer namespace. An
+    exception is made for elements that have an attached stream, and appear
+    at the stream root.
 
     :param XML xml: The XML object to serialize.
     :param string xmlns: Optional namespace of an element wrapping the XML
                          object.
-    :param string stanza_ns: The namespace of the stanza object that contains
-                             the XML object.
     :param stream: The XML stream that generated the XML object.
     :param string outbuffer: Optional buffer for storing serializations
                              during recursive calls.
@@ -71,8 +70,8 @@ def tostring(xml=None, xmlns='', stanza_ns='', stream=None,
 
     # Output the tag name and derived namespace of the element.
     namespace = ''
-    if top_level and tag_xmlns not in ['', default_ns, stream_ns] or \
-            tag_xmlns not in ['', xmlns, stanza_ns, stream_ns]:
+    if top_level and tag_xmlns not in [default_ns, xmlns, stream_ns] \
+      or not top_level and tag_xmlns != xmlns:
         namespace = ' xmlns="%s"' % tag_xmlns
     if stream and tag_xmlns in stream.namespace_map:
         mapped_namespace = stream.namespace_map[tag_xmlns]
@@ -110,7 +109,7 @@ def tostring(xml=None, xmlns='', stanza_ns='', stream=None,
             output.append(escape(xml.text, use_cdata))
         if len(xml):
             for child in xml:
-                output.append(tostring(child, tag_xmlns, stanza_ns, stream))
+                output.append(tostring(child, tag_xmlns, stream))
         output.append("</%s>" % tag_name)
     elif xml.text:
         # If we only have text content.

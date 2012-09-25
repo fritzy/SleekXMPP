@@ -85,19 +85,6 @@ class TestToString(SleekTest):
             original='<a>foo <b>bar</b> baz</a>',
             message='Element tail content is incorrect.')
 
-
-    def testStanzaNs(self):
-        """
-        Test using the stanza_ns tostring parameter, which will prevent
-        adding an xmlns attribute to the serialized element if the
-        element's namespace is the same.
-        """
-        self.tryTostring(
-            original='<bar xmlns="foo" />',
-            expected='<bar />',
-            message="The stanza_ns parameter was not used properly.",
-            stanza_ns='foo')
-
     def testStanzaStr(self):
         """
         Test that stanza objects are serialized properly.

@@ -1244,7 +1244,9 @@ class XMLStream(object):
                         data = filter(data)
                         if data is None:
                             return
-                str_data = str(data)
+                str_data = tostring(data.xml, xmlns=self.default_ns,
+                                              stream=self,
+                                              top_level=True)
                 self.send_raw(str_data, now)
         else:
             self.send_raw(data, now)

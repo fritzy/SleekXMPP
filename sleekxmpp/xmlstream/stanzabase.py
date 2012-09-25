@@ -525,13 +525,6 @@ class ElementBase(object):
         if reuse and (attrib, lang) in self.plugins:
             return self.plugins[(attrib, lang)]
 
-        if existing_xml is None:
-            existing_xml = self.xml.find(plugin_class.tag_name())
-
-        if existing_xml is not None:
-            if existing_xml.attrib.get('{%s}lang' % XML_NS, default_lang) != lang:
-                existing_xml = None
-
         plugin = plugin_class(parent=self, xml=existing_xml)
 
         if plugin.is_extension:

@@ -68,6 +68,7 @@ __all__ = [
     'xep_0258',  # Security Labels in XMPP
     'xep_0270',  # XMPP Compliance Suites 2010
     'xep_0279',  # Server IP Check
+    'xep_0280',  # Message Carbons
     'xep_0297',  # Stanza Forwarding
     'xep_0302',  # XMPP Compliance Suites 2012
 ]

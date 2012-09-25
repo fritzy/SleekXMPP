@@ -488,7 +488,7 @@ class ElementBase(object):
         """
         return self.init_plugin(attrib, lang)
 
-    def _get_plugin(self, name, lang=None):
+    def _get_plugin(self, name, lang=None, check=False):
         if lang is None:
             lang = self.get_lang()
 
@@ -501,12 +501,12 @@ class ElementBase(object):
             if (name, None) in self.plugins:
                 return self.plugins[(name, None)]
             else:
-                return self.init_plugin(name, lang)
+                return None if check else self.init_plugin(name, lang)
         else:
             if (name, lang) in self.plugins:
                 return self.plugins[(name, lang)]
             else:
-                return self.init_plugin(name, lang)
+                return None if check else self.init_plugin(name, lang)
 
     def init_plugin(self, attrib, lang=None, existing_xml=None, reuse=True):
         """Enable and initialize a stanza plugin.
@@ -862,7 +862,7 @@ class ElementBase(object):
                 else:
                     self._del_attr(attrib)
         elif attrib in self.plugin_attrib_map:
-            plugin = self._get_plugin(attrib, lang)
+            plugin = self._get_plugin(attrib, lang, check=True)
             if not plugin:
                 return self
             if plugin.is_extension:

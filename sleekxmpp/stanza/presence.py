@@ -72,6 +72,17 @@ class Presence(RootStanza):
                  'subscribed', 'unsubscribe', 'unsubscribed'])
     showtypes = set(['dnd', 'chat', 'xa', 'away'])
 
+    def __init__(self, *args, **kwargs):
+        """
+        Initialize a new <presence /> stanza with an optional 'id' value.
+
+        Overrides StanzaBase.__init__.
+        """
+        StanzaBase.__init__(self, *args, **kwargs)
+        if self['id'] == '':
+            if self.stream is not None and self.stream.use_presence_ids:
+                self['id'] = self.stream.new_id()
+
     def exception(self, e):
         """
         Override exception passback for presence.

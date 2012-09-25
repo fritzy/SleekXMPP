@@ -368,6 +368,11 @@ class SleekTest(unittest.TestCase):
         else:
             for plugin in plugins:
                 self.xmpp.register_plugin(plugin)
+
+        # Some plugins require messages to have ID values. Set
+        # this to True in tests related to those plugins.
+        self.xmpp.use_message_ids = False
+
         self.xmpp.process(threaded=True)
         if skip:
             if socket != 'live':

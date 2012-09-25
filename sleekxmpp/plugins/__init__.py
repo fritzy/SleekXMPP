@@ -71,4 +71,5 @@ __all__ = [
     'xep_0280',  # Message Carbons
     'xep_0297',  # Stanza Forwarding
     'xep_0302',  # XMPP Compliance Suites 2012
+    'xep_0308',  # Last Message Correction
 ]

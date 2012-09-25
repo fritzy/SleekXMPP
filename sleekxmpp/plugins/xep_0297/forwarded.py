@@ -26,9 +26,14 @@ class XEP_0297(BasePlugin):
 
     def plugin_init(self):
         register_stanza_plugin(Message, Forwarded)
-        register_stanza_plugin(Forwarded, Message)
-        register_stanza_plugin(Forwarded, Presence)
-        register_stanza_plugin(Forwarded, Iq)
+
+        # While these are marked as iterable, that is just for
+        # making it easier to extract the forwarded stanza. There
+        # still can be only a single forwarded stanza.
+        register_stanza_plugin(Forwarded, Message, iterable=True)
+        register_stanza_plugin(Forwarded, Presence, iterable=True)
+        register_stanza_plugin(Forwarded, Iq, iterable=True)
+
         register_stanza_plugin(Forwarded, self.xmpp['xep_0203'].stanza.Delay)
 
         self.xmpp.register_handler(

@@ -38,6 +38,7 @@ __all__ = [
     'xep_0084',  # User Avatar
     'xep_0085',  # Chat State Notifications
     'xep_0086',  # Legacy Error Codes
+    'xep_0091',  # Legacy Delayed Delivery
     'xep_0092',  # Software Version
     'xep_0106',  # JID Escaping
     'xep_0107',  # User Mood

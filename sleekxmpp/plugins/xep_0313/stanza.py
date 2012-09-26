@@ -22,7 +22,6 @@ class MAM(ElementBase):
 
     def setup(self, xml=None):
         ElementBase.setup(self, xml)
-
         self._results = []
 
     def get_start(self):
@@ -48,7 +47,6 @@ class MAM(ElementBase):
 
     def set_with(self, value):
         self._set_sub_text('with', str(value))
-
 
     # The results interface is meant only as an easy
     # way to access the set of collected message responses

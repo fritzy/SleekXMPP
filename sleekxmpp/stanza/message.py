@@ -63,6 +63,17 @@ class Message(RootStanza):
     lang_interfaces = sub_interfaces
     types = set(['normal', 'chat', 'headline', 'error', 'groupchat'])
 
+    def __init__(self, *args, **kwargs):
+        """
+        Initialize a new <message /> stanza with an optional 'id' value.
+
+        Overrides StanzaBase.__init__.
+        """
+        StanzaBase.__init__(self, *args, **kwargs)
+        if self['id'] == '':
+            if self.stream is not None and self.stream.use_message_ids:
+                self['id'] = self.stream.new_id()
+
     def get_type(self):
         """
         Return the message type.

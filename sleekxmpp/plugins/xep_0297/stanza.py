@@ -6,6 +6,7 @@
     See the file LICENSE for copying permission.
 """
 
+from sleekxmpp.stanza import Message, Presence, Iq
 from sleekxmpp.xmlstream import ElementBase
 
 
@@ -16,12 +17,9 @@ class Forwarded(ElementBase):
     interfaces = set(['stanza'])
 
     def get_stanza(self):
-        if self.xml.find('{jabber:client}message') is not None:
-            return self['message']
-        elif self.xml.find('{jabber:client}presence') is not None:
-            return self['presence']
-        elif self.xml.find('{jabber:client}iq') is not None:
-            return self['iq']
+        for stanza in self:
+            if isinstance(stanza, (Message, Presence, Iq)):
+                return stanza
         return ''
 
     def set_stanza(self, value):
@@ -29,6 +27,10 @@ class Forwarded(ElementBase):
         self.append(value)
 
     def del_stanza(self):
-        del self['message']
-        del self['presence']
-        del self['iq']
+        found_stanzas = []
+        for stanza in self:
+            if isinstance(stanza, (Message, Presence, Iq)):
+                found_stanzas.append(stanza)
+        for stanza in found_stanzas:
+            self.iterables.remove(stanza)
+            self.xml.remove(stanza.xml)

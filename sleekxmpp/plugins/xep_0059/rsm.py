@@ -25,11 +25,14 @@ class ResultIterator():
     An iterator for Result Set Managment
     """
 
-    def __init__(self, query, interface, amount=10, start=None, reverse=False):
+    def __init__(self, query, interface, results='substanzas', amount=10,
+                       start=None, reverse=False):
         """
         Arguments:
            query     -- The template query
            interface -- The substanza of the query, for example disco_items
+           results   -- The query stanza's interface which provides a
+                        countable list of query results.
            amount    -- The max amounts of items to request per iteration
            start     -- From which item id to start
            reverse   -- If True, page backwards through the results
@@ -46,6 +49,7 @@ class ResultIterator():
         self.amount = amount
         self.start = start
         self.interface = interface
+        self.results = results
         self.reverse = reverse
         self._stop = False
 
@@ -85,7 +89,7 @@ class ResultIterator():
                r[self.interface]['rsm']['first_index']:
                 count = int(r[self.interface]['rsm']['count'])
                 first = int(r[self.interface]['rsm']['first_index'])
-                num_items = len(r[self.interface]['substanzas'])
+                num_items = len(r[self.interface][self.results])
                 if first + num_items == count:
                     self._stop = True
 
@@ -123,7 +127,7 @@ class XEP_0059(BasePlugin):
     def session_bind(self, jid):
         self.xmpp['xep_0030'].add_feature(Set.namespace)
 
-    def iterate(self, stanza, interface):
+    def iterate(self, stanza, interface, results='substanzas'):
         """
         Create a new result set iterator for a given stanza query.
 
@@ -135,5 +139,7 @@ class XEP_0059(BasePlugin):
                          result set management stanza should be
                          appended. For example, for disco#items queries
                          the interface 'disco_items' should be used.
+            results   -- The name of the interface containing the
+                         query results (typically just 'substanzas').
         """
-        return ResultIterator(stanza, interface)
+        return ResultIterator(stanza, interface, results)

@@ -17,7 +17,7 @@ class TestStreamSet(SleekTest):
     def iter(self, rev=False):
         q = self.xmpp.Iq()
         q['type'] = 'get'
-        it = ResultIterator(q, 'disco_items', '1', reverse=rev)
+        it = ResultIterator(q, 'disco_items', amount='1', reverse=rev)
         for i in it:
             for j in i['disco_items']['items']:
                 self.items.append(j[0])

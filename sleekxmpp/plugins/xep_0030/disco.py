@@ -288,7 +288,7 @@ class XEP_0030(BasePlugin):
                 'cached': cached}
         return self.api['has_identity'](jid, node, ifrom, data)
 
-    def get_info(self, jid=None, node=None, local=False,
+    def get_info(self, jid=None, node=None, local=None,
                        cached=None, **kwargs):
         """
         Retrieve the disco#info results from a given JID/node combination.
@@ -325,17 +325,18 @@ class XEP_0030(BasePlugin):
                         received instead of blocking and waiting for
                         the reply.
         """
-        if jid is not None and not isinstance(jid, JID):
-            jid = JID(jid)
-            if self.xmpp.is_component:
-                if jid.domain == self.xmpp.boundjid.domain:
-                    local = True
-            else:
-                if str(jid) == str(self.xmpp.boundjid):
-                    local = True
-            jid = jid.full
-        elif jid in (None, ''):
-            local = True
+        if local is None:
+            if jid is not None and not isinstance(jid, JID):
+                jid = JID(jid)
+                if self.xmpp.is_component:
+                    if jid.domain == self.xmpp.boundjid.domain:
+                        local = True
+                else:
+                    if str(jid) == str(self.xmpp.boundjid):
+                        local = True
+                jid = jid.full
+            elif jid in (None, ''):
+                local = True
 
         if local:
             log.debug("Looking up local disco#info data " + \
@@ -405,7 +406,7 @@ class XEP_0030(BasePlugin):
                         the XEP-0059 plugin, if the plugin is loaded.
                         Otherwise the parameter is ignored.
         """
-        if local or jid is None:
+        if local or local is None and jid is None:
             items = self.api['get_items'](jid, node,
                     kwargs.get('ifrom', None),
                     kwargs)

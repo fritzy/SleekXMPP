@@ -94,7 +94,7 @@ def extract_names(raw_cert):
 
 def extract_dates(raw_cert):
     if not HAVE_PYASN1:
-        log.warning("Could not find pyasn1 module. " + \
+        log.warning("Could not find pyasn1 and pyasn1_modules. " + \
                     "SSL certificate expiration COULD NOT BE VERIFIED.")
         return None, None
 
@@ -130,7 +130,7 @@ def get_ttl(raw_cert):
 
 def verify(expected, raw_cert):
     if not HAVE_PYASN1:
-        log.warning("Could not find pyasn1 module. " + \
+        log.warning("Could not find pyasn1 and pyasn1_modules. " + \
                     "SSL certificate COULD NOT BE VERIFIED.")
         return
 

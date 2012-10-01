@@ -44,16 +44,27 @@ class XEP_0078(BasePlugin):
                 restart=False,
                 order=self.order)
 
+        self.xmpp.add_event_handler('legacy_protocol',
+                self._handle_legacy_protocol)
+
         register_stanza_plugin(Iq, stanza.IqAuth)
         register_stanza_plugin(StreamFeatures, stanza.AuthFeature)
 
     def plugin_end(self):
+        self.xmpp.del_event_handler('legacy_protocol',
+                self._handle_legacy_protocol)
         self.xmpp.unregister_feature('auth', self.order)
 
     def _handle_auth(self, features):
         # If we can or have already authenticated with SASL, do nothing.
         if 'mechanisms' in features['features']:
             return False
+        return self.authenticate()
+
+    def _handle_legacy_protocol(self, event):
+        self.authenticate()
+
+    def authenticate(self):
         if self.xmpp.authenticated:
             return False
 
@@ -62,8 +73,8 @@ class XEP_0078(BasePlugin):
         # Step 1: Request the auth form
         iq = self.xmpp.Iq()
         iq['type'] = 'get'
-        iq['to'] = self.xmpp.boundjid.host
-        iq['auth']['username'] = self.xmpp.boundjid.user
+        iq['to'] = self.xmpp.requested_jid.host
+        iq['auth']['username'] = self.xmpp.requested_jid.user
 
         try:
             resp = iq.send(now=True)
@@ -81,11 +92,11 @@ class XEP_0078(BasePlugin):
         # Step 2: Fill out auth form for either password or digest auth
         iq = self.xmpp.Iq()
         iq['type'] = 'set'
-        iq['auth']['username'] = self.xmpp.boundjid.user
+        iq['auth']['username'] = self.xmpp.requested_jid.user
 
         # A resource is required, so create a random one if necessary
-        if self.xmpp.boundjid.resource:
-            iq['auth']['resource'] = self.xmpp.boundjid.resource
+        if self.xmpp.requested_jid.resource:
+            iq['auth']['resource'] = self.xmpp.requested_jid.resource
         else:
             iq['auth']['resource'] = '%s' % random.random()
 

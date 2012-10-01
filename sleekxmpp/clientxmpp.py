@@ -273,6 +273,8 @@ class ClientXMPP(BaseXMPP):
                     # Don't continue if the feature requires
                     # restarting the XML stream.
                     return True
+        log.debug('Finished processing stream features.')
+        self.event('stream_negotiated')
 
     def _handle_roster(self, iq):
         """Update the roster after receiving a roster stanza.

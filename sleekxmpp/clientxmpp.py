@@ -95,7 +95,7 @@ class ClientXMPP(BaseXMPP):
         self.bound = False
         self.bindfail = False
 
-        self.add_event_handler('connected', self._handle_connected)
+        self.add_event_handler('connected', self._reset_connection_state)
         self.add_event_handler('session_bind', self._handle_session_bind)
 
         self.register_stanza(StreamFeatures)
@@ -253,7 +253,7 @@ class ClientXMPP(BaseXMPP):
             self._handle_roster(response)
             return response
 
-    def _handle_connected(self, event=None):
+    def _reset_connection_state(self, event=None):
         #TODO: Use stream state here
         self.authenticated = False
         self.sessionstarted = False

@@ -78,8 +78,8 @@ class XEP_0078(BasePlugin):
 
         try:
             resp = iq.send(now=True)
-        except IqError:
-            log.info("Authentication failed: %s", resp['error']['condition'])
+        except IqError as err:
+            log.info("Authentication failed: %s", err.iq['error']['condition'])
             self.xmpp.event('failed_auth', direct=True)
             self.xmpp.disconnect()
             return True
@@ -120,12 +120,12 @@ class XEP_0078(BasePlugin):
             result = iq.send(now=True)
         except IqError as err:
             log.info("Authentication failed")
-            self.xmpp.disconnect()
             self.xmpp.event("failed_auth", direct=True)
+            self.xmpp.disconnect()
         except IqTimeout:
             log.info("Authentication failed")
-            self.xmpp.disconnect()
             self.xmpp.event("failed_auth", direct=True)
+            self.xmpp.disconnect()
 
         self.xmpp.features.add('auth')
 

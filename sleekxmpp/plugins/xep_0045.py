@@ -245,11 +245,11 @@ class XEP_0045(BasePlugin):
         stanza = self.xmpp.makePresence(pto="%s/%s" % (room, nick), pstatus=pstatus, pshow=pshow, pfrom=pfrom)
         x = ET.Element('{http://jabber.org/protocol/muc}x')
         if password:
-            passelement = ET.Element('password')
+            passelement = ET.Element('{http://jabber.org/protocol/muc}password')
             passelement.text = password
             x.append(passelement)
         if maxhistory:
-            history = ET.Element('history')
+            history = ET.Element('{http://jabber.org/protocol/muc}history')
             if maxhistory ==  "0":
                 history.attrib['maxchars'] = maxhistory
             else:
@@ -271,10 +271,10 @@ class XEP_0045(BasePlugin):
             iq['from'] = ifrom
         iq['to'] = room
         query = ET.Element('{http://jabber.org/protocol/muc#owner}query')
-        destroy = ET.Element('destroy')
+        destroy = ET.Element('{http://jabber.org/protocol/muc#owner}destroy')
         if altroom:
             destroy.attrib['jid'] = altroom
-        xreason = ET.Element('reason')
+        xreason = ET.Element('{http://jabber.org/protocol/muc#owner}reason')
         xreason.text = reason
         destroy.append(xreason)
         query.append(destroy)
@@ -294,9 +294,9 @@ class XEP_0045(BasePlugin):
             raise TypeError
         query = ET.Element('{http://jabber.org/protocol/muc#admin}query')
         if nick is not None:
-            item = ET.Element('item', {'affiliation':affiliation, 'nick':nick})
+            item = ET.Element('{http://jabber.org/protocol/muc#admin}item', {'affiliation':affiliation, 'nick':nick})
         else:
-            item = ET.Element('item', {'affiliation':affiliation, 'jid':jid})
+            item = ET.Element('{http://jabber.org/protocol/muc#admin}item', {'affiliation':affiliation, 'jid':jid})
         query.append(item)
         iq = self.xmpp.makeIqSet(query)
         iq['to'] = room
@@ -317,7 +317,7 @@ class XEP_0045(BasePlugin):
         x = ET.Element('{http://jabber.org/protocol/muc#user}x')
         invite = ET.Element('{http://jabber.org/protocol/muc#user}invite', {'to': jid})
         if reason:
-            rxml = ET.Element('reason')
+            rxml = ET.Element('{http://jabber.org/protocol/muc#user}reason')
             rxml.text = reason
             invite.append(rxml)
         x.append(invite)

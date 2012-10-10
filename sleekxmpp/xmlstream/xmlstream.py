@@ -58,9 +58,6 @@ WAIT_TIMEOUT = 0.1
 #: a GIL increasing this value can provide better performance.
 HANDLER_THREADS = 1
 
-#: Flag indicating if the SSL library is available for use.
-SSL_SUPPORT = True
-
 #: The time in seconds to delay between attempts to resend data
 #: after an SSL error.
 SSL_RETRY_DELAY = 0.5
@@ -117,9 +114,6 @@ class XMLStream(object):
     """
 
     def __init__(self, socket=None, host='', port=0):
-        #: Flag indicating if the SSL library is available for use.
-        self.ssl_support = SSL_SUPPORT
-
         #: Most XMPP servers support TLSv1, but OpenFire in particular
         #: does not work well with it. For OpenFire, set
         #: :attr:`ssl_version` to use ``SSLv23``::
@@ -506,7 +500,7 @@ class XMLStream(object):
                     self.reconnect_delay = delay
                 return False
 
-        if self.use_ssl and self.ssl_support:
+        if self.use_ssl:
             log.debug("Socket Wrapped for SSL")
             if self.ca_certs is None:
                 cert_policy = ssl.CERT_NONE
@@ -535,7 +529,7 @@ class XMLStream(object):
                 log.debug("Connecting to %s:%s", domain, self.address[1])
                 self.socket.connect(self.address)
 
-                if self.use_ssl and self.ssl_support:
+                if self.use_ssl:
                     try:
                         self.socket.do_handshake()
                     except (Socket.error, ssl.SSLError):
@@ -823,58 +817,55 @@ class XMLStream(object):
         If the handshake is successful, the XML stream will need
         to be restarted.
         """
-        if self.ssl_support:
-            log.info("Negotiating TLS")
-            log.info("Using SSL version: %s", str(self.ssl_version))
-            if self.ca_certs is None:
-                cert_policy = ssl.CERT_NONE
-            else:
-                cert_policy = ssl.CERT_REQUIRED
-
-            ssl_socket = ssl.wrap_socket(self.socket,
-                                         certfile=self.certfile,
-                                         keyfile=self.keyfile,
-                                         ssl_version=self.ssl_version,
-                                         do_handshake_on_connect=False,
-                                         ca_certs=self.ca_certs,
-                                         cert_reqs=cert_policy)
-
-            if hasattr(self.socket, 'socket'):
-                # We are using a testing socket, so preserve the top
-                # layer of wrapping.
-                self.socket.socket = ssl_socket
-            else:
-                self.socket = ssl_socket
-
-            try:
-                self.socket.do_handshake()
-            except (Socket.error, ssl.SSLError):
-                log.error('CERT: Invalid certificate trust chain.')
-                if not self.event_handled('ssl_invalid_chain'):
-                    self.disconnect(self.auto_reconnect, send_close=False)
-                else:
-                    self.event('ssl_invalid_chain', direct=True)
-                return False
-
-            self._der_cert = self.socket.getpeercert(binary_form=True)
-            pem_cert = ssl.DER_cert_to_PEM_cert(self._der_cert)
-            log.debug('CERT: %s', pem_cert)
-            self.event('ssl_cert', pem_cert, direct=True)
-
-            try:
-                cert.verify(self._expected_server_name, self._der_cert)
-            except cert.CertificateError as err:
-                if not self.event_handled('ssl_invalid_cert'):
-                    log.error(err.message)
-                    self.disconnect(self.auto_reconnect, send_close=False)
-                else:
-                    self.event('ssl_invalid_cert', pem_cert, direct=True)
-
-            self.set_socket(self.socket)
-            return True
+        log.info("Negotiating TLS")
+        log.info("Using SSL version: %s", str(self.ssl_version))
+        if self.ca_certs is None:
+            cert_policy = ssl.CERT_NONE
         else:
-            log.warning("Tried to enable TLS, but ssl module not found.")
+            cert_policy = ssl.CERT_REQUIRED
+
+        ssl_socket = ssl.wrap_socket(self.socket,
+                                     certfile=self.certfile,
+                                     keyfile=self.keyfile,
+                                     ssl_version=self.ssl_version,
+                                     do_handshake_on_connect=False,
+                                     ca_certs=self.ca_certs,
+                                     cert_reqs=cert_policy)
+
+        if hasattr(self.socket, 'socket'):
+            # We are using a testing socket, so preserve the top
+            # layer of wrapping.
+            self.socket.socket = ssl_socket
+        else:
+            self.socket = ssl_socket
+
+        try:
+            self.socket.do_handshake()
+        except (Socket.error, ssl.SSLError):
+            log.error('CERT: Invalid certificate trust chain.')
+            if not self.event_handled('ssl_invalid_chain'):
+                self.disconnect(self.auto_reconnect, send_close=False)
+            else:
+                self._der_cert = self.socket.getpeercert(binary_form=True)
+                self.event('ssl_invalid_chain', direct=True)
             return False
+
+        self._der_cert = self.socket.getpeercert(binary_form=True)
+        pem_cert = ssl.DER_cert_to_PEM_cert(self._der_cert)
+        log.debug('CERT: %s', pem_cert)
+        self.event('ssl_cert', pem_cert, direct=True)
+
+        try:
+            cert.verify(self._expected_server_name, self._der_cert)
+        except cert.CertificateError as err:
+            if not self.event_handled('ssl_invalid_cert'):
+                log.error(err.message)
+                self.disconnect(self.auto_reconnect, send_close=False)
+            else:
+                self.event('ssl_invalid_cert', pem_cert, direct=True)
+
+        self.set_socket(self.socket)
+        return True
 
     def _cert_expiration(self, event):
         """Schedule an event for when the TLS certificate expires."""

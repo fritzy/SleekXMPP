@@ -44,7 +44,7 @@ class FeatureMechanisms(BasePlugin):
     }
 
     def plugin_init(self):
-        if not self.use_mech and not self.xmpp.boundjid.user:
+        if not self.use_mech and not self.xmpp.requested_jid.user:
             self.use_mech = 'ANONYMOUS'
 
         if self.sasl_callback is None:

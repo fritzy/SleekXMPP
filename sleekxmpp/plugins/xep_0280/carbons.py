@@ -47,13 +47,18 @@ class XEP_0280(BasePlugin):
         register_stanza_plugin(Iq, stanza.CarbonEnable)
         register_stanza_plugin(Iq, stanza.CarbonDisable)
 
+        register_stanza_plugin(stanza.ReceivedCarbon,
+                               self.xmpp['xep_0297'].stanza.Forwarded)
+        register_stanza_plugin(stanza.SentCarbon,
+                               self.xmpp['xep_0297'].stanza.Forwarded)
+
     def plugin_end(self):
         self.xmpp.remove_handler('Carbon Received')
         self.xmpp.remove_handler('Carbon Sent')
-        self.xmpp.plugin['xep_0030'].del_feature(feature='urn:xmpp:carbons:1')
+        self.xmpp.plugin['xep_0030'].del_feature(feature='urn:xmpp:carbons:2')
 
     def session_bind(self, jid):
-        self.xmpp.plugin['xep_0030'].add_feature('urn:xmpp:carbons:1')
+        self.xmpp.plugin['xep_0030'].add_feature('urn:xmpp:carbons:2')
 
     def _handle_carbon_received(self, msg):
         self.xmpp.event('carbon_received', msg)

@@ -54,13 +54,9 @@ class FeatureSTARTTLS(BasePlugin):
             return False
         elif not self.xmpp.use_tls:
             return False
-        elif self.xmpp.ssl_support:
+        else:
             self.xmpp.send(features['starttls'], now=True)
             return True
-        else:
-            log.warning("The module tlslite is required to log in" + \
-                        " to some servers, and has not been found.")
-            return False
 
     def _handle_starttls_proceed(self, proceed):
         """Restart the XML stream when TLS is accepted."""

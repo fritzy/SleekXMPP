@@ -746,6 +746,8 @@ class BaseXMPP(XMLStream):
         item = self.roster[pres['to']][pres['from']]
         if item['whitelisted']:
             item.authorize()
+            if roster.auto_subscribe:
+                item.subscribe()
         elif roster.auto_authorize:
             item.authorize()
             if roster.auto_subscribe:

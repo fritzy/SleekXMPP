@@ -70,9 +70,10 @@ def tostring(xml=None, xmlns='', stream=None,
 
     # Output the tag name and derived namespace of the element.
     namespace = ''
-    if top_level and tag_xmlns not in [default_ns, xmlns, stream_ns] \
-      or not top_level and tag_xmlns != xmlns:
-        namespace = ' xmlns="%s"' % tag_xmlns
+    if tag_xmlns:
+        if top_level and tag_xmlns not in [default_ns, xmlns, stream_ns] \
+          or not top_level and tag_xmlns != xmlns:
+            namespace = ' xmlns="%s"' % tag_xmlns
     if stream and tag_xmlns in stream.namespace_map:
         mapped_namespace = stream.namespace_map[tag_xmlns]
         if mapped_namespace:

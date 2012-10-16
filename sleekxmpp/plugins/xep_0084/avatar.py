@@ -69,6 +69,8 @@ class XEP_0084(BasePlugin):
         metadata = MetaData()
         if items is None:
             items = []
+        if not isinstance(items, (list, set)):
+            items = [items]
         for info in items:
             metadata.add_info(info['id'], info['type'], info['bytes'],
                     height=info.get('height', ''),

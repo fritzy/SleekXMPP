@@ -201,7 +201,8 @@ class Form(ElementBase):
         del self['instructions']
         if instructions in [None, '']:
             return
-        instructions = instructions.split('\n')
+        if not isinstance(instructions, list):
+            instructions = instructions.split('\n')
         for instruction in instructions:
             inst = ET.Element('{%s}instructions' % self.namespace)
             inst.text = instruction

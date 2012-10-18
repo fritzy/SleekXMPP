@@ -1217,6 +1217,10 @@ class ElementBase(object):
         if item.__class__ in self.plugin_iterables:
             if item.__class__.plugin_multi_attrib:
                 self.init_plugin(item.__class__.plugin_multi_attrib)
+        elif item.__class__ == self.plugin_tag_map.get(item.tag_name(), None):
+            self.init_plugin(item.plugin_attrib,
+                             existing_xml=item.xml,
+                             reuse=False)
         return self
 
     def appendxml(self, xml):

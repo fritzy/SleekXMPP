@@ -97,8 +97,8 @@ class XEP_0054(BasePlugin):
 
     def publish_vcard(self, vcard=None, jid=None, block=True, ifrom=None,
                       callback=None, timeout=None):
+        self.api['set_vcard'](jid, None, ifrom, vcard)
         if self.xmpp.is_component:
-            self.api['set_vcard'](jid, None, ifrom, vcard)
             return
 
         iq = self.xmpp.Iq()

@@ -32,6 +32,7 @@ __all__ = [
     'xep_0059',  # Result Set Management
     'xep_0060',  # Pubsub (Client)
     'xep_0066',  # Out of Band Data
+    'xep_0071',  # XHTML-IM
     'xep_0077',  # In-Band Registration
 #   'xep_0078',  # Non-SASL auth. Don't automatically load
     'xep_0080',  # User Location

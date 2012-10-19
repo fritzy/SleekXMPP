@@ -201,7 +201,6 @@ class BaseXMPP(XMLStream):
         # Initialize a few default stanza plugins.
         register_stanza_plugin(Iq, Roster)
         register_stanza_plugin(Message, Nick)
-        register_stanza_plugin(Message, HTMLIM)
 
     def start_stream_handler(self, xml):
         """Save the stream ID once the streams have been established.

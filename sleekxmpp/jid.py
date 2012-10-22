@@ -19,6 +19,7 @@ import stringprep
 import encodings.idna
 
 from sleekxmpp.util import stringprep_profiles
+from sleekxmpp.thirdparty import OrderedDict
 
 #: These characters are not allowed to appear in a JID.
 ILLEGAL_CHARS = '\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\x0c\r' + \
@@ -62,6 +63,9 @@ JID_UNESCAPE_TRANSFORMATIONS = {'\\20': ' ',
                                 '\\3e': '>',
                                 '\\40': '@',
                                 '\\5c': '\\'}
+
+JID_CACHE = OrderedDict()
+JID_CACHE_MAX_SIZE = 1024
 
 
 # pylint: disable=c0103
@@ -415,26 +419,35 @@ class JID(object):
         self._jid = (None, None, None)
 
         if jid is None or jid == '':
-            jid = (None, None, None)
-        elif not isinstance(jid, JID):
-            jid = _parse_jid(jid)
+            jid = ''
+
+        if jid in JID_CACHE:
+            self._jid = JID_CACHE[jid]
         else:
-            jid = jid._jid
+            if not jid:
+                jid = (None, None, None)
+            elif not isinstance(jid, JID):
+                jid = _parse_jid(jid)
+            else:
+                jid = jid._jid
 
-        local, domain, resource = jid
+            local, domain, resource = jid
 
-        local = kwargs.get('local', local)
-        domain = kwargs.get('domain', domain)
-        resource = kwargs.get('resource', resource)
+            local = kwargs.get('local', local)
+            domain = kwargs.get('domain', domain)
+            resource = kwargs.get('resource', resource)
 
-        if 'local' in kwargs:
-            local = _escape_node(local)
-        if 'domain' in kwargs:
-            domain = _validate_domain(domain)
-        if 'resource' in kwargs:
-            resource = _validate_resource(resource)
+            if 'local' in kwargs:
+                local = _escape_node(local)
+            if 'domain' in kwargs:
+                domain = _validate_domain(domain)
+            if 'resource' in kwargs:
+                resource = _validate_resource(resource)
 
-        self._jid = (local, domain, resource)
+            self._jid = (local, domain, resource)
+            JID_CACHE[_format_jid(*self._jid)] = self._jid
+            if len(JID_CACHE) > JID_CACHE_MAX_SIZE:
+                JID_CACHE.popitem(False)
 
     def unescape(self):
         """Return an unescaped JID object.
@@ -498,7 +511,9 @@ class JID(object):
                              ``resource``, ``full``, ``jid``, or ``bare``.
         :param value: The new string value of the JID component.
         """
-        if name == 'resource':
+        if name == '_jid':
+            super(JID, self).__setattr__('_jid', value)
+        elif name == 'resource':
             self._jid = JID(self, resource=value)._jid
         elif name in ('user', 'username', 'local', 'node'):
             self._jid = JID(self, local=value)._jid
@@ -509,8 +524,6 @@ class JID(object):
         elif name == 'bare':
             parsed = JID(value)._jid
             self._jid = (parsed[0], parsed[1], self._jid[2])
-        elif name == '_jid':
-            super(JID, self).__setattr__('_jid', value)
 
     def __str__(self):
         """Use the full JID as the string value."""

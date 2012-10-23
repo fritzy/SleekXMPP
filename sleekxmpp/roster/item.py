@@ -479,11 +479,11 @@ class RosterItem(object):
             self.xmpp.event('roster_subscription_removed', presence)
 
     def handle_probe(self, presence):
-        if self['to']:
+        if self['from']:
             self.send_last_presence()
         if self['pending_out']:
             self.subscribe()
-        if not self['to']:
+        if not self['from']:
             self._unsubscribed()
 
     def reset(self):

@@ -421,33 +421,32 @@ class JID(object):
         if jid is None or jid == '':
             jid = ''
 
-        if jid in JID_CACHE:
-            self._jid = JID_CACHE[jid]
+        if not jid:
+            jid = (None, None, None)
+        elif jid in JID_CACHE:
+            jid = JID_CACHE[jid]
+        elif not isinstance(jid, JID):
+            jid = _parse_jid(jid)
         else:
-            if not jid:
-                jid = (None, None, None)
-            elif not isinstance(jid, JID):
-                jid = _parse_jid(jid)
-            else:
-                jid = jid._jid
+            jid = jid._jid
 
-            local, domain, resource = jid
+        local, domain, resource = jid
 
-            local = kwargs.get('local', local)
-            domain = kwargs.get('domain', domain)
-            resource = kwargs.get('resource', resource)
+        local = kwargs.get('local', local)
+        domain = kwargs.get('domain', domain)
+        resource = kwargs.get('resource', resource)
 
-            if 'local' in kwargs:
-                local = _escape_node(local)
-            if 'domain' in kwargs:
-                domain = _validate_domain(domain)
-            if 'resource' in kwargs:
-                resource = _validate_resource(resource)
+        if 'local' in kwargs:
+            local = _escape_node(local)
+        if 'domain' in kwargs:
+            domain = _validate_domain(domain)
+        if 'resource' in kwargs:
+            resource = _validate_resource(resource)
 
-            self._jid = (local, domain, resource)
-            JID_CACHE[_format_jid(*self._jid)] = self._jid
-            if len(JID_CACHE) > JID_CACHE_MAX_SIZE:
-                JID_CACHE.popitem(False)
+        self._jid = (local, domain, resource)
+        JID_CACHE[_format_jid(*self._jid)] = self._jid
+        if len(JID_CACHE) > JID_CACHE_MAX_SIZE:
+            JID_CACHE.popitem(False)
 
     def unescape(self):
         """Return an unescaped JID object.

@@ -17,11 +17,15 @@ from sleekxmpp.util.misc_ops import bytes, unicode, hashes, hash, \
 # =====================================================================
 # Standardize import of Queue class:
 
-try:
-    import queue
-except ImportError:
-    import Queue as queue
+import sys
+if 'gevent' in sys.modules:
+    import gevent.queue as queue
+    Queue = queue.JoinableQueue
+else:
+    try:
+        import queue
+    except ImportError:
+        import Queue as queue
+    Queue = queue.Queue
 
-
-Queue = queue.Queue
 QueueEmpty = queue.Empty

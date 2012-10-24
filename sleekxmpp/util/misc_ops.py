@@ -125,3 +125,27 @@ def hashes():
         t += ['MD2']
     hashes = ['SHA-' + h[3:] for h in dir(hashlib) if h.startswith('sha')]
     return t + hashes
+
+def setdefaultencoding(encoding):
+    """
+    Set the current default string encoding used by the Unicode implementation.
+
+    Actually calls sys.setdefaultencoding under the hood - see the docs for that
+    for more details.  This method exists only as a way to call find/call it
+    even after it has been 'deleted' when the site module is executed.
+
+    :param string encoding: An encoding name, compatible with sys.setdefaultencoding
+    """
+    func = getattr(sys, 'setdefaultencoding', None)
+    if func is None:
+        import gc
+        import types
+        for obj in gc.get_objects():
+            if (isinstance(obj, types.BuiltinFunctionType)
+                    and obj.__name__ == 'setdefaultencoding'):
+                func = obj
+                break
+        if func is None:
+            raise RuntimeError("Could not find setdefaultencoding")
+        sys.setdefaultencoding = func
+    return func(encoding)

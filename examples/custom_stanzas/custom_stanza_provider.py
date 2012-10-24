@@ -28,8 +28,8 @@ from stanza import Action
 # throughout SleekXMPP, we will set the default encoding
 # ourselves to UTF-8.
 if sys.version_info < (3, 0):
-    reload(sys)
-    sys.setdefaultencoding('utf8')
+    from sleekxmpp.util.misc_ops import setdefaultencoding
+    setdefaultencoding('utf8')
 else:
     raw_input = input
 
@@ -56,8 +56,8 @@ class ActionBot(sleekxmpp.ClientXMPP):
             StanzaPath('iq@type=set/action'),
             self._handle_action))
 
-        self.add_event_handler('custom_action', 
-                self._handle_action_event, 
+        self.add_event_handler('custom_action',
+                self._handle_action_event,
                 threaded=True)
 
         register_stanza_plugin(Iq, Action)

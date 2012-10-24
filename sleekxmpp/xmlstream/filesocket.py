@@ -34,7 +34,7 @@ class FileSocket(_fileobject):
             return data
 
 
-class Socket26(socket._socketobject):
+class Socket26(socket.socket):
 
     """A custom socket implementation that uses our own FileSocket class
     to work around issues in Python 2.6 when using sockets as files.

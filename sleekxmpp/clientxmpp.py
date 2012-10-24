@@ -64,7 +64,6 @@ class ClientXMPP(BaseXMPP):
                  escape_quotes=True, sasl_mech=None, lang='en'):
         BaseXMPP.__init__(self, jid, 'jabber:client')
 
-        self.set_jid(jid)
         self.escape_quotes = escape_quotes
         self.plugin_config = plugin_config
         self.plugin_whitelist = plugin_whitelist

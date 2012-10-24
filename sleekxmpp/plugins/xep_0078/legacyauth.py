@@ -11,6 +11,7 @@ import hashlib
 import random
 import sys
 
+from sleekxmpp.jid import JID
 from sleekxmpp.exceptions import IqError, IqTimeout
 from sleekxmpp.stanza import Iq, StreamFeatures
 from sleekxmpp.xmlstream import ElementBase, ET, register_stanza_plugin
@@ -95,10 +96,11 @@ class XEP_0078(BasePlugin):
         iq['auth']['username'] = self.xmpp.requested_jid.user
 
         # A resource is required, so create a random one if necessary
-        if self.xmpp.requested_jid.resource:
-            iq['auth']['resource'] = self.xmpp.requested_jid.resource
-        else:
-            iq['auth']['resource'] = '%s' % random.random()
+        resource = self.xmpp.requested_jid.resource
+        if not resource:
+            resource = uuid.uuid4()
+
+        iq['auth']['resource'] = resource
 
         if 'digest' in resp['auth']['fields']:
             log.debug('Authenticating via jabber:iq:auth Digest')
@@ -130,6 +132,12 @@ class XEP_0078(BasePlugin):
         self.xmpp.features.add('auth')
 
         self.xmpp.authenticated = True
+
+        self.xmpp.boundjid = JID(self.xmpp.requested_jid,
+                resource=resource,
+                cache_lock=True)
+        self.xmpp.event('session_bind', self.xmpp.boundjid, direct=True)
+
         log.debug("Established Session")
         self.xmpp.sessionstarted = True
         self.xmpp.session_started_event.set()

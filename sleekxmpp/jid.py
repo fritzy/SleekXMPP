@@ -16,6 +16,7 @@ from __future__ import unicode_literals
 import re
 import socket
 import stringprep
+import threading
 import encodings.idna
 
 from sleekxmpp.util import stringprep_profiles
@@ -65,6 +66,7 @@ JID_UNESCAPE_TRANSFORMATIONS = {'\\20': ' ',
                                 '\\5c': '\\'}
 
 JID_CACHE = OrderedDict()
+JID_CACHE_LOCK = threading.Lock()
 JID_CACHE_MAX_SIZE = 1024
 
 
@@ -416,37 +418,49 @@ class JID(object):
 
     # pylint: disable=W0212
     def __init__(self, jid=None, **kwargs):
-        self._jid = (None, None, None)
+        jid_data = (jid, kwargs.get('local', None),
+                         kwargs.get('domain', None),
+                         kwargs.get('resource', None))
 
-        if jid is None or jid == '':
-            jid = ''
+        locked = kwargs.get('cache_lock', False)
 
-        if not jid:
-            jid = (None, None, None)
-        elif jid in JID_CACHE:
-            jid = JID_CACHE[jid]
-        elif not isinstance(jid, JID):
-            jid = _parse_jid(jid)
+        if jid_data in JID_CACHE:
+            parsed_jid, locked = JID_CACHE[jid_data]
+            self._jid = parsed_jid
         else:
-            jid = jid._jid
+            if jid is None:
+                jid = ''
 
-        local, domain, resource = jid
+            if not jid:
+                parsed_jid = (None, None, None)
+            elif not isinstance(jid, JID):
+                parsed_jid = _parse_jid(jid)
+            else:
+                parsed_jid = jid._jid
 
-        local = kwargs.get('local', local)
-        domain = kwargs.get('domain', domain)
-        resource = kwargs.get('resource', resource)
+            local, domain, resource = parsed_jid
 
-        if 'local' in kwargs:
-            local = _escape_node(local)
-        if 'domain' in kwargs:
-            domain = _validate_domain(domain)
-        if 'resource' in kwargs:
-            resource = _validate_resource(resource)
+            local = kwargs.get('local', local)
+            domain = kwargs.get('domain', domain)
+            resource = kwargs.get('resource', resource)
 
-        self._jid = (local, domain, resource)
-        JID_CACHE[_format_jid(*self._jid)] = self._jid
+            if 'local' in kwargs:
+                local = _escape_node(local)
+            if 'domain' in kwargs:
+                domain = _validate_domain(domain)
+            if 'resource' in kwargs:
+                resource = _validate_resource(resource)
+
+            self._jid = (local, domain, resource)
+
+        JID_CACHE[jid_data] = (self._jid, locked)
         if len(JID_CACHE) > JID_CACHE_MAX_SIZE:
-            JID_CACHE.popitem(False)
+            with JID_CACHE_LOCK:
+                key, item = JID_CACHE.popitem(False)
+                if item[1]:
+                    # Need to reinsert locked JIDs
+                    JID_CACHE[key] = item
+
 
     def unescape(self):
         """Return an unescaped JID object.

@@ -8,6 +8,7 @@
 
 import logging
 
+from sleekxmpp.jid import JID
 from sleekxmpp.stanza import Iq, StreamFeatures
 from sleekxmpp.features.feature_bind import stanza
 from sleekxmpp.xmlstream import register_stanza_plugin
@@ -48,7 +49,7 @@ class FeatureBind(BasePlugin):
             iq['bind']['resource'] = self.xmpp.boundjid.resource
         response = iq.send(now=True)
 
-        self.xmpp.set_jid(response['bind']['jid'])
+        self.xmpp.boundjid = JID(response['bind']['jid'], cache_lock=True)
         self.xmpp.bound = True
         self.xmpp.event('session_bind', self.xmpp.boundjid, direct=True)
         self.xmpp.session_bind_event.set()

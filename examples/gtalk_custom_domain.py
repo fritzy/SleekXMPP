@@ -25,8 +25,8 @@ from sleekxmpp.xmlstream import cert
 # throughout SleekXMPP, we will set the default encoding
 # ourselves to UTF-8.
 if sys.version_info < (3, 0):
-    reload(sys)
-    sys.setdefaultencoding('utf8')
+    from sleekxmpp.util.misc_ops import setdefaultencoding
+    setdefaultencoding('utf8')
 else:
     raw_input = input
 

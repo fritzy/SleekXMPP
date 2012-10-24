@@ -69,8 +69,8 @@ use ASCII. We can get Python to use UTF-8 as the default encoding by including:
 .. code-block:: python
 
     if sys.version_info < (3, 0):
-        reload(sys)
-        sys.setdefaultencoding('utf8')
+        from sleekxmpp.util.misc_ops import setdefaultencoding
+        setdefaultencoding('utf8')
 
 .. warning::
 

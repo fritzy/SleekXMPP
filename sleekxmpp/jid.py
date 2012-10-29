@@ -69,6 +69,20 @@ JID_CACHE = OrderedDict()
 JID_CACHE_LOCK = threading.Lock()
 JID_CACHE_MAX_SIZE = 1024
 
+def _cache(key, parts, locked):
+    JID_CACHE[key] = (parts, locked)
+    if len(JID_CACHE) > JID_CACHE_MAX_SIZE:
+        with JID_CACHE_LOCK:
+            while len(JID_CACHE) > JID_CACHE_MAX_SIZE:
+                found = None
+                for key, item in JID_CACHE.iteritems():
+                    if not item[1]: # if not locked
+                        found = key
+                        break
+                if not found: # more than MAX_SIZE locked
+                    # warn?
+                    break
+                del JID_CACHE[found]
 
 # pylint: disable=c0103
 #: The nodeprep profile of stringprep used to validate the local,
@@ -418,19 +432,29 @@ class JID(object):
 
     # pylint: disable=W0212
     def __init__(self, jid=None, **kwargs):
-        jid_data = (jid, kwargs.get('local', None),
-                         kwargs.get('domain', None),
-                         kwargs.get('resource', None))
-
         locked = kwargs.get('cache_lock', False)
+        in_local = kwargs.get('local', None)
+        in_domain = kwargs.get('domain', None)
+        in_resource = kwargs.get('resource', None)
+        parts = None
+        if in_local or in_domain or in_resource:
+            parts = (in_local, in_domain, in_resource)
 
-        if jid_data in JID_CACHE:
-            parsed_jid, locked = JID_CACHE[jid_data]
-            self._jid = parsed_jid
-        else:
-            if jid is None:
-                jid = ''
-
+        # only check cache if there is a jid string, or parts, not if there
+        # are both
+        self._jid = None
+        key = None
+        if (jid is not None) and (parts is None):
+            if isinstance(jid, JID):
+                # it's already good to go, and there are no additions
+                self._jid = jid._jid
+                return
+            key = jid
+            self._jid, locked = JID_CACHE.get(jid, (None, locked))
+        elif jid is None and parts is not None:
+            key = parts
+            self._jid, locked = JID_CACHE.get(parts, (None, locked))
+        if not self._jid:
             if not jid:
                 parsed_jid = (None, None, None)
             elif not isinstance(jid, JID):
@@ -440,27 +464,16 @@ class JID(object):
 
             local, domain, resource = parsed_jid
 
-            local = kwargs.get('local', local)
-            domain = kwargs.get('domain', domain)
-            resource = kwargs.get('resource', resource)
-
             if 'local' in kwargs:
-                local = _escape_node(local)
+                local = _escape_node(in_local)
             if 'domain' in kwargs:
-                domain = _validate_domain(domain)
+                domain = _validate_domain(in_domain)
             if 'resource' in kwargs:
-                resource = _validate_resource(resource)
+                resource = _validate_resource(in_resource)
 
             self._jid = (local, domain, resource)
-
-        JID_CACHE[jid_data] = (self._jid, locked)
-        if len(JID_CACHE) > JID_CACHE_MAX_SIZE:
-            with JID_CACHE_LOCK:
-                key, item = JID_CACHE.popitem(False)
-                if item[1]:
-                    # Need to reinsert locked JIDs
-                    JID_CACHE[key] = item
-
+            if key:
+                _cache(key, self._jid, locked)
 
     def unescape(self):
         """Return an unescaped JID object.

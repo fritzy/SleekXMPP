@@ -85,7 +85,7 @@ class IBBReceiver(sleekxmpp.ClientXMPP):
     def stream_opened(self, stream):
         # NOTE: IBB streams are bi-directional, so the original sender is
         # now the opened stream's receiver.
-        print('Stream opened: %s from ' % (stream.sid, stream.receiver))
+        print('Stream opened: %s from %s' % (stream.sid, stream.receiver))
 
         # You could run a loop reading from the stream using stream.recv(),
         # or use the ibb_stream_data event.

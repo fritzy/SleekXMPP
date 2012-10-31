@@ -153,6 +153,35 @@ class TestHandlers(SleekTest):
         self.failUnless(events == ['foo'],
                 "Iq callback was not executed: %s" % events)
 
+    def testIqTimeoutCallback(self):
+        """Test that iq.send(tcallback=handle_foo, timeout_callback=handle_timeout) works."""
+        events = []
+
+        def handle_foo(iq):
+            events.append('foo')
+
+        def handle_timeout(iq):
+            events.append('timeout')
+
+        iq = self.Iq()
+        iq['type'] = 'get'
+        iq['id'] = 'test-foo'
+        iq['to'] = 'user@localhost'
+        iq['query'] = 'foo'
+        iq.send(callback=handle_foo, timeout_callback=handle_timeout, timeout=0.05)
+
+        self.send("""
+          <iq type="get" id="test-foo" to="user@localhost">
+            <query xmlns="foo" />
+          </iq>
+        """)
+
+        # Give event queue time to process
+        time.sleep(1)
+
+        self.failUnless(events == ['timeout'],
+                "Iq timeout was not executed: %s" % events)
+
     def testMultipleHandlersForStanza(self):
         """
         Test that multiple handlers for a single stanza work

@@ -324,6 +324,8 @@ class XEP_0030(BasePlugin):
             callback -- Optional callback to execute when a reply is
                         received instead of blocking and waiting for
                         the reply.
+            timeout_callback -- Optional callback to execute when no result 
+                        has been received in timeout seconds.
         """
         if local is None:
             if jid is not None and not isinstance(jid, JID):
@@ -364,7 +366,8 @@ class XEP_0030(BasePlugin):
         iq['disco_info']['node'] = node if node else ''
         return iq.send(timeout=kwargs.get('timeout', None),
                        block=kwargs.get('block', True),
-                       callback=kwargs.get('callback', None))
+                       callback=kwargs.get('callback', None),
+                       timeout_callback=kwargs.get('timeout_callback', None))
 
     def set_info(self, jid=None, node=None, info=None):
         """
@@ -405,6 +408,8 @@ class XEP_0030(BasePlugin):
             iterator -- If True, return a result set iterator using
                         the XEP-0059 plugin, if the plugin is loaded.
                         Otherwise the parameter is ignored.
+            timeout_callback -- Optional callback to execute when no result 
+                        has been received in timeout seconds.
         """
         if local or local is None and jid is None:
             items = self.api['get_items'](jid, node,
@@ -423,7 +428,8 @@ class XEP_0030(BasePlugin):
         else:
             return iq.send(timeout=kwargs.get('timeout', None),
                            block=kwargs.get('block', True),
-                           callback=kwargs.get('callback', None))
+                           callback=kwargs.get('callback', None),
+                           timeout_callback=kwargs.get('timeout_callback', None))
 
     def set_items(self, jid=None, node=None, **kwargs):
         """

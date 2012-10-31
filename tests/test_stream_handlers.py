@@ -177,7 +177,7 @@ class TestHandlers(SleekTest):
         """)
 
         # Give event queue time to process
-        time.sleep(0.1)
+        time.sleep(1)
 
         self.failUnless(events == ['timeout'],
                 "Iq timeout was not executed: %s" % events)

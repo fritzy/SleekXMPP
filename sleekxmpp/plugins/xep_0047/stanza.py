@@ -14,7 +14,7 @@ def to_b64(data):
 
 
 def from_b64(data):
-    return bytes(base64.b64decode(bytes(data))).decode('utf-8')
+    return bytes(base64.b64decode(bytes(data)))
 
 
 class Open(ElementBase):

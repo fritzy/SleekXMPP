@@ -5,7 +5,7 @@ from sleekxmpp.test import *
 
 
 class TestInBandByteStreams(SleekTest):
-    
+
     def setUp(self):
         self.stream_start(plugins=['xep_0047', 'xep_0030'])
 
@@ -13,7 +13,7 @@ class TestInBandByteStreams(SleekTest):
         self.stream_close()
 
     def testOpenStream(self):
-        """Test requesting a stream, successfully""" 
+        """Test requesting a stream, successfully"""
 
         events = []
 
@@ -22,7 +22,7 @@ class TestInBandByteStreams(SleekTest):
 
 
         self.xmpp.add_event_handler('ibb_stream_start', on_stream_start)
-    
+
         t = threading.Thread(name='open_stream',
                              target=self.xmpp['xep_0047'].open_stream,
                              args=('tester@localhost/receiver',),
@@ -31,7 +31,7 @@ class TestInBandByteStreams(SleekTest):
 
         self.send("""
           <iq type="set" to="tester@localhost/receiver" id="1">
-            <open xmlns="http://jabber.org/protocol/ibb" 
+            <open xmlns="http://jabber.org/protocol/ibb"
                   sid="testing"
                   block-size="4096"
                   stanza="iq" />
@@ -62,18 +62,18 @@ class TestInBandByteStreams(SleekTest):
             events.add('callback')
 
         self.xmpp.add_event_handler('ibb_stream_start', on_stream_start)
-    
+
         t = threading.Thread(name='open_stream',
                              target=self.xmpp['xep_0047'].open_stream,
                              args=('tester@localhost/receiver',),
-                             kwargs={'sid': 'testing', 
+                             kwargs={'sid': 'testing',
                                      'block': False,
                                      'callback': stream_callback})
         t.start()
 
         self.send("""
           <iq type="set" to="tester@localhost/receiver" id="1">
-            <open xmlns="http://jabber.org/protocol/ibb" 
+            <open xmlns="http://jabber.org/protocol/ibb"
                   sid="testing"
                   block-size="4096"
                   stanza="iq" />
@@ -106,7 +106,7 @@ class TestInBandByteStreams(SleekTest):
 
         self.xmpp.add_event_handler('ibb_stream_start', on_stream_start)
         self.xmpp.add_event_handler('ibb_stream_data', on_stream_data)
-    
+
         t = threading.Thread(name='open_stream',
                              target=self.xmpp['xep_0047'].open_stream,
                              args=('tester@localhost/receiver',),
@@ -115,7 +115,7 @@ class TestInBandByteStreams(SleekTest):
 
         self.send("""
           <iq type="set" to="tester@localhost/receiver" id="1">
-            <open xmlns="http://jabber.org/protocol/ibb" 
+            <open xmlns="http://jabber.org/protocol/ibb"
                   sid="testing"
                   block-size="4096"
                   stanza="iq" />
@@ -142,8 +142,8 @@ class TestInBandByteStreams(SleekTest):
           <iq type="set" id="2"
               from="tester@localhost"
               to="tester@localhost/receiver">
-            <data xmlns="http://jabber.org/protocol/ibb" 
-                  seq="0" 
+            <data xmlns="http://jabber.org/protocol/ibb"
+                  seq="0"
                   sid="testing">
               VGVzdGluZw==
             </data>
@@ -161,8 +161,8 @@ class TestInBandByteStreams(SleekTest):
           <iq type="set" id="A"
               to="tester@localhost"
               from="tester@localhost/receiver">
-            <data xmlns="http://jabber.org/protocol/ibb" 
-                  seq="0" 
+            <data xmlns="http://jabber.org/protocol/ibb"
+                  seq="0"
                   sid="testing">
               aXQgd29ya3Mh
             </data>
@@ -174,7 +174,7 @@ class TestInBandByteStreams(SleekTest):
               to="tester@localhost/receiver" />
         """)
 
-        self.assertEqual(data, ['it works!'])
+        self.assertEqual(data, [b'it works!'])
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestInBandByteStreams)

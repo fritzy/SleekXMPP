@@ -2,6 +2,7 @@ import sys
 import logging
 import struct
 import pickle
+import socket
 
 from threading import Thread, Event
 from hashlib import sha1
@@ -347,10 +348,14 @@ class Proxy(Thread):
                 # Wait any read available data on socket. Timeout
                 # after 5 secs.
                 ins, out, err = select([self.s, ], [], [], 5)
+            except socket.error as (errno, err):
+                # 9 means the socket is closed. It can be normal. Otherwise,
+                # log the error.
+                if errno != 9:
+                    log.debug('Socket error: %s' % err)
+                break
             except Exception as e:
-                # There's an error with the socket (maybe the socket
-                # has been closed and the file descriptor is bad).
-                log.debug('Socket error: %s' % e)
+                log.debug(e)
                 break
 
             for s in ins:

@@ -1,6 +1,7 @@
 import sys
 import logging
 import struct
+import pickle
 
 from threading import Thread, Event
 from hashlib import sha1
@@ -217,7 +218,7 @@ class XEP_0065(base_plugin):
 
         proxy = self.proxy_threads.get(sid)
         if proxy:
-            proxy.s.sendall(data)
+            proxy.send(data)
 
     def on_recv(self, sid, data):
         """ Calls when data is recv from the Proxy socket associated
@@ -306,6 +307,34 @@ class Proxy(Thread):
         self.s.close()
         log.info('Socket closed.')
 
+    def send(self, data):
+        """ Send data through the socket.
+        """
+
+        try:
+            packed_data = self._pack(data)
+            self.s.sendall(packed_data)
+        except pickle.PickleError as err:
+            log.error(err)
+
+    def _pack(self, data):
+        """ Packs the data.
+        """
+
+        # The data format is: `len_data`+`data`. Useful to receive all the data
+        # at once (avoid splitted data) thanks to the recv_size method.
+        data = pickle.dumps(data)
+        return struct.pack('>i', len(data)) + data
+
+    def _unpack(self, data):
+        """ Unpacks the data. On error, log an error message and returns None.
+        """
+
+        try:
+            return pickle.loads(data)
+        except Exception as err:
+            log.error(err)
+
     def listen(self):
         """ Listen for data on the socket. When receiving data, call
         the callback on_recv callable.
@@ -328,8 +357,10 @@ class Proxy(Thread):
                 data = self.recv_size(self.s)
                 if not data:
                     socket_open = False
-
-                self.on_recv(self.sid, data)
+                else:
+                    unpacked_data = self._unpack(data)
+                    if unpacked_data:
+                        self.on_recv(self.sid, unpacked_data)
 
     def recv_size(self, the_socket):
         total_len = 0

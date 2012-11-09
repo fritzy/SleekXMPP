@@ -114,8 +114,10 @@ class ClientXMPP(BaseXMPP):
         self.register_plugin('feature_session')
         self.register_plugin('feature_rosterver')
         self.register_plugin('feature_preapproval')
-        self.register_plugin('feature_mechanisms',
-                pconfig={'use_mech': sasl_mech} if sasl_mech else None)
+        self.register_plugin('feature_mechanisms')
+
+        if sasl_mech:
+            self['feature_mechanisms'].use_mech = sasl_mech
 
     @property
     def password(self):

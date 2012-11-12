@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 
-import os
 import sys
+if len(sys.argv)>1 and sys.argv[1].lower() == 'gevent':
+    from gevent import monkey
+    monkey.patch_all()
+
+import os
 import logging
 import unittest
 import distutils.core
@@ -57,7 +61,7 @@ class TestCommand(distutils.core.Command):
 
 if __name__ == '__main__':
     result = run_tests()
-    print("<tests %s ran='%s' errors='%s' fails='%s' success='%s' />" % (
+    print("<tests %s ran='%s' errors='%s' fails='%s' success='%s' gevent_enabled=%s/>" % (
         "xmlns='http//andyet.net/protocol/tests'",
         result.testsRun, len(result.errors),
-        len(result.failures), result.wasSuccessful()))
+        len(result.failures), result.wasSuccessful(),'gevent' in sys.modules))

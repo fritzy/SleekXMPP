@@ -44,14 +44,15 @@ class FeatureMechanisms(BasePlugin):
     }
 
     def plugin_init(self):
-        if not self.use_mech and not self.xmpp.requested_jid.user:
-            self.use_mech = 'ANONYMOUS'
-
         if self.sasl_callback is None:
             self.sasl_callback = self._default_credentials
 
         if self.security_callback is None:
             self.security_callback = self._default_security
+
+        creds = self.sasl_callback(set(['username']), set())
+        if not self.use_mech and not creds['username']:
+            self.use_mech = 'ANONYMOUS'
 
         self.mech = None
         self.mech_list = set()

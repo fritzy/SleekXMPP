@@ -92,11 +92,7 @@ class FeatureMechanisms(BasePlugin):
         values = required_values.union(optional_values)
         for value in values:
             if value == 'username':
-                result[value] = self.xmpp.requested_jid.user
-            elif value == 'password':
-                result[value] = creds['password']
-            elif value == 'authzid':
-                result[value] = creds.get('authzid', '')
+                result[value] = creds.get('username', self.xmpp.requested_jid.user)
             elif value == 'email':
                 jid = self.xmpp.requested_jid.bare
                 result[value] = creds.get('email', jid)
@@ -106,13 +102,13 @@ class FeatureMechanisms(BasePlugin):
                 else:
                     result[value] = None
             elif value == 'host':
-                result[value] = self.xmpp.requested_jid.domain
+                result[value] = creds.get('host', self.xmpp.requested_jid.domain)
             elif value == 'realm':
-                result[value] = self.xmpp.requested_jid.domain
+                result[value] = creds.get('realm', self.xmpp.requested_jid.domain)
             elif value == 'service-name':
-                result[value] = self.xmpp._service_name
+                result[value] = creds.get('service-name', self.xmpp._service_name)
             elif value == 'service':
-                result[value] = 'xmpp'
+                result[value] = creds.get('service', 'xmpp')
             elif value in creds:
                 result[value] = creds[value]
         return result

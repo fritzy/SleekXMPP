@@ -40,7 +40,7 @@ class Auth(StanzaBase):
         if not self['mechanism'] in self.plain_mechs:
             if values:
                 self.xml.text = bytes(base64.b64encode(values)).decode('utf-8')
-            else:
+            elif values == b'':
                 self.xml.text = '='
         else:
             self.xml.text = bytes(values).decode('utf-8')

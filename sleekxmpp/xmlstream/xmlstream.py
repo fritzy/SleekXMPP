@@ -550,7 +550,7 @@ class XMLStream(object):
                         cert.verify(self._expected_server_name, self._der_cert)
                     except cert.CertificateError as err:
                         if not self.event_handled('ssl_invalid_cert'):
-                            log.error(err.message)
+                            log.error(err)
                             self.disconnect(send_close=False)
                         else:
                             self.event('ssl_invalid_cert',
@@ -859,7 +859,7 @@ class XMLStream(object):
             cert.verify(self._expected_server_name, self._der_cert)
         except cert.CertificateError as err:
             if not self.event_handled('ssl_invalid_cert'):
-                log.error(err.message)
+                log.error(err)
                 self.disconnect(self.auto_reconnect, send_close=False)
             else:
                 self.event('ssl_invalid_cert', pem_cert, direct=True)

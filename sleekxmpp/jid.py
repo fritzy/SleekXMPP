@@ -75,7 +75,7 @@ def _cache(key, parts, locked):
         with JID_CACHE_LOCK:
             while len(JID_CACHE) > JID_CACHE_MAX_SIZE:
                 found = None
-                for key, item in JID_CACHE.iteritems():
+                for key, item in JID_CACHE.items():
                     if not item[1]: # if not locked
                         found = key
                         break

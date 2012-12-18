@@ -8,7 +8,10 @@ def unicode(text):
             text = text.decode('utf-8')
         import __builtin__
         return __builtin__.unicode(text)
-    return str(text)
+    elif not isinstance(text, str):
+        return text.decode('utf-8')
+    else:
+        return text
 
 
 def bytes(text):

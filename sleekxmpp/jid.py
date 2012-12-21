@@ -202,7 +202,7 @@ def _validate_domain(domain):
             socket.inet_pton(socket.AF_INET6, domain.strip('[]'))
             domain = '[%s]' % domain.strip('[]')
             ip_addr = True
-        except socket.error:
+        except (socket.error, ValueError):
             pass
 
     if not ip_addr:

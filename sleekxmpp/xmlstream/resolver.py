@@ -113,7 +113,7 @@ def resolve(host, port=None, service=None, proto='tcp',
             if hasattr(socket, 'inet_pton'):
                 ipv6 = socket.inet_pton(socket.AF_INET6, host)
                 yield (host, host, port)
-        except socket.error:
+        except (socket.error, ValueError):
             pass
 
     # If no service was provided, then we can just do A/AAAA lookups on the

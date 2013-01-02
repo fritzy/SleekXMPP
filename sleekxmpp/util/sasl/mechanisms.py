@@ -21,7 +21,8 @@ from base64 import b64encode, b64decode
 
 from sleekxmpp.util import bytes, hash, XOR, quote, num_to_bytes
 from sleekxmpp.util.sasl.client import sasl_mech, Mech, \
-                                       SASLCancelled, SASLFailed
+                                       SASLCancelled, SASLFailed, \
+                                       SASLMutualAuthFailed
 
 
 @sasl_mech(0)

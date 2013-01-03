@@ -290,7 +290,7 @@ class XEP_0115(BasePlugin):
                 # can just send a normal presence stanza. If we have, then
                 # we will send presence to each contact individually so
                 # that we don't clobber existing statuses.
-                directed = False
+                directed = False or self.xmpp.is_component
                 for contact in self.xmpp.roster[jid]:
                     if self.xmpp.roster[jid][contact].last_status is not None:
                         directed = True

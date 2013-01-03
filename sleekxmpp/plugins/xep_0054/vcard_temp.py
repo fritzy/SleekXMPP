@@ -59,10 +59,20 @@ class XEP_0054(BasePlugin):
     def make_vcard(self):
         return VCardTemp()
 
-    def get_vcard(self, jid=None, ifrom=None, local=False, cached=False,
+    def get_vcard(self, jid=None, ifrom=None, local=None, cached=False,
                   block=True, callback=None, timeout=None):
-        if self.xmpp.is_component and jid.domain == self.xmpp.boundjid.domain:
-            local = True
+        if local is None:
+            if jid is not None and not isinstance(jid, JID):
+                jid = JID(jid)
+                if self.xmpp.is_component:
+                    if jid.domain == self.xmpp.boundjid.domain:
+                        local = True
+                else:
+                    if str(jid) == str(self.xmpp.boundjid):
+                        local = True
+                jid = jid.full
+            elif jid in (None, ''):
+                local = True
 
         if local:
             vcard = self.api['get_vcard'](jid, None, ifrom)

@@ -76,10 +76,11 @@ class XEP_0223(BasePlugin):
                 ftype='hidden',
                 value='http://jabber.org/protocol/pubsub#publish-options')
 
+        fields = options['fields']
         for field, value in self.profile.items():
-            if field not in options.fields:
+            if field not in fields:
                 options.add_field(var=field)
-            options.fields[field]['value'] = value
+            options['fields'][field]['value'] = value
 
         return self.xmpp['xep_0163'].publish(stanza, node,
                 options=options,

@@ -25,6 +25,7 @@ __all__ = [
     'xep_0033',  # Extended Stanza Addresses
     'xep_0045',  # Multi-User Chat (Client)
     'xep_0047',  # In-Band Bytestreams
+    'xep_0048',  # Bookmarks
     'xep_0049',  # Private XML Storage
     'xep_0050',  # Ad-hoc Commands
     'xep_0054',  # vcard-temp

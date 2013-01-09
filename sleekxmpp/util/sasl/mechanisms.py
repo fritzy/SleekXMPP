@@ -87,7 +87,7 @@ class EXTERNAL(Mech):
         return self.credentials['authzid']
 
 
-@sasl_mech(30)
+@sasl_mech(31)
 class X_FACEBOOK_PLATFORM(Mech):
 
     name = 'X-FACEBOOK-PLATFORM'

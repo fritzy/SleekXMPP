@@ -7,9 +7,10 @@
     See the file LICENSE for copying permission.
 """
 
+import base64
 
-from base64 import b64encode, b64decode
 
+from sleekxmpp.util import bytes
 from sleekxmpp.xmlstream import ElementBase
 
 
@@ -26,10 +27,10 @@ class BitsOfBinary(ElementBase):
         self._set_attr('max-age', value)
 
     def get_data(self):
-        return b64decode(self.xml.text)
+        return base64.b64decode(bytes(self.xml.text))
 
     def set_data(self, value):
-        self.xml.text = b64encode(value)
+        self.xml.text = bytes(base64.b64encode(value)).decode('utf-8')
 
     def del_data(self):
         self.xml.text = ''

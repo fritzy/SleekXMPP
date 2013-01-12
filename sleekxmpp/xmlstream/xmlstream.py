@@ -560,7 +560,6 @@ class XMLStream(object):
             self.set_socket(self.socket, ignore=True)
             #this event is where you should set your application state
             self.event("connected", direct=True)
-            self.reconnect_delay = 1.0
             return True
         except (Socket.error, ssl.SSLError) as serr:
             error_msg = "Could not connect to %s:%s. Socket Error #%s: %s"
@@ -1493,6 +1492,10 @@ class XMLStream(object):
                     # as handshakes.
                     self.stream_end_event.clear()
                     self.start_stream_handler(root)
+
+                    # We have a successful stream connection, so reset
+                    # exponential backoff for new reconnect attempts.
+                    self.reconnect_delay = 1.0
                 depth += 1
             if event == b'end':
                 depth -= 1

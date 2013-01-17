@@ -78,7 +78,17 @@ class XEP_0153(BasePlugin):
         self.xmpp.roster[jid].send_last_presence()
 
     def _start(self, event):
-        vcard = self.xmpp['xep_0054'].get_vcard()
+        try:
+            vcard = self.xmpp['xep_0054'].get_vcard()
+            data = vcard['vcard_temp']['PHOTO']['BINVAL']
+            if not data:
+                new_hash = ''
+            else:
+                new_hash = hashlib.sha1(data).hexdigest()
+            self.api['set_hash'](self.xmpp.boundjid, args=new_hash)
+        except XMPPError:
+            log.debug('Could not retrieve vCard for %s' % jid)
+
         self._allow_advertising.set()
 
     def _end(self, event):

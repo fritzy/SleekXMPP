@@ -8,7 +8,7 @@
 
 import logging
 
-from sleekxmpp import Iq
+from sleekxmpp import JID, Iq
 from sleekxmpp.exceptions import XMPPError
 from sleekxmpp.xmlstream import register_stanza_plugin
 from sleekxmpp.xmlstream.handler import Callback

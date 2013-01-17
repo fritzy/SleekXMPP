@@ -87,7 +87,7 @@ class XEP_0153(BasePlugin):
                 new_hash = hashlib.sha1(data).hexdigest()
             self.api['set_hash'](self.xmpp.boundjid, args=new_hash)
         except XMPPError:
-            log.debug('Could not retrieve vCard for %s' % jid)
+            log.debug('Could not retrieve vCard for %s' % self.xmpp.boundjid.bare)
 
         self._allow_advertising.set()
 

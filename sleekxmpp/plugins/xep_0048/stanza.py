@@ -50,7 +50,7 @@ class Conference(ElementBase):
     def set_autojoin(self, value):
         del self['autojoin']
         if value in ('1', 'true', True):
-            self._set_sub_text('autojoin', 'true')
+            self._set_attr('autojoin', 'true')
 
 
 class URL(ElementBase):

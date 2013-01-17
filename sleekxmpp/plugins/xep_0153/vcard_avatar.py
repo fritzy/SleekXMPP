@@ -79,7 +79,7 @@ class XEP_0153(BasePlugin):
 
     def _start(self, event):
         try:
-            vcard = self.xmpp['xep_0054'].get_vcard()
+            vcard = self.xmpp['xep_0054'].get_vcard(self.xmpp.boundjid.bare)
             data = vcard['vcard_temp']['PHOTO']['BINVAL']
             if not data:
                 new_hash = ''

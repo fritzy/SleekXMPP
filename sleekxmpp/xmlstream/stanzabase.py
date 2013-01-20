@@ -192,7 +192,7 @@ def fix_ns(xpath, split=False, propagate_ns=True, default_ns=''):
         for element in elements:
             if element:
                 # Skip empty entry artifacts from splitting.
-                if propagate_ns:
+                if propagate_ns and element[0] != '*':
                     tag = '{%s}%s' % (namespace, element)
                 else:
                     tag = element

@@ -9,14 +9,8 @@
     :license: MIT, see LICENSE for more details
 """
 
-from sleekxmpp.xmlstream.stanzabase import ET
+from sleekxmpp.xmlstream.stanzabase import ET, fix_ns
 from sleekxmpp.xmlstream.matcher.base import MatcherBase
-
-
-# Flag indicating if the builtin XPath matcher should be used, which
-# uses namespaces, or a custom matcher that ignores namespaces.
-# Changing this will affect ALL XPath matchers.
-IGNORE_NS = False
 
 
 class MatchXPath(MatcherBase):
@@ -37,6 +31,9 @@ class MatchXPath(MatcherBase):
     If the value of :data:`IGNORE_NS` is set to ``True``, then XPath
     expressions will be matched without using namespaces.
     """
+
+    def __init__(self, criteria):
+        self._criteria = fix_ns(criteria)
 
     def match(self, xml):
         """
@@ -59,28 +56,4 @@ class MatchXPath(MatcherBase):
         x = ET.Element('x')
         x.append(xml)
 
-        if not IGNORE_NS:
-            # Use builtin, namespace respecting, XPath matcher.
-            if x.find(self._criteria) is not None:
-                return True
-            return False
-        else:
-            # Remove namespaces from the XPath expression.
-            criteria = []
-            for ns_block in self._criteria.split('{'):
-                criteria.extend(ns_block.split('}')[-1].split('/'))
-
-            # Walk the XPath expression.
-            xml = x
-            for tag in criteria:
-                if not tag:
-                    # Skip empty tag name artifacts from the cleanup phase.
-                    continue
-
-                children = [c.tag.split('}')[-1] for c in xml]
-                try:
-                    index = children.index(tag)
-                except ValueError:
-                    return False
-                xml = list(xml)[index]
-            return True
+        return x.find(self._criteria) is not None

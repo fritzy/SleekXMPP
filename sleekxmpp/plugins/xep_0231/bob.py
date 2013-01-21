@@ -10,7 +10,7 @@
 import logging
 import hashlib
 
-from sleekxmpp.stanza import Iq
+from sleekxmpp.stanza import Iq, Message, Presence
 from sleekxmpp.exceptions import XMPPError
 from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.xmlstream.matcher import StanzaPath
@@ -36,6 +36,8 @@ class XEP_0231(BasePlugin):
         self._cids = {}
 
         register_stanza_plugin(Iq, BitsOfBinary)
+        register_stanza_plugin(Message, BitsOfBinary)
+        register_stanza_plugin(Presence, BitsOfBinary)
 
         self.xmpp.register_handler(
             Callback('Bits of Binary - Iq',

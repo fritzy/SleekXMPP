@@ -12,7 +12,7 @@ from sleekxmpp.plugins.base import register_plugin, load_plugin
 
 __all__ = [
     # Non-standard
-    'gmail_notify',  # Gmail searching and notifications
+    'gmail',     # Gmail searching and notifications
 
     # XEPS
     'xep_0004',  # Data Forms

@@ -6,7 +6,7 @@
     See the file LICENSE for copying permission.
 """
 
-from sleekxmpp.xmlstream import ElementBase, register_stanza_plugin
+from sleekxmpp.xmlstream import ET, ElementBase, register_stanza_plugin
 
 
 class UserSettings(ElementBase):

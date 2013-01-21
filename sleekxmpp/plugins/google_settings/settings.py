@@ -10,7 +10,7 @@ import logging
 
 from sleekxmpp.stanza import Iq
 from sleekxmpp.xmlstream.handler import Callback
-from sleekxmpp.xmlstream.matcher import MatchXPath
+from sleekxmpp.xmlstream.matcher import StanzaPath
 from sleekxmpp.xmlstream import register_stanza_plugin
 from sleekxmpp.plugins import BasePlugin
 from sleekxmpp.plugins.google_settings import stanza
@@ -37,9 +37,7 @@ class GoogleSettings(BasePlugin):
 
         self.xmpp.register_handler(
                 Callback('Google Settings',
-                    MatchXPath('{%s}iq/%s' % (
-                        self.xmpp.default_ns,
-                        stanza.UserSettings.tag_name())),
+                    StanzaPath('iq@type=set/google_settings'),
                     self._handle_settings_change))
 
     def plugin_end(self):
@@ -51,7 +49,7 @@ class GoogleSettings(BasePlugin):
         iq.enable('google_settings')
         return iq.send(block=block, timeout=timeout, callback=callback)
 
-    def update(settings, block=True, timeout=None, callback=None):
+    def update(self, settings, block=True, timeout=None, callback=None):
         iq = self.xmpp.Iq()
         iq['type'] = 'set'
         iq.enable('google_settings')
@@ -62,4 +60,9 @@ class GoogleSettings(BasePlugin):
         return iq.send(block=block, timeout=timeout, callback=callback)
 
     def _handle_settings_change(self, iq):
+        reply = self.xmpp.Iq()
+        reply['type'] = 'result'
+        reply['id'] = iq['id']
+        reply['to'] = iq['from']
+        reply.send()
         self.xmpp.event('google_settings_change', iq)

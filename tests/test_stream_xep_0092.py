@@ -36,7 +36,9 @@ class TestStreamSet(SleekTest):
 
         def query():
             r = self.xmpp['xep_0092'].get_version('foo@bar')
-            results.append(r)
+            results.append((r['software_version']['name'],
+                            r['software_version']['version'],
+                            r['software_version']['os']))
 
         self.stream_start(mode='client', plugins=['xep_0030', 'xep_0092'])
 
@@ -61,7 +63,7 @@ class TestStreamSet(SleekTest):
 
         t.join()
 
-        expected = [{'name': 'Foo', 'version': '1.0', 'os':'Linux'}]
+        expected = [('Foo', '1.0', 'Linux')]
         self.assertEqual(results, expected,
                 "Did not receive expected results: %s" % results)
 

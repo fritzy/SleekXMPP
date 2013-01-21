@@ -62,16 +62,18 @@ class PingTest(sleekxmpp.ClientXMPP):
         """
         self.send_presence()
         self.get_roster()
-        result = self['xep_0199'].send_ping(self.pingjid,
-                                            timeout=10,
-                                            errorfalse=True)
-        logging.info("Pinging...")
-        if result is False:
-            logging.info("Couldn't ping.")
-            self.disconnect()
-            sys.exit(1)
-        else:
-            logging.info("Success! RTT: %s", str(result))
+
+        try:
+            rtt = self['xep_0199'].ping(self.pingjid,
+                                        timeout=10)
+            logging.info("Success! RTT: %s", rtt)
+        except IqError as e:
+            logging.info("Error pinging %s: %s",
+                    self.pingjid,
+                    e.iq['error']['condition'])
+        except IqTimeout:
+            logging.info("No response from %s", self.pingjid)
+        finally:
             self.disconnect()
 
 

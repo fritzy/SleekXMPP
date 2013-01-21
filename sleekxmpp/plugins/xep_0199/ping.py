@@ -9,8 +9,8 @@
 import time
 import logging
 
-import sleekxmpp
-from sleekxmpp import Iq
+from sleekxmpp.jid import JID
+from sleekxmpp.stanza import Iq
 from sleekxmpp.exceptions import IqError, IqTimeout
 from sleekxmpp.xmlstream import register_stanza_plugin
 from sleekxmpp.xmlstream.matcher import StanzaPath
@@ -38,7 +38,7 @@ class XEP_0199(BasePlugin):
         keepalive -- If True, periodically send ping requests
                      to the server. If a ping is not answered,
                      the connection will be reset.
-        frequency -- Time in seconds between keepalive pings.
+        interval  -- Time in seconds between keepalive pings.
                      Defaults to 300 seconds.
         timeout   -- Time in seconds to wait for a ping response.
                      Defaults to 30 seconds.
@@ -53,7 +53,7 @@ class XEP_0199(BasePlugin):
     stanza = stanza
     default_config = {
         'keepalive': False,
-        'frequency': 300,
+        'interval': 300,
         'timeout': 30
     }
 
@@ -61,6 +61,7 @@ class XEP_0199(BasePlugin):
         """
         Start the XEP-0199 plugin.
         """
+
         register_stanza_plugin(Iq, Ping)
 
         self.xmpp.register_handler(
@@ -70,88 +71,70 @@ class XEP_0199(BasePlugin):
 
         if self.keepalive:
             self.xmpp.add_event_handler('session_start',
-                                        self._handle_keepalive,
+                                        self.enable_keepalive,
                                         threaded=True)
             self.xmpp.add_event_handler('session_end',
-                                        self._handle_session_end)
+                                        self.disable_keepalive)
 
     def plugin_end(self):
         self.xmpp['xep_0030'].del_feature(feature=Ping.namespace)
         self.xmpp.remove_handler('Ping')
         if self.keepalive:
             self.xmpp.del_event_handler('session_start',
-                                        self._handle_keepalive)
+                                        self.enable_keepalive)
             self.xmpp.del_event_handler('session_end',
-                                        self._handle_session_end)
+                                        self.disable_keepalive)
 
     def session_bind(self, jid):
         self.xmpp['xep_0030'].add_feature(Ping.namespace)
 
-    def _handle_keepalive(self, event):
-        """
-        Begin periodic pinging of the server. If a ping is not
-        answered, the connection will be restarted.
+    def enable_keepalive(self, interval=None, timeout=None):
+        if interval:
+            self.interval = interval
+        if timeout:
+            self.timeout = timeout
 
-        The pinging interval can be adjused using self.frequency
-        before beginning processing.
-
-        Arguments:
-            event -- The session_start event.
-        """
-        def scheduled_ping():
-            """Send ping request to the server."""
-            log.debug("Pinging...")
-            try:
-                self.send_ping(self.xmpp.boundjid.host, self.timeout)
-            except IqError:
-                log.debug("Ping response was an error." + \
-                          "Requesting Reconnect.")
-                self.xmpp.reconnect()
-            except IqTimeout:
-                log.debug("Did not recieve ping back in time." + \
-                          "Requesting Reconnect.")
-                self.xmpp.reconnect()
-
-        self.xmpp.schedule('Ping Keep Alive',
-                           self.frequency,
-                           scheduled_ping,
+        self.keepalive = True
+        self.xmpp.schedule('Ping keepalive',
+                           self.interval,
+                           self._keepalive,
                            repeat=True)
 
-    def _handle_session_end(self, event):
-        self.xmpp.scheduler.remove('Ping Keep Alive')
+    def disable_keepalive(self, event=None):
+        self.xmpp.scheduler.remove('Ping keepalive')
+
+    def _keepalive(self, event):
+        log.debug("Keepalive ping...")
+        try:
+            rtt = self.ping(self.xmpp.boundjid.host, self.timeout)
+        except IqTimeout:
+            log.debug("Did not recieve ping back in time." + \
+                      "Requesting Reconnect.")
+            self.xmpp.reconnect()
+        else:
+            log.debug('Keepalive RTT: %s' % rtt)
 
     def _handle_ping(self, iq):
-        """
-        Automatically reply to ping requests.
-
-        Arguments:
-            iq -- The ping request.
-        """
+        """Automatically reply to ping requests."""
         log.debug("Pinged by %s", iq['from'])
         iq.reply().send()
 
-    def send_ping(self, jid, timeout=None, errorfalse=False,
-                  ifrom=None, block=True, callback=None):
-        """
-        Send a ping request and calculate the response time.
+    def send_ping(self, jid, ifrom=None, block=True, timeout=None, callback=None):
+        """Send a ping request.
 
         Arguments:
             jid        -- The JID that will receive the ping.
-            timeout    -- Time in seconds to wait for a response.
-                          Defaults to self.timeout.
-            errorfalse -- Indicates if False should be returned
-                          if an error stanza is received. Defaults
-                          to False.
             ifrom      -- Specifiy the sender JID.
             block      -- Indicate if execution should block until
                           a pong response is received. Defaults
                           to True.
+            timeout    -- Time in seconds to wait for a response.
+                          Defaults to self.timeout.
             callback   -- Optional handler to execute when a pong
                           is received. Useful in conjunction with
                           the option block=False.
         """
-        log.debug("Pinging %s", jid)
-        if timeout is None:
+        if not timeout:
             timeout = self.timeout
 
         iq = self.xmpp.Iq()
@@ -160,21 +143,43 @@ class XEP_0199(BasePlugin):
         iq['from'] = ifrom
         iq.enable('ping')
 
-        start_time = time.clock()
+        return iq.send(block=block, timeout=timeout, callback=callback)
 
+    def ping(self, jid=None, ifrom=None, timeout=None):
+        """Send a ping request and calculate RTT.
+
+        Arguments:
+            jid        -- The JID that will receive the ping.
+            ifrom      -- Specifiy the sender JID.
+            timeout    -- Time in seconds to wait for a response.
+                          Defaults to self.timeout.
+        """
+        if not jid:
+            if self.xmpp.is_component:
+                jid = self.xmpp.server
+            else:
+                jid = self.xmpp.boundjid.host
+        jid = JID(jid)
+        if jid == self.xmpp.boundjid.host or \
+                self.xmpp.is_component and jid == self.xmpp.server:
+            own_host = True
+
+        if not timeout:
+            timeout = self.timeout
+
+        start = time.time()
+
+        log.debug('Pinging %s' % jid)
         try:
-            resp = iq.send(block=block,
-                           timeout=timeout,
-                           callback=callback)
-        except IqError as err:
-            resp = err.iq
-
-        end_time = time.clock()
-
-        delay = end_time - start_time
-
-        if not block:
-            return None
-
-        log.debug("Pong: %s %f", jid, delay)
-        return delay
+            self.send_ping(jid, ifrom=ifrom, timeout=timeout)
+        except IqError as e:
+            if own_host:
+                rtt = time.time() - start
+                log.debug('Pinged %s, RTT: %s', jid, rtt)
+                return rtt
+            else:
+                raise e
+        else:
+            rtt = time.time() - start
+            log.debug('Pinged %s, RTT: %s', jid, rtt)
+            return rtt

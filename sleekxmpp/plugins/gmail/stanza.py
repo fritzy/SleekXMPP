@@ -46,7 +46,7 @@ class GmailQuery(ElementBase):
 class MailBox(ElementBase):
     namespace = 'google:mail:notify'
     name = 'mailbox'
-    plugin_attrib = 'gmail_results'
+    plugin_attrib = 'gmail_messages'
     interfaces = set(['result_time', 'url', 'matched', 'estimate'])
 
     def get_matched(self):

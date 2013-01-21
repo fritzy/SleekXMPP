@@ -38,14 +38,6 @@ class Gmail(BasePlugin):
         register_stanza_plugin(Iq, stanza.NewMail)
 
         self.xmpp.register_handler(
-                Callback('Gmail Result',
-                    MatchXPath('{%s}iq/{%s}%s' % (
-                        self.xmpp.default_ns,
-                        stanza.MailBox.namespace,
-                        stanza.MailBox.name)),
-                    self._handle_gmail))
-
-        self.xmpp.register_handler(
                 Callback('Gmail New Mail',
                     MatchXPath('{%s}iq/{%s}%s' % (
                         self.xmpp.default_ns,
@@ -56,24 +48,17 @@ class Gmail(BasePlugin):
         self._last_result_time = None
 
     def plugin_end(self):
-        self.xmpp.remove_handler('Gmail Result')
         self.xmpp.remove_handler('Gmail New Mail')
 
-    def _handle_gmail(self, iq):
-        mailbox = iq['gmail_results']
-        log.info('Gmail: Received%s %s emails',
-                ' approximately' if mailbox['estimated'] else '',
-                mailbox['matched'])
-        self._last_result_time = mailbox['result_time']
-        self.xmpp.event('gmail_messages', iq)
-
     def _handle_new_mail(self, iq):
-        log.info("Gmail: New emails received!")
-        self.xmpp.event('gmail_notify', iq)
-        self.check(block=False)
+        log.info("Gmail: New email!")
+        iq.reply().send()
+        self.xmpp.event('gmail_notification')
 
     def check(self, block=True, timeout=None, callback=None):
-        return self.search(newer=self._last_result_time,
+        last_time = self._last_result_time
+        self._last_result_time = str(int(time.time() * 1000))
+        return self.search(newer=last_time,
                 block=block,
                 timeout=timeout,
                 callback=callback)

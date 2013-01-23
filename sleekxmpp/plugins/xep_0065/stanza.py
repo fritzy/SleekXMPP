@@ -1,41 +1,47 @@
-from sleekxmpp import Iq
+from sleekxmpp.jid import JID
 from sleekxmpp.xmlstream import ElementBase, register_stanza_plugin
 
 
-# The protocol namespace defined in the Socks5Bytestream (0065) spec.
-namespace = 'http://jabber.org/protocol/bytestreams'
+class Socks5(ElementBase):
+    name = 'query'
+    namespace = 'http://jabber.org/protocol/bytestreams'
+    plugin_attrib = 'socks'
+    interfaces = set(['sid', 'activate'])
+    sub_interfaces = set(['activate'])
+
+    def add_streamhost(self, jid, host, port):
+        sh = StreamHost(parent=self)
+        sh['jid'] = jid
+        sh['host'] = host
+        sh['port'] = port
 
 
 class StreamHost(ElementBase):
-    """ The streamhost xml element.
-    """
-
-    namespace = namespace
     name = 'streamhost'
+    namespace = 'http://jabber.org/protocol/bytestreams'
     plugin_attrib = 'streamhost'
-    interfaces = set(('host', 'jid', 'port'))
+    plugin_multi_attrib = 'streamhosts'
+    interfaces = set(['host', 'jid', 'port'])
+
+    def set_jid(self, value):
+        return self._set_attr('jid', str(value))
+
+    def get_jid(self):
+        return JID(self._get_attr('jid'))
 
 
 class StreamHostUsed(ElementBase):
-    """ The streamhost-used xml element.
-    """
-
-    namespace = namespace
     name = 'streamhost-used'
-    plugin_attrib = 'streamhost-used'
-    interfaces = set(('jid',))
+    namespace = 'http://jabber.org/protocol/bytestreams'
+    plugin_attrib = 'streamhost_used'
+    interfaces = set(['jid'])
+
+    def set_jid(self, value):
+        return self._set_attr('jid', str(value))
+
+    def get_jid(self):
+        return JID(self._get_attr('jid'))
 
 
-class Socks5(ElementBase):
-    """ The query xml element.
-    """
-
-    namespace = namespace
-    name = 'query'
-    plugin_attrib = 'socks'
-    interfaces = set(('sid', 'activate'))
-    sub_interfaces = set(('activate',))
-
-register_stanza_plugin(Iq, Socks5)
-register_stanza_plugin(Socks5, StreamHost)
+register_stanza_plugin(Socks5, StreamHost, iterable=True)
 register_stanza_plugin(Socks5, StreamHostUsed)

@@ -173,6 +173,9 @@ class FeatureMechanisms(BasePlugin):
             self.xmpp.event("no_auth", direct=True)
             self.attempted_mechs = set()
             return self.xmpp.disconnect()
+        except StringPrepError:
+            log.exception("A credential value did not pass SASLprep.")
+            self.xmpp.disconnect()
 
         resp = stanza.Auth(self.xmpp)
         resp['mechanism'] = self.mech.name
@@ -188,9 +191,6 @@ class FeatureMechanisms(BasePlugin):
             log.error("Mutual authentication failed! " + \
                       "A security breach is possible.")
             self.attempted_mechs.add(self.mech.name)
-            self.xmpp.disconnect()
-        except StringPrepError:
-            log.exception("A credential value did not pass SASLprep.")
             self.xmpp.disconnect()
         else:
             resp.send(now=True)

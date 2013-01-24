@@ -42,7 +42,7 @@ class XMPPError(Exception):
                   Defaults to ``True``.
     """
 
-    def __init__(self, condition='undefined-condition', text=None,
+    def __init__(self, condition='undefined-condition', text='',
                 etype='cancel', extension=None, extension_ns=None,
                 extension_args=None, clear=True):
         if extension_args is None:

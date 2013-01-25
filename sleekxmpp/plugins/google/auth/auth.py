@@ -8,32 +8,31 @@
 
 import logging
 
-from sleekxmpp.stanza import Iq, Message
-from sleekxmpp.xmlstream.handler import Callback
-from sleekxmpp.xmlstream.matcher import StanzaPath
 from sleekxmpp.xmlstream import register_stanza_plugin
 from sleekxmpp.plugins import BasePlugin
-from sleekxmpp.plugins.google_domain_discovery import stanza
+from sleekxmpp.plugins.google.auth import stanza
 
 
 log = logging.getLogger(__name__)
 
 
-class GoogleDomainDiscovery(BasePlugin):
+class GoogleAuth(BasePlugin):
 
     """
-    Google: JID Domain Discovery
+    Google: Auth Extensions (JID Domain Discovery, OAuth2)
 
-    Also see <https://developers.google.com/talk/jep_extensions/jid_domain_change
+    Also see:
+        <https://developers.google.com/talk/jep_extensions/jid_domain_change>
+        <https://developers.google.com/talk/jep_extensions/oauth>
     """
 
-    name = 'google_domain_discovery'
-    description = 'Google: JID Domain Discovery'
+    name = 'google_auth'
+    description = 'Google: Auth Extensions (JID Domain Discovery, OAuth2)'
     dependencies = set(['feature_mechanisms'])
     stanza = stanza
 
     def plugin_init(self):
-        self.xmpp.namespace_map[stanza.GoogleAuth.namespace] = 'ga'
+        self.xmpp.namespace_map['http://www.google.com/talk/protocol/auth'] = 'ga'
 
         register_stanza_plugin(self.xmpp['feature_mechanisms'].stanza.Auth,
                                stanza.GoogleAuth)
@@ -45,5 +44,9 @@ class GoogleDomainDiscovery(BasePlugin):
 
     def _auth(self, stanza):
         if isinstance(stanza, self.xmpp['feature_mechanisms'].stanza.Auth):
-            stanza['use_full_bind_result'] = True
+            stanza.stream = self.xmpp
+            stanza['google']['client_uses_full_bind_result'] = True
+            if stanza['mechanism'] == 'X-OAUTH2':
+                stanza['google']['service'] = 'oauth2'
+            print(stanza)
         return stanza

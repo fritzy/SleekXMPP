@@ -13,7 +13,7 @@ from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.xmlstream.matcher import MatchXPath
 from sleekxmpp.xmlstream import register_stanza_plugin
 from sleekxmpp.plugins import BasePlugin
-from sleekxmpp.plugins.gmail import stanza
+from sleekxmpp.plugins.google.gmail import stanza
 
 
 log = logging.getLogger(__name__)

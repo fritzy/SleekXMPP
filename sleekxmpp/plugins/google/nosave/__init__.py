@@ -6,10 +6,5 @@
     See the file LICENSE for copying permission.
 """
 
-from sleekxmpp.plugins.base import register_plugin
-
-from sleekxmpp.plugins.gmail import stanza
-from sleekxmpp.plugins.gmail.notifications import Gmail
-
-
-register_plugin(Gmail)
+from sleekxmpp.plugins.google.nosave import stanza
+from sleekxmpp.plugins.google.nosave.nosave import GoogleNoSave

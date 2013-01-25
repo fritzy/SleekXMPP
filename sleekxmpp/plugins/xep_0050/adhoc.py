@@ -267,20 +267,50 @@ class XEP_0050(BasePlugin):
             iq -- The command continuation request.
         """
         sessionid = iq['command']['sessionid']
-        session = self.sessions[sessionid]
+        session = self.sessions.get(sessionid)
 
-        handler = session['next']
-        interfaces = session['interfaces']
-        results = []
-        for stanza in iq['command']['substanzas']:
-            if stanza.plugin_attrib in interfaces:
-                results.append(stanza)
-        if len(results) == 1:
-            results = results[0]
+        if session:
+            handler = session['next']
+            interfaces = session['interfaces']
+            results = []
+            for stanza in iq['command']['substanzas']:
+                if stanza.plugin_attrib in interfaces:
+                    results.append(stanza)
+            if len(results) == 1:
+                results = results[0]
 
-        session = handler(results, session)
+            session = handler(results, session)
 
-        self._process_command_response(iq, session)
+            self._process_command_response(iq, session)
+        else:
+            raise XMPPError('item-not-found')
+
+    def _handle_command_prev(self, iq):
+        """
+        Process a request for the prev step in the workflow
+        for a command with multiple steps.
+
+        Arguments:
+            iq -- The command continuation request.
+        """
+        sessionid = iq['command']['sessionid']
+        session = self.sessions.get(sessionid)
+
+        if session:
+            handler = session['prev']
+            interfaces = session['interfaces']
+            results = []
+            for stanza in iq['command']['substanzas']:
+                if stanza.plugin_attrib in interfaces:
+                    results.append(stanza)
+            if len(results) == 1:
+                results = results[0]
+
+            session = handler(results, session)
+
+            self._process_command_response(iq, session)
+        else:
+            raise XMPPError('item-not-found')
 
     def _process_command_response(self, iq, session):
         """
@@ -348,23 +378,23 @@ class XEP_0050(BasePlugin):
         """
         node = iq['command']['node']
         sessionid = iq['command']['sessionid']
-        session = self.sessions[sessionid]
-        handler = session['cancel']
 
-        if handler:
-            handler(iq, session)
+        session = self.sessions.get(sessionid)
 
-        try:
+        if session:
+            handler = session['cancel']
+            if handler:
+                handler(iq, session)
             del self.sessions[sessionid]
-        except:
-            pass
+            iq.reply()
+            iq['command']['node'] = node
+            iq['command']['sessionid'] = sessionid
+            iq['command']['status'] = 'canceled'
+            iq['command']['notes'] = session['notes']
+            iq.send()
+        else:
+            raise XMPPError('item-not-found')
 
-        iq.reply()
-        iq['command']['node'] = node
-        iq['command']['sessionid'] = sessionid
-        iq['command']['status'] = 'canceled'
-        iq['command']['notes'] = session['notes']
-        iq.send()
 
     def _handle_command_complete(self, iq):
         """
@@ -378,28 +408,32 @@ class XEP_0050(BasePlugin):
         """
         node = iq['command']['node']
         sessionid = iq['command']['sessionid']
-        session = self.sessions[sessionid]
-        handler = session['next']
-        interfaces = session['interfaces']
-        results = []
-        for stanza in iq['command']['substanzas']:
-            if stanza.plugin_attrib in interfaces:
-                results.append(stanza)
-        if len(results) == 1:
-            results = results[0]
+        session = self.sessions.get(sessionid)
 
-        if handler:
-            handler(results, session)
+        if session:
+            handler = session['next']
+            interfaces = session['interfaces']
+            results = []
+            for stanza in iq['command']['substanzas']:
+                if stanza.plugin_attrib in interfaces:
+                    results.append(stanza)
+            if len(results) == 1:
+                results = results[0]
 
-        iq.reply()
-        iq['command']['node'] = node
-        iq['command']['sessionid'] = sessionid
-        iq['command']['actions'] = []
-        iq['command']['status'] = 'completed'
-        iq['command']['notes'] = session['notes']
-        iq.send()
+            if handler:
+                handler(results, session)
 
-        del self.sessions[sessionid]
+            del self.sessions[sessionid]
+
+            iq.reply()
+            iq['command']['node'] = node
+            iq['command']['sessionid'] = sessionid
+            iq['command']['actions'] = []
+            iq['command']['status'] = 'completed'
+            iq['command']['notes'] = session['notes']
+            iq.send()
+        else:
+            raise XMPPError('item-not-found')
 
     # =================================================================
     # Client side (command user) API
@@ -537,7 +571,7 @@ class XEP_0050(BasePlugin):
         else:
             iq.send(block=False, callback=self._handle_command_result)
 
-    def continue_command(self, session):
+    def continue_command(self, session, direction='next'):
         """
         Execute the next action of the command.
 
@@ -551,7 +585,7 @@ class XEP_0050(BasePlugin):
         self.send_command(session['jid'],
                           session['node'],
                           ifrom=session.get('from', None),
-                          action='next',
+                          action=direction,
                           payload=session.get('payload', None),
                           sessionid=session['id'],
                           flow=True,

@@ -26,13 +26,20 @@ class XHTML_IM(ElementBase):
         if lang is None:
             lang = self.get_lang()
         self.del_body(lang)
-        content = str(content)
-        header = '<body xmlns="%s"' % XHTML_NS
-        if lang:
-            header = '%s xml:lang="%s"' % (header, lang)
-        content = '%s>%s</body>' % (header, content)
-        xhtml = ET.fromstring(content)
-        self.xml.append(xhtml)
+        if lang == '*':
+            for sublang, subcontent in content.items():
+                self.set_body(subcontent, sublang)
+        else:
+            if isinstance(content, type(ET.Element('test'))):
+                content = ET.tostring(content)
+            else:
+                content = str(content)
+            header = '<body xmlns="%s"' % XHTML_NS
+            if lang:
+                header = '%s xml:lang="%s"' % (header, lang)
+            content = '%s>%s</body>' % (header, content)
+            xhtml = ET.fromstring(content)
+            self.xml.append(xhtml)
 
     def get_body(self, lang=None):
         """Return the contents of the HTML body."""

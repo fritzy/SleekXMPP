@@ -165,7 +165,7 @@ class DiscoInfo(ElementBase):
             identities = []
         for id_xml in self.findall('{%s}identity' % self.namespace):
             xml_lang = id_xml.attrib.get('{%s}lang' % self.xml_ns, None)
-            if lang is None or lang == '*' or xml_lang == lang:
+            if lang is None or xml_lang == lang:
                 id = (id_xml.attrib['category'],
                       id_xml.attrib['type'],
                       id_xml.attrib.get('{%s}lang' % self.xml_ns, None),

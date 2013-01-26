@@ -11,9 +11,6 @@ from sleekxmpp.plugins.base import register_plugin, load_plugin
 
 
 __all__ = [
-    # Non-standard
-    'gmail',     # Gmail searching and notifications
-
     # XEPS
     'xep_0004',  # Data Forms
     'xep_0009',  # Jabber-RPC

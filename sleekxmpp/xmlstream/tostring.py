@@ -92,7 +92,9 @@ def tostring(xml=None, xmlns='', stream=None, outbuffer='',
         else:
             attrib_ns = attrib.split('}')[0][1:]
             attrib = attrib.split('}')[1]
-            if stream and attrib_ns in stream.namespace_map:
+            if attrib_ns == XML_NS:
+                output.append(' xml:%s="%s"' % (attrib, value))
+            elif stream and attrib_ns in stream.namespace_map:
                 mapped_ns = stream.namespace_map[attrib_ns]
                 if mapped_ns:
                     if namespaces is None:
@@ -104,8 +106,6 @@ def tostring(xml=None, xmlns='', stream=None, outbuffer='',
                             mapped_ns, attrib_ns))
                     output.append(' %s:%s="%s"' % (
                         mapped_ns, attrib, value))
-            elif attrib_ns == XML_NS:
-                output.append(' xml:%s="%s"' % (attrib, value))
 
     if open_only:
         # Only output the opening tag, regardless of content.

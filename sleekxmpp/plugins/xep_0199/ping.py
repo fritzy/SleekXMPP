@@ -103,7 +103,7 @@ class XEP_0199(BasePlugin):
     def disable_keepalive(self, event=None):
         self.xmpp.scheduler.remove('Ping keepalive')
 
-    def _keepalive(self, event):
+    def _keepalive(self, event=None):
         log.debug("Keepalive ping...")
         try:
             rtt = self.ping(self.xmpp.boundjid.host, self.timeout)

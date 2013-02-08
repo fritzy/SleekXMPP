@@ -155,7 +155,7 @@ if __name__ == '__main__':
 
     # Some servers don't advertise support for inband registration, even
     # though they allow it. If this applies to your server, use:
-    # xmpp['xep_0077'].force_registration = True
+    xmpp['xep_0077'].force_registration = True
 
     # If you are working with an OpenFire server, you may need
     # to adjust the SSL version used:

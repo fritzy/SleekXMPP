@@ -70,7 +70,7 @@ class XHTML_IM(ElementBase):
                     return ''.join(result)
         return ''
 
-    def del_body(self, lang):
+    def del_body(self, lang=None):
         if lang is None:
             lang = self.get_lang()
         bodies = self.xml.findall('{%s}body' % XHTML_NS)

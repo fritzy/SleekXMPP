@@ -7,6 +7,7 @@
 """
 
 import logging
+import ssl
 
 from sleekxmpp.stanza import StreamFeatures, Iq
 from sleekxmpp.xmlstream import register_stanza_plugin, JID
@@ -29,6 +30,7 @@ class XEP_0077(BasePlugin):
     stanza = stanza
     default_config = {
         'create_account': True,
+        'force_registration': False,
         'order': 50
     }
 
@@ -45,9 +47,28 @@ class XEP_0077(BasePlugin):
         register_stanza_plugin(Register, self.xmpp['xep_0004'].stanza.Form)
         register_stanza_plugin(Register, self.xmpp['xep_0066'].stanza.OOB)
 
+        self.xmpp.add_event_handler('connected', self._force_registration)
+
     def plugin_end(self):
         if not self.xmpp.is_component:
             self.xmpp.unregister_feature('register', self.order)
+
+    def _force_registration(self, event):
+        if self.force_registration:
+            self.xmpp.add_filter('in', self._force_stream_feature)
+
+    def _force_stream_feature(self, stanza):
+        if isinstance(stanza, StreamFeatures):
+            if self.xmpp.use_tls or self.xmpp.use_ssl:
+                if 'starttls' not in self.xmpp.features:
+                    return stanza
+                elif not isinstance(self.xmpp.socket, ssl.SSLSocket):
+                    return stanza
+            if 'mechanisms' not in self.xmpp.features:
+                log.debug('Forced adding in-band registration stream feature')
+                stanza.enable('register')
+                self.xmpp.del_filter('in', self._force_stream_feature)
+        return stanza
 
     def _handle_register_feature(self, features):
         if 'mechanisms' in self.xmpp.features:

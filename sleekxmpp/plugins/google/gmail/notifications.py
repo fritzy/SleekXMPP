@@ -52,7 +52,7 @@ class Gmail(BasePlugin):
         self.xmpp.remove_handler('Gmail New Mail')
 
     def _handle_new_mail(self, iq):
-        log.info("Gmail: New email!")
+        log.info('Gmail: New email!')
         iq.reply().send()
         self.xmpp.event('gmail_notification')
 
@@ -61,10 +61,10 @@ class Gmail(BasePlugin):
         last_tid = self._last_result_tid
 
         def check_callback(data):
-            self._last_result_time = data["gmail_messages"]["result_time"]
-            if data["gmail_messages"]["threads"]:
-                self._last_result_tid = \
-                        data["gmail_messages"]["threads"][0]["tid"]
+            self._last_result_time = data['gmail_messages']['result_time']
+            threads = data['gmail_messages']['threads']
+            if threads:
+                self._last_result_tid = threads[0]['tid']
             if callback:
                 callback(data)
 

@@ -198,30 +198,9 @@ class XEP_0045(BasePlugin):
             if entry is not None and entry['jid'].full == jid:
                 return nick
 
-    def getRoomForm(self, room, ifrom=None):
-        iq = self.xmpp.makeIqGet()
-        iq['to'] = room
-        if ifrom is not None:
-            iq['from'] = ifrom
-        query = ET.Element('{http://jabber.org/protocol/muc#owner}query')
-        iq.append(query)
-        # For now, swallow errors to preserve existing API
-        try:
-            result = iq.send()
-        except IqError:
-            return False
-        except IqTimeout:
-            return False
-        xform = result.xml.find('{http://jabber.org/protocol/muc#owner}query/{jabber:x:data}x')
-        if xform is None: return False
-        form = self.xmpp.plugin['old_0004'].buildForm(xform)
-        return form
-
     def configureRoom(self, room, form=None, ifrom=None):
         if form is None:
-            form = self.getRoomForm(room, ifrom=ifrom)
-            #form = self.xmpp.plugin['old_0004'].makeForm(ftype='submit')
-            #form.addField('FORM_TYPE', value='http://jabber.org/protocol/muc#roomconfig')
+            form = self.getRoomConfig(room, ifrom=ifrom)
         iq = self.xmpp.makeIqSet()
         iq['to'] = room
         if ifrom is not None:

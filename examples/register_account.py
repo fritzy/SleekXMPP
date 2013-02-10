@@ -51,7 +51,7 @@ class RegisterBot(sleekxmpp.ClientXMPP):
 
         # The register event provides an Iq result stanza with
         # a registration form from the server. This may include
-        # the basic registration fields, a data form, an 
+        # the basic registration fields, a data form, an
         # out-of-band URL, or any combination. For more advanced
         # cases, you will need to examine the fields provided
         # and respond accordingly. SleekXMPP provides plugins
@@ -104,7 +104,7 @@ class RegisterBot(sleekxmpp.ClientXMPP):
             resp.send(now=True)
             logging.info("Account created for %s!" % self.boundjid)
         except IqError as e:
-            logging.error("Could not register account: %s" % 
+            logging.error("Could not register account: %s" %
                     e.iq['error']['text'])
             self.disconnect()
         except IqTimeout:
@@ -152,6 +152,10 @@ if __name__ == '__main__':
     xmpp.register_plugin('xep_0004') # Data forms
     xmpp.register_plugin('xep_0066') # Out-of-band Data
     xmpp.register_plugin('xep_0077') # In-band Registration
+
+    # Some servers don't advertise support for inband registration, even
+    # though they allow it. If this applies to your server, use:
+    xmpp['xep_0077'].force_registration = True
 
     # If you are working with an OpenFire server, you may need
     # to adjust the SSL version used:

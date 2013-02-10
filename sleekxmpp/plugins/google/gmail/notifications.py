@@ -60,19 +60,26 @@ class Gmail(BasePlugin):
         last_time = self._last_result_time
         last_tid = self._last_result_tid
 
-        def check_callback(data):
-            self._last_result_time = data['gmail_messages']['result_time']
-            threads = data['gmail_messages']['threads']
-            if threads:
-                self._last_result_tid = threads[0]['tid']
-            if callback:
-                callback(data)
+        if not block:
+            callback = lambda iq: self._update_last_results(iq, callback)
 
-        return self.search(newer_time=last_time,
-                newer_tid=last_tid,
-                block=block,
-                timeout=timeout,
-                callback=check_callback)
+        resp = self.search(newer_time=last_time,
+            newer_tid=last_tid,
+            block=block,
+            timeout=timeout,
+            callback=callback)
+
+        if block:
+            self._update_last_results(resp)
+            return resp
+
+    def _update_last_results(self, iq, callback=None):
+        self._last_result_time = data['gmail_messages']['result_time']
+        threads = data['gmail_messages']['threads']
+        if threads:
+            self._last_result_tid = threads[0]['tid']
+        if callback:
+            callback(iq)
 
     def search(self, query=None, newer_time=None, newer_tid=None, block=True,
                      timeout=None, callback=None):

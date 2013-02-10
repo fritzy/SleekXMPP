@@ -46,6 +46,7 @@ class Gmail(BasePlugin):
                     self._handle_new_mail))
 
         self._last_result_time = None
+        self._last_result_tid = None
 
     def plugin_end(self):
         self.xmpp.remove_handler('Gmail New Mail')
@@ -57,13 +58,23 @@ class Gmail(BasePlugin):
 
     def check(self, block=True, timeout=None, callback=None):
         last_time = self._last_result_time
-        self._last_result_time = str(int(time.time() * 1000))
-        return self.search(newer=last_time,
+        last_tid = self._last_result_tid
+
+        def check_callback(data):
+            self._last_result_time = data["gmail_messages"]["result_time"]
+            if data["gmail_messages"]["threads"]:
+                self._last_result_tid = \
+                        data["gmail_messages"]["threads"][0]["tid"]
+            if callback:
+                callback(data)
+
+        return self.search(newer_time=last_time,
+                newer_tid=last_tid,
                 block=block,
                 timeout=timeout,
-                callback=callback)
+                callback=check_callback)
 
-    def search(self, query=None, newer=None, block=True,
+    def search(self, query=None, newer_time=None, newer_tid=None, block=True,
                      timeout=None, callback=None):
         if not query:
             log.info('Gmail: Checking for new email')
@@ -73,5 +84,6 @@ class Gmail(BasePlugin):
         iq['type'] = 'get'
         iq['to'] = self.xmpp.boundjid.bare
         iq['gmail']['search'] = query
-        iq['gmail']['newer_than_time'] = newer
+        iq['gmail']['newer_than_time'] = newer_time
+        iq['gmail']['newer_than_tid'] = newer_tid
         return iq.send(block=block, timeout=timeout, callback=callback)

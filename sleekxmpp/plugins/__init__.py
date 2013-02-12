@@ -35,6 +35,7 @@ __all__ = [
     'xep_0066',  # Out of Band Data
     'xep_0077',  # In-Band Registration
 #   'xep_0078',  # Non-SASL auth. Don't automatically load
+    'xep_0079',  # Advanced Message Processing
     'xep_0080',  # User Location
     'xep_0082',  # XMPP Date and Time Profiles
     'xep_0084',  # User Avatar

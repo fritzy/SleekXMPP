@@ -36,6 +36,7 @@ class XEP_0047(BasePlugin):
         register_stanza_plugin(Iq, Open)
         register_stanza_plugin(Iq, Close)
         register_stanza_plugin(Iq, Data)
+        register_stanza_plugin(Message, Data)
 
         self.xmpp.register_handler(Callback(
             'IBB Open',
@@ -52,10 +53,16 @@ class XEP_0047(BasePlugin):
             StanzaPath('iq@type=set/ibb_data'),
             self._handle_data))
 
+        self.xmpp.register_handler(Callback(
+            'IBB Message Data',
+            StanzaPath('message/ibb_data'),
+            self._handle_data))
+
     def plugin_end(self):
         self.xmpp.remove_handler('IBB Open')
         self.xmpp.remove_handler('IBB Close')
         self.xmpp.remove_handler('IBB Data')
+        self.xmpp.remove_handler('IBB Message Data')
         self.xmpp['xep_0030'].del_feature(feature='http://jabber.org/protocol/ibb')
 
     def session_bind(self, jid):
@@ -69,7 +76,7 @@ class XEP_0047(BasePlugin):
                 return True
         return False
 
-    def open_stream(self, jid, block_size=4096, sid=None, window=1,
+    def open_stream(self, jid, block_size=4096, sid=None, window=1, use_messages=False,
                     ifrom=None, block=True, timeout=None, callback=None):
         if sid is None:
             sid = str(uuid.uuid4())
@@ -83,7 +90,8 @@ class XEP_0047(BasePlugin):
         iq['ibb_open']['stanza'] = 'iq'
 
         stream = IBBytestream(self.xmpp, sid, block_size,
-                              iq['to'], iq['from'], window)
+                              iq['to'], iq['from'], window,
+                              use_messages)
 
         with self._stream_lock:
             self.pending_streams[iq['id']] = stream
@@ -139,11 +147,11 @@ class XEP_0047(BasePlugin):
 
         self.xmpp.event('ibb_stream_start', stream)
 
-    def _handle_data(self, iq):
-        sid = iq['ibb_data']['sid']
+    def _handle_data(self, stanza):
+        sid = stanza['ibb_data']['sid']
         stream = self.streams.get(sid, None)
-        if stream is not None and iq['from'] != stream.sender:
-            stream._recv_data(iq)
+        if stream is not None and stanza['from'] != stream.sender:
+            stream._recv_data(stanza)
         else:
             raise XMPPError('item-not-found')
 

@@ -2,6 +2,7 @@ import socket
 import threading
 import logging
 
+from sleekxmpp.stanza import Iq
 from sleekxmpp.util import Queue
 from sleekxmpp.exceptions import XMPPError
 
@@ -11,11 +12,12 @@ log = logging.getLogger(__name__)
 
 class IBBytestream(object):
 
-    def __init__(self, xmpp, sid, block_size, to, ifrom, window_size=1):
+    def __init__(self, xmpp, sid, block_size, to, ifrom, window_size=1, use_messages=False):
         self.xmpp = xmpp
         self.sid = sid
         self.block_size = block_size
         self.window_size = window_size
+        self.use_messages = use_messages
 
         self.receiver = to
         self.sender = ifrom
@@ -46,16 +48,27 @@ class IBBytestream(object):
         with self._send_seq_lock:
             self.send_seq = (self.send_seq + 1) % 65535
             seq = self.send_seq
-        iq = self.xmpp.Iq()
-        iq['type'] = 'set'
-        iq['to'] = self.receiver
-        iq['from'] = self.sender
-        iq['ibb_data']['sid'] = self.sid
-        iq['ibb_data']['seq'] = seq
-        iq['ibb_data']['data'] = data
-        self.window_empty.clear()
-        self.window_ids.add(iq['id'])
-        iq.send(block=False, callback=self._recv_ack)
+        if self.use_messages:
+            msg = self.xmpp.Message()
+            msg['to'] = self.receiver
+            msg['from'] = self.sender
+            msg['id'] = self.xmpp.new_id()
+            msg['ibb_data']['sid'] = self.sid
+            msg['ibb_data']['seq'] = seq
+            msg['ibb_data']['data'] = data
+            msg.send()
+            self.send_window.release()
+        else:
+            iq = self.xmpp.Iq()
+            iq['type'] = 'set'
+            iq['to'] = self.receiver
+            iq['from'] = self.sender
+            iq['ibb_data']['sid'] = self.sid
+            iq['ibb_data']['seq'] = seq
+            iq['ibb_data']['data'] = data
+            self.window_empty.clear()
+            self.window_ids.add(iq['id'])
+            iq.send(block=False, callback=self._recv_ack)
         return len(data)
 
     def sendall(self, data):
@@ -71,23 +84,25 @@ class IBBytestream(object):
         if iq['type'] == 'error':
             self.close()
 
-    def _recv_data(self, iq):
+    def _recv_data(self, stanza):
         with self._recv_seq_lock:
-            new_seq = iq['ibb_data']['seq']
+            new_seq = stanza['ibb_data']['seq']
             if new_seq != (self.recv_seq + 1) % 65535:
                 self.close()
                 raise XMPPError('unexpected-request')
             self.recv_seq = new_seq
 
-        data = iq['ibb_data']['data']
+        data = stanza['ibb_data']['data']
         if len(data) > self.block_size:
             self.close()
             raise XMPPError('not-acceptable')
 
         self.recv_queue.put(data)
         self.xmpp.event('ibb_stream_data', {'stream': self, 'data': data})
-        iq.reply()
-        iq.send()
+
+        if isinstance(stanza, Iq):
+            stanza.reply()
+            stanza.send()
 
     def recv(self, *args, **kwargs):
         return self.read(block=True)

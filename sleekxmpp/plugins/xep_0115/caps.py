@@ -138,7 +138,10 @@ class XEP_0115(BasePlugin):
 
     def _process_caps(self, pres):
         if not pres['caps']['hash']:
-            log.debug("Received unsupported legacy caps.")
+            log.debug("Received unsupported legacy caps: %s, %s, %s",
+                    pres['caps']['node'],
+                    pres['caps']['ver'],
+                    pres['caps']['ext'])
             self.xmpp.event('entity_caps_legacy', pres)
             return
 

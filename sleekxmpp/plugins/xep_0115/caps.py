@@ -9,8 +9,9 @@
 import logging
 import hashlib
 import base64
+import threading
 
-import sleekxmpp
+from sleekxmpp import __version__
 from sleekxmpp.stanza import StreamFeatures, Presence, Iq
 from sleekxmpp.xmlstream import register_stanza_plugin, JID
 from sleekxmpp.xmlstream.handler import Callback
@@ -45,8 +46,7 @@ class XEP_0115(BasePlugin):
                        'md5': hashlib.md5}
 
         if self.caps_node is None:
-            ver = sleekxmpp.__version__
-            self.caps_node = 'http://sleekxmpp.com/ver/%s' % ver
+            self.caps_node = 'http://sleekxmpp.com/ver/%s' % __version__
 
         register_stanza_plugin(Presence, stanza.Capabilities)
         register_stanza_plugin(StreamFeatures, stanza.Capabilities)
@@ -89,6 +89,9 @@ class XEP_0115(BasePlugin):
         disco.update_caps = self.update_caps
         disco.assign_verstring = self.assign_verstring
         disco.get_verstring = self.get_verstring
+
+        self._processing_lock = threading.Lock()
+        self._processing = set()
 
     def plugin_end(self):
         self.xmpp['xep_0030'].del_feature(feature=stanza.Capabilities.namespace)
@@ -139,13 +142,15 @@ class XEP_0115(BasePlugin):
             self.xmpp.event('entity_caps_legacy', pres)
             return
 
+        ver = pres['caps']['ver']
+
         existing_verstring = self.get_verstring(pres['from'].full)
-        if str(existing_verstring) == str(pres['caps']['ver']):
+        if str(existing_verstring) == str(ver):
             return
 
-        existing_caps = self.get_caps(verstring=pres['caps']['ver'])
+        existing_caps = self.get_caps(verstring=ver)
         if existing_caps is not None:
-            self.assign_verstring(pres['from'], pres['caps']['ver'])
+            self.assign_verstring(pres['from'], ver)
             return
 
         if pres['caps']['hash'] not in self.hashes:
@@ -156,9 +161,16 @@ class XEP_0115(BasePlugin):
             except XMPPError:
                 return
 
-        log.debug("New caps verification string: %s", pres['caps']['ver'])
+        # Only lookup the same caps once at a time.
+        with self._processing_lock:
+            if ver in self._processing:
+                log.debug('Already processing verstring %s' % ver)
+                return
+            self._processing.add(ver)
+
+        log.debug("New caps verification string: %s", ver)
         try:
-            node = '%s#%s' % (pres['caps']['node'], pres['caps']['ver'])
+            node = '%s#%s' % (pres['caps']['node'], ver)
             caps = self.xmpp['xep_0030'].get_info(pres['from'], node)
 
             if isinstance(caps, Iq):
@@ -168,7 +180,10 @@ class XEP_0115(BasePlugin):
                                          pres['caps']['ver']):
                 self.assign_verstring(pres['from'], pres['caps']['ver'])
         except XMPPError:
-            log.debug("Could not retrieve disco#info results for caps")
+            log.debug("Could not retrieve disco#info results for caps for %s", node)
+
+        with self._processing_lock:
+            self._processing.remove(ver)
 
     def _validate_caps(self, caps, hash, check_verstring):
         # Check Identities
@@ -179,7 +194,6 @@ class XEP_0115(BasePlugin):
             return False
 
         # Check Features
-
         full_features = caps.get_features(dedupe=False)
         deduped_features = caps.get_features()
         if len(full_features) != len(deduped_features):
@@ -272,7 +286,7 @@ class XEP_0115(BasePlugin):
         binary = hash(S.encode('utf8')).digest()
         return base64.b64encode(binary).decode('utf-8')
 
-    def update_caps(self, jid=None, node=None):
+    def update_caps(self, jid=None, node=None, preserve=False):
         try:
             info = self.xmpp['xep_0030'].get_info(jid, node, local=True)
             if isinstance(info, Iq):
@@ -286,19 +300,11 @@ class XEP_0115(BasePlugin):
             self.assign_verstring(jid, ver)
 
             if self.xmpp.session_started_event.is_set() and self.broadcast:
-                # Check if we've sent directed presence. If we haven't, we
-                # can just send a normal presence stanza. If we have, then
-                # we will send presence to each contact individually so
-                # that we don't clobber existing statuses.
-                directed = False or self.xmpp.is_component
-                for contact in self.xmpp.roster[jid]:
-                    if self.xmpp.roster[jid][contact].last_status is not None:
-                        directed = True
-                if not directed:
-                    self.xmpp.roster[jid].send_last_presence()
-                else:
+                if self.xmpp.is_component or preserve:
                     for contact in self.xmpp.roster[jid]:
                         self.xmpp.roster[jid][contact].send_last_presence()
+                else:
+                    self.xmpp.roster[jid].send_last_presence()
         except XMPPError:
             return
 

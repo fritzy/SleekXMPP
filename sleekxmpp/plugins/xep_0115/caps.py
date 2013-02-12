@@ -207,29 +207,32 @@ class XEP_0115(BasePlugin):
         form_types = []
         deduped_form_types = set()
         for stanza in caps['substanzas']:
-            if isinstance(stanza, self.xmpp['xep_0004'].stanza.Form):
-                if 'FORM_TYPE' in stanza['fields']:
-                    f_type = tuple(stanza['fields']['FORM_TYPE']['value'])
-                    form_types.append(f_type)
-                    deduped_form_types.add(f_type)
-                    if len(form_types) != len(deduped_form_types):
-                        log.debug("Duplicated FORM_TYPE values, " + \
-                                  "invalid for caps")
+            if not isinstance(stanza, self.xmpp['xep_0004'].stanza.Form):
+                log.debug("Non form extension found, ignoring for caps")
+                caps.xml.remove(stanza.xml)
+                continue
+            if 'FORM_TYPE' in stanza['fields']:
+                f_type = tuple(stanza['fields']['FORM_TYPE']['value'])
+                form_types.append(f_type)
+                deduped_form_types.add(f_type)
+                if len(form_types) != len(deduped_form_types):
+                    log.debug("Duplicated FORM_TYPE values, " + \
+                              "invalid for caps")
+                    return False
+
+                if len(f_type) > 1:
+                    deduped_type = set(f_type)
+                    if len(f_type) != len(deduped_type):
+                        log.debug("Extra FORM_TYPE data, invalid for caps")
                         return False
 
-                    if len(f_type) > 1:
-                        deduped_type = set(f_type)
-                        if len(f_type) != len(deduped_type):
-                            log.debug("Extra FORM_TYPE data, invalid for caps")
-                            return False
-
-                    if stanza['fields']['FORM_TYPE']['type'] != 'hidden':
-                        log.debug("Field FORM_TYPE type not 'hidden', " + \
-                                  "ignoring form for caps")
-                        caps.xml.remove(stanza.xml)
-                else:
-                    log.debug("No FORM_TYPE found, ignoring form for caps")
+                if stanza['fields']['FORM_TYPE']['type'] != 'hidden':
+                    log.debug("Field FORM_TYPE type not 'hidden', " + \
+                              "ignoring form for caps")
                     caps.xml.remove(stanza.xml)
+            else:
+                log.debug("No FORM_TYPE found, ignoring form for caps")
+                caps.xml.remove(stanza.xml)
 
         verstring = self.generate_verstring(caps, hash)
         if verstring != check_verstring:

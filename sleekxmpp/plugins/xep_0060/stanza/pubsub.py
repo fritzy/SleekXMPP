@@ -74,7 +74,12 @@ class Item(ElementBase):
 
     def set_payload(self, value):
         del self['payload']
-        self.append(value)
+        if isinstance(value, ElementBase):
+            if value.tag_name() in self.plugin_tag_map:
+                self.init_plugin(value.plugin_attrib, existing_xml=value.xml)
+            self.xml.append(value.xml)
+        else:
+            self.xml.append(value)
 
     def get_payload(self):
         childs = list(self.xml)
@@ -241,39 +246,6 @@ class PublishOptions(ElementBase):
         if config is not None:
             self.xml.remove(config)
         self.parent().xml.remove(self.xml)
-
-
-class PubsubState(ElementBase):
-    """This is an experimental pubsub extension."""
-    namespace = 'http://jabber.org/protocol/psstate'
-    name = 'state'
-    plugin_attrib = 'psstate'
-    interfaces = set(('node', 'item', 'payload'))
-
-    def set_payload(self, value):
-        self.xml.append(value)
-
-    def get_payload(self):
-        childs = list(self.xml)
-        if len(childs) > 0:
-            return childs[0]
-
-    def del_payload(self):
-        for child in self.xml:
-            self.xml.remove(child)
-
-
-class PubsubStateEvent(ElementBase):
-    """This is an experimental pubsub extension."""
-    namespace = 'http://jabber.org/protocol/psstate#event'
-    name = 'event'
-    plugin_attrib = 'psstate_event'
-    intefaces = set(tuple())
-
-
-register_stanza_plugin(Iq, PubsubState)
-register_stanza_plugin(Message, PubsubStateEvent)
-register_stanza_plugin(PubsubStateEvent, PubsubState)
 
 
 register_stanza_plugin(Iq, Pubsub)

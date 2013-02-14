@@ -65,7 +65,7 @@ class Form(ElementBase):
         if kwtype is None:
             kwtype = ftype
 
-        field = FormField(parent=self)
+        field = FormField()
         field['var'] = var
         field['type'] = kwtype
         field['value'] = value
@@ -77,6 +77,7 @@ class Form(ElementBase):
                 field['options'] = options
         else:
             del field['type']
+        self.append(field)
         return field
 
     def getXML(self, type='submit'):
@@ -144,10 +145,9 @@ class Form(ElementBase):
 
     def get_fields(self, use_dict=False):
         fields = OrderedDict()
-        fieldsXML = self.xml.findall('{%s}field' % FormField.namespace)
-        for fieldXML in fieldsXML:
-            field = FormField(xml=fieldXML)
-            fields[field['var']] = field
+        for stanza in self['substanzas']:
+            if isinstance(stanza, FormField):
+                fields[stanza['var']] = stanza
         return fields
 
     def get_instructions(self):
@@ -221,6 +221,8 @@ class Form(ElementBase):
     def set_values(self, values):
         fields = self['fields']
         for field in values:
+            if field not in fields:
+                fields[field] = self.add_field(var=field)
             fields[field]['value'] = values[field]
 
     def merge(self, other):

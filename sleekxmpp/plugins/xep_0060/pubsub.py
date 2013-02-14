@@ -423,7 +423,7 @@ class XEP_0060(BasePlugin):
                         callback=None, timeout=None):
         iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='set')
         iq['pubsub_owner']['configure']['node'] = node
-        iq['pubsub_owner']['configure']['form'].values = config.values
+        iq['pubsub_owner']['configure'].append(config)
         return iq.send(block=block, callback=callback, timeout=timeout)
 
     def publish(self, jid, node, id=None, payload=None, options=None,

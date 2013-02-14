@@ -3,7 +3,7 @@
     sleekxmpp.xmlstream.stanzabase
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    This module implements a wrapper layer for XML objects
+ module implements a wrapper layer for XML objects
     that allows them to be treated like dictionaries.
 
     Part of SleekXMPP: The Sleek XMPP Library
@@ -141,7 +141,7 @@ def multifactory(stanza, plugin_attrib):
             parent.loaded_plugins.remove(plugin_attrib)
             try:
                 parent.xml.remove(self.xml)
-            except:
+            except ValueError:
                 pass
         else:
             for stanza in list(res):
@@ -596,31 +596,39 @@ class ElementBase(object):
         iterable_interfaces = [p.plugin_attrib for \
                                     p in self.plugin_iterables]
 
+        if 'lang' in values:
+            self['lang'] = values['lang']
+
+        if 'substanzas' in values:
+            # Remove existing substanzas
+            for stanza in self.iterables:
+                try:
+                    self.xml.remove(stanza.xml)
+                except ValueError:
+                    pass
+            self.iterables = []
+
+            # Add new substanzas
+            for subdict in values['substanzas']:
+                if '__childtag__' in subdict:
+                    for subclass in self.plugin_iterables:
+                        child_tag = "{%s}%s" % (subclass.namespace,
+                                                subclass.name)
+                        if subdict['__childtag__'] == child_tag:
+                            sub = subclass(parent=self)
+                            sub.values = subdict
+                            self.iterables.append(sub)
+
         for interface, value in values.items():
             full_interface = interface
             interface_lang = ('%s|' % interface).split('|')
             interface = interface_lang[0]
             lang = interface_lang[1] or self.get_lang()
 
-            if interface == 'substanzas':
-                # Remove existing substanzas
-                for stanza in self.iterables:
-                    self.xml.remove(stanza.xml)
-                self.iterables = []
-
-                # Add new substanzas
-                for subdict in value:
-                    if '__childtag__' in subdict:
-                        for subclass in self.plugin_iterables:
-                            child_tag = "{%s}%s" % (subclass.namespace,
-                                                    subclass.name)
-                            if subdict['__childtag__'] == child_tag:
-                                sub = subclass(parent=self)
-                                sub.values = subdict
-                                self.iterables.append(sub)
-                                break
-            elif interface == 'lang':
-                self[interface] = value
+            if interface == 'lang':
+                continue
+            elif interface == 'substanzas':
+                continue
             elif interface in self.interfaces:
                 self[full_interface] = value
             elif interface in self.plugin_attrib_map:
@@ -866,7 +874,7 @@ class ElementBase(object):
             self.loaded_plugins.remove(attrib)
             try:
                 self.xml.remove(plugin.xml)
-            except:
+            except ValueError:
                 pass
         return self
 

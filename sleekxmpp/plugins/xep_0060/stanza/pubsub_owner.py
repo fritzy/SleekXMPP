@@ -34,7 +34,8 @@ class DefaultConfig(ElementBase):
         return self['form']
 
     def set_config(self, value):
-        self['form'].values = value.values
+        del self['from']
+        self.append(value)
         return self
 
 

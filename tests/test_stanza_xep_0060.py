@@ -129,20 +129,6 @@ class TestPubsubStanzas(SleekTest):
               </pubsub>
             </iq>""")
 
-    def testState(self):
-        "Testing iq/psstate stanzas"
-        iq = self.Iq()
-        iq['psstate']['node']= 'mynode'
-        iq['psstate']['item']= 'myitem'
-        pl = ET.Element('{http://andyet.net/protocol/pubsubqueue}claimed')
-        iq['psstate']['payload'] = pl
-        self.check(iq, """
-          <iq id="0">
-            <state xmlns="http://jabber.org/protocol/psstate" node="mynode" item="myitem">
-              <claimed xmlns="http://andyet.net/protocol/pubsubqueue" />
-            </state>
-          </iq>""")
-
     def testDefault(self):
         "Testing iq/pubsub_owner/default stanzas"
         iq = self.Iq()

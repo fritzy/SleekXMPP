@@ -115,9 +115,13 @@ class Iq(RootStanza):
         """
         query = self.xml.find("{%s}query" % value)
         if query is None and value:
-            self.clear()
-            query = ET.Element("{%s}query" % value)
-            self.xml.append(query)
+            plugin = self.plugin_tag_map.get('{%s}query' % value, None)
+            if plugin:
+                self.enable(plugin.plugin_attrib)
+            else:
+                self.clear()
+                query = ET.Element("{%s}query" % value)
+                self.xml.append(query)
         return self
 
     def get_query(self):
@@ -182,8 +186,8 @@ class Iq(RootStanza):
                         the stanza immediately. Used during stream
                         initialization. Defaults to False.
             timeout_callback -- Optional reference to a stream handler function.
-                        Will be executed when the timeout expires before a 
-                        response has been received with the originally-sent IQ 
+                        Will be executed when the timeout expires before a
+                        response has been received with the originally-sent IQ
                         stanza.  Only called if there is a callback parameter
                         (and therefore are in async mode).
         """
@@ -194,10 +198,10 @@ class Iq(RootStanza):
             if timeout_callback:
                 self.callback = callback
                 self.timeout_callback = timeout_callback
-                self.stream.schedule('IqTimeout_%s' % self['id'], 
-                                     timeout, 
-                                     self._fire_timeout, 
-                                     repeat=False)            
+                self.stream.schedule('IqTimeout_%s' % self['id'],
+                                     timeout,
+                                     self._fire_timeout,
+                                     repeat=False)
                 handler = Callback(handler_name,
                                    MatcherId(self['id']),
                                    self._handle_result,

@@ -41,10 +41,11 @@ class FormField(ElementBase):
             self._type = value
 
     def add_option(self, label='', value=''):
-        if self._type in self.option_types:
-            opt = FieldOption(parent=self)
+        if self._type is None or self._type in self.option_types:
+            opt = FieldOption()
             opt['label'] = label
             opt['value'] = value
+            self.append(opt)
         else:
             raise ValueError("Cannot add options to " + \
                              "a %s field." % self['type'])

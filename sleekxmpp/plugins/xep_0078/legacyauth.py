@@ -6,6 +6,7 @@
     See the file LICENSE for copying permission.
 """
 
+import uuid
 import logging
 import hashlib
 import random
@@ -98,7 +99,7 @@ class XEP_0078(BasePlugin):
         # A resource is required, so create a random one if necessary
         resource = self.xmpp.requested_jid.resource
         if not resource:
-            resource = uuid.uuid4()
+            resource = str(uuid.uuid4())
 
         iq['auth']['resource'] = resource
 

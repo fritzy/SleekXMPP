@@ -12,15 +12,17 @@ log = logging.getLogger(__name__)
 
 class IBBytestream(object):
 
-    def __init__(self, xmpp, sid, block_size, to, ifrom, window_size=1, use_messages=False):
+    def __init__(self, xmpp, sid, block_size, jid, peer, window_size=1, use_messages=False):
         self.xmpp = xmpp
         self.sid = sid
         self.block_size = block_size
         self.window_size = window_size
         self.use_messages = use_messages
 
-        self.receiver = to
-        self.sender = ifrom
+        if jid is None:
+            jid = xmpp.boundjid
+        self.self_jid = jid
+        self.peer_jid = peer
 
         self.send_seq = -1
         self.recv_seq = -1
@@ -50,8 +52,8 @@ class IBBytestream(object):
             seq = self.send_seq
         if self.use_messages:
             msg = self.xmpp.Message()
-            msg['to'] = self.receiver
-            msg['from'] = self.sender
+            msg['to'] = self.peer_jid
+            msg['from'] = self.self_jid
             msg['id'] = self.xmpp.new_id()
             msg['ibb_data']['sid'] = self.sid
             msg['ibb_data']['seq'] = seq
@@ -61,8 +63,8 @@ class IBBytestream(object):
         else:
             iq = self.xmpp.Iq()
             iq['type'] = 'set'
-            iq['to'] = self.receiver
-            iq['from'] = self.sender
+            iq['to'] = self.peer_jid
+            iq['from'] = self.self_jid
             iq['ibb_data']['sid'] = self.sid
             iq['ibb_data']['seq'] = seq
             iq['ibb_data']['data'] = data
@@ -121,8 +123,8 @@ class IBBytestream(object):
     def close(self):
         iq = self.xmpp.Iq()
         iq['type'] = 'set'
-        iq['to'] = self.receiver
-        iq['from'] = self.sender
+        iq['to'] = self.peer_jid
+        iq['from'] = self.self_jid
         iq['ibb_close']['sid'] = self.sid
         self.stream_out_closed.set()
         iq.send(block=False,
@@ -132,9 +134,6 @@ class IBBytestream(object):
     def _closed(self, iq):
         self.stream_in_closed.set()
         self.stream_out_closed.set()
-        while not self.window_empty.is_set():
-            log.info('waiting for send window to empty')
-            self.window_empty.wait(timeout=1)
         iq.reply()
         iq.send()
         self.xmpp.event('ibb_stream_end', self)

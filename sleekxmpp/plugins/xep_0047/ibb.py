@@ -21,10 +21,10 @@ class XEP_0047(BasePlugin):
     dependencies = set(['xep_0030'])
     stanza = stanza
     default_config = {
+        'block_size': 4096,
         'max_block_size': 8192,
         'window_size': 1,
-        'auto_accept': True,
-        'accept_stream': None
+        'auto_accept': False,
     }
 
     def plugin_init(self):
@@ -32,6 +32,9 @@ class XEP_0047(BasePlugin):
         self.pending_streams = {}
         self.pending_close_streams = {}
         self._stream_lock = threading.Lock()
+
+        self._preauthed_sids_lock = threading.Lock()
+        self._preauthed_sids = {}
 
         register_stanza_plugin(Iq, Open)
         register_stanza_plugin(Iq, Close)
@@ -58,6 +61,10 @@ class XEP_0047(BasePlugin):
             StanzaPath('message/ibb_data'),
             self._handle_data))
 
+        self.api.register(self._authorized, 'authorized', default=True)
+        self.api.register(self._authorized_sid, 'authorized_sid', default=True)
+        self.api.register(self._preauthorize_sid, 'preauthorize_sid', default=True)
+
     def plugin_end(self):
         self.xmpp.remove_handler('IBB Open')
         self.xmpp.remove_handler('IBB Close')
@@ -69,17 +76,37 @@ class XEP_0047(BasePlugin):
         self.xmpp['xep_0030'].add_feature('http://jabber.org/protocol/ibb')
 
     def _accept_stream(self, iq):
-        if self.accept_stream is not None:
-            return self.accept_stream(iq)
+        receiver = iq['to']
+        sender = iq['from']
+        sid = iq['ibb_open']['sid']
+
+        if self.api['authorized_sid'](receiver, sid, sender, iq):
+            return True
+        return self.api['authorized'](receiver, sid, sender, iq)
+
+    def _authorized(self, jid, sid, ifrom, iq):
         if self.auto_accept:
             if iq['ibb_open']['block_size'] <= self.max_block_size:
                 return True
         return False
 
-    def open_stream(self, jid, block_size=4096, sid=None, window=1, use_messages=False,
+    def _authorized_sid(self, jid, sid, ifrom, iq):
+        with self._preauthed_sids_lock:
+            if (jid, sid, ifrom) in self._preauthed_sids:
+                del self._preauthed_sids[(jid, sid, ifrom)]
+                return True
+            return False
+
+    def _preauthorize_sid(self, jid, sid, ifrom, data):
+        with self._preauthed_sids_lock:
+            self._preauthed_sids[(jid, sid, ifrom)] = True
+
+    def open_stream(self, jid, block_size=None, sid=None, window=1, use_messages=False,
                     ifrom=None, block=True, timeout=None, callback=None):
         if sid is None:
             sid = str(uuid.uuid4())
+        if block_size is None:
+            block_size = self.block_size
 
         iq = self.xmpp.Iq()
         iq['type'] = 'set'
@@ -90,7 +117,7 @@ class XEP_0047(BasePlugin):
         iq['ibb_open']['stanza'] = 'iq'
 
         stream = IBBytestream(self.xmpp, sid, block_size,
-                              iq['to'], iq['from'], window,
+                              iq['from'], iq['to'], window,
                               use_messages)
 
         with self._stream_lock:
@@ -118,11 +145,12 @@ class XEP_0047(BasePlugin):
             with self._stream_lock:
                 stream = self.pending_streams.get(iq['id'], None)
                 if stream is not None:
-                    stream.sender = iq['to']
-                    stream.receiver = iq['from']
+                    stream.self_jid = iq['to']
+                    stream.peer_jid = iq['from']
                     stream.stream_started.set()
                     self.streams[stream.sid] = stream
                     self.xmpp.event('ibb_stream_start', stream)
+                    self.xmpp.event('stream:%s:%s' % (sid, stream.peer_jid), stream)
 
         with self._stream_lock:
             if iq['id'] in self.pending_streams:
@@ -130,15 +158,19 @@ class XEP_0047(BasePlugin):
 
     def _handle_open_request(self, iq):
         sid = iq['ibb_open']['sid']
-        size = iq['ibb_open']['block_size']
+        size = iq['ibb_open']['block_size'] or self.block_size
+
+        if not sid:
+            raise XMPPError(etype='modify', condition='bad-request')
+
         if not self._accept_stream(iq):
-            raise XMPPError('not-acceptable')
+            raise XMPPError(etype='modify', condition='not-acceptable')
 
         if size > self.max_block_size:
             raise XMPPError('resource-constraint')
 
         stream = IBBytestream(self.xmpp, sid, size,
-                              iq['from'], iq['to'],
+                              iq['to'], iq['from'],
                               self.window_size)
         stream.stream_started.set()
         self.streams[sid] = stream
@@ -146,11 +178,12 @@ class XEP_0047(BasePlugin):
         iq.send()
 
         self.xmpp.event('ibb_stream_start', stream)
+        self.xmpp.event('stream:%s:%s' % (sid, stream.peer_jid), stream)
 
     def _handle_data(self, stanza):
         sid = stanza['ibb_data']['sid']
         stream = self.streams.get(sid, None)
-        if stream is not None and stanza['from'] != stream.sender:
+        if stream is not None and stanza['from'] == stream.peer_jid:
             stream._recv_data(stanza)
         else:
             raise XMPPError('item-not-found')
@@ -158,7 +191,7 @@ class XEP_0047(BasePlugin):
     def _handle_close(self, iq):
         sid = iq['ibb_close']['sid']
         stream = self.streams.get(sid, None)
-        if stream is not None and iq['from'] != stream.sender:
+        if stream is not None and iq['from'] == stream.peer_jid:
             stream._closed(iq)
         else:
             raise XMPPError('item-not-found')

@@ -222,7 +222,7 @@ handler function to process registration requests.
         self.description = "In-Band Registration"
         self.xep = "0077"
 
-        self.xmpp.registerHandler(
+        self.xmpp.register_handler(
           Callback('In-Band Registration',
             MatchXPath('{%s}iq/{jabber:iq:register}query' % self.xmpp.default_ns),
             self.__handleRegistration))
@@ -601,7 +601,7 @@ with some additional registration fields implemented.
             self.form_instructions = ""
             self.backend = UserStore()
 
-            self.xmpp.registerHandler(
+            self.xmpp.register_handler(
                 Callback('In-Band Registration',
                          MatchXPath('{%s}iq/{jabber:iq:register}query' % self.xmpp.default_ns),
                          self.__handleRegistration))

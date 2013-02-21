@@ -51,7 +51,7 @@ class ActionBot(sleekxmpp.ClientXMPP):
         # our roster.
         self.add_event_handler("session_start", self.start)
 
-        self.registerHandler(
+        self.register_handler(
           Callback('Some custom iq',
             StanzaPath('iq@type=set/action'),
             self._handle_action))

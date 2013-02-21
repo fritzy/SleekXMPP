@@ -32,15 +32,15 @@ class XEP_0009(BasePlugin):
         register_stanza_plugin(RPCQuery, MethodCall)
         register_stanza_plugin(RPCQuery, MethodResponse)
 
-        self.xmpp.registerHandler(
+        self.xmpp.register_handler(
             Callback('RPC Call', MatchXPath('{%s}iq/{%s}query/{%s}methodCall' % (self.xmpp.default_ns, RPCQuery.namespace, RPCQuery.namespace)),
             self._handle_method_call)
         )
-        self.xmpp.registerHandler(
+        self.xmpp.register_handler(
             Callback('RPC Call', MatchXPath('{%s}iq/{%s}query/{%s}methodResponse' % (self.xmpp.default_ns, RPCQuery.namespace, RPCQuery.namespace)),
             self._handle_method_response)
         )
-        self.xmpp.registerHandler(
+        self.xmpp.register_handler(
             Callback('RPC Call', MatchXPath('{%s}iq/{%s}error' % (self.xmpp.default_ns, self.xmpp.default_ns)),
             self._handle_error)
         )

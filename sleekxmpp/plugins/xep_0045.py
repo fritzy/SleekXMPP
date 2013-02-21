@@ -125,11 +125,11 @@ class XEP_0045(BasePlugin):
         self.xep = '0045'
         # load MUC support in presence stanzas
         register_stanza_plugin(Presence, MUCPresence)
-        self.xmpp.registerHandler(Callback('MUCPresence', MatchXMLMask("<presence xmlns='%s' />" % self.xmpp.default_ns), self.handle_groupchat_presence))
-        self.xmpp.registerHandler(Callback('MUCMessage', MatchXMLMask("<message xmlns='%s' type='groupchat'><body/></message>" % self.xmpp.default_ns), self.handle_groupchat_message))
-        self.xmpp.registerHandler(Callback('MUCSubject', MatchXMLMask("<message xmlns='%s' type='groupchat'><subject/></message>" % self.xmpp.default_ns), self.handle_groupchat_subject))
-        self.xmpp.registerHandler(Callback('MUCConfig', MatchXMLMask("<message xmlns='%s' type='groupchat'><x xmlns='http://jabber.org/protocol/muc#user'><status/></x></message>" % self.xmpp.default_ns), self.handle_config_change))
-        self.xmpp.registerHandler(Callback('MUCInvite', MatchXPath("{%s}message/{%s}x/{%s}invite" % (
+        self.xmpp.register_handler(Callback('MUCPresence', MatchXMLMask("<presence xmlns='%s' />" % self.xmpp.default_ns), self.handle_groupchat_presence))
+        self.xmpp.register_handler(Callback('MUCMessage', MatchXMLMask("<message xmlns='%s' type='groupchat'><body/></message>" % self.xmpp.default_ns), self.handle_groupchat_message))
+        self.xmpp.register_handler(Callback('MUCSubject', MatchXMLMask("<message xmlns='%s' type='groupchat'><subject/></message>" % self.xmpp.default_ns), self.handle_groupchat_subject))
+        self.xmpp.register_handler(Callback('MUCConfig', MatchXMLMask("<message xmlns='%s' type='groupchat'><x xmlns='http://jabber.org/protocol/muc#user'><status/></x></message>" % self.xmpp.default_ns), self.handle_config_change))
+        self.xmpp.register_handler(Callback('MUCInvite', MatchXPath("{%s}message/{%s}x/{%s}invite" % (
             self.xmpp.default_ns,
             'http://jabber.org/protocol/muc#user',
             'http://jabber.org/protocol/muc#user')), self.handle_groupchat_invite))

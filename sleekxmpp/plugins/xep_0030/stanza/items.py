@@ -128,9 +128,10 @@ class DiscoItems(ElementBase):
     def del_items(self):
         """Remove all items."""
         self._items = set()
-        for item in self['substanzas']:
-            if isinstance(item, DiscoItem):
-                self.xml.remove(item.xml)
+        items = [i for i in self.iterables if isinstance(i, DiscoItem)]
+        for item in items:
+            self.xml.remove(item.xml)
+            self.iterables.remove(item)
 
 
 class DiscoItem(ElementBase):

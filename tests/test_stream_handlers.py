@@ -21,7 +21,7 @@ class TestHandlers(SleekTest):
         """Test using stream callback handlers."""
 
         def callback_handler(stanza):
-            self.xmpp.sendRaw("""
+            self.xmpp.send_raw("""
               <message>
                 <body>Success!</body>
               </message>
@@ -31,7 +31,7 @@ class TestHandlers(SleekTest):
                             MatchXPath('{test}tester'),
                             callback_handler)
 
-        self.xmpp.registerHandler(callback)
+        self.xmpp.register_handler(callback)
 
         self.recv("""<tester xmlns="test" />""")
 
@@ -49,7 +49,7 @@ class TestHandlers(SleekTest):
             iq['query'] = 'test'
             reply = iq.send(block=True)
             if reply:
-                self.xmpp.sendRaw("""
+                self.xmpp.send_raw("""
                   <message>
                     <body>Successful: %s</body>
                   </message>
@@ -112,7 +112,7 @@ class TestHandlers(SleekTest):
         time.sleep(0.1)
 
         # Check that the waiter is no longer registered
-        waiter_exists = self.xmpp.removeHandler('IqWait_test2')
+        waiter_exists = self.xmpp.remove_handler('IqWait_test2')
 
         self.failUnless(waiter_exists == False,
             "Waiter handler was not removed.")

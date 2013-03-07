@@ -106,7 +106,7 @@ class XEP_0199(BasePlugin):
     def _keepalive(self, event=None):
         log.debug("Keepalive ping...")
         try:
-            rtt = self.ping(self.xmpp.boundjid.host, self.timeout)
+            rtt = self.ping(self.xmpp.boundjid.host, timeout=self.timeout)
         except IqTimeout:
             log.debug("Did not recieve ping back in time." + \
                       "Requesting Reconnect.")

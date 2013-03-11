@@ -431,7 +431,7 @@ class TestStreamPubsub(SleekTest):
               </publish>
             </pubsub>
           </iq>
-        """)
+        """, use_values=False)
 
     def testPublishSingleOptions(self):
         """Test publishing a single item, with options."""

@@ -56,6 +56,7 @@ __all__ = [
     'xep_0184',  # Message Receipts
     'xep_0186',  # Invisible Command
     'xep_0191',  # Blocking Command
+    'xep_0196',  # User Gaming
     'xep_0198',  # Stream Management
     'xep_0199',  # Ping
     'xep_0202',  # Entity Time

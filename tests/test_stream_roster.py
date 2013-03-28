@@ -19,16 +19,9 @@ class TestStreamRoster(SleekTest):
         """Test handling roster requests."""
         self.stream_start(mode='client', jid='tester@localhost')
 
-        events = []
+        roster_updates = []
 
-        def roster_received(iq):
-            events.append('roster_received')
-
-        def roster_update(iq):
-            events.append('roster_update')
-
-        self.xmpp.add_event_handler('roster_received', roster_received)
-        self.xmpp.add_event_handler('roster_update', roster_update)
+        self.xmpp.add_event_handler('roster_update', roster_updates.append)
 
         # Since get_roster blocks, we need to run it in a thread.
         t = threading.Thread(name='get_roster', target=self.xmpp.get_roster)
@@ -66,8 +59,8 @@ class TestStreamRoster(SleekTest):
         # Give the event queue time to process.
         time.sleep(.1)
 
-        self.failUnless(events == ['roster_received', 'roster_update'],
-                "Wrong roster events fired: %s" % events)
+        self.failUnless(len(roster_updates) == 1,
+                "Wrong number of roster_update events fired: %s (should be 1)" % len(roster_updates))
 
     def testRosterSet(self):
         """Test handling pushed roster updates."""
@@ -156,7 +149,7 @@ class TestStreamRoster(SleekTest):
         """Test rejecting a roster push from an unauthorized source."""
         self.stream_start()
         self.recv("""
-          <iq to='tester@localhost' from="malicious_user@localhost" 
+          <iq to='tester@localhost' from="malicious_user@localhost"
               type="set" id="1">
             <query xmlns="jabber:iq:roster">
               <item jid="user@localhost"

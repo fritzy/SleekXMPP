@@ -1130,6 +1130,8 @@ class XMLStream(object):
                        event queue. All event handlers will run in the
                        same thread.
         """
+        log.debug("Event triggered: " + name)
+
         handlers = self.__event_handlers.get(name, [])
         for handler in handlers:
             #TODO:  Data should not be copied, but should be read only,

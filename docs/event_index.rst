@@ -12,7 +12,7 @@ Event Index
         has not yet been established.
 
     connection_failed
-        - **Data:** ``{}``
+        - **Data:** ``{}`` or ``Failure Stanza`` if available
         - **Source:** :py:class:`~sleekxmpp.xmlstream.XMLstream`
 
         Signal that a connection can not be established after number of attempts.

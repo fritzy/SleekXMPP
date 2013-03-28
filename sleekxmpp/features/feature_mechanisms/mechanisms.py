@@ -235,6 +235,6 @@ class FeatureMechanisms(BasePlugin):
         """SASL authentication failed. Disconnect and shutdown."""
         self.attempted_mechs.add(self.mech.name)
         log.info("Authentication failed: %s", stanza['condition'])
-        self.xmpp.event("failed_auth", direct=True)
+        self.xmpp.event("failed_auth", stanza, direct=True)
         self._send_auth()
         return True

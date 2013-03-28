@@ -6,14 +6,20 @@ Event Index
 
     connected
         - **Data:** ``{}``
-        - **Source:** :py:class:`~sleekxmpp.clientxmpp.ClientXMPP`
+        - **Source:** :py:class:`~sleekxmpp.xmlstream.XMLstream`
 
         Signal that a connection has been made with the XMPP server, but a session
         has not yet been established.
 
+    connection_failed
+        - **Data:** ``{}`` or ``Failure Stanza`` if available
+        - **Source:** :py:class:`~sleekxmpp.xmlstream.XMLstream`
+
+        Signal that a connection can not be established after number of attempts.
+
     changed_status
         - **Data:** :py:class:`~sleekxmpp.Presence`
-        - **Source:** :py:class:`~sleekxmpp.BaseXMPP`
+        - **Source:** :py:class:`~sleekxmpp.roster.item.RosterItem`
 
         Triggered when a presence stanza is received from a JID with a show type
         different than the last presence stanza from the same JID.
@@ -65,8 +71,8 @@ Event Index
 
     disconnected
         - **Data:** ``{}``
-        - **Source:** :py:class:`~sleekxmpp.ClientXMPP`
-        
+        - **Source:** :py:class:`~sleekxmpp.xmlstream.XMLstream`
+
         Signal that the connection with the XMPP server has been lost.
 
     entity_time
@@ -93,16 +99,16 @@ Event Index
 
     got_online
         - **Data:** :py:class:`~sleekxmpp.Presence`
-        - **Source:** :py:class:`~sleekxmpp.BaseXMPP`
-        
+        - **Source:** :py:class:`~sleekxmpp.roster.item.RosterItem`
+
         If a presence stanza is received from a JID which was previously marked as
         offline, and the presence has a show type of '``chat``', '``dnd``', '``away``',
         or '``xa``', then this event is triggered as well.
 
     got_offline
         - **Data:** :py:class:`~sleekxmpp.Presence`
-        - **Source:** :py:class:`~sleekxmpp.BaseXMPP`
-        
+        - **Source:** :py:class:`~sleekxmpp.roster.item.RosterItem`
+
         Signal that an unavailable presence stanza has been received from a JID.
 
     groupchat_invite
@@ -110,7 +116,7 @@ Event Index
         - **Source:**
 
     groupchat_direct_invite
-        - **Data:** :py:class:`~sleekxmpp.Message` 
+        - **Data:** :py:class:`~sleekxmpp.Message`
         - **Source:** :py:class:`~sleekxmpp.plugins.xep_0249.direct`
 
     groupchat_message
@@ -147,18 +153,18 @@ Event Index
         sure to check the message type in order to handle error messages.
 
     message_form
-        - **Data:** :py:class:`~sleekxmpp.plugins.xep_0004.Form` 
-        - **Source:** :py:class:`~sleekxmpp.plugins.xep_0004.xep_0004` 
-        
+        - **Data:** :py:class:`~sleekxmpp.plugins.xep_0004.Form`
+        - **Source:** :py:class:`~sleekxmpp.plugins.xep_0004.xep_0004`
+
         Currently the same as :term:`message_xform`.
 
     message_xform
-        - **Data:** :py:class:`~sleekxmpp.plugins.xep_0004.Form` 
-        - **Source:** :py:class:`~sleekxmpp.plugins.xep_0004.xep_0004` 
-        
+        - **Data:** :py:class:`~sleekxmpp.plugins.xep_0004.Form`
+        - **Source:** :py:class:`~sleekxmpp.plugins.xep_0004.xep_0004`
+
         Triggered whenever a data form is received inside a message.
 
-    mucc::[room]::got_offline
+    muc::[room]::got_offline
         - **Data:**
         - **Source:**
 
@@ -187,8 +193,8 @@ Event Index
         A presence stanza with a type of '``error``' is received.
 
     presence_form
-        - **Data:** :py:class:`~sleekxmpp.plugins.xep_0004.Form` 
-        - **Source:** :py:class:`~sleekxmpp.plugins.xep_0004.xep_0004` 
+        - **Data:** :py:class:`~sleekxmpp.plugins.xep_0004.Form`
+        - **Source:** :py:class:`~sleekxmpp.plugins.xep_0004.xep_0004`
         
         This event is present in the XEP-0004 plugin code, but is currently not used.
 
@@ -229,22 +235,20 @@ Event Index
         A presence stanza with a type of '``unsubscribed``' is received.
 
     roster_update
-        - **Data:** :py:class:`~sleekxmpp.stanza.Roster` 
-        - **Source:** :py:class:`~sleekxmpp.ClientXMPP` 
+        - **Data:** :py:class:`~sleekxmpp.stanza.Roster`
+        - **Source:** :py:class:`~sleekxmpp.ClientXMPP`
         
         An IQ result containing roster entries is received.
 
     sent_presence
         - **Data:** ``{}``
-        - **Source:** :py:class:`BaseXMPP <sleekxmpp.BaseXMPP>`
+        - **Source:** :py:class:`~sleekxmpp.roster.multi.Roster`
         
         Signal that an initial presence stanza has been written to the XML stream.
 
     session_end
         - **Data:** ``{}``
-        - **Source:** :py:class:`ClientXMPP <sleekxmpp.ClientXMPP>`, 
-          :py:class:`ComponentXMPP <sleekxmpp.ComponentXMPP>`
-          :py:class:`XEP-0078 <sleekxmpp.plugins.xep_0078>`
+        - **Source:** :py:class:`~sleekxmpp.xmlstream.XMLstream`
 
         Signal that a connection to the XMPP server has been lost and the current
         stream session has ended. Currently equivalent to :term:`disconnected`, but
@@ -256,14 +260,14 @@ Event Index
 
     session_start
         - **Data:** ``{}``
-        - **Source:** :py:class:`ClientXMPP <sleekxmpp.ClientXMPP>`, 
+        - **Source:** :py:class:`ClientXMPP <sleekxmpp.ClientXMPP>`,
           :py:class:`ComponentXMPP <sleekxmpp.ComponentXMPP>`
           :py:class:`XEP-0078 <sleekxmpp.plugins.xep_0078>`
 
         Signal that a connection to the XMPP server has been made and a session has been established.
 
     socket_error
-        - **Data:** ``Socket`` exception object 
+        - **Data:** ``Socket`` exception object
         - **Source:** :py:class:`~sleekxmpp.xmlstream.XMLstream`
 
     stream_error

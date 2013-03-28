@@ -248,7 +248,6 @@ class ClientXMPP(BaseXMPP):
             callback = lambda resp: self._handle_roster(resp)
 
         response = iq.send(block, timeout, callback)
-        self.event('roster_received', response)
 
         if block:
             self._handle_roster(response)

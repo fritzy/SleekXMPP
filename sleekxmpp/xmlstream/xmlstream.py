@@ -559,7 +559,7 @@ class XMLStream(object):
 
             self.set_socket(self.socket, ignore=True)
             #this event is where you should set your application state
-            self.event("connected", direct=True)
+            self.event('connected', direct=True)
             return True
         except (Socket.error, ssl.SSLError) as serr:
             error_msg = "Could not connect to %s:%s. Socket Error #%s: %s"
@@ -610,6 +610,7 @@ class XMLStream(object):
             lines = resp.split('\r\n')
             if '200' not in lines[0]:
                 self.event('proxy_error', resp)
+                self.event('connection_failed', direct=True)
                 log.error('Proxy Error: %s', lines[0])
                 return False
 
@@ -717,7 +718,7 @@ class XMLStream(object):
             self.event('socket_error', serr, direct=True)
         finally:
             #clear your application state
-            self.event("disconnected", direct=True)
+            self.event('disconnected', direct=True)
             return True
 
     def abort(self):
@@ -1130,6 +1131,8 @@ class XMLStream(object):
                        event queue. All event handlers will run in the
                        same thread.
         """
+        log.debug("Event triggered: " + name)
+
         handlers = self.__event_handlers.get(name, [])
         for handler in handlers:
             #TODO:  Data should not be copied, but should be read only,

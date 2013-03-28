@@ -171,6 +171,7 @@ class FeatureMechanisms(BasePlugin):
         except sasl.SASLNoAppropriateMechanism:
             log.error("No appropriate login method.")
             self.xmpp.event("no_auth", direct=True)
+            self.xmpp.event("failed_auth", direct=True)
             self.attempted_mechs = set()
             return self.xmpp.disconnect()
         except StringPrepError:

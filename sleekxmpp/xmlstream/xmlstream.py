@@ -610,6 +610,7 @@ class XMLStream(object):
             lines = resp.split('\r\n')
             if '200' not in lines[0]:
                 self.event('proxy_error', resp)
+                self.event('connection_failed', direct=True)
                 log.error('Proxy Error: %s', lines[0])
                 return False
 

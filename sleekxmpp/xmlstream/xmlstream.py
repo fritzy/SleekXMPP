@@ -559,7 +559,7 @@ class XMLStream(object):
 
             self.set_socket(self.socket, ignore=True)
             #this event is where you should set your application state
-            self.event("connected", direct=True)
+            self.event('connected', direct=True)
             return True
         except (Socket.error, ssl.SSLError) as serr:
             error_msg = "Could not connect to %s:%s. Socket Error #%s: %s"
@@ -718,7 +718,7 @@ class XMLStream(object):
             self.event('socket_error', serr, direct=True)
         finally:
             #clear your application state
-            self.event("disconnected", direct=True)
+            self.event('disconnected', direct=True)
             return True
 
     def abort(self):

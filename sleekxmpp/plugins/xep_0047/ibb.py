@@ -28,9 +28,9 @@ class XEP_0047(BasePlugin):
     }
 
     def plugin_init(self):
-        self.streams = {}
-        self.pending_streams = {}
-        self.pending_close_streams = {}
+        self._streams = {}
+        self._pending_streams = {}
+        self._pending_lock = threading.Lock()
         self._stream_lock = threading.Lock()
 
         self._preauthed_sids_lock = threading.Lock()
@@ -64,6 +64,9 @@ class XEP_0047(BasePlugin):
         self.api.register(self._authorized, 'authorized', default=True)
         self.api.register(self._authorized_sid, 'authorized_sid', default=True)
         self.api.register(self._preauthorize_sid, 'preauthorize_sid', default=True)
+        self.api.register(self._get_stream, 'get_stream', default=True)
+        self.api.register(self._set_stream, 'set_stream', default=True)
+        self.api.register(self._del_stream, 'del_stream', default=True)
 
     def plugin_end(self):
         self.xmpp.remove_handler('IBB Open')
@@ -74,6 +77,17 @@ class XEP_0047(BasePlugin):
 
     def session_bind(self, jid):
         self.xmpp['xep_0030'].add_feature('http://jabber.org/protocol/ibb')
+
+    def _get_stream(self, jid, sid, peer_jid, data):
+        return self._streams.get((jid, sid, peer_jid), None)
+
+    def _set_stream(self, jid, sid, peer_jid, stream):
+        self._streams[(jid, sid, peer_jid)] = stream
+
+    def _del_stream(self, jid, sid, peer_jid, data):
+        with self._streams_lock:
+            if (jid, sid, peer_jid) in self._streams:
+                del self._streams[(jid, sid, peer_jid)]
 
     def _accept_stream(self, iq):
         receiver = iq['to']
@@ -121,9 +135,9 @@ class XEP_0047(BasePlugin):
                               use_messages)
 
         with self._stream_lock:
-            self.pending_streams[iq['id']] = stream
+            self._pending_streams[iq['id']] = stream
 
-        self.pending_streams[iq['id']] = stream
+        self._pending_streams[iq['id']] = stream
 
         if block:
             resp = iq.send(timeout=timeout)
@@ -143,22 +157,25 @@ class XEP_0047(BasePlugin):
     def _handle_opened_stream(self, iq):
         if iq['type'] == 'result':
             with self._stream_lock:
-                stream = self.pending_streams.get(iq['id'], None)
-                if stream is not None:
-                    stream.self_jid = iq['to']
-                    stream.peer_jid = iq['from']
-                    stream.stream_started.set()
-                    self.streams[stream.sid] = stream
-                    self.xmpp.event('ibb_stream_start', stream)
-                    self.xmpp.event('stream:%s:%s' % (sid, stream.peer_jid), stream)
+                stream = self._pending_streams.get(iq['id'], None)
+            if stream is not None:
+                log.debug('IBB stream (%s) accepted by %s', stream.sid, iq['from'])
+                stream.self_jid = iq['to']
+                stream.peer_jid = iq['from']
+                stream.stream_started.set()
+                self.api['set_stream'](stream.self_jid, stream.sid, stream.peer_jid, stream)
+                self.xmpp.event('ibb_stream_start', stream)
+                self.xmpp.event('stream:%s:%s' % (stream.sid, stream.peer_jid), stream)
 
         with self._stream_lock:
-            if iq['id'] in self.pending_streams:
-                del self.pending_streams[iq['id']]
+            if iq['id'] in self._pending_streams:
+                del self._pending_streams[iq['id']]
 
     def _handle_open_request(self, iq):
         sid = iq['ibb_open']['sid']
         size = iq['ibb_open']['block_size'] or self.block_size
+
+        log.debug('Received IBB stream request from %s', iq['from'])
 
         if not sid:
             raise XMPPError(etype='modify', condition='bad-request')
@@ -173,7 +190,7 @@ class XEP_0047(BasePlugin):
                               iq['to'], iq['from'],
                               self.window_size)
         stream.stream_started.set()
-        self.streams[sid] = stream
+        self.api['set_stream'](stream.self_jid, stream.sid, stream.peer_jid, stream)
         iq.reply()
         iq.send()
 
@@ -182,7 +199,7 @@ class XEP_0047(BasePlugin):
 
     def _handle_data(self, stanza):
         sid = stanza['ibb_data']['sid']
-        stream = self.streams.get(sid, None)
+        stream = self.api['get_stream'](stanza['to'], sid, stanza['from'])
         if stream is not None and stanza['from'] == stream.peer_jid:
             stream._recv_data(stanza)
         else:
@@ -190,8 +207,9 @@ class XEP_0047(BasePlugin):
 
     def _handle_close(self, iq):
         sid = iq['ibb_close']['sid']
-        stream = self.streams.get(sid, None)
+        stream = self.api['get_stream'](stanza['to'], sid, stanza['from'])
         if stream is not None and iq['from'] == stream.peer_jid:
             stream._closed(iq)
+            self.api['del_stream'](stream.self_jid, stream.sid, stream.peer_jid)
         else:
             raise XMPPError('item-not-found')

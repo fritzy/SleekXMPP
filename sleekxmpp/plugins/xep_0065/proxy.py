@@ -25,6 +25,9 @@ class XEP_0065(base_plugin):
     name = 'xep_0065'
     description = "Socks5 Bytestreams"
     dependencies = set(['xep_0030'])
+    default_config = {
+        'auto_accept': False
+    }
 
     def plugin_init(self):
         register_stanza_plugin(Iq, Socks5)
@@ -33,10 +36,17 @@ class XEP_0065(base_plugin):
         self._sessions = {}
         self._sessions_lock = threading.Lock()
 
+        self._preauthed_sids_lock = threading.Lock()
+        self._preauthed_sids = {}
+
         self.xmpp.register_handler(
             Callback('Socks5 Bytestreams',
                      StanzaPath('iq@type=set/socks/streamhost'),
                      self._handle_streamhost))
+
+        self.api.register(self._authorized, 'authorized', default=True)
+        self.api.register(self._authorized_sid, 'authorized_sid', default=True)
+        self.api.register(self._preauthorize_sid, 'preauthorize_sid', default=True)
 
     def session_bind(self, jid):
         self.xmpp['xep_0030'].add_feature(Socks5.namespace)
@@ -50,14 +60,15 @@ class XEP_0065(base_plugin):
         """Returns the socket associated to the SID."""
         return self._sessions.get(sid, None)
 
-    def handshake(self, to, ifrom=None, timeout=None):
+    def handshake(self, to, ifrom=None, sid=None, timeout=None):
         """ Starts the handshake to establish the socks5 bytestreams
         connection.
         """
         if not self._proxies:
             self._proxies = self.discover_proxies()
 
-        sid = uuid4().hex
+        if sid is None:
+            sid = uuid4().hex
 
         used = self.request_stream(to, sid=sid, ifrom=ifrom, timeout=timeout)
         proxy = used['socks']['streamhost_used']['jid']
@@ -72,10 +83,12 @@ class XEP_0065(base_plugin):
                     self.xmpp.boundjid,
                     to,
                     self._proxies[proxy][0],
-                    self._proxies[proxy][1])
+                    self._proxies[proxy][1],
+                    peer=to)
 
         # Request that the proxy activate the session with the target.
         self.activate(proxy, sid, to, timeout=timeout)
+        self.xmpp.event('stream:%s:%s' % (sid, conn.peer_jid), conn)
         return self.get_socket(sid)
 
     def request_stream(self, to, sid=None, ifrom=None, **iqargs):
@@ -139,19 +152,24 @@ class XEP_0065(base_plugin):
         """Handle incoming SOCKS5 session request."""
         sid = iq['socks']['sid']
         if not sid:
+            raise XMPPError(etype='modify', condition='bad-request')
+
+        if not self._accept_stream(iq):
             raise XMPPError(etype='modify', condition='not-acceptable')
 
         streamhosts = iq['socks']['streamhosts']
         conn = None
         used_streamhost = None
 
+        sender = iq['from']
         for streamhost in streamhosts:
             try:
                 conn = self._connect_proxy(sid,
-                    iq['from'],
+                    sender,
                     self.xmpp.boundjid,
                     streamhost['host'],
-                    streamhost['port'])
+                    streamhost['port'],
+                    peer=sender)
                 used_streamhost = streamhost['jid']
                 break
             except socket.error:
@@ -165,6 +183,8 @@ class XEP_0065(base_plugin):
         iq['socks']['sid'] = sid
         iq['socks']['streamhost_used']['jid'] = used_streamhost
         iq.send()
+        self.xmpp.event('socks5_stream', conn)
+        self.xmpp.event('stream:%s:%s' % (sid, conn.peer_jid), conn)
 
     def activate(self, proxy, sid, target, ifrom=None, **iqargs):
         """Activate the socks5 session that has been negotiated."""
@@ -191,7 +211,7 @@ class XEP_0065(base_plugin):
         with self._sessions_lock:
             self._sessions = {}
 
-    def _connect_proxy(self, sid, requester, target, proxy, proxy_port):
+    def _connect_proxy(self, sid, requester, target, proxy, proxy_port, peer=None):
         """ Establishes a connection between the client and the server-side
         Socks5 proxy.
 
@@ -200,6 +220,8 @@ class XEP_0065(base_plugin):
         target     : The JID of the target. <str>
         proxy_host : The hostname or the IP of the proxy. <str>
         proxy_port : The port of the proxy. <str> or <int>
+        peer       : The JID for the other side of the stream, regardless
+                     of target or requester status.
         """
         # Because the xep_0065 plugin uses the proxy_port as string,
         # the Proxy class accepts the proxy_port argument as a string
@@ -230,6 +252,34 @@ class XEP_0065(base_plugin):
             _close()
         sock.close = close
 
-        self.xmpp.event('socks_connected', sid)
+        sock.peer_jid = peer
+        sock.self_jid = target if requester == peer else requester
 
+        self.xmpp.event('socks_connected', sid)
         return sock
+
+    def _accept_stream(self, iq):
+        receiver = iq['to']
+        sender = iq['from']
+        sid = iq['socks']['sid']
+
+        if self.api['authorized_sid'](receiver, sid, sender, iq):
+            return True
+        return self.api['authorized'](receiver, sid, sender, iq)
+
+    def _authorized(self, jid, sid, ifrom, iq):
+        return self.auto_accept
+
+    def _authorized_sid(self, jid, sid, ifrom, iq):
+        with self._preauthed_sids_lock:
+            log.debug('>>> authed sids: %s', self._preauthed_sids)
+            log.debug('>>> lookup: %s %s %s', jid, sid, ifrom)
+            if (jid, sid, ifrom) in self._preauthed_sids:
+                del self._preauthed_sids[(jid, sid, ifrom)]
+                return True
+            return False
+
+    def _preauthorize_sid(self, jid, sid, ifrom, data):
+        log.debug('>>>> %s %s %s %s', jid, sid, ifrom, data)
+        with self._preauthed_sids_lock:
+            self._preauthed_sids[(jid, sid, ifrom)] = True

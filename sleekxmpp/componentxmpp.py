@@ -20,7 +20,7 @@ import hashlib
 
 from sleekxmpp.basexmpp import BaseXMPP
 from sleekxmpp.xmlstream import XMLStream
-from sleekxmpp.xmlstream import ET
+from sleekxmpp.xmlstream import ET, tostring
 from sleekxmpp.xmlstream.matcher import MatchXPath
 from sleekxmpp.xmlstream.handler import Callback
 
@@ -149,7 +149,7 @@ class ComponentXMPP(BaseXMPP):
 
         handshake = ET.Element('{jabber:component:accept}handshake')
         handshake.text = hashlib.sha1(pre_hash).hexdigest().lower()
-        self.send_xml(handshake, now=True)
+        self.send(tostring(handshake), now=True)
 
     def _handle_handshake(self, xml):
         """The handshake has been accepted.

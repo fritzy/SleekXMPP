@@ -992,7 +992,7 @@ class XMLStream(object):
         self.__filters[mode].remove(handler)
 
     def add_handler(self, mask, pointer, name=None, disposable=False,
-                    threaded=False, filter=False, instream=False):
+                    instream=False):
         """A shortcut method for registering a handler using XML masks.
 
         The use of :meth:`register_handler()` is preferred.
@@ -1004,10 +1004,6 @@ class XMLStream(object):
                     be generated if one is not provided.
         :param disposable: Indicates if the handler should be discarded
                            after one use.
-        :param threaded: **DEPRECATED**.
-                       Remains for backwards compatibility.
-        :param filter: **DEPRECATED**.
-                       Remains for backwards compatibility.
         :param instream: Indicates if the handler should execute during
                          stream processing and not during normal event
                          processing.
@@ -1250,28 +1246,6 @@ class XMLStream(object):
         if mask is not None:
             return wait_for.wait(timeout)
 
-    def send_xml(self, data, mask=None, timeout=None, now=False):
-        """Send an XML object on the stream, and optionally wait
-        for a response.
-
-        :param data: The :class:`~xml.etree.ElementTree.Element` XML object
-                     to send on the stream.
-        :param mask: **DEPRECATED**
-                     An XML string snippet matching the structure
-                     of the expected response. Execution will block
-                     in this thread until the response is received
-                     or a timeout occurs.
-        :param int timeout: Time in seconds to wait for a response before
-                       continuing. Defaults to :attr:`response_timeout`.
-        :param bool now: Indicates if the send queue should be skipped,
-                        sending the stanza immediately. Useful mainly
-                        for stream initialization stanzas.
-                        Defaults to ``False``.
-        """
-        if timeout is None:
-            timeout = self.response_timeout
-        return self.send(tostring(data), mask, timeout, now)
-
     def send_raw(self, data, now=False, reconnect=None):
         """Send raw data across the stream.
 
@@ -1384,12 +1358,6 @@ class XMLStream(object):
                     used in the background for another application.
                     Otherwise, ``process(block=True)`` blocks the current
                     thread. Defaults to ``False``.
-        :param bool threaded: **DEPRECATED**
-                    If ``True``, then event dispatcher will run
-                    in a separate thread, allowing for the stream to be
-                    used in the background for another application.
-                    Defaults to ``True``. This does **not** mean that no
-                    threads are used at all if ``threaded=False``.
 
         Regardless of these threading options, these threads will
         always exist:
@@ -1398,13 +1366,7 @@ class XMLStream(object):
         - The send queue processor
         - The scheduler
         """
-        if 'threaded' in kwargs and 'block' in kwargs:
-            raise ValueError("process() called with both " + \
-                             "block and threaded arguments")
-        elif 'block' in kwargs:
-            threaded = not(kwargs.get('block', False))
-        else:
-            threaded = kwargs.get('threaded', True)
+        block = kwargs.get('block', False)
 
         for t in range(0, HANDLER_THREADS):
             log.debug("Starting HANDLER THREAD")
@@ -1413,7 +1375,7 @@ class XMLStream(object):
         self._start_thread('send_thread', self._send_thread)
         self._start_thread('scheduler_thread', self._scheduler_thread)
 
-        if threaded:
+        if not block:
             # Run the XML stream in the background for another application.
             self._start_thread('read_thread', self._process, track=False)
         else:
@@ -1760,17 +1722,3 @@ class XMLStream(object):
         :param exception: An unhandled exception object.
         """
         pass
-
-
-# To comply with PEP8, method names now use underscores.
-# Deprecated method names are re-mapped for backwards compatibility.
-XMLStream.startTLS = XMLStream.start_tls
-XMLStream.registerStanza = XMLStream.register_stanza
-XMLStream.removeStanza = XMLStream.remove_stanza
-XMLStream.registerHandler = XMLStream.register_handler
-XMLStream.removeHandler = XMLStream.remove_handler
-XMLStream.setSocket = XMLStream.set_socket
-XMLStream.sendRaw = XMLStream.send_raw
-XMLStream.getId = XMLStream.get_id
-XMLStream.getNewId = XMLStream.new_id
-XMLStream.sendXML = XMLStream.send_xml

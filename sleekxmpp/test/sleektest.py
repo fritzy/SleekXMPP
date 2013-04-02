@@ -373,7 +373,7 @@ class SleekTest(unittest.TestCase):
         # this to True in tests related to those plugins.
         self.xmpp.use_message_ids = False
 
-        self.xmpp.process(threaded=True)
+        self.xmpp.process(block=False)
         if skip:
             if socket != 'live':
                 # Mark send queue as usable

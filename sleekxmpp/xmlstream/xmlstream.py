@@ -1017,8 +1017,12 @@ class XMLStream(object):
 
         if name is None:
             name = 'add_handler_%s' % self.new_id()
-        self.register_handler(XMLCallback(name, MatchXMLMask(mask), pointer,
-                                         once=disposable, instream=instream))
+        self.register_handler(
+                XMLCallback(name,
+                    MatchXMLMask(mask, self.default_ns),
+                    pointer,
+                    once=disposable,
+                    instream=instream))
 
     def register_handler(self, handler, before=None, after=None):
         """Add a stream event handler that will be executed when a matching

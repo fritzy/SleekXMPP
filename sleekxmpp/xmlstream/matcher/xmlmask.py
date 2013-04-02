@@ -37,11 +37,11 @@ class MatchXMLMask(MatcherBase):
                      object or XML string to use as a mask.
     """
 
-    def __init__(self, criteria):
+    def __init__(self, criteria, default_ns='jabber:client'):
         MatcherBase.__init__(self, criteria)
         if isinstance(criteria, str):
             self._criteria = ET.fromstring(self._criteria)
-        self.default_ns = 'jabber:client'
+        self.default_ns = default_ns
 
     def setDefaultNS(self, ns):
         """Set the default namespace to use during comparisons.

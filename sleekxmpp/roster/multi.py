@@ -49,7 +49,7 @@ class Roster(object):
         """
         self.xmpp = xmpp
         self.db = db
-        self._auto_authorize = True
+        self._auto_authorize = False
         self._auto_subscribe = True
         self._rosters = {}
 

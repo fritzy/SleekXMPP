@@ -56,7 +56,7 @@ class RosterNode(object):
         self.xmpp = xmpp
         self.jid = jid
         self.db = db
-        self.auto_authorize = True
+        self.auto_authorize = False
         self.auto_subscribe = True
         self.last_status = None
         self._version = ''
@@ -237,8 +237,7 @@ class RosterNode(object):
         if not self.xmpp.is_component:
             return self.update(jid, subscription='remove')
 
-    def update(self, jid, name=None, subscription=None, groups=[],
-                     block=True, timeout=None, callback=None):
+    def update(self, jid, name=None, subscription=None, groups=[], **iqargs):
         """
         Update a JID's subscription information.
 
@@ -269,7 +268,7 @@ class RosterNode(object):
                                            'subscription': subscription,
                                            'groups': groups}}
 
-            return iq.send(block, timeout, callback)
+            return iq.send(**iqargs)
 
     def presence(self, jid, resource=None):
         """

@@ -5,9 +5,9 @@ from sleekxmpp.stanza.presence import Presence
 class TestPresenceStanzas(SleekTest):
 
     def testPresenceShowRegression(self):
-        """Regression check presence['type'] = 'dnd' show value working"""
+        """Regression check presence['show'] = 'dnd' show value working"""
         p = self.Presence()
-        p['type'] = 'dnd'
+        p['show'] = 'dnd'
         self.check(p, "<presence><show>dnd</show></presence>")
 
     def testPresenceType(self):
@@ -19,14 +19,15 @@ class TestPresenceStanzas(SleekTest):
             "Incorrect presence['type'] for type 'available': %s" % p['type'])
 
         for showtype in ['away', 'chat', 'dnd', 'xa']:
-            p['type'] = showtype
+            p['show'] = showtype
             self.check(p, """
               <presence><show>%s</show></presence>
             """ % showtype)
-            self.failUnless(p['type'] == showtype,
-                "Incorrect presence['type'] for type '%s'" % showtype)
+            self.failUnless(p['show'] == showtype and p['type'] == 'available',
+                "Incorrect 'show' and 'type' for value '%s'" % showtype)
 
         p['type'] = None
+        p['show'] = None
         self.check(p, "<presence />")
 
     def testPresenceUnsolicitedOffline(self):

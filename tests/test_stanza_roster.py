@@ -7,7 +7,7 @@ class TestRosterStanzas(SleekTest):
     def testAddItems(self):
         """Test adding items to a roster stanza."""
         iq = self.Iq()
-        iq['roster'].setItems({
+        iq['roster'].set_items({
             'user@example.com': {
                 'name': 'User',
                 'subscription': 'both',

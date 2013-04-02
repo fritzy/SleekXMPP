@@ -1,5 +1,8 @@
+from __future__ import unicode_literals
+
 import time
 from sleekxmpp.test import *
+
 
 
 class TestStreamPresence(SleekTest):
@@ -202,12 +205,11 @@ class TestStreamPresence(SleekTest):
 
         events = []
 
-        ptypes = ['available', 'away', 'dnd', 'xa', 'chat',
-                  'unavailable', 'subscribe', 'subscribed',
+        ptypes = ['available', 'unavailable', 'subscribe', 'subscribed',
                   'unsubscribe', 'unsubscribed']
 
         for ptype in ptypes:
-            handler = lambda p: events.append(p['type'])
+            handler = lambda p: events.append((p['type'], p['show']))
             self.xmpp.add_event_handler('presence_%s' % ptype, handler)
 
         self.recv("""
@@ -243,7 +245,19 @@ class TestStreamPresence(SleekTest):
 
         time.sleep(.5)
 
-        self.assertEqual(events, ptypes,
+        expected = [
+            ('available', ''),
+            ('available', 'away'),
+            ('available', 'dnd'),
+            ('available', 'xa'),
+            ('available', 'chat'),
+            ('unavailable', ''),
+            ('subscribe', ''),
+            ('subscribed', ''),
+            ('unsubscribe', ''),
+            ('unsubscribed', '')
+        ]
+        self.assertEqual(events, expected,
             "Not all events raised: %s" % events)
 
     def test_changed_status(self):
@@ -251,7 +265,7 @@ class TestStreamPresence(SleekTest):
         events = []
 
         def changed_status(presence):
-            events.append(presence['type'])
+            events.append((presence['type'], presence['show']))
 
         self.xmpp.add_event_handler('changed_status', changed_status)
 
@@ -365,10 +379,21 @@ class TestStreamPresence(SleekTest):
 
         time.sleep(0.3)
 
-        self.assertEqual(events, ['available', 'away', 'dnd', 'chat',
-                                  'xa', 'unavailable', 'available',
-                                  'available', 'dnd'],
-            "Changed status events incorrect: %s" % events)
+        expected = [
+            ('available', ''),
+            ('available', 'away'),
+            ('available', 'dnd'),
+            ('available', 'chat'),
+            ('available', 'xa'),
+            ('unavailable', ''),
+            ('available', ''),
+            ('available', ''),
+            ('available', 'dnd')
+        ]
+
+        self.assertEqual(events, expected,
+                "Changed status events incorrect: %s vs %s" % (
+                    expected, events))
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestStreamPresence)

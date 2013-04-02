@@ -18,7 +18,6 @@ import sys
 import logging
 import threading
 
-import sleekxmpp
 from sleekxmpp import plugins, features, roster
 from sleekxmpp.api import APIRegistry
 from sleekxmpp.exceptions import IqError, IqTimeout
@@ -169,26 +168,6 @@ class BaseXMPP(XMLStream):
                                self._handle_session_start)
         self.add_event_handler('disconnected',
                                self._handle_disconnected)
-        self.add_event_handler('presence_available',
-                               self._handle_available)
-        self.add_event_handler('presence_dnd',
-                               self._handle_available)
-        self.add_event_handler('presence_xa',
-                               self._handle_available)
-        self.add_event_handler('presence_chat',
-                               self._handle_available)
-        self.add_event_handler('presence_away',
-                               self._handle_available)
-        self.add_event_handler('presence_unavailable',
-                               self._handle_unavailable)
-        self.add_event_handler('presence_subscribe',
-                               self._handle_subscribe)
-        self.add_event_handler('presence_subscribed',
-                               self._handle_subscribed)
-        self.add_event_handler('presence_unsubscribe',
-                               self._handle_unsubscribe)
-        self.add_event_handler('presence_unsubscribed',
-                               self._handle_unsubscribed)
         self.add_event_handler('roster_subscription_request',
                                self._handle_new_subscription)
 
@@ -354,8 +333,8 @@ class BaseXMPP(XMLStream):
         :param pnick: Optional nickname of the presence's sender.
         """
         presence = self.Presence(stype=ptype, sfrom=pfrom, sto=pto)
-        if pshow is not None:
-            presence['type'] = pshow
+        presence['type'] = ptype
+        presence['show'] = pshow
         if pfrom is None and self.is_component:
             presence['from'] = self.boundjid.full
         presence['priority'] = ppriority
@@ -363,8 +342,7 @@ class BaseXMPP(XMLStream):
         presence['nick'] = pnick
         return presence
 
-    def send_message(self, mto, mbody, msubject=None, mtype=None,
-                     mhtml=None, mfrom=None, mnick=None):
+    def send_message(self, *args, **kwargs):
         """
         Create, initialize, and send a new
         :class:`~sleekxmpp.stanza.message.Message` stanza.
@@ -380,11 +358,9 @@ class BaseXMPP(XMLStream):
                       of the sender be used.
         :param mnick: Optional nickname of the sender.
         """
-        self.make_message(mto, mbody, msubject, mtype,
-                          mhtml, mfrom, mnick).send()
+        self.make_message(*args, **kwargs).send()
 
-    def send_presence(self, pshow=None, pstatus=None, ppriority=None,
-                      pto=None, pfrom=None, ptype=None, pnick=None):
+    def send_presence(self, *args, **kwargs):
         """
         Create, initialize, and send a new
         :class:`~sleekxmpp.stanza.presence.Presence` stanza.
@@ -397,8 +373,7 @@ class BaseXMPP(XMLStream):
         :param pfrom: The sender of the presence.
         :param pnick: Optional nickname of the presence's sender.
         """
-        self.make_presence(pshow, pstatus, ppriority, pto,
-                           ptype, pfrom, pnick).send()
+        self.make_presence(*args, **kwargs).send()
 
     def send_presence_subscription(self, pto, pfrom=None,
                                    ptype='subscribe', pnick=None):
@@ -491,12 +466,6 @@ class BaseXMPP(XMLStream):
             msg['to'] = self.boundjid
         self.event('message', msg)
 
-    def _handle_available(self, pres):
-        self.roster[pres['to']][pres['from']].handle_available(pres)
-
-    def _handle_unavailable(self, pres):
-        self.roster[pres['to']][pres['from']].handle_unavailable(pres)
-
     def _handle_new_subscription(self, pres):
         """Attempt to automatically handle subscription requests.
 
@@ -522,21 +491,6 @@ class BaseXMPP(XMLStream):
         elif roster.auto_authorize == False:
             item.unauthorize()
 
-    def _handle_removed_subscription(self, pres):
-        self.roster[pres['to']][pres['from']].handle_unauthorize(pres)
-
-    def _handle_subscribe(self, pres):
-        self.roster[pres['to']][pres['from']].handle_subscribe(pres)
-
-    def _handle_subscribed(self, pres):
-        self.roster[pres['to']][pres['from']].handle_subscribed(pres)
-
-    def _handle_unsubscribe(self, pres):
-        self.roster[pres['to']][pres['from']].handle_unsubscribe(pres)
-
-    def _handle_unsubscribed(self, pres):
-        self.roster[pres['to']][pres['from']].handle_unsubscribed(pres)
-
     def _handle_presence(self, presence):
         """Process incoming presence stanzas.
 
@@ -545,17 +499,21 @@ class BaseXMPP(XMLStream):
         if not self.is_component and not presence['to'].bare:
             presence['to'] = self.boundjid
 
+        ptype, pshow = presence['type'], presence['show']
+        pto, pfrom = presence['to'], presence['from']
+
+        handler = getattr(self.roster[pto][pfrom], 'handle_%s' % ptype, None)
+        if handler:
+            handler(presence)
+
         self.event('presence', presence)
-        self.event('presence_%s' % presence['type'], presence)
+        self.event('presence_%s' % ptype, presence)
+        if pshow:
+            self.event('presence_%s' % pshow, presence)
 
         # Check for changes in subscription state.
-        if presence['type'] in ('subscribe', 'subscribed',
-                                'unsubscribe', 'unsubscribed'):
+        if ptype in presence.subscription_types:
             self.event('changed_subscription', presence)
-            return
-        elif not presence['type'] in ('available', 'unavailable') and \
-             not presence['type'] in presence.showtypes:
-            return
 
     def exception(self, exception):
         """Process any uncaught exceptions, notably

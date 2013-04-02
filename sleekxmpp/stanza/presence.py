@@ -71,6 +71,8 @@ class Presence(RootStanza):
     types = set(['available', 'unavailable', 'error', 'probe', 'subscribe',
                  'subscribed', 'unsubscribe', 'unsubscribed'])
     showtypes = set(['dnd', 'chat', 'xa', 'away'])
+    subscription_types = set(['subscribe', 'subscribed',
+                              'unsubscribe', 'unsubscribed'])
 
     def __init__(self, *args, **kwargs):
         """
@@ -107,12 +109,7 @@ class Presence(RootStanza):
         Return the value of the <presence> stanza's type attribute, or
         the value of the <show> element.
         """
-        out = self._get_attr('type')
-        if not out:
-            out = self['show']
-        if not out or out is None:
-            out = 'available'
-        return out
+        return self._get_attr('type', 'available')
 
     def set_type(self, value):
         """
@@ -123,20 +120,16 @@ class Presence(RootStanza):
             value -- Must be in either self.types or self.showtypes.
         """
         if value in self.types:
-            self['show'] = None
             if value == 'available':
-                value = ''
-            self._set_attr('type', value)
-        elif value in self.showtypes:
-            self['show'] = value
-        return self
+                self._del_attr('type')
+            else:
+                self._set_attr('type', value)
 
     def del_type(self):
         """
         Remove both the type attribute and the <show> element.
         """
         self._del_attr('type')
-        self._del_sub('show')
 
     def set_priority(self, value):
         """

@@ -64,7 +64,7 @@ class TestElementBase(SleekTest):
         substanza['bar'] = 'c'
         stanza.append(substanza)
 
-        values = stanza.getStanzaValues()
+        values = stanza.values
         expected = {'lang': '',
                     'bar': 'a',
                     'baz': '',
@@ -156,10 +156,10 @@ class TestElementBase(SleekTest):
         stanza = TestStanza()
         substanza = TestStanza()
         stanza.append(substanza)
-        stanza.setStanzaValues({'bar': 'a',
-                                'baz': 'b',
-                                'qux': 42,
-                                'foobar': {'fizz': 'c'}})
+        stanza.values = {'bar': 'a',
+                         'baz': 'b',
+                         'qux': 42,
+                         'foobar': {'fizz': 'c'}}
 
         # Test non-plugin interfaces
         expected = {'substanzas': [substanza],

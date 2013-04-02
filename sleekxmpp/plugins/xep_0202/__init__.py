@@ -14,7 +14,3 @@ from sleekxmpp.plugins.xep_0202.time import XEP_0202
 
 
 register_plugin(XEP_0202)
-
-
-# Retain some backwards compatibility
-xep_0202 = XEP_0202

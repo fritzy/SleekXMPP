@@ -14,7 +14,3 @@ from sleekxmpp.plugins.xep_0224.attention import XEP_0224
 
 
 register_plugin(XEP_0224)
-
-
-# Retain some backwards compatibility
-xep_0224 = XEP_0224

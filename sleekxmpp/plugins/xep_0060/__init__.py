@@ -13,7 +13,3 @@ from sleekxmpp.plugins.xep_0060 import stanza
 
 
 register_plugin(XEP_0060)
-
-
-# Retain some backwards compatibility
-xep_0060 = XEP_0060

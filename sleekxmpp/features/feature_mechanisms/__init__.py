@@ -16,7 +16,3 @@ from sleekxmpp.features.feature_mechanisms.stanza import Failure
 
 
 register_plugin(FeatureMechanisms)
-
-
-# Retain some backwards compatibility
-feature_mechanisms = FeatureMechanisms

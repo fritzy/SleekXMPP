@@ -33,8 +33,6 @@ class Callback(BaseHandler):
     :param matcher: A :class:`~sleekxmpp.xmlstream.matcher.base.MatcherBase`
                     derived object for matching stanza objects.
     :param pointer: The function to execute during callback.
-    :param bool thread: **DEPRECATED.** Remains only for
-                        backwards compatibility.
     :param bool once: Indicates if the handler should be used only
                       once. Defaults to False.
     :param bool instream: Indicates if the callback should be executed
@@ -44,8 +42,8 @@ class Callback(BaseHandler):
                    instance this handler should monitor.
     """
 
-    def __init__(self, name, matcher, pointer, thread=False,
-                 once=False, instream=False, stream=None):
+    def __init__(self, name, matcher, pointer, once=False,
+                 instream=False, stream=None):
         BaseHandler.__init__(self, name, matcher, stream)
         self._pointer = pointer
         self._once = once

@@ -13,7 +13,3 @@ from sleekxmpp.plugins.xep_0249.invite import XEP_0249
 
 
 register_plugin(XEP_0249)
-
-
-# Retain some backwards compatibility
-xep_0249 = XEP_0249

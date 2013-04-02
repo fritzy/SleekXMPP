@@ -13,7 +13,3 @@ from sleekxmpp.plugins.xep_0184.receipt import XEP_0184
 
 
 register_plugin(XEP_0184)
-
-
-# Retain some backwards compatibility
-xep_0184 = XEP_0184

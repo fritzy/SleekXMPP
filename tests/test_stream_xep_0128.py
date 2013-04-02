@@ -22,7 +22,7 @@ class TestStreamExtendedDisco(SleekTest):
                                    'xep_0004',
                                    'xep_0128'])
 
-        form = self.xmpp['xep_0004'].makeForm(ftype='result')
+        form = self.xmpp['xep_0004'].make_form(ftype='result')
         form.addField(var='FORM_TYPE', ftype='hidden', value='testing')
 
         info_ns = 'http://jabber.org/protocol/disco#info'
@@ -61,10 +61,10 @@ class TestStreamExtendedDisco(SleekTest):
                                    'xep_0004',
                                    'xep_0128'])
 
-        form1 = self.xmpp['xep_0004'].makeForm(ftype='result')
+        form1 = self.xmpp['xep_0004'].make_form(ftype='result')
         form1.addField(var='FORM_TYPE', ftype='hidden', value='testing')
 
-        form2 = self.xmpp['xep_0004'].makeForm(ftype='result')
+        form2 = self.xmpp['xep_0004'].make_form(ftype='result')
         form2.addField(var='FORM_TYPE', ftype='hidden', value='testing_2')
 
         info_ns = 'http://jabber.org/protocol/disco#info'

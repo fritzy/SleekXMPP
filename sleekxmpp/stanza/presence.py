@@ -179,13 +179,3 @@ class Presence(RootStanza):
         elif self['type'] == 'subscribe':
             self['type'] = 'subscribed'
         return StanzaBase.reply(self, clear)
-
-
-# To comply with PEP8, method names now use underscores.
-# Deprecated method names are re-mapped for backwards compatibility.
-Presence.setShow = Presence.set_show
-Presence.getType = Presence.get_type
-Presence.setType = Presence.set_type
-Presence.delType = Presence.get_type
-Presence.getPriority = Presence.get_priority
-Presence.setPriority = Presence.set_priority

@@ -13,7 +13,3 @@ from sleekxmpp.features.feature_rosterver.stanza import RosterVer
 
 
 register_plugin(FeatureRosterVer)
-
-
-# Retain some backwards compatibility
-feature_rosterver = FeatureRosterVer

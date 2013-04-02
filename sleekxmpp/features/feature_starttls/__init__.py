@@ -13,7 +13,3 @@ from sleekxmpp.features.feature_starttls.stanza import *
 
 
 register_plugin(FeatureSTARTTLS)
-
-
-# Retain some backwards compatibility
-feature_starttls = FeatureSTARTTLS

@@ -15,9 +15,3 @@ from sleekxmpp.plugins.xep_0030.disco import XEP_0030
 
 
 register_plugin(XEP_0030)
-
-# Retain some backwards compatibility
-xep_0030 = XEP_0030
-XEP_0030.getInfo = XEP_0030.get_info
-XEP_0030.getItems = XEP_0030.get_items
-XEP_0030.make_static = XEP_0030.restore_defaults

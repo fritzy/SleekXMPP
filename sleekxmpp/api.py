@@ -127,14 +127,8 @@ class APIRegistry(object):
             handler = self._handlers[ctype][op]['jid'].get(jid, None)
         if handler is None:
             handler = self._handlers[ctype][op].get('global', None)
-
         if handler:
-            try:
-                return handler(jid, node, ifrom, args)
-            except TypeError:
-                # To preserve backward compatibility, drop the ifrom
-                # parameter for existing handlers that don't understand it.
-                return handler(jid, node, args)
+            return handler(jid, node, ifrom, args)
 
     def register(self, handler, ctype, op, jid=None, node=None, default=False):
         """Register an API callback, with JID+node specificity.

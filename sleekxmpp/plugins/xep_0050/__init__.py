@@ -13,7 +13,3 @@ from sleekxmpp.plugins.xep_0050.adhoc import XEP_0050
 
 
 register_plugin(XEP_0050)
-
-
-# Retain some backwards compatibility
-xep_0050 = XEP_0050

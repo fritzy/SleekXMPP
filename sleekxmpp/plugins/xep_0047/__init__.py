@@ -15,7 +15,3 @@ from sleekxmpp.plugins.xep_0047.ibb import XEP_0047
 
 
 register_plugin(XEP_0047)
-
-
-# Retain some backwards compatibility
-xep_0047 = XEP_0047

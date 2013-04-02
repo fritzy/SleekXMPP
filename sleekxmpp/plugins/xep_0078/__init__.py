@@ -14,7 +14,3 @@ from sleekxmpp.plugins.xep_0078.legacyauth import XEP_0078
 
 
 register_plugin(XEP_0078)
-
-
-# Retain some backwards compatibility
-xep_0078 = XEP_0078

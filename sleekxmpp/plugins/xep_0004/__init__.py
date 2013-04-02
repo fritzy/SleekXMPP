@@ -14,9 +14,3 @@ from sleekxmpp.plugins.xep_0004.dataforms import XEP_0004
 
 
 register_plugin(XEP_0004)
-
-
-# Retain some backwards compatibility
-xep_0004 = XEP_0004
-xep_0004.makeForm = xep_0004.make_form
-xep_0004.buildForm = xep_0004.build_form

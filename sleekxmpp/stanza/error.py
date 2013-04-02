@@ -162,13 +162,3 @@ class Error(ElementBase):
 
     def del_redirect(self):
         self._del_sub('{%s}redirect' % self.condition_ns)
-
-
-# To comply with PEP8, method names now use underscores.
-# Deprecated method names are re-mapped for backwards compatibility.
-Error.getCondition = Error.get_condition
-Error.setCondition = Error.set_condition
-Error.delCondition = Error.del_condition
-Error.getText = Error.get_text
-Error.setText = Error.set_text
-Error.delText = Error.del_text

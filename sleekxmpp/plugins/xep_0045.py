@@ -201,10 +201,7 @@ class XEP_0045(BasePlugin):
     def configureRoom(self, room, form=None, ifrom=None):
         if form is None:
             form = self.getRoomConfig(room, ifrom=ifrom)
-        iq = self.xmpp.makeIqSet()
-        iq['to'] = room
-        if ifrom is not None:
-            iq['from'] = ifrom
+        iq = self.xmpp.Iq(sto=room, stype='set', sfrom=ifrom)
         query = ET.Element('{http://jabber.org/protocol/muc#owner}query')
         form = form.getXML('submit')
         query.append(form)
@@ -221,7 +218,7 @@ class XEP_0045(BasePlugin):
     def joinMUC(self, room, nick, maxhistory="0", password='', wait=False, pstatus=None, pshow=None, pfrom=None):
         """ Join the specified room, requesting 'maxhistory' lines of history.
         """
-        stanza = self.xmpp.makePresence(pto="%s/%s" % (room, nick), pstatus=pstatus, pshow=pshow, pfrom=pfrom)
+        stanza = self.xmpp.make_presence(pto="%s/%s" % (room, nick), pstatus=pstatus, pshow=pshow, pfrom=pfrom)
         x = ET.Element('{http://jabber.org/protocol/muc}x')
         if password:
             passelement = ET.Element('{http://jabber.org/protocol/muc}password')
@@ -245,7 +242,7 @@ class XEP_0045(BasePlugin):
         self.ourNicks[room] = nick
 
     def destroy(self, room, reason='', altroom = '', ifrom=None):
-        iq = self.xmpp.makeIqSet()
+        iq = self.xmpp.Iq(sto=room, sfrom=ifrom, stype='set')
         if ifrom is not None:
             iq['from'] = ifrom
         iq['to'] = room
@@ -277,9 +274,8 @@ class XEP_0045(BasePlugin):
         else:
             item = ET.Element('{http://jabber.org/protocol/muc#admin}item', {'affiliation':affiliation, 'jid':jid})
         query.append(item)
-        iq = self.xmpp.makeIqSet(query)
-        iq['to'] = room
-        iq['from'] = ifrom
+        iq = self.xmpp.Iq(sto=room, sfrom=ifrom, stype='set')
+        iq.append(query)
         # For now, swallow errors to preserve existing API
         try:
             result = iq.send()
@@ -291,7 +287,7 @@ class XEP_0045(BasePlugin):
 
     def invite(self, room, jid, reason='', mfrom=''):
         """ Invite a jid to a room."""
-        msg = self.xmpp.makeMessage(room)
+        msg = self.xmpp.make_message(room)
         msg['from'] = mfrom
         x = ET.Element('{http://jabber.org/protocol/muc#user}x')
         invite = ET.Element('{http://jabber.org/protocol/muc#user}invite', {'to': jid})
@@ -313,9 +309,8 @@ class XEP_0045(BasePlugin):
         del self.rooms[room]
 
     def getRoomConfig(self, room, ifrom=''):
-        iq = self.xmpp.makeIqGet('http://jabber.org/protocol/muc#owner')
-        iq['to'] = room
-        iq['from'] = ifrom
+        iq = self.xmpp.Iq(sto=room, sfrom=ifrom, stype='get')
+        iq.append(ET.Element('{http://jabber.org/protocol/muc#owner}query'))
         # For now, swallow errors to preserve existing API
         try:
             result = iq.send()
@@ -332,18 +327,16 @@ class XEP_0045(BasePlugin):
         query = ET.Element('{http://jabber.org/protocol/muc#owner}query')
         x = ET.Element('{jabber:x:data}x', type='cancel')
         query.append(x)
-        iq = self.xmpp.makeIqSet(query)
-        iq['to'] = room
-        iq['from'] = ifrom
+        iq = self.xmpp.Iq(sto=room, sfrom=ifrom, stype='set')
+        iq.append(query)
         iq.send()
 
     def setRoomConfig(self, room, config, ifrom=''):
         query = ET.Element('{http://jabber.org/protocol/muc#owner}query')
         x = config.getXML('submit')
         query.append(x)
-        iq = self.xmpp.makeIqSet(query)
-        iq['to'] = room
-        iq['from'] = ifrom
+        iq = self.xmpp.Iq(sto=room, sfrom=ifrom, stype='set')
+        iq.append(query)
         iq.send()
 
     def getJoinedRooms(self):

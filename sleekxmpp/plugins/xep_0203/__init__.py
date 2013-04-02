@@ -14,6 +14,3 @@ from sleekxmpp.plugins.xep_0203.delay import XEP_0203
 
 
 register_plugin(XEP_0203)
-
-# Retain some backwards compatibility
-xep_0203 = XEP_0203

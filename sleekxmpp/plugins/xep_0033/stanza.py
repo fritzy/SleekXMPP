@@ -117,15 +117,5 @@ for atype in ('all', 'bcc', 'cc', 'noreply', 'replyroom', 'replyto', 'to'):
     setattr(Addresses, "set_%s" % atype, set_multi)
     setattr(Addresses, "del_%s" % atype, del_multi)
 
-    # To retain backwards compatibility:
-    setattr(Addresses, "get%s" % atype.title(), get_multi)
-    setattr(Addresses, "set%s" % atype.title(), set_multi)
-    setattr(Addresses, "del%s" % atype.title(), del_multi)
-    if atype == 'all':
-        Addresses.interfaces.add('addresses')
-        setattr(Addresses, "getAddresses", get_multi)
-        setattr(Addresses, "setAddresses", set_multi)
-        setattr(Addresses, "delAddresses", del_multi)
-
 
 register_stanza_plugin(Addresses, Address, iterable=True)

@@ -13,7 +13,3 @@ from sleekxmpp.plugins.xep_0086.legacy_error import XEP_0086
 
 
 register_plugin(XEP_0086)
-
-
-# Retain some backwards compatibility
-xep_0086 = XEP_0086

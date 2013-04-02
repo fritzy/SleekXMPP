@@ -14,7 +14,3 @@ from sleekxmpp.plugins.xep_0115.caps import XEP_0115
 
 
 register_plugin(XEP_0115)
-
-
-# Retain some backwards compatibility
-xep_0115 = XEP_0115

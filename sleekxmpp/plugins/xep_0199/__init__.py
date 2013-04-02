@@ -13,8 +13,3 @@ from sleekxmpp.plugins.xep_0199.ping import XEP_0199
 
 
 register_plugin(XEP_0199)
-
-
-# Backwards compatibility for names
-xep_0199 = XEP_0199
-xep_0199.sendPing = xep_0199.send_ping

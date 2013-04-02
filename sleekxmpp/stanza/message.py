@@ -186,14 +186,3 @@ class Message(RootStanza):
     def del_mucnick(self):
         """Dummy method to prevent deletion."""
         pass
-
-
-# To comply with PEP8, method names now use underscores.
-# Deprecated method names are re-mapped for backwards compatibility.
-Message.getType = Message.get_type
-Message.getMucroom = Message.get_mucroom
-Message.setMucroom = Message.set_mucroom
-Message.delMucroom = Message.del_mucroom
-Message.getMucnick = Message.get_mucnick
-Message.setMucnick = Message.set_mucnick
-Message.delMucnick = Message.del_mucnick

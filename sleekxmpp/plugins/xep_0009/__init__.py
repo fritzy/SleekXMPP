@@ -14,7 +14,3 @@ from sleekxmpp.plugins.xep_0009.stanza import RPCQuery, MethodCall, MethodRespon
 
 
 register_plugin(XEP_0009)
-
-
-# Retain some backwards compatibility
-xep_0009 = XEP_0009

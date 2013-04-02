@@ -261,11 +261,3 @@ class Iq(RootStanza):
         else:
             StanzaBase._set_stanza_values(self, values)
         return self
-
-
-# To comply with PEP8, method names now use underscores.
-# Deprecated method names are re-mapped for backwards compatibility.
-Iq.setPayload = Iq.set_payload
-Iq.getQuery = Iq.get_query
-Iq.setQuery = Iq.set_query
-Iq.delQuery = Iq.del_query

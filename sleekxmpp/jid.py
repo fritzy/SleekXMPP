@@ -490,22 +490,6 @@ class JID(object):
                             self._jid[1],
                             self._jid[2])
 
-    def regenerate(self):
-        """No-op
-
-        .. deprecated:: 1.1.10
-        """
-        pass
-
-    def reset(self, data):
-        """Start fresh from a new JID string.
-
-        :param string data: A string of the form ``'[user@]domain[/resource]'``.
-
-        .. deprecated:: 1.1.10
-        """
-        self._jid = JID(data)._jid
-
     # pylint: disable=R0911
     def __getattr__(self, name):
         """Retrieve the given JID component.

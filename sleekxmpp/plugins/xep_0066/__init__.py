@@ -14,7 +14,3 @@ from sleekxmpp.plugins.xep_0066.oob import XEP_0066
 
 
 register_plugin(XEP_0066)
-
-
-# Retain some backwards compatibility
-xep_0066 = XEP_0066

@@ -91,10 +91,6 @@ def register_stanza_plugin(stanza, plugin, iterable=False, overrides=False):
             stanza.plugin_overrides[interface] = plugin.plugin_attrib
 
 
-# To maintain backwards compatibility for now, preserve the camel case name.
-registerStanzaPlugin = register_stanza_plugin
-
-
 def multifactory(stanza, plugin_attrib):
     """
     Returns a ElementBase class for handling reoccuring child stanzas
@@ -383,20 +379,6 @@ class ElementBase(object):
     #: .. versionadded:: 1.0-Beta5
     plugin_iterables = set()
 
-    #: A deprecated version of :attr:`plugin_iterables` that remains
-    #: for backward compatibility. It required a parent stanza to
-    #: know beforehand what stanza classes would be iterable::
-    #:
-    #:     class DiscoItem(ElementBase):
-    #:         ...
-    #:
-    #:     class DiscoInfo(ElementBase):
-    #:         subitem = (DiscoItem, )
-    #:         ...
-    #:
-    #: .. deprecated:: 1.0-Beta5
-    subitem = set()
-
     #: The default XML namespace: ``http://www.w3.org/XML/1998/namespace``.
     xml_ns = XML_NS
 
@@ -429,10 +411,6 @@ class ElementBase(object):
                 self.parent = weakref.ref(parent)
             else:
                 self.parent = parent
-
-        if self.subitem is not None:
-            for sub in self.subitem:
-                self.plugin_iterables.add(sub)
 
         if self.setup(xml):
             # If we generated our own XML, then everything is ready.
@@ -1620,25 +1598,3 @@ class StanzaBase(ElementBase):
 #: Child stanzas are exposed as nested dictionaries.
 ElementBase.values = property(ElementBase._get_stanza_values,
                               ElementBase._set_stanza_values)
-
-
-# To comply with PEP8, method names now use underscores.
-# Deprecated method names are re-mapped for backwards compatibility.
-ElementBase.initPlugin = ElementBase.init_plugin
-ElementBase._getAttr = ElementBase._get_attr
-ElementBase._setAttr = ElementBase._set_attr
-ElementBase._delAttr = ElementBase._del_attr
-ElementBase._getSubText = ElementBase._get_sub_text
-ElementBase._setSubText = ElementBase._set_sub_text
-ElementBase._delSub = ElementBase._del_sub
-ElementBase.getStanzaValues = ElementBase._get_stanza_values
-ElementBase.setStanzaValues = ElementBase._set_stanza_values
-
-StanzaBase.setType = StanzaBase.set_type
-StanzaBase.getTo = StanzaBase.get_to
-StanzaBase.setTo = StanzaBase.set_to
-StanzaBase.getFrom = StanzaBase.get_from
-StanzaBase.setFrom = StanzaBase.set_from
-StanzaBase.getPayload = StanzaBase.get_payload
-StanzaBase.setPayload = StanzaBase.set_payload
-StanzaBase.delPayload = StanzaBase.del_payload

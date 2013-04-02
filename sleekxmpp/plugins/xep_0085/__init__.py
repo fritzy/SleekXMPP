@@ -13,7 +13,3 @@ from sleekxmpp.plugins.xep_0085.chat_states import XEP_0085
 
 
 register_plugin(XEP_0085)
-
-
-# Retain some backwards compatibility
-xep_0085 = XEP_0085

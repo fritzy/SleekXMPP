@@ -52,19 +52,16 @@ class ClientXMPP(BaseXMPP):
 
     :param jid: The JID of the XMPP user account.
     :param password: The password for the XMPP user account.
-    :param ssl: **Deprecated.**
     :param plugin_config: A dictionary of plugin configurations.
     :param plugin_whitelist: A list of approved plugins that
                     will be loaded when calling
                     :meth:`~sleekxmpp.basexmpp.BaseXMPP.register_plugins()`.
-    :param escape_quotes: **Deprecated.**
     """
 
     def __init__(self, jid, password, plugin_config={}, plugin_whitelist=[],
-                 escape_quotes=True, sasl_mech=None, lang='en'):
+                 sasl_mech=None, lang='en'):
         BaseXMPP.__init__(self, jid, 'jabber:client')
 
-        self.escape_quotes = escape_quotes
         self.plugin_config = plugin_config
         self.plugin_whitelist = plugin_whitelist
         self.default_port = 5222
@@ -96,6 +93,7 @@ class ClientXMPP(BaseXMPP):
 
         self.add_event_handler('connected', self._reset_connection_state)
         self.add_event_handler('session_bind', self._handle_session_bind)
+        self.add_event_handler('session_start', self._handle_session_start)
 
         self.register_stanza(StreamFeatures)
 
@@ -317,10 +315,7 @@ class ClientXMPP(BaseXMPP):
         """
         self.client_roster = self.roster[jid]
 
-
-# To comply with PEP8, method names now use underscores.
-# Deprecated method names are re-mapped for backwards compatibility.
-ClientXMPP.updateRoster = ClientXMPP.update_roster
-ClientXMPP.delRosterItem = ClientXMPP.del_roster_item
-ClientXMPP.getRoster = ClientXMPP.get_roster
-ClientXMPP.registerFeature = ClientXMPP.register_feature
+    def _handle_session_start(self, event):
+        """Retrieve the client roster, and send initial presence."""
+        self.get_roster()
+        self.client_roster.send_last_presence()

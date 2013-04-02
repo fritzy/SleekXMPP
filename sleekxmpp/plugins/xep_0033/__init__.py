@@ -14,7 +14,3 @@ from sleekxmpp.plugins.xep_0033.addresses import XEP_0033
 
 
 register_plugin(XEP_0033)
-
-# Retain some backwards compatibility
-xep_0033 = XEP_0033
-Addresses.addAddress = Addresses.add_address

@@ -77,8 +77,3 @@ class BaseHandler(object):
         of stream handlers.
         """
         return self._destroy
-
-
-# To comply with PEP8, method names now use underscores.
-# Deprecated method names are re-mapped for backwards compatibility.
-BaseHandler.checkDelete = BaseHandler.check_delete

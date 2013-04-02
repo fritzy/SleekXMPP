@@ -12,10 +12,3 @@ from sleekxmpp.plugins.xep_0071 import XHTML_IM as HTMLIM
 
 
 register_stanza_plugin(Message, HTMLIM)
-
-
-# To comply with PEP8, method names now use underscores.
-# Deprecated method names are re-mapped for backwards compatibility.
-HTMLIM.setBody = HTMLIM.set_body
-HTMLIM.getBody = HTMLIM.get_body
-HTMLIM.delBody = HTMLIM.del_body

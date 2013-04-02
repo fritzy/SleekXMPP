@@ -13,7 +13,3 @@ from sleekxmpp.plugins.xep_0128.extended_disco import XEP_0128
 
 
 register_plugin(XEP_0128)
-
-
-# Retain some backwards compatibility
-xep_0128 = XEP_0128

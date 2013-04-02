@@ -13,7 +13,3 @@ from sleekxmpp.features.feature_bind.stanza import Bind
 
 
 register_plugin(FeatureBind)
-
-
-# Retain some backwards compatibility
-feature_bind = FeatureBind

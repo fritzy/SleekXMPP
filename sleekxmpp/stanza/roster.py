@@ -150,9 +150,3 @@ class RosterItem(ElementBase):
 
 register_stanza_plugin(Iq, Roster)
 register_stanza_plugin(Roster, RosterItem, iterable=True)
-
-# To comply with PEP8, method names now use underscores.
-# Deprecated method names are re-mapped for backwards compatibility.
-Roster.setItems = Roster.set_items
-Roster.getItems = Roster.get_items
-Roster.delItems = Roster.del_items

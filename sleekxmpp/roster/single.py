@@ -56,7 +56,7 @@ class RosterNode(object):
         self.xmpp = xmpp
         self.jid = jid
         self.db = db
-        self.auto_authorize = False
+        self.auto_authorize = None
         self.auto_subscribe = True
         self.last_status = None
         self._version = ''

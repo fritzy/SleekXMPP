@@ -39,7 +39,7 @@ class XEP_0313(BasePlugin):
         register_stanza_plugin(stanza.MAM, self.xmpp['xep_0059'].stanza.Set)
 
     def retrieve(self, jid=None, start=None, end=None, with_jid=None, ifrom=None,
-                 block=True, timeout=None, callback=None, iterator=False):
+                 iterator=False, **iqargs):
         iq = self.xmpp.Iq()
         query_id = iq['id']
 
@@ -56,6 +56,9 @@ class XEP_0313(BasePlugin):
             StanzaPath('message/mam_result@queryid=%s' % query_id))
         self.xmpp.register_handler(collector)
 
+        block = iqargs.get('block', True)
+        callback = iqargs.get('callback')
+
         if iterator:
             return self.xmpp['xep_0059'].iterate(iq, 'mam', 'results')
         elif not block and callback is not None:
@@ -64,10 +67,11 @@ class XEP_0313(BasePlugin):
                 if iq['type'] == 'result':
                     iq['mam']['results'] = results
                 callback(iq)
-            return iq.send(block=block, timeout=timeout, callback=wrapped_cb)
+                iqargs['callback'] = wrapped_cb
+            return iq.send(**iqargs)
         else:
             try:
-                resp = iq.send(block=block, timeout=timeout, callback=callback)
+                resp = iq.send(**iqargs)
                 resp['mam']['results'] = collector.stop()
                 return resp
             except XMPPError as e:
@@ -75,7 +79,7 @@ class XEP_0313(BasePlugin):
                 raise e
 
     def set_preferences(self, jid=None, default=None, always=None, never=None,
-                        ifrom=None, block=True, timeout=None, callback=None):
+                        ifrom=None, **iqargs):
         iq = self.xmpp.Iq()
         iq['type'] = 'set'
         iq['to'] = jid
@@ -83,7 +87,7 @@ class XEP_0313(BasePlugin):
         iq['mam_prefs']['default'] = default
         iq['mam_prefs']['always'] = always
         iq['mam_prefs']['never'] = never
-        return iq.send(block=block, timeout=timeout, callback=callback)
+        return iq.send(**iqargs)
 
     def get_configuration_commands(self, jid, **kwargs):
         return self.xmpp['xep_0030'].get_items(

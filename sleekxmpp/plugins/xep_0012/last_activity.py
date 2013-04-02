@@ -76,8 +76,7 @@ class XEP_0012(BasePlugin):
     def del_last_activity(self, jid):
         self.api['del_last_activity'](jid)
 
-    def get_last_activity(self, jid, local=False, ifrom=None, block=True,
-                          timeout=None, callback=None):
+    def get_last_activity(self, jid, local=False, ifrom=None, **iqargs):
         if jid is not None and not isinstance(jid, JID):
             jid = JID(jid)
 
@@ -85,7 +84,7 @@ class XEP_0012(BasePlugin):
             if jid.domain == self.xmpp.boundjid.domain:
                 local = True
         else:
-            if str(jid) == str(self.xmpp.boundjid):
+            if jid == self.xmpp.boundjid:
                 local = True
         jid = jid.full
 
@@ -98,9 +97,7 @@ class XEP_0012(BasePlugin):
         iq['to'] = jid
         iq['type'] = 'get'
         iq.enable('last_activity')
-        return iq.send(timeout=timeout,
-                       block=block,
-                       callback=callback)
+        return iq.send(**iqargs)
 
     def _handle_get_last_activity(self, iq):
         log.debug("Received last activity query from " + \

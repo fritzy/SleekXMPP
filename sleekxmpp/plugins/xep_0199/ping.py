@@ -119,7 +119,7 @@ class XEP_0199(BasePlugin):
         log.debug("Pinged by %s", iq['from'])
         iq.reply().send()
 
-    def send_ping(self, jid, ifrom=None, block=True, timeout=None, callback=None):
+    def send_ping(self, jid, ifrom=None, **iqargs):
         """Send a ping request.
 
         Arguments:
@@ -143,7 +143,7 @@ class XEP_0199(BasePlugin):
         iq['from'] = ifrom
         iq.enable('ping')
 
-        return iq.send(block=block, timeout=timeout, callback=callback)
+        return iq.send(**iqargs)
 
     def ping(self, jid=None, ifrom=None, timeout=None):
         """Send a ping request and calculate RTT.

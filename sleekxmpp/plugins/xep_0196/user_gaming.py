@@ -35,7 +35,7 @@ class XEP_0196(BasePlugin):
 
     def publish_gaming(self, name=None, level=None, server_name=None, uri=None,
                     character_name=None, character_profile=None, server_address=None,
-                    options=None, ifrom=None, block=True, callback=None, timeout=None):
+                    options=None, ifrom=None, **iqargs):
         """
         Publish the user's current gaming status.
 
@@ -70,11 +70,9 @@ class XEP_0196(BasePlugin):
                 node=UserGaming.namespace,
                 options=options,
                 ifrom=ifrom,
-                block=block,
-                callback=callback,
-                timeout=timeout)
+                **iqargs)
 
-    def stop(self, ifrom=None, block=True, callback=None, timeout=None):
+    def stop(self, ifrom=None, **iqargs):
         """
         Clear existing user gaming information to stop notifications.
 
@@ -92,6 +90,4 @@ class XEP_0196(BasePlugin):
         return self.xmpp['xep_0163'].publish(gaming,
                 node=UserGaming.namespace,
                 ifrom=ifrom,
-                block=block,
-                callback=callback,
-                timeout=timeout)
+                **iqargs)

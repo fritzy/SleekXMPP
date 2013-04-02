@@ -70,7 +70,7 @@ class XEP_0092(BasePlugin):
         iq['software_version']['os'] = self.os
         iq.send()
 
-    def get_version(self, jid, ifrom=None, block=True, timeout=None, callback=None):
+    def get_version(self, jid, ifrom=None, **iqargs):
         """
         Retrieve the software version of a remote agent.
 
@@ -82,4 +82,4 @@ class XEP_0092(BasePlugin):
         iq['from'] = ifrom
         iq['type'] = 'get'
         iq['query'] = Version.namespace
-        return iq.send(block=block, timeout=timeout, callback=callback)
+        return iq.send(**iqargs)

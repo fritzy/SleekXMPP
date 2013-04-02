@@ -27,18 +27,16 @@ class XEP_0186(BasePlugin):
         register_stanza_plugin(Iq, Visible)
         register_stanza_plugin(Iq, Invisible)
 
-    def set_invisible(self, ifrom=None, block=True, callback=None,
-                            timeout=None):
+    def set_invisible(self, ifrom=None, **iqargs):
         iq = self.xmpp.Iq()
         iq['type'] = 'set'
         iq['from'] = ifrom
         iq.enable('invisible')
-        iq.send(block=block, callback=callback, timeout=timeout)
+        iq.send(**iqargs)
 
-    def set_visible(self, ifrom=None, block=True, callback=None,
-                          timeout=None):
+    def set_visible(self, ifrom=None, **iqargs):
         iq = self.xmpp.Iq()
         iq['type'] = 'set'
         iq['from'] = ifrom
         iq.enable('visible')
-        iq.send(block=block, callback=callback, timeout=timeout)
+        iq.send(**iqargs)

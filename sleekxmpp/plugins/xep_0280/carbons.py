@@ -66,16 +66,16 @@ class XEP_0280(BasePlugin):
     def _handle_carbon_sent(self, msg):
         self.xmpp.event('carbon_sent', msg)
 
-    def enable(self, ifrom=None, block=True, timeout=None, callback=None):
+    def enable(self, ifrom=None, **iqargs):
         iq = self.xmpp.Iq()
         iq['type'] = 'set'
         iq['from'] = ifrom
         iq.enable('carbon_enable')
-        return iq.send(block=block, timeout=timeout, callback=callback)
+        return iq.send(**iqargs)
 
-    def disable(self, ifrom=None, block=True, timeout=None, callback=None):
+    def disable(self, ifrom=None, **iqargs):
         iq = self.xmpp.Iq()
         iq['type'] = 'set'
         iq['from'] = ifrom
         iq.enable('carbon_disable')
-        return iq.send(block=block, timeout=timeout, callback=callback)
+        return iq.send(**iqargs)

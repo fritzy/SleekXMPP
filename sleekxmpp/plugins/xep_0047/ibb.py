@@ -77,7 +77,7 @@ class XEP_0047(BasePlugin):
         return False
 
     def open_stream(self, jid, block_size=4096, sid=None, window=1, use_messages=False,
-                    ifrom=None, block=True, timeout=None, callback=None):
+                    ifrom=None, **iqargs):
         if sid is None:
             sid = str(uuid.uuid4())
 
@@ -98,8 +98,11 @@ class XEP_0047(BasePlugin):
 
         self.pending_streams[iq['id']] = stream
 
+        block = iqargs.get('block', True)
+        callback = iqargs.get('callback')
+
         if block:
-            resp = iq.send(timeout=timeout)
+            resp = iq.send(**iqargs)
             self._handle_opened_stream(resp)
             return stream
         else:
@@ -111,7 +114,8 @@ class XEP_0047(BasePlugin):
                 cb = chained
             else:
                 cb = self._handle_opened_stream
-            return iq.send(block=block, timeout=timeout, callback=cb)
+            iqargs['callback'] = cb
+            return iq.send(**iqargs)
 
     def _handle_opened_stream(self, iq):
         if iq['type'] == 'result':

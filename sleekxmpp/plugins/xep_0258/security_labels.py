@@ -34,11 +34,10 @@ class XEP_0258(BasePlugin):
     def session_bind(self, jid):
         self.xmpp['xep_0030'].add_feature(SecurityLabel.namespace)
 
-    def get_catalog(self, jid, ifrom=None, block=True,
-                          callback=None, timeout=None):
+    def get_catalog(self, jid, ifrom=None, **iqargs):
         iq = self.xmpp.Iq()
         iq['to'] = jid
         iq['from'] = ifrom
         iq['type'] = 'get'
         iq.enable('security_label_catalog')
-        return iq.send(block=block, callback=callback, timeout=timeout)
+        return iq.send(**iqargs)

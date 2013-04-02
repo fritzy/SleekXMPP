@@ -28,7 +28,7 @@ class XEP_0223(BasePlugin):
     profile = {'pubsub#persist_items': True,
                'pubsub#send_last_published_item': 'never'}
 
-    def configure(self, node):
+    def configure(self, node, **iqargs):
         """
         Update a node's configuration to match the public storage profile.
         """
@@ -40,12 +40,10 @@ class XEP_0223(BasePlugin):
 
         return self.xmpp['xep_0060'].set_node_config(None, node, config,
                 ifrom=ifrom,
-                block=block,
-                callback=callback,
-                timeout=timeout)
+                **iqargs)
 
     def store(self, stanza, node=None, id=None, ifrom=None, options=None,
-              block=True, callback=None, timeout=None):
+              **iqargs):
         """
         Store private data via PEP.
 
@@ -85,12 +83,9 @@ class XEP_0223(BasePlugin):
         return self.xmpp['xep_0163'].publish(stanza, node,
                 options=options,
                 ifrom=ifrom,
-                block=block,
-                callback=callback,
-                timeout=timeout)
+                **iqargs)
 
-    def retrieve(self, node, id=None, item_ids=None, ifrom=None,
-                 block=True, callback=None, timeout=None):
+    def retrieve(self, node, id=None, item_ids=None, ifrom=None, **iqargs):
         """
         Retrieve private data via PEP.
 
@@ -119,9 +114,7 @@ class XEP_0223(BasePlugin):
         return self.xmpp['xep_0060'].get_items(None, node,
                 item_ids=item_ids,
                 ifrom=ifrom,
-                block=block,
-                callback=callback,
-                timeout=timeout)
+                **iqargs)
 
 
 register_plugin(XEP_0223)

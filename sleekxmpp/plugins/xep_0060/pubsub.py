@@ -152,7 +152,7 @@ class XEP_0060(BasePlugin):
         self.node_event_map[node] = event_name
 
     def create_node(self, jid, node, config=None, ntype=None, ifrom=None,
-                    block=True, callback=None, timeout=None):
+                    **iqargs):
         """
         Create and configure a new pubsub node.
 
@@ -200,10 +200,10 @@ class XEP_0060(BasePlugin):
                     config.add_field(var='pubsub#node_type', value=ntype)
             iq['pubsub']['configure'].append(config)
 
-        return iq.send(block=block, callback=callback, timeout=timeout)
+        return iq.send(**iqargs)
 
     def subscribe(self, jid, node, bare=True, subscribee=None, options=None,
-                  ifrom=None, block=True, callback=None, timeout=None):
+                  ifrom=None, **iqargs):
         """
         Subscribe to updates from a pubsub node.
 
@@ -247,10 +247,10 @@ class XEP_0060(BasePlugin):
         iq['pubsub']['subscribe']['jid'] = subscribee
         if options is not None:
             iq['pubsub']['options'].append(options)
-        return iq.send(block=block, callback=callback, timeout=timeout)
+        return iq.send(**iqargs)
 
     def unsubscribe(self, jid, node, subid=None, bare=True, subscribee=None,
-                    ifrom=None, block=True, callback=None, timeout=None):
+                    ifrom=None, **iqargs):
         """
         Unubscribe from updates from a pubsub node.
 
@@ -295,42 +295,37 @@ class XEP_0060(BasePlugin):
 
         iq['pubsub']['unsubscribe']['jid'] = subscribee
         iq['pubsub']['unsubscribe']['subid'] = subid
-        return iq.send(block=block, callback=callback, timeout=timeout)
+        return iq.send(**iqargs)
 
-    def get_subscriptions(self, jid, node=None, ifrom=None, block=True,
-                          callback=None, timeout=None):
+    def get_subscriptions(self, jid, node=None, ifrom=None, **iqargs):
         iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='get')
         iq['pubsub']['subscriptions']['node'] = node
-        return iq.send(block=block, callback=callback, timeout=timeout)
+        return iq.send(**iqargs)
 
-    def get_affiliations(self, jid, node=None, ifrom=None, block=True,
-                         callback=None, timeout=None):
+    def get_affiliations(self, jid, node=None, ifrom=None, **iqargs):
         iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='get')
         iq['pubsub']['affiliations']['node'] = node
-        return iq.send(block=block, callback=callback, timeout=timeout)
+        return iq.send(**iqargs)
 
     def get_subscription_options(self, jid, node=None, user_jid=None,
-                                 ifrom=None, block=True, callback=None,
-                                 timeout=None):
+                                 ifrom=None, **iqargs):
         iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='get')
         if user_jid is None:
             iq['pubsub']['default']['node'] = node
         else:
             iq['pubsub']['options']['node'] = node
             iq['pubsub']['options']['jid'] = user_jid
-        return iq.send(block=block, callback=callback, timeout=timeout)
+        return iq.send(**iqargs)
 
     def set_subscription_options(self, jid, node, user_jid, options,
-                                 ifrom=None, block=True, callback=None,
-                                 timeout=None):
+                                 ifrom=None, **iqargs):
         iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='get')
         iq['pubsub']['options']['node'] = node
         iq['pubsub']['options']['jid'] = user_jid
         iq['pubsub']['options'].append(options)
-        return iq.send(block=block, callback=callback, timeout=timeout)
+        return iq.send(**iqargs)
 
-    def get_node_config(self, jid, node=None, ifrom=None, block=True,
-                        callback=None, timeout=None):
+    def get_node_config(self, jid, node=None, ifrom=None, **iqargs):
         """
         Retrieve the configuration for a node, or the pubsub service's
         default configuration for new nodes.
@@ -354,10 +349,9 @@ class XEP_0060(BasePlugin):
             iq['pubsub_owner']['default']
         else:
             iq['pubsub_owner']['configure']['node'] = node
-        return iq.send(block=block, callback=callback, timeout=timeout)
+        return iq.send(**iqargs)
 
-    def get_node_subscriptions(self, jid, node, ifrom=None, block=True,
-                               callback=None, timeout=None):
+    def get_node_subscriptions(self, jid, node, ifrom=None, **iqargs):
         """
         Retrieve the subscriptions associated with a given node.
 
@@ -375,10 +369,9 @@ class XEP_0060(BasePlugin):
         """
         iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='get')
         iq['pubsub_owner']['subscriptions']['node'] = node
-        return iq.send(block=block, callback=callback, timeout=timeout)
+        return iq.send(**iqargs)
 
-    def get_node_affiliations(self, jid, node, ifrom=None, block=True,
-                              callback=None, timeout=None):
+    def get_node_affiliations(self, jid, node, ifrom=None, **iqargs):
         """
         Retrieve the affiliations associated with a given node.
 
@@ -396,10 +389,9 @@ class XEP_0060(BasePlugin):
         """
         iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='get')
         iq['pubsub_owner']['affiliations']['node'] = node
-        return iq.send(block=block, callback=callback, timeout=timeout)
+        return iq.send(**iqargs)
 
-    def delete_node(self, jid, node, ifrom=None, block=True,
-                    callback=None, timeout=None):
+    def delete_node(self, jid, node, ifrom=None, **iqargs):
         """
         Delete a a pubsub node.
 
@@ -417,17 +409,16 @@ class XEP_0060(BasePlugin):
         """
         iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='set')
         iq['pubsub_owner']['delete']['node'] = node
-        return iq.send(block=block, callback=callback, timeout=timeout)
+        return iq.send(**iqargs)
 
-    def set_node_config(self, jid, node, config, ifrom=None, block=True,
-                        callback=None, timeout=None):
+    def set_node_config(self, jid, node, config, ifrom=None, **iqargs):
         iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='set')
         iq['pubsub_owner']['configure']['node'] = node
         iq['pubsub_owner']['configure'].append(config)
-        return iq.send(block=block, callback=callback, timeout=timeout)
+        return iq.send(**iqargs)
 
     def publish(self, jid, node, id=None, payload=None, options=None,
-                ifrom=None, block=True, callback=None, timeout=None):
+                ifrom=None, **iqargs):
         """
         Add a new item to a node, or edit an existing item.
 
@@ -464,10 +455,9 @@ class XEP_0060(BasePlugin):
         if payload is not None:
             iq['pubsub']['publish']['item']['payload'] = payload
         iq['pubsub']['publish_options'] = options
-        return iq.send(block=block, callback=callback, timeout=timeout)
+        return iq.send(**iqargs)
 
-    def retract(self, jid, node, id, notify=None, ifrom=None, block=True,
-                callback=None, timeout=None):
+    def retract(self, jid, node, id, notify=None, ifrom=None, **iqargs):
         """
         Delete a single item from a node.
         """
@@ -476,16 +466,15 @@ class XEP_0060(BasePlugin):
         iq['pubsub']['retract']['node'] = node
         iq['pubsub']['retract']['notify'] = notify
         iq['pubsub']['retract']['item']['id'] = id
-        return iq.send(block=block, callback=callback, timeout=timeout)
+        return iq.send(**iqargs)
 
-    def purge(self, jid, node, ifrom=None, block=True, callback=None,
-              timeout=None):
+    def purge(self, jid, node, ifrom=None, **iqargs):
         """
         Remove all items from a node.
         """
         iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='set')
         iq['pubsub_owner']['purge']['node'] = node
-        return iq.send(block=block, callback=callback, timeout=timeout)
+        return iq.send(**iqargs)
 
     def get_nodes(self, *args, **kwargs):
         """
@@ -493,8 +482,7 @@ class XEP_0060(BasePlugin):
         """
         return self.xmpp['xep_0030'].get_items(*args, **kwargs)
 
-    def get_item(self, jid, node, item_id, ifrom=None, block=True,
-                 callback=None, timeout=None):
+    def get_item(self, jid, node, item_id, ifrom=None, **iqargs):
         """
         Retrieve the content of an individual item.
         """
@@ -503,11 +491,10 @@ class XEP_0060(BasePlugin):
         item['id'] = item_id
         iq['pubsub']['items']['node'] = node
         iq['pubsub']['items'].append(item)
-        return iq.send(block=block, callback=callback, timeout=timeout)
+        return iq.send(**iqargs)
 
     def get_items(self, jid, node, item_ids=None, max_items=None,
-                  iterator=False, ifrom=None, block=False,
-                  callback=None, timeout=None):
+                  iterator=False, ifrom=None, **iqargs):
         """
         Request the contents of a node's items.
 
@@ -530,22 +517,19 @@ class XEP_0060(BasePlugin):
         if iterator:
             return self.xmpp['xep_0059'].iterate(iq, 'pubsub')
         else:
-            return iq.send(block=block, callback=callback, timeout=timeout)
+            return iq.send(**iqargs)
 
-    def get_item_ids(self, jid, node, ifrom=None, block=True,
-                     callback=None, timeout=None, iterator=False):
+    def get_item_ids(self, jid, node, ifrom=None, iterator=False, **iqargs):
         """
         Retrieve the ItemIDs hosted by a given node, using disco.
         """
         return self.xmpp['xep_0030'].get_items(jid, node,
                 ifrom=ifrom,
-                block=block,
-                callback=callback,
-                timeout=timeout,
-                iterator=iterator)
+                iterator=iterator,
+                **iqargs)
 
     def modify_affiliations(self, jid, node, affiliations=None, ifrom=None,
-                            block=True, callback=None, timeout=None):
+                            **iqargs):
         iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='set')
         iq['pubsub_owner']['affiliations']['node'] = node
 
@@ -558,10 +542,10 @@ class XEP_0060(BasePlugin):
             aff['affiliation'] = affiliation
             iq['pubsub_owner']['affiliations'].append(aff)
 
-        return iq.send(block=block, callback=callback, timeout=timeout)
+        return iq.send(**iqargs)
 
     def modify_subscriptions(self, jid, node, subscriptions=None, ifrom=None,
-                             block=True, callback=None, timeout=None):
+                             **iqargs):
         iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='set')
         iq['pubsub_owner']['subscriptions']['node'] = node
 
@@ -574,4 +558,4 @@ class XEP_0060(BasePlugin):
             sub['subscription'] = subscription
             iq['pubsub_owner']['subscriptions'].append(sub)
 
-        return iq.send(block=block, callback=callback, timeout=timeout)
+        return iq.send(**iqargs)

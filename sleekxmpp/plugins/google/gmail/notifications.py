@@ -56,7 +56,7 @@ class Gmail(BasePlugin):
         iq.reply().send()
         self.xmpp.event('gmail_notification')
 
-    def check(self, block=True, timeout=None, callback=None):
+    def check(self, **iqargs):
         last_time = self._last_result_time
         last_tid = self._last_result_tid
 
@@ -65,9 +65,7 @@ class Gmail(BasePlugin):
 
         resp = self.search(newer_time=last_time,
             newer_tid=last_tid,
-            block=block,
-            timeout=timeout,
-            callback=callback)
+            **iqargs)
 
         if block:
             self._update_last_results(resp)
@@ -81,8 +79,7 @@ class Gmail(BasePlugin):
         if callback:
             callback(iq)
 
-    def search(self, query=None, newer_time=None, newer_tid=None, block=True,
-                     timeout=None, callback=None):
+    def search(self, query=None, newer_time=None, newer_tid=None, **iqargs):
         if not query:
             log.info('Gmail: Checking for new email')
         else:
@@ -93,4 +90,4 @@ class Gmail(BasePlugin):
         iq['gmail']['search'] = query
         iq['gmail']['newer_than_time'] = newer_time
         iq['gmail']['newer_than_tid'] = newer_tid
-        return iq.send(block=block, timeout=timeout, callback=callback)
+        return iq.send(**iqargs)

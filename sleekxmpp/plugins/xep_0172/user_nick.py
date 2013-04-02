@@ -42,8 +42,7 @@ class XEP_0172(BasePlugin):
     def session_bind(self, jid):
         self.xmpp['xep_0163'].register_pep('user_nick', UserNick)
 
-    def publish_nick(self, nick=None, options=None, ifrom=None, block=True,
-                     callback=None, timeout=None):
+    def publish_nick(self, nick=None, options=None, ifrom=None, **iqargs):
         """
         Publish the user's current nick.
 
@@ -65,11 +64,9 @@ class XEP_0172(BasePlugin):
                 node=UserNick.namespace,
                 options=options,
                 ifrom=ifrom,
-                block=block,
-                callback=callback,
-                timeout=timeout)
+                **iqargs)
 
-    def stop(self, ifrom=None, block=True, callback=None, timeout=None):
+    def stop(self, ifrom=None, **iqargs):
         """
         Clear existing user nick information to stop notifications.
 
@@ -87,6 +84,4 @@ class XEP_0172(BasePlugin):
         return self.xmpp['xep_0163'].publish(nick,
                 node=UserNick.namespace,
                 ifrom=ifrom,
-                block=block,
-                callback=callback,
-                timeout=timeout)
+                **iqargs)

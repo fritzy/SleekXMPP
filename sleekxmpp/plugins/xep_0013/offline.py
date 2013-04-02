@@ -48,7 +48,7 @@ class XEP_0013(BasePlugin):
                 local=False,
                 **kwargs)
 
-    def view(self, nodes, ifrom=None, block=True, timeout=None, callback=None):
+    def view(self, nodes, ifrom=None, **iqargs):
         if not isinstance(nodes, (list, set)):
             nodes = [nodes]
 
@@ -67,23 +67,27 @@ class XEP_0013(BasePlugin):
             StanzaPath('message/offline'))
         self.xmpp.register_handler(collector)
 
+        block = iqargs.get('block', True)
+        callback = iqargs.get('callback')
+
         if not block and callback is not None:
             def wrapped_cb(iq):
                 results = collector.stop()
                 if iq['type'] == 'result':
                     iq['offline']['results'] = results
                 callback(iq)
-            return iq.send(block=block, timeout=timeout, callback=wrapped_cb)
+            iqargs['callback'] = wrapped_cb
+            return iq.send(**iqargs)
         else:
             try:
-                resp = iq.send(block=block, timeout=timeout, callback=callback)
+                resp = iq.send(**iqargs)
                 resp['offline']['results'] = collector.stop()
                 return resp
             except XMPPError as e:
                 collector.stop()
                 raise e
 
-    def remove(self, nodes, ifrom=None, block=True, timeout=None, callback=None):
+    def remove(self, nodes, ifrom=None, **iqargs):
         if not isinstance(nodes, (list, set)):
             nodes = [nodes]
 
@@ -97,9 +101,9 @@ class XEP_0013(BasePlugin):
             item['action'] = 'remove'
             offline.append(item)
 
-        return iq.send(block=block, timeout=timeout, callback=callback)
+        return iq.send(**iqargs)
 
-    def fetch(self, ifrom=None, block=True, timeout=None, callback=None):
+    def fetch(self, ifrom=None, **iqargs):
         iq = self.xmpp.Iq()
         iq['type'] = 'set'
         iq['from'] = ifrom
@@ -110,25 +114,29 @@ class XEP_0013(BasePlugin):
             StanzaPath('message/offline'))
         self.xmpp.register_handler(collector)
 
+        block = iqargs.get('block', True)
+        callback = iqargs.get('callback')
+
         if not block and callback is not None:
             def wrapped_cb(iq):
                 results = collector.stop()
                 if iq['type'] == 'result':
                     iq['offline']['results'] = results
                 callback(iq)
-            return iq.send(block=block, timeout=timeout, callback=wrapped_cb)
+            iqargs['callback'] = wrapped_cb
+            return iq.send(**iqargs)
         else:
             try:
-                resp = iq.send(block=block, timeout=timeout, callback=callback)
+                resp = iq.send(**iqargs)
                 resp['offline']['results'] = collector.stop()
                 return resp
             except XMPPError as e:
                 collector.stop()
                 raise e
 
-    def purge(self, ifrom=None, block=True, timeout=None, callback=None):
+    def purge(self, ifrom=None, **iqargs):
         iq = self.xmpp.Iq()
         iq['type'] = 'set'
         iq['from'] = ifrom
         iq['offline']['purge'] = True
-        return iq.send(block=block, timeout=timeout, callback=callback)
+        return iq.send(**iqargs)

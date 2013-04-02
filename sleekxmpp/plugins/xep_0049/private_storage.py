@@ -32,7 +32,7 @@ class XEP_0049(BasePlugin):
     def register(self, stanza):
         register_stanza_plugin(PrivateXML, stanza, iterable=True)
 
-    def store(self, data, ifrom=None, block=True, timeout=None, callback=None):
+    def store(self, data, ifrom=None, **iqargs):
         iq = self.xmpp.Iq()
         iq['type'] = 'set'
         iq['from'] = ifrom
@@ -43,11 +43,11 @@ class XEP_0049(BasePlugin):
         for elem in data:
             iq['private'].append(elem)
 
-        return iq.send(block=block, timeout=timeout, callback=callback)
+        return iq.send(**iqargs)
 
-    def retrieve(self, name, ifrom=None, block=True, timeout=None, callback=None):
+    def retrieve(self, name, ifrom=None, **iqargs):
         iq = self.xmpp.Iq()
         iq['type'] = 'get'
         iq['from'] = ifrom
         iq['private'].enable(name)
-        return iq.send(block=block, timeout=timeout, callback=callback)
+        return iq.send(**iqargs)

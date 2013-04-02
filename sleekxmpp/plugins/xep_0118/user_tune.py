@@ -35,7 +35,7 @@ class XEP_0118(BasePlugin):
 
     def publish_tune(self, artist=None, length=None, rating=None, source=None,
                      title=None, track=None, uri=None, options=None,
-                     ifrom=None, block=True, callback=None, timeout=None):
+                     ifrom=None, **iqargs):
         """
         Publish the user's current tune.
 
@@ -69,11 +69,9 @@ class XEP_0118(BasePlugin):
                 node=UserTune.namespace,
                 options=options,
                 ifrom=ifrom,
-                block=block,
-                callback=callback,
-                timeout=timeout)
+                **iqargs)
 
-    def stop(self, ifrom=None, block=True, callback=None, timeout=None):
+    def stop(self, ifrom=None, **iqargs):
         """
         Clear existing user tune information to stop notifications.
 
@@ -91,6 +89,4 @@ class XEP_0118(BasePlugin):
         return self.xmpp['xep_0163'].publish(tune,
                 node=UserTune.namespace,
                 ifrom=ifrom,
-                block=block,
-                callback=callback,
-                timeout=timeout)
+                **iqargs)

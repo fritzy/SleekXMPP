@@ -31,9 +31,9 @@ class XEP_0279(BasePlugin):
     def plugin_end(self):
         self.xmpp['xep_0030'].del_feature(feature='urn:xmpp:sic:0')
 
-    def check_ip(self, ifrom=None, block=True, timeout=None, callback=None):
+    def check_ip(self, ifrom=None, **iqargs):
         iq = self.xmpp.Iq()
         iq['type'] = 'get'
         iq['from'] = ifrom
         iq.enable('ip_check')
-        return iq.send(block=block, timeout=timeout, callback=callback)
+        return iq.send(**iqargs)

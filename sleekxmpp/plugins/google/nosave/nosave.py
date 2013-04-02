@@ -46,33 +46,33 @@ class GoogleNoSave(BasePlugin):
     def plugin_end(self):
         self.xmpp.remove_handler('Google Nosave')
 
-    def enable(self, jid=None, block=True, timeout=None, callback=None):
+    def enable(self, jid=None, **iqargs):
         if jid is None:
             self.xmpp['google_settings'].update({'archiving_enabled': False},
-                    block=block, timeout=timeout, callback=callback)
+                    **iqargs)
         else:
             iq = self.xmpp.Iq()
             iq['type'] = 'set'
             iq['google_nosave']['item']['jid'] = jid
             iq['google_nosave']['item']['value'] = True
-            return iq.send(block=block, timeout=timeout, callback=callback)
+            return iq.send(**iqargs)
 
-    def disable(self, jid=None, block=True, timeout=None, callback=None):
+    def disable(self, jid=None, **iqargs):
         if jid is None:
             self.xmpp['google_settings'].update({'archiving_enabled': True},
-                    block=block, timeout=timeout, callback=callback)
+                    **iqargs)
         else:
             iq = self.xmpp.Iq()
             iq['type'] = 'set'
             iq['google_nosave']['item']['jid'] = jid
             iq['google_nosave']['item']['value'] = False
-            return iq.send(block=block, timeout=timeout, callback=callback)
+            return iq.send(**iqargs)
 
-    def get(self, block=True, timeout=None, callback=None):
+    def get(self, **iqargs):
         iq = self.xmpp.Iq()
         iq['type'] = 'get'
         iq.enable('google_nosave')
-        return iq.send(block=block, timeout=timeout, callback=callback)
+        return iq.send(**iqargs)
 
     def _handle_nosave_change(self, iq):
         reply = self.xmpp.Iq()

@@ -41,7 +41,7 @@ class XEP_0107(BasePlugin):
         self.xmpp['xep_0163'].register_pep('user_mood', UserMood)
 
     def publish_mood(self, value=None, text=None, options=None,
-                     ifrom=None, block=True, callback=None, timeout=None):
+                     ifrom=None, **iqargs):
         """
         Publish the user's current mood.
 
@@ -66,11 +66,9 @@ class XEP_0107(BasePlugin):
                 node=UserMood.namespace,
                 options=options,
                 ifrom=ifrom,
-                block=block,
-                callback=callback,
-                timeout=timeout)
+                **iqargs)
 
-    def stop(self, ifrom=None, block=True, callback=None, timeout=None):
+    def stop(self, ifrom=None, **iqargs):
         """
         Clear existing user mood information to stop notifications.
 
@@ -88,6 +86,4 @@ class XEP_0107(BasePlugin):
         return self.xmpp['xep_0163'].publish(mood,
                 node=UserMood.namespace,
                 ifrom=ifrom,
-                block=block,
-                callback=callback,
-                timeout=timeout)
+                **iqargs)

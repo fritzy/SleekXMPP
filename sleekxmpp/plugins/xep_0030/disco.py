@@ -324,7 +324,7 @@ class XEP_0030(BasePlugin):
             callback -- Optional callback to execute when a reply is
                         received instead of blocking and waiting for
                         the reply.
-            timeout_callback -- Optional callback to execute when no result 
+            timeout_callback -- Optional callback to execute when no result
                         has been received in timeout seconds.
         """
         if local is None:
@@ -359,8 +359,7 @@ class XEP_0030(BasePlugin):
                 return self._wrap(kwargs.get('ifrom', None), jid, info)
 
         iq = self.xmpp.Iq()
-        # Check dfrom parameter for backwards compatibility
-        iq['from'] = kwargs.get('ifrom', kwargs.get('dfrom', ''))
+        iq['from'] = kwargs.get('ifrom', None)
         iq['to'] = jid
         iq['type'] = 'get'
         iq['disco_info']['node'] = node if node else ''
@@ -408,7 +407,7 @@ class XEP_0030(BasePlugin):
             iterator -- If True, return a result set iterator using
                         the XEP-0059 plugin, if the plugin is loaded.
                         Otherwise the parameter is ignored.
-            timeout_callback -- Optional callback to execute when no result 
+            timeout_callback -- Optional callback to execute when no result
                         has been received in timeout seconds.
         """
         if local or local is None and jid is None:
@@ -418,8 +417,7 @@ class XEP_0030(BasePlugin):
             return self._wrap(kwargs.get('ifrom', None), jid, items)
 
         iq = self.xmpp.Iq()
-        # Check dfrom parameter for backwards compatibility
-        iq['from'] = kwargs.get('ifrom', kwargs.get('dfrom', ''))
+        iq['from'] = kwargs.get('ifrom')
         iq['to'] = jid
         iq['type'] = 'get'
         iq['disco_items']['node'] = node if node else ''

@@ -31,35 +31,33 @@ class XEP_0257(BasePlugin):
         register_stanza_plugin(Iq, DisableCert)
         register_stanza_plugin(Iq, RevokeCert)
 
-    def get_certs(self, ifrom=None, block=True, timeout=None, callback=None):
+    def get_certs(self, ifrom=None, **iqargs):
         iq = self.xmpp.Iq()
         iq['type'] = 'get'
         iq['from'] = ifrom
         iq.enable('sasl_certs')
-        return iq.send(block=block, timeout=timeout, callback=callback)
+        return iq.send(**iqargs)
 
     def add_cert(self, name, cert, allow_management=True, ifrom=None,
-                       block=True, timeout=None, callback=None):
+                 **iqargs):
         iq = self.xmpp.Iq()
         iq['type'] = 'set'
         iq['from'] = ifrom
         iq['sasl_cert_append']['name'] = name
         iq['sasl_cert_append']['x509cert'] = cert
         iq['sasl_cert_append']['cert_management'] = allow_management
-        return iq.send(block=block, timeout=timeout, callback=callback)
+        return iq.send(**iqargs)
 
-    def disable_cert(self, name, ifrom=None, block=True,
-                           timeout=None, callback=None):
+    def disable_cert(self, name, ifrom=None, **iqargs):
         iq = self.xmpp.Iq()
         iq['type'] = 'set'
         iq['from'] = ifrom
         iq['sasl_cert_disable']['name'] = name
-        return iq.send(block=block, timeout=timeout, callback=callback)
+        return iq.send(**iqargs)
 
-    def revoke_cert(self, name, ifrom=None, block=True,
-                           timeout=None, callback=None):
+    def revoke_cert(self, name, ifrom=None, **iqargs):
         iq = self.xmpp.Iq()
         iq['type'] = 'set'
         iq['from'] = ifrom
         iq['sasl_cert_revoke']['name'] = name
-        return iq.send(block=block, timeout=timeout, callback=callback)
+        return iq.send(**iqargs)

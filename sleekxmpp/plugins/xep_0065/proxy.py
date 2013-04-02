@@ -78,7 +78,7 @@ class XEP_0065(base_plugin):
         self.activate(proxy, sid, to, timeout=timeout)
         return self.get_socket(sid)
 
-    def request_stream(self, to, sid=None, ifrom=None, block=True, timeout=None, callback=None):
+    def request_stream(self, to, sid=None, ifrom=None, **iqargs):
         if sid is None:
             sid = uuid4().hex
 
@@ -93,7 +93,7 @@ class XEP_0065(base_plugin):
         iq['socks']['sid'] = sid
         for proxy, (host, port) in self._proxies.items():
             iq['socks'].add_streamhost(proxy, host, port)
-        return iq.send(block=block, timeout=timeout, callback=callback)
+        return iq.send(**iqargs)
 
     def discover_proxies(self, jid=None, ifrom=None, timeout=None):
         """Auto-discover the JIDs of SOCKS5 proxies on an XMPP server."""
@@ -129,11 +129,11 @@ class XEP_0065(base_plugin):
 
         return self._proxies
 
-    def get_network_address(self, proxy, ifrom=None, block=True, timeout=None, callback=None):
+    def get_network_address(self, proxy, ifrom=None, **iqargs):
         """Get the network information of a proxy."""
         iq = self.xmpp.Iq(sto=proxy, stype='get', sfrom=ifrom)
         iq.enable('socks')
-        return iq.send(block=block, timeout=timeout, callback=callback)
+        return iq.send(**iqargs)
 
     def _handle_streamhost(self, iq):
         """Handle incoming SOCKS5 session request."""
@@ -166,12 +166,12 @@ class XEP_0065(base_plugin):
         iq['socks']['streamhost_used']['jid'] = used_streamhost
         iq.send()
 
-    def activate(self, proxy, sid, target, ifrom=None, block=True, timeout=None, callback=None):
+    def activate(self, proxy, sid, target, ifrom=None, **iqargs):
         """Activate the socks5 session that has been negotiated."""
         iq = self.xmpp.Iq(sto=proxy, stype='set', sfrom=ifrom)
         iq['socks']['sid'] = sid
         iq['socks']['activate'] = target
-        iq.send(block=block, timeout=timeout, callback=callback)
+        iq.send(**iqargs)
 
     def deactivate(self, sid):
         """Closes the proxy socket associated with this SID."""

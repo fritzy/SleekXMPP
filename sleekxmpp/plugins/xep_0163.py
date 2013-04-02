@@ -83,7 +83,7 @@ class XEP_0163(BasePlugin):
         self.xmpp['xep_0115'].update_caps(jid)
 
     def publish(self, stanza, node=None, id=None, options=None, ifrom=None,
-                block=True, callback=None, timeout=None):
+                **iqargs):
         """
         Publish a PEP update.
 
@@ -113,9 +113,7 @@ class XEP_0163(BasePlugin):
                 payload=stanza.xml,
                 options=options,
                 ifrom=ifrom,
-                block=block,
-                callback=callback,
-                timeout=timeout)
+                **iqargs)
 
 
 register_plugin(XEP_0163)

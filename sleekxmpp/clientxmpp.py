@@ -222,7 +222,7 @@ class ClientXMPP(BaseXMPP):
         """
         return self.client_roster.remove(jid)
 
-    def get_roster(self, block=True, timeout=None, callback=None):
+    def get_roster(self, **iqargs):
         """Request the roster from the server.
 
         :param block: Specify if the roster request will block until a
@@ -242,10 +242,13 @@ class ClientXMPP(BaseXMPP):
         if 'rosterver' in self.features:
             iq['roster']['ver'] = self.client_roster.version
 
-        if not block and callback is None:
-            callback = lambda resp: self._handle_roster(resp)
+        block = iqargs.get('block', True)
+        callback = iqargs.get('callback')
 
-        response = iq.send(block, timeout, callback)
+        if not block and callback is None:
+            iqargs['callback'] = lambda resp: self._handle_roster(resp)
+
+        response = iq.send(**iqargs)
 
         if block:
             self._handle_roster(response)

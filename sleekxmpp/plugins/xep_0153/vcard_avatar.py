@@ -59,8 +59,7 @@ class XEP_0153(BasePlugin):
         self.xmpp.del_event_handler('presence_chat', self._recv_presence)
         self.xmpp.del_event_handler('presence_away', self._recv_presence)
 
-    def set_avatar(self, jid=None, avatar=None, mtype=None, block=True,
-                   timeout=None, callback=None):
+    def set_avatar(self, jid=None, avatar=None, mtype=None, **iqargs):
         if jid is None:
             jid = self.xmpp.boundjid.bare
 

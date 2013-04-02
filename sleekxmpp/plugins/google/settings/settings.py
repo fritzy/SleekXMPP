@@ -40,13 +40,13 @@ class GoogleSettings(BasePlugin):
     def plugin_end(self):
         self.xmpp.remove_handler('Google Settings')
 
-    def get(self, block=True, timeout=None, callback=None):
+    def get(self, **iqargs):
         iq = self.xmpp.Iq()
         iq['type'] = 'get'
         iq.enable('google_settings')
-        return iq.send(block=block, timeout=timeout, callback=callback)
+        return iq.send(**iqargs)
 
-    def update(self, settings, block=True, timeout=None, callback=None):
+    def update(self, settings, **iqargs):
         iq = self.xmpp.Iq()
         iq['type'] = 'set'
         iq.enable('google_settings')
@@ -54,7 +54,7 @@ class GoogleSettings(BasePlugin):
         for setting, value in settings.items():
             iq['google_settings'][setting] = value
 
-        return iq.send(block=block, timeout=timeout, callback=callback)
+        return iq.send(**iqargs)
 
     def _handle_settings_change(self, iq):
         reply = self.xmpp.Iq()

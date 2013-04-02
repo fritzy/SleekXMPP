@@ -29,55 +29,55 @@ class XEP_0016(BasePlugin):
     def session_bind(self, jid):
         self.xmpp['xep_0030'].add_feature(Privacy.namespace)
 
-    def get_privacy_lists(self, block=True, timeout=None, callback=None):
+    def get_privacy_lists(self, **iqargs):
         iq = self.xmpp.Iq()
         iq['type'] = 'get'
         iq.enable('privacy')
-        return iq.send(block=block, timeout=timeout, callback=callback)
+        return iq.send(**iqargs)
 
-    def get_list(self, name, block=True, timeout=None, callback=None):
+    def get_list(self, name, **iqargs):
         iq = self.xmpp.Iq()
         iq['type'] = 'get'
         iq['privacy']['list']['name'] = name
-        return iq.send(block=block, timeout=timeout, callback=callback)
+        return iq.send(**iqargs)
 
-    def get_active(self, block=True, timeout=None, callback=None):
+    def get_active(self, **iqargs):
         iq = self.xmpp.Iq()
         iq['type'] = 'get'
         iq['privacy'].enable('active')
-        return iq.send(block=block, timeout=timeout, callback=callback)
+        return iq.send(**iqargs)
 
-    def get_default(self, block=True, timeout=None, callback=None):
+    def get_default(self, **iqargs):
         iq = self.xmpp.Iq()
         iq['type'] = 'get'
         iq['privacy'].enable('default')
-        return iq.send(block=block, timeout=timeout, callback=callback)
+        return iq.send(**iqargs)
 
-    def activate(self, name, block=True, timeout=None, callback=None):
+    def activate(self, name, **iqargs):
         iq = self.xmpp.Iq()
         iq['type'] = 'set'
         iq['privacy']['active']['name'] = name
-        return iq.send(block=block, timeout=timeout, callback=callback)
+        return iq.send(**iqargs)
 
-    def deactivate(self, block=True, timeout=None, callback=None):
+    def deactivate(self, **iqargs):
         iq = self.xmpp.Iq()
         iq['type'] = 'set'
         iq['privacy'].enable('active')
-        return iq.send(block=block, timeout=timeout, callback=callback)
+        return iq.send(**iqargs)
 
-    def make_default(self, name, block=True, timeout=None, callback=None):
+    def make_default(self, name, **iqargs):
         iq = self.xmpp.Iq()
         iq['type'] = 'set'
         iq['privacy']['default']['name'] = name
-        return iq.send(block=block, timeout=timeout, callback=callback)
+        return iq.send(**iqargs)
 
-    def remove_default(self, block=True, timeout=None, callback=None):
+    def remove_default(self, **iqargs):
         iq = self.xmpp.Iq()
         iq['type'] = 'set'
         iq['privacy'].enable('default')
-        return iq.send(block=block, timeout=timeout, callback=callback)
+        return iq.send(**iqargs)
 
-    def edit_list(self, name, rules, block=True, timeout=None, callback=None):
+    def edit_list(self, name, rules, **iqargs):
         iq = self.xmpp.Iq()
         iq['type'] = 'set'
         iq['privacy']['list']['name'] = name
@@ -103,8 +103,10 @@ class XEP_0016(BasePlugin):
                 presence_out=rule.get('presence_out',
                     rule.get('presence-out', None)))
 
-    def remove_list(self, name, block=True, timeout=None, callback=None):
+        return iq.send(**iqargs)
+
+    def remove_list(self, name, **iqargs):
         iq = self.xmpp.Iq()
         iq['type'] = 'set'
         iq['privacy']['list']['name'] = name
-        return iq.send(block=block, timeout=timeout, callback=callback)
+        return iq.send(**iqargs)

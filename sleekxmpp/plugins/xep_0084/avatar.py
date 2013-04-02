@@ -44,28 +44,21 @@ class XEP_0084(BasePlugin):
     def generate_id(self, data):
         return hashlib.sha1(data).hexdigest()
 
-    def retrieve_avatar(self, jid, id, url=None, ifrom=None, block=True,
-                              callback=None, timeout=None):
+    def retrieve_avatar(self, jid, id, url=None, ifrom=None, **iqargs):
         return self.xmpp['xep_0060'].get_item(jid, Data.namespace, id,
                 ifrom=ifrom,
-                block=block,
-                callback=callback,
-                timeout=timeout)
+                **iqargs)
 
-    def publish_avatar(self, data, ifrom=None, block=True, callback=None,
-                             timeout=None):
+    def publish_avatar(self, data, ifrom=None, **iqargs):
         payload = Data()
         payload['value'] = data
         return self.xmpp['xep_0163'].publish(payload,
                 id=self.generate_id(data),
                 ifrom=ifrom,
-                block=block,
-                callback=callback,
-                timeout=timeout)
+                **iqargs)
 
     def publish_avatar_metadata(self, items=None, pointers=None,
-                                      ifrom=None, block=True,
-                                      callback=None, timeout=None):
+                                      ifrom=None, **iqargs):
         metadata = MetaData()
         if items is None:
             items = []
@@ -83,11 +76,9 @@ class XEP_0084(BasePlugin):
 
         return self.xmpp['xep_0163'].publish(metadata,
                 ifrom=ifrom,
-                block=block,
-                callback=callback,
-                timeout=timeout)
+                **iqargs)
 
-    def stop(self, ifrom=None, block=True, callback=None, timeout=None):
+    def stop(self, ifrom=None, **iqargs):
         """
         Clear existing avatar metadata information to stop notifications.
 
@@ -105,6 +96,4 @@ class XEP_0084(BasePlugin):
         return self.xmpp['xep_0163'].publish(metadata,
                 node=MetaData.namespace,
                 ifrom=ifrom,
-                block=block,
-                callback=callback,
-                timeout=timeout)
+                **iqargs)

@@ -81,27 +81,23 @@ class XEP_0077(BasePlugin):
             return True
         return False
 
-    def get_registration(self, jid=None, ifrom=None, block=True,
-                         timeout=None, callback=None):
+    def get_registration(self, jid=None, ifrom=None, **iqargs):
         iq = self.xmpp.Iq()
         iq['type'] = 'get'
         iq['to'] = jid
         iq['from'] = ifrom
         iq.enable('register')
-        return iq.send(block=block, timeout=timeout,
-                       callback=callback, now=True)
+        return iq.send(**iqargs)
 
-    def cancel_registration(self, jid=None, ifrom=None, block=True,
-                            timeout=None, callback=None):
+    def cancel_registration(self, jid=None, ifrom=None, **iqargs):
         iq = self.xmpp.Iq()
         iq['type'] = 'set'
         iq['to'] = jid
         iq['from'] = ifrom
         iq['register']['remove'] = True
-        return iq.send(block=block, timeout=timeout, callback=callback)
+        return iq.send(**iqargs)
 
-    def change_password(self, password, jid=None, ifrom=None, block=True,
-                        timeout=None, callback=None):
+    def change_password(self, password, jid=None, ifrom=None, **iqargs):
         iq = self.xmpp.Iq()
         iq['type'] = 'set'
         iq['to'] = jid
@@ -112,4 +108,4 @@ class XEP_0077(BasePlugin):
         else:
             iq['register']['username'] = self.xmpp.boundjid.user
         iq['register']['password'] = password
-        return iq.send(block=block, timeout=timeout, callback=callback)
+        return iq.send(**iqargs)

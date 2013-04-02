@@ -34,7 +34,7 @@ class XEP_0108(BasePlugin):
         self.xmpp['xep_0163'].register_pep('user_activity', UserActivity)
 
     def publish_activity(self, general, specific=None, text=None, options=None,
-                     ifrom=None, block=True, callback=None, timeout=None):
+                     ifrom=None, **iqargs):
         """
         Publish the user's current activity.
 
@@ -61,11 +61,9 @@ class XEP_0108(BasePlugin):
                 node=UserActivity.namespace,
                 options=options,
                 ifrom=ifrom,
-                block=block,
-                callback=callback,
-                timeout=timeout)
+                **iqargs)
 
-    def stop(self, ifrom=None, block=True, callback=None, timeout=None):
+    def stop(self, ifrom=None, **iqargs):
         """
         Clear existing user activity information to stop notifications.
 
@@ -83,6 +81,4 @@ class XEP_0108(BasePlugin):
         return self.xmpp['xep_0163'].publish(activity,
                 node=UserActivity.namespace,
                 ifrom=ifrom,
-                block=block,
-                callback=callback,
-                timeout=timeout)
+                **iqargs)

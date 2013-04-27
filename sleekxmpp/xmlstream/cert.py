@@ -1,6 +1,10 @@
 import logging
 from datetime import datetime, timedelta
 
+# Make a call to strptime before starting threads to
+# prevent thread safety issues.
+datetime.strptime('1970-01-01 12:00:00', "%Y-%m-%d %H:%M:%S")
+
 
 try:
     from pyasn1.codec.der import decoder, encoder

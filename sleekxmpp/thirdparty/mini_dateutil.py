@@ -108,7 +108,7 @@ except:
 
         def __init__(self, name, offset):
             self._name = name
-            self._offset = datetime.timedelta(seconds=offset)
+            self._offset = datetime.timedelta(minutes=offset)
 
         def utcoffset(self, dt):
             return self._offset
@@ -154,7 +154,7 @@ except:
                 absoff = offsetmins
 
             name = "UTC%s%02d:%02d" % (sign, int(absoff / 60), absoff % 60)
-            inst = tzoffset(offsetmins, name)
+            inst = tzoffset(name,offsetmins)
             _fixed_offset_tzs[offsetmins] = inst
 
         return _fixed_offset_tzs[offsetmins]

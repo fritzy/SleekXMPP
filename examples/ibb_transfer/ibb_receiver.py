@@ -38,7 +38,7 @@ class IBBReceiver(sleekxmpp.ClientXMPP):
 
         self.register_plugin('xep_0030') # Service Discovery
         self.register_plugin('xep_0047', {
-            'accept_stream': self.accept_stream
+            'auto_accept': True
         }) # In-band Bytestreams
 
         # The session_start event will be triggered when
@@ -48,7 +48,7 @@ class IBBReceiver(sleekxmpp.ClientXMPP):
         # our roster.
         self.add_event_handler("session_start", self.start)
 
-        self.add_event_handler("ibb_stream_start", self.stream_opened)
+        self.add_event_handler("ibb_stream_start", self.stream_opened, threaded=True)
         self.add_event_handler("ibb_stream_data", self.stream_data)
 
     def start(self, event):
@@ -69,7 +69,7 @@ class IBBReceiver(sleekxmpp.ClientXMPP):
 
     def accept_stream(self, iq):
         """
-        Check that it is ok to accept a stream request. 
+        Check that it is ok to accept a stream request.
 
         Controlling stream acceptance can be done via either:
             - setting 'auto_accept' to False in the plugin
@@ -83,9 +83,7 @@ class IBBReceiver(sleekxmpp.ClientXMPP):
         return True
 
     def stream_opened(self, stream):
-        # NOTE: IBB streams are bi-directional, so the original sender is
-        # now the opened stream's receiver.
-        print('Stream opened: %s from %s' % (stream.sid, stream.receiver))
+        print('Stream opened: %s from %s' % (stream.sid, stream.peer_jid))
 
         # You could run a loop reading from the stream using stream.recv(),
         # or use the ibb_stream_data event.

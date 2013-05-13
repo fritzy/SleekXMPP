@@ -9,7 +9,9 @@
 
     Part of SleekXMPP: The Sleek XMPP Library
 
+    :copryight: (c) 2007-2011 David Alan Cridland
     :copyright: (c) 2012 Nathanael C. Fritz, Lance J.T. Stout
+
     :license: MIT, see LICENSE for more details
 """
 

@@ -79,4 +79,5 @@ __all__ = [
     'xep_0302',  # XMPP Compliance Suites 2012
     'xep_0308',  # Last Message Correction
     'xep_0313',  # Message Archive Management
+    'xep_0323',  # IoT Sensor Data
 ]

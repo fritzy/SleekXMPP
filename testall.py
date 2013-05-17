@@ -2,15 +2,18 @@
 
 import os
 import sys
+sys.path=['/Users/jocke/Dropbox/06_dev/SleekXMPP']+sys.path
+
 import logging
 import unittest
 import distutils.core
+
 
 from glob import glob
 from os.path import splitext, basename, join as pjoin
 
 
-def run_tests():
+def run_tests(exlude=None, include=[]):
     """
     Find and run all tests in the tests/ directory.
 
@@ -22,7 +25,18 @@ def run_tests():
         if True not in [t.endswith(ex) for ex in exclude]:
             if basename(t).startswith('test_'):
                 testfiles.append('tests.%s' % splitext(basename(t))[0])
+    testsToUse=[]
+    if not(include==[]):
+        # use only test that has any text include in them
+        for match in include:
+            for test in testfiles:
+                if test.find(match)>-1:
+                    # add the test'
+                    # print "REMOVE "+match + " test " + test + "  " + str(test.find(match))
+                    testsToUse.append(test)
 
+
+    testfiles=testsToUse
     suites = []
     for file in testfiles:
         __import__(file)
@@ -56,7 +70,7 @@ class TestCommand(distutils.core.Command):
 
 
 if __name__ == '__main__':
-    result = run_tests()
+    result = run_tests(include=['323'])
     print("<tests %s ran='%s' errors='%s' fails='%s' success='%s' />" % (
         "xmlns='http//andyet.net/protocol/tests'",
         result.testsRun, len(result.errors),

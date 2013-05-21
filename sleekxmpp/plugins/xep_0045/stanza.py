@@ -88,6 +88,15 @@ class MUCUser(ElementBase):
     def del_role(self):
         del self['item']['role']
 
+    def get_statuses(self):
+        return self['item']['statuses']
+
+    def set_statuses(self, values):
+        self['item']['statuses'] = values
+
+    def del_statuses(self):
+        del self['item']['statuses']
+
 
 class UserDecline(ElementBase):
     name = 'decine'

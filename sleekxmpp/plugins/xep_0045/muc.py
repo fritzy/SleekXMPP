@@ -44,7 +44,7 @@ class XEP_0045(BasePlugin):
     XEP-0045: Multi-User Chat
     """
 
-    name = 'xep_0045b'
+    name = 'xep_0045'
     description = 'XEP-0045: Multi-User Chat'
     dependencies = set(['xep_0004', 'xep_0030', 'xep_0203', 'xep_0082', 'xep_0249'])
     stanza = stanza

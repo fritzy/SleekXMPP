@@ -8,8 +8,8 @@
 
 from sleekxmpp.plugins.base import register_plugin
 
-from sleekxmpp.plugins.xep_0045b import stanza
-from sleekxmpp.plugins.xep_0045b.muc import XEP_0045
+from sleekxmpp.plugins.xep_0045 import stanza
+from sleekxmpp.plugins.xep_0045.muc import XEP_0045
 
 
 register_plugin(XEP_0045)

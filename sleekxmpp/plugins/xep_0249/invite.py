@@ -56,7 +56,8 @@ class XEP_0249(BasePlugin):
         self.xmpp.event('groupchat_direct_invite', msg)
 
     def send_invitation(self, jid, roomjid, password=None,
-                        reason=None, ifrom=None):
+                        reason=None, thread=None, continuation=None,
+                        ifrom=None):
         """
         Send a direct MUC invitation to an XMPP entity.
 
@@ -70,14 +71,15 @@ class XEP_0249(BasePlugin):
                         (OPTIONAL).
         """
 
+        if thread:
+            continuation = True
+
         msg = self.xmpp.Message()
         msg['to'] = jid
-        if ifrom is not None:
-            msg['from'] = ifrom
+        msg['from'] = ifrom
         msg['groupchat_invite']['jid'] = roomjid
-        if password is not None:
-            msg['groupchat_invite']['password'] = password
-        if reason is not None:
-            msg['groupchat_invite']['reason'] = reason
-
+        msg['groupchat_invite']['password'] = password
+        msg['groupchat_invite']['reason'] = reason
+        msg['groupchat_invite']['continue'] = continuation
+        msg['groupchat_invite']['thread'] = thread
         return msg.send()

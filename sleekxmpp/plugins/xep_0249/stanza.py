@@ -6,6 +6,7 @@
     See the file LICENSE for copying permission.
 """
 
+from sleekxmpp.jid import JID
 from sleekxmpp.xmlstream import ElementBase
 
 
@@ -33,7 +34,22 @@ class Invite(ElementBase):
 
     """
 
-    name = "x"
-    namespace = "jabber:x:conference"
-    plugin_attrib = "groupchat_invite"
-    interfaces = ("jid", "password", "reason")
+    name = 'x'
+    namespace = 'jabber:x:conference'
+    plugin_attrib = 'groupchat_invite'
+    interfaces = set(['jid', 'password', 'reason', 'continue', 'thread'])
+
+    def get_continue(self):
+        return self._get_attr('continue', '') in ('true', '1')
+
+    def set_continue(self, value):
+        if value:
+            self._set_attr('continue', 'true')
+        else:
+            self._del_attr('continue')
+
+    def get_jid(self):
+        return JID(self._get_attr('jid'))
+
+    def set_jid(self, value):
+        return self._set_attr('jid', str(value))

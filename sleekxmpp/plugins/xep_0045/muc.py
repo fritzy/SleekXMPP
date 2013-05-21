@@ -15,7 +15,7 @@ from sleekxmpp.plugins.base import BasePlugin
 from sleekxmpp.xmlstream import register_stanza_plugin
 from sleekxmpp.xmlstream.handler import Callback, Waiter
 from sleekxmpp.xmlstream.matcher import StanzaPath, MatchXMLMask
-from sleekxmpp.plugins.xep_0045b import stanza
+from sleekxmpp.plugins.xep_0045 import stanza
 
 
 log = logging.getLogger(__name__)

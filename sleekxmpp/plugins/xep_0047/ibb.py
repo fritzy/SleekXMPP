@@ -85,7 +85,7 @@ class XEP_0047(BasePlugin):
         self._streams[(jid, sid, peer_jid)] = stream
 
     def _del_stream(self, jid, sid, peer_jid, data):
-        with self._streams_lock:
+        with self._stream_lock:
             if (jid, sid, peer_jid) in self._streams:
                 del self._streams[(jid, sid, peer_jid)]
 
@@ -207,7 +207,7 @@ class XEP_0047(BasePlugin):
 
     def _handle_close(self, iq):
         sid = iq['ibb_close']['sid']
-        stream = self.api['get_stream'](stanza['to'], sid, stanza['from'])
+        stream = self.api['get_stream'](iq['to'], sid, iq['from'])
         if stream is not None and iq['from'] == stream.peer_jid:
             stream._closed(iq)
             self.api['del_stream'](stream.self_jid, stream.sid, stream.peer_jid)

@@ -75,6 +75,10 @@ class XEP_0045(BasePlugin):
 
         self.api.register(self._set_self_nick, 'set_self_nick', default=True)
         self.api.register(self._get_self_nick, 'get_self_nick', default=True)
+        sefl.api.register(self._is_joined_room, 'is_joined_room', default=True)
+        sefl.api.register(self._get_joined_rooms, 'get_joined_rooms', default=True)
+        sefl.api.register(self._add_joined_room, 'add_joined_room', default=True)
+        sefl.api.register(self._del_joined_room, 'del_joined_room', default=True)
 
         self._nicks = {}
         self._joined_rooms = {}
@@ -139,14 +143,14 @@ class XEP_0045(BasePlugin):
             self._roster[room_id] = {}
         if pres['type'] != 'unavailable':
             self._roster[room_id][nick] = pres['muc']['item'].values
-        else:
+        elif nick in self._roster[room_id]:
             del self._roster[room_id][nick]
 
         statuses = pres['muc']['statuses']
         for status in statuses:
             code = status['code']
             if code == '110':
-                if pres['type'] == 'available':
+                if pres['type'] == 'available' and not self.api['is_joined_room'](pres['to'], pres['from']):
                     self.xmpp.event('groupchat_joined', pres)
                     self.xmpp.event('muc::%s::joined' % room, pres)
                     self.api['add_joined_room'](pres['to'], room, None, pres['from'].resource)

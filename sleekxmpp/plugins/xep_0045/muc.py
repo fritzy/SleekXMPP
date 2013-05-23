@@ -75,10 +75,10 @@ class XEP_0045(BasePlugin):
 
         self.api.register(self._set_self_nick, 'set_self_nick', default=True)
         self.api.register(self._get_self_nick, 'get_self_nick', default=True)
-        sefl.api.register(self._is_joined_room, 'is_joined_room', default=True)
-        sefl.api.register(self._get_joined_rooms, 'get_joined_rooms', default=True)
-        sefl.api.register(self._add_joined_room, 'add_joined_room', default=True)
-        sefl.api.register(self._del_joined_room, 'del_joined_room', default=True)
+        self.api.register(self._is_joined_room, 'is_joined_room', default=True)
+        self.api.register(self._get_joined_rooms, 'get_joined_rooms', default=True)
+        self.api.register(self._add_joined_room, 'add_joined_room', default=True)
+        self.api.register(self._del_joined_room, 'del_joined_room', default=True)
 
         self._nicks = {}
         self._joined_rooms = {}
@@ -109,7 +109,7 @@ class XEP_0045(BasePlugin):
 
     def _add_joined_room(self, jid, node, ifrom, data):
         if jid not in self._joined_rooms:
-            self._joined_rooms = set()
+            self._joined_rooms = {}
         self._joined_rooms[jid].add(node)
         self._nicks[(jid, node)] = data
         self._roster[(jid, node)] = {}

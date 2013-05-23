@@ -110,6 +110,7 @@ class XEP_0045(BasePlugin):
     def _add_joined_room(self, jid, node, ifrom, data):
         if jid not in self._joined_rooms:
             self._joined_rooms = {}
+            self._joined_rooms[jid] = set()
         self._joined_rooms[jid].add(node)
         self._nicks[(jid, node)] = data
         self._roster[(jid, node)] = {}

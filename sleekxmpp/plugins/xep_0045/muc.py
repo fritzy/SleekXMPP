@@ -150,7 +150,7 @@ class XEP_0045(BasePlugin):
         for status in statuses:
             code = status['code']
             if code == '110':
-                if pres['type'] == 'available' and not self.api['is_joined_room'](pres['to'], pres['from']):
+                if pres['type'] != 'unavailable' and not self.api['is_joined_room'](pres['to'], room):
                     self.xmpp.event('groupchat_joined', pres)
                     self.xmpp.event('muc::%s::joined' % room, pres)
                     self.api['add_joined_room'](pres['to'], room, None, pres['from'].resource)
@@ -204,8 +204,6 @@ class XEP_0045(BasePlugin):
         pres['muc_join']['history']['since'] = since
 
         pfrom = presargs.get('pfrom', self.xmpp.boundjid)
-
-        self.api['add_joined_room'](pfrom, room, None, nick)
 
         if block:
             waiter = Queue()

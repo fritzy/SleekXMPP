@@ -132,11 +132,6 @@ class XEP_0045(BasePlugin):
         self.xmpp.event('groupchat_presence', pres)
         self.xmpp.event('muc::%s::presence' % room, pres)
 
-        if pres['type'] == 'unavailable' and self.api['is_joined_room'](pres['to'], pres['from']):
-            self.api['del_joined_room'](pres['to'], room)
-            self.xmpp.event('muc::%s::left' % room, pres)
-
-
         room_id = (pres['to'], pres['from'].bare)
         nick = pres['from'].resource
         if room_id not in self._roster:
@@ -156,6 +151,16 @@ class XEP_0045(BasePlugin):
                     self.api['add_joined_room'](pres['to'], room, None, pres['from'].resource)
                     if self.expose_joined_rooms:
                         self.xmpp['xep_0030'].add_item(
+                            jid=pres['to'],
+                            node='http://jabber.org/protocol/muc#rooms',
+                            ijid=room,
+                            name=pres['from'].resource)
+                elif pres['type'] == 'unavailable' and self.api['is_joined_room'](pres['to'], room):
+                    self.api['del_joined_room'](pres['to'], room)
+                    self.xmpp.event('groupchat_left', pres)
+                    self.xmpp.event('muc::%s::left' % room, pres)
+                    if self.expose_joined_rooms:
+                        self.xmpp['xep_0030'].del_item(
                             jid=pres['to'],
                             node='http://jabber.org/protocol/muc#rooms',
                             ijid=room,
@@ -247,16 +252,8 @@ class XEP_0045(BasePlugin):
         pres = self.xmpp.Presence()
         pres['to'] = '%s/%s' % (room, self.api['get_self_nick'](pfrom, room))
         pres['type'] = 'unavailable'
-        pres['status'] = status
+        pres['status'] = pstatus
         pres.send()
-
-        self.api['del_joined_room'](pfrom, room)
-
-        if self.expose_joined_rooms:
-            self.xmpp['xep_0030'].del_item(
-                    jid=pfrom,
-                    node='http://jabber.org/protocol/muc#rooms',
-                    ijid=room)
 
     def get_roster(self, room, pfrom=None):
         roster = self.xmpp.roster[pfrom][room].resources

@@ -73,15 +73,16 @@ class XEP_0095(BasePlugin):
             pass
 
     def register_method(self, method, plugin_name, order=50):
-        self._methods[method] = plugin_name
+        self._methods[method] = (plugin_name, order)
         self._methods_order.append((order, method, plugin_name))
         self._methods_order.sort()
 
-    def unregister_method(self, method, plugin_name, order):
+    def unregister_method(self, method):
         if method in self._methods:
+            plugin_name, order = self._methods[method]
             del self._methods[method]
-        self._methods_order.remove((order, method, plugin_name))
-        self._methods_order.sort()
+            self._methods_order.remove((order, method, plugin_name))
+            self._methods_order.sort()
 
     def _handle_request(self, iq):
         profile = iq['si']['profile']
@@ -173,7 +174,7 @@ class XEP_0095(BasePlugin):
         if ifrom is None:
             ifrom = self.xmpp.boundjid
 
-        method_plugin = self._methods[stream['method']]
+        method_plugin = self._methods[stream['method']][0]
         self.xmpp[method_plugin].api['preauthorize_sid'](ifrom, sid, jid)
 
         self.api['del_pending'](ifrom, sid, jid)

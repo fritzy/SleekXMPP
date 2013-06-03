@@ -37,11 +37,12 @@ class XEP_0095(BasePlugin):
     def plugin_init(self):
         self._profiles = {}
         self._methods = {}
+        self._methods_order = []
         self._pending_lock = threading.Lock()
         self._pending= {}
 
-        self.register_method(SOCKS5, 'xep_0065')
-        self.register_method(IBB, 'xep_0047')
+        self.register_method(SOCKS5, 'xep_0065', 100)
+        self.register_method(IBB, 'xep_0047', 50)
 
         register_stanza_plugin(Iq, SI)
         register_stanza_plugin(SI, self.xmpp['xep_0020'].stanza.FeatureNegotiation)
@@ -71,8 +72,17 @@ class XEP_0095(BasePlugin):
         except KeyError:
             pass
 
-    def register_method(self, method, plugin_name):
-        self._methods[method] = plugin_name
+    def register_method(self, method, plugin_name, order=50):
+        self._methods[method] = (plugin_name, order)
+        self._methods_order.append((order, method, plugin_name))
+        self._methods_order.sort()
+
+    def unregister_method(self, method):
+        if method in self._methods:
+            plugin_name, order = self._methods[method]
+            del self._methods[method]
+            self._methods_order.remove((order, method, plugin_name))
+            self._methods_order.sort()
 
     def _handle_request(self, iq):
         profile = iq['si']['profile']
@@ -101,7 +111,14 @@ class XEP_0095(BasePlugin):
                     extension='no-valid-streams',
                     extension_ns=SI.namespace)
 
-        selected_method = SOCKS5 if SOCKS5 in methods else IBB
+        selected_method = None
+        log.debug('Available: %s', methods)
+        for order, method, plugin in self._methods_order:
+            log.debug('Testing: %s', method)
+            if method in methods:
+                selected_method = method
+                break
+
         receiver = iq['to']
         sender = iq['from']
 
@@ -157,7 +174,7 @@ class XEP_0095(BasePlugin):
         if ifrom is None:
             ifrom = self.xmpp.boundjid
 
-        method_plugin = self._methods[stream['method']]
+        method_plugin = self._methods[stream['method']][0]
         self.xmpp[method_plugin].api['preauthorize_sid'](ifrom, sid, jid)
 
         self.api['del_pending'](ifrom, sid, jid)

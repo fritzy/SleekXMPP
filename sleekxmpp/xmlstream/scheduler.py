@@ -76,7 +76,7 @@ class Task(object):
         """
         if self.qpointer is not None:
             self.qpointer.put(('schedule', self.callback,
-                               self.args, self.name))
+                               self.args, self.kwargs, self.name))
         else:
             self.callback(*self.args, **self.kwargs)
         self.reset()

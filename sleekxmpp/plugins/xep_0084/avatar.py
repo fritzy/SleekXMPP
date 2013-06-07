@@ -82,6 +82,7 @@ class XEP_0084(BasePlugin):
                 metadata.add_pointer(pointer)
 
         return self.xmpp['xep_0163'].publish(metadata,
+                id=info['id'],
                 ifrom=ifrom,
                 block=block,
                 callback=callback,

@@ -18,7 +18,7 @@ from __future__ import unicode_literals
 
 import sys
 import stringprep
-import unicodedata
+from unicodedata import ucd_3_2_0 as unicodedata
 
 from sleekxmpp.util import unicode
 

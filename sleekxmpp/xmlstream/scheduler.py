@@ -157,16 +157,15 @@ class Scheduler(object):
                     if wait <= 0.0:
                         newtask = self.addq.get(False)
                     else:
-                        if wait > 3.0:
-                            wait = 3.0
                         newtask = None
-                        elapsed = 0
                         while self.run and \
                               not self.stop.is_set() and \
                               newtask is None and \
-                              elapsed < wait:
-                            newtask = self.addq.get(True, self.wait_timeout)
-                            elapsed += self.wait_timeout
+                              wait > 0:
+                            try:
+                                newtask = self.addq.get(True, min(wait, self.wait_timeout))
+                            except QueueEmpty:          # Nothing to add, nothing to do. Check run flags and continue waiting.
+                                wait -= self.wait_timeout
                 except QueueEmpty:                      # Time to run some tasks, and no new tasks to add.
                     self.schedule_lock.acquire()
                     # select only those tasks which are to be executed now

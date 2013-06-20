@@ -49,7 +49,7 @@ RESPONSE_TIMEOUT = 30
 
 #: The time in seconds to wait for events from the event queue, and also the
 #: time between checks for the process stop signal.
-WAIT_TIMEOUT = 0.1
+WAIT_TIMEOUT = 1.0
 
 #: The number of threads to use to handle XML stream events. This is not the
 #: same as the number of custom event handling threads.
@@ -1632,8 +1632,7 @@ class XMLStream(object):
         try:
             while not self.stop.is_set():
                 try:
-                    wait = self.wait_timeout
-                    event = self.event_queue.get(True, timeout=wait)
+                    event = self.event_queue.get(True, timeout=self.wait_timeout)
                 except QueueEmpty:
                     event = None
                 if event is None:
@@ -1696,13 +1695,13 @@ class XMLStream(object):
             while not self.stop.is_set():
                 while not self.stop.is_set() and \
                       not self.session_started_event.is_set():
-                    self.session_started_event.wait(timeout=0.1)
+                    self.session_started_event.wait(timeout=0.1)                            # Wait for session start
                 if self.__failed_send_stanza is not None:
                     data = self.__failed_send_stanza
                     self.__failed_send_stanza = None
                 else:
                     try:
-                        data = self.send_queue.get(True, 1)
+                        data = self.send_queue.get(True, timeout=self.wait_timeout)         # Wait for data to send
                     except QueueEmpty:
                         continue
                 log.debug("SEND: %s", data)

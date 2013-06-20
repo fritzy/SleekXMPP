@@ -1294,6 +1294,9 @@ class XMLStream(object):
                         try:
                             sent += self.socket.send(data[sent:])
                             count += 1
+                        except Socket.error as serr:
+                            if serr.errno != errno.EINTR:
+                                raise
                         except ssl.SSLError as serr:
                             if tries >= self.ssl_retry_max:
                                 log.debug('SSL error: max retries reached')
@@ -1715,6 +1718,9 @@ class XMLStream(object):
                             try:
                                 sent += self.socket.send(enc_data[sent:])
                                 count += 1
+                            except Socket.error as serr:
+                                if serr.errno != errno.EINTR:
+                                    raise
                             except ssl.SSLError as serr:
                                 if tries >= self.ssl_retry_max:
                                     log.debug('SSL error: max retries reached')

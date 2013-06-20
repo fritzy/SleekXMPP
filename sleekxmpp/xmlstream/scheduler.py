@@ -139,24 +139,26 @@ class Scheduler(object):
         self.run = True
         try:
             while self.run and not self.stop.is_set():
-                wait = 0.1
                 updated = False
                 if self.schedule:
                     wait = self.schedule[0].next - time.time()
+                else:
+                    wait = 0.1
                 try:
                     if wait <= 0.0:
                         newtask = self.addq.get(False)
                     else:
-                        if wait >= 3.0:
+                        if wait > 3.0:
                             wait = 3.0
                         newtask = None
                         elapsed = 0
-                        while not self.stop.is_set() and \
+                        while self.run and \
+                              not self.stop.is_set() and \
                               newtask is None and \
                               elapsed < wait:
                             newtask = self.addq.get(True, 0.1)
                             elapsed += 0.1
-                except QueueEmpty:
+                except QueueEmpty:                      # Time to run some tasks, and no new tasks to add.
                     self.schedule_lock.acquire()
                     # select only those tasks which are to be executed now
                     relevant = itertools.takewhile(
@@ -174,11 +176,11 @@ class Scheduler(object):
                             # only need to resort tasks if a repeated task has
                             # been kept in the list.
                             updated = True
-                else:
-                    updated = True
+                else:                                   # Add new task
                     self.schedule_lock.acquire()
                     if newtask is not None:
                         self.schedule.append(newtask)
+                        updated = True
                 finally:
                     if updated:
                         self.schedule.sort(key=lambda task: task.next)

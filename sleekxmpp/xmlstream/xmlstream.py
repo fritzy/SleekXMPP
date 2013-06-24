@@ -26,6 +26,7 @@ import time
 import random
 import weakref
 import uuid
+import errno
 
 from xml.parsers.expat import ExpatError
 

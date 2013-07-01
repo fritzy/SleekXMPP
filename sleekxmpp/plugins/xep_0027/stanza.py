@@ -39,7 +39,7 @@ class Encrypted(ElementBase):
     def set_encrypted(self, value):
         parent = self.parent()
         xmpp = parent.stream
-        data = xmpp['xep_0027'].encrypt(value, parent['to'].bare)
+        data = xmpp['xep_0027'].encrypt(value, parent['to'])
         if data:
             self.xml.text = data
         else:

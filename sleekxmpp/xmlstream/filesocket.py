@@ -13,6 +13,7 @@
 """
 
 from socket import _fileobject
+import errno
 import socket
 
 
@@ -29,7 +30,13 @@ class FileSocket(_fileobject):
         """Read data from the socket as if it were a file."""
         if self._sock is None:
             return None
-        data = self._sock.recv(size)
+        while True:
+            try:
+                data = self._sock.recv(size)
+                break
+            except socket.error as serr:
+                if serr.errno != errno.EINTR:
+                    raise
         if data is not None:
             return data
 

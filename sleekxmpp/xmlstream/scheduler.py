@@ -20,6 +20,11 @@ import itertools
 from sleekxmpp.util import Queue, QueueEmpty
 
 
+#: The time in seconds to wait for events from the event queue, and also the
+#: time between checks for the process stop signal.
+WAIT_TIMEOUT = 1.0
+
+
 log = logging.getLogger(__name__)
 
 
@@ -120,6 +125,10 @@ class Scheduler(object):
         #: Lock for accessing the task queue.
         self.schedule_lock = threading.RLock()
 
+        #: The time in seconds to wait for events from the event queue,
+        #: and also the time between checks for the process stop signal.
+        self.wait_timeout = WAIT_TIMEOUT
+
     def process(self, threaded=True, daemon=False):
         """Begin accepting and processing scheduled tasks.
 
@@ -139,24 +148,25 @@ class Scheduler(object):
         self.run = True
         try:
             while self.run and not self.stop.is_set():
-                wait = 0.1
                 updated = False
                 if self.schedule:
                     wait = self.schedule[0].next - time.time()
+                else:
+                    wait = self.wait_timeout
                 try:
                     if wait <= 0.0:
                         newtask = self.addq.get(False)
                     else:
-                        if wait >= 3.0:
-                            wait = 3.0
                         newtask = None
-                        elapsed = 0
-                        while not self.stop.is_set() and \
+                        while self.run and \
+                              not self.stop.is_set() and \
                               newtask is None and \
-                              elapsed < wait:
-                            newtask = self.addq.get(True, 0.1)
-                            elapsed += 0.1
-                except QueueEmpty:
+                              wait > 0:
+                            try:
+                                newtask = self.addq.get(True, min(wait, self.wait_timeout))
+                            except QueueEmpty:          # Nothing to add, nothing to do. Check run flags and continue waiting.
+                                wait -= self.wait_timeout
+                except QueueEmpty:                      # Time to run some tasks, and no new tasks to add.
                     self.schedule_lock.acquire()
                     # select only those tasks which are to be executed now
                     relevant = itertools.takewhile(
@@ -174,11 +184,11 @@ class Scheduler(object):
                             # only need to resort tasks if a repeated task has
                             # been kept in the list.
                             updated = True
-                else:
-                    updated = True
+                else:                                   # Add new task
                     self.schedule_lock.acquire()
                     if newtask is not None:
                         self.schedule.append(newtask)
+                        updated = True
                 finally:
                     if updated:
                         self.schedule.sort(key=lambda task: task.next)

@@ -96,6 +96,7 @@ class ClientXMPP(BaseXMPP):
 
         self.add_event_handler('connected', self._reset_connection_state)
         self.add_event_handler('session_bind', self._handle_session_bind)
+        self.add_event_handler('roster_update', self._handle_roster)
 
         self.register_stanza(StreamFeatures)
 
@@ -106,7 +107,7 @@ class ClientXMPP(BaseXMPP):
         self.register_handler(
                 Callback('Roster Update',
                          StanzaPath('iq@type=set/roster'),
-                         self._handle_roster))
+                         lambda iq: self.event('roster_update', iq)))
 
         # Setup default stream features
         self.register_plugin('feature_starttls')
@@ -244,13 +245,22 @@ class ClientXMPP(BaseXMPP):
         if 'rosterver' in self.features:
             iq['roster']['ver'] = self.client_roster.version
 
-        if not block and callback is None:
-            callback = lambda resp: self._handle_roster(resp)
+
+        if not block or callback is not None:
+            block = False
+            if callback is None:
+                callback = lambda resp: self.event('roster_update', resp)
+            else:
+                orig_cb = callback
+                def wrapped(resp):
+                    self.event('roster_update', resp)
+                    orig_cb(resp)
+                callback = wrapped
 
         response = iq.send(block, timeout, callback)
 
         if block:
-            self._handle_roster(response)
+            self.event('roster_update', response)
             return response
 
     def _reset_connection_state(self, event=None):
@@ -301,7 +311,6 @@ class ClientXMPP(BaseXMPP):
 
                 roster[jid].save(remove=(item['subscription'] == 'remove'))
 
-        self.event("roster_update", iq)
         if iq['type'] == 'set':
             resp = self.Iq(stype='result',
                            sto=iq['from'],

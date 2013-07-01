@@ -49,15 +49,15 @@ class TestStreamRoster(SleekTest):
         # Wait for get_roster to return.
         t.join()
 
+        # Give the event queue time to process.
+        time.sleep(.1)
+
         self.check_roster('tester@localhost', 'user@localhost',
                           name='User',
                           subscription='from',
                           afrom=True,
                           pending_out=True,
                           groups=['Friends', 'Examples'])
-
-        # Give the event queue time to process.
-        time.sleep(.1)
 
         self.failUnless(len(roster_updates) == 1,
                 "Wrong number of roster_update events fired: %s (should be 1)" % len(roster_updates))

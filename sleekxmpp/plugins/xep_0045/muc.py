@@ -331,11 +331,11 @@ class XEP_0045(BasePlugin):
         iq['muc_owner']['destroy']['reason'] = reason
         return iq.send(**iqargs)
 
-    def kick(self, room, nick, **args):
-        return self.set_role(room, nick, 'none', **args)
+    def kick(self, room, nick, **iqargs):
+        return self.set_role(room, nick, 'none', **iqargs)
 
     def ban(self, room, jid, reason=None, ifrom=None, **iqargs):
-        return self.set_affiliation(room, jid, 'outcast', **args)
+        return self.set_affiliation(room, jid, 'outcast', **iqargs)
 
     def get_users(self, room, role=None, affiliation=None, ifrom=None, **iqargs):
         iq = self.xmpp.Iq()

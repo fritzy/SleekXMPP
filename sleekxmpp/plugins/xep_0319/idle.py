@@ -19,7 +19,7 @@ from sleekxmpp.plugins.xep_0319 import stanza
 class XEP_0319(BasePlugin):
     name = 'xep_0319'
     description = 'XEP-0319: Last User Interaction in Presence'
-    dependencies = set()
+    dependencies = set(['xep_0012'])
     stanza = stanza
 
     def plugin_init(self):
@@ -46,12 +46,17 @@ class XEP_0319(BasePlugin):
         self.xmpp.remove_handler('Idle Presence')
 
     def idle(self, jid=None, since=None):
+        seconds = None
         if since is None:
             since = datetime.now()
+        else:
+            seconds = datetime.now() - since
         self.api['set_idle'](jid, None, None, since)
+        self.xmpp['xep_0012'].set_last_activity(jid=jid, seconds=seconds)
 
     def active(self, jid=None):
         self.api['set_idle'](jid, None, None, None)
+        self.xmpp['xep_0012'].del_last_activity(jid)
 
     def _set_idle(self, jid, node, ifrom, data):
         self._idle_stamps[jid] = data

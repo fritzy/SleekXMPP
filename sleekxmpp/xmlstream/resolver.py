@@ -206,11 +206,7 @@ def get_AAAA(host, resolver=None):
             recs = socket.getaddrinfo(host, None, socket.AF_INET6,
                                                   socket.SOCK_STREAM)
             return [rec[4][0] for rec in recs]
-        except socket.gaierror:
-            log.debug("DNS: Error retreiving AAAA address " + \
-                      "info for %s." % host)
-            return []
-        except OSError:
+        except (OSError, socket.gaierror):
             log.debug("DNS: Error retreiving AAAA address " + \
                       "info for %s." % host)
             return []

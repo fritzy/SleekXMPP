@@ -210,6 +210,10 @@ def get_AAAA(host, resolver=None):
             log.debug("DNS: Error retreiving AAAA address " + \
                       "info for %s." % host)
             return []
+        except OSError:
+            log.debug("DNS: Error retreiving AAAA address " + \
+                      "info for %s." % host)
+            return []
 
     # Using dnspython:
     try:

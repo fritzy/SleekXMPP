@@ -506,50 +506,100 @@ class JID(object):
         """
         self._jid = JID(data)._jid
 
-    # pylint: disable=R0911
-    def __getattr__(self, name):
-        """Retrieve the given JID component.
+    @property
+    def resource(self):
+        return self._jid[2] or ''
 
-        :param name: one of: user, server, domain, resource,
-                     full, or bare.
-        """
-        if name == 'resource':
-            return self._jid[2] or ''
-        elif name in ('user', 'username', 'local', 'node'):
-            return self._jid[0] or ''
-        elif name in ('server', 'domain', 'host'):
-            return self._jid[1] or ''
-        elif name in ('full', 'jid'):
-            return _format_jid(*self._jid)
-        elif name == 'bare':
-            return _format_jid(self._jid[0], self._jid[1])
-        elif name == '_jid':
-            return getattr(super(JID, self), '_jid')
-        else:
-            return None
+    @property
+    def user(self):
+        return self._jid[0] or ''
 
-    # pylint: disable=W0212
-    def __setattr__(self, name, value):
-        """Update the given JID component.
+    @property
+    def local(self):
+        return self._jid[0] or ''
 
-        :param name: one of: ``user``, ``username``, ``local``,
-                             ``node``, ``server``, ``domain``, ``host``,
-                             ``resource``, ``full``, ``jid``, or ``bare``.
-        :param value: The new string value of the JID component.
-        """
-        if name == '_jid':
-            super(JID, self).__setattr__('_jid', value)
-        elif name == 'resource':
-            self._jid = JID(self, resource=value)._jid
-        elif name in ('user', 'username', 'local', 'node'):
-            self._jid = JID(self, local=value)._jid
-        elif name in ('server', 'domain', 'host'):
-            self._jid = JID(self, domain=value)._jid
-        elif name in ('full', 'jid'):
-            self._jid = JID(value)._jid
-        elif name == 'bare':
-            parsed = JID(value)._jid
-            self._jid = (parsed[0], parsed[1], self._jid[2])
+    @property
+    def node(self):
+        return self._jid[0] or ''
+
+    @property
+    def username(self):
+        return self._jid[0] or ''
+
+    @property
+    def bare(self):
+        return _format_jid(self._jid[0], self._jid[1])
+
+    @property
+    def server(self):
+        return self._jid[1] or ''
+
+    @property
+    def domain(self):
+        return self._jid[1] or ''
+
+    @property
+    def host(self):
+        return self._jid[1] or ''
+
+    @property
+    def full(self):
+        return _format_jid(*self._jid)
+
+    @property
+    def jid(self):
+        return _format_jid(*self._jid)
+
+    @property
+    def bare(self):
+        return _format_jid(self._jid[0], self._jid[1])
+
+
+    @resource.setter
+    def resource(self, value):
+        self._jid = JID(self, resource=value)._jid
+
+    @user.setter
+    def user(self, value):
+        self._jid = JID(self, local=value)._jid
+
+    @username.setter
+    def username(self, value):
+        self._jid = JID(self, local=value)._jid
+
+    @local.setter
+    def local(self, value):
+        self._jid = JID(self, local=value)._jid
+
+    @node.setter
+    def node(self, value):
+        self._jid = JID(self, local=value)._jid
+
+    @server.setter
+    def server(self, value):
+        self._jid = JID(self, domain=value)._jid
+
+    @domain.setter
+    def domain(self, value):
+        self._jid = JID(self, domain=value)._jid
+
+    @host.setter
+    def host(self, value):
+        self._jid = JID(self, domain=value)._jid
+
+    @full.setter
+    def full(self, value):
+        self._jid = JID(value)._jid
+
+    @jid.setter
+    def jid(self, value):
+        self._jid = JID(value)._jid
+
+    @bare.setter
+    def bare(self, value):
+        parsed = JID(value)._jid
+        self._jid = (parsed[0], parsed[1], self._jid[2])
+
 
     def __str__(self):
         """Use the full JID as the string value."""

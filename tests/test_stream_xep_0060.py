@@ -1,8 +1,7 @@
-import sys
-import time
 import threading
 
-from sleekxmpp.test import *
+import unittest
+from sleekxmpp.test import SleekTest
 from sleekxmpp.stanza.atom import AtomEntry
 from sleekxmpp.xmlstream import register_stanza_plugin
 

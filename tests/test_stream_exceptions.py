@@ -1,9 +1,8 @@
-import sys
-import sleekxmpp
 from sleekxmpp.xmlstream.matcher import MatchXPath
 from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.exceptions import XMPPError
-from sleekxmpp.test import *
+import unittest
+from sleekxmpp.test import SleekTest
 
 
 class TestStreamExceptions(SleekTest):

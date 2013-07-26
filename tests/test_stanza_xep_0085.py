@@ -1,5 +1,9 @@
-from sleekxmpp.test import *
+import unittest
+from sleekxmpp import Message
+from sleekxmpp.test import SleekTest
 import sleekxmpp.plugins.xep_0085 as xep_0085
+from sleekxmpp.xmlstream import register_stanza_plugin
+
 
 class TestChatStates(SleekTest):
 

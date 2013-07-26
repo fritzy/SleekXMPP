@@ -1,7 +1,7 @@
-import time
 import threading
 
-from sleekxmpp.test import *
+import unittest
+from sleekxmpp.test import SleekTest
 
 
 class TestOOB(SleekTest):

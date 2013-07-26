@@ -6,7 +6,6 @@
     See the file LICENSE for copying permission.
 """
 
-import sys
 import ssl
 import logging
 

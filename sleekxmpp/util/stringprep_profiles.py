@@ -16,7 +16,6 @@
 
 from __future__ import unicode_literals
 
-import sys
 import stringprep
 from unicodedata import ucd_3_2_0 as unicodedata
 

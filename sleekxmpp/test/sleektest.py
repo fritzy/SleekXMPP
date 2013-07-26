@@ -9,14 +9,12 @@
 import unittest
 from xml.parsers.expat import ExpatError
 
-import sleekxmpp
 from sleekxmpp import ClientXMPP, ComponentXMPP
 from sleekxmpp.util import Queue
 from sleekxmpp.stanza import Message, Iq, Presence
 from sleekxmpp.test import TestSocket, TestLiveSocket
-from sleekxmpp.exceptions import XMPPError, IqTimeout, IqError
-from sleekxmpp.xmlstream import ET, register_stanza_plugin
-from sleekxmpp.xmlstream import ElementBase, StanzaBase
+from sleekxmpp.xmlstream import ET
+from sleekxmpp.xmlstream import ElementBase
 from sleekxmpp.xmlstream.tostring import tostring
 from sleekxmpp.xmlstream.matcher import StanzaPath, MatcherId
 from sleekxmpp.xmlstream.matcher import MatchXMLMask, MatchXPath

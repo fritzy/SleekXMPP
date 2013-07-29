@@ -1,8 +1,9 @@
 # -*- encoding:utf-8 -*-
-
 from __future__ import unicode_literals
 
-from sleekxmpp.test import *
+import unittest
+from sleekxmpp.exceptions import IqTimeout
+from sleekxmpp.test import SleekTest
 import time
 import threading
 

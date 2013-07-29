@@ -6,7 +6,6 @@
     See the file LICENSE for copying permission.
 """
 
-import logging
 import datetime as dt
 
 from sleekxmpp.plugins import BasePlugin, register_plugin

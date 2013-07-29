@@ -1,5 +1,8 @@
-from sleekxmpp.test import *
+import unittest
+from sleekxmpp import Iq
+from sleekxmpp.test import SleekTest
 import sleekxmpp.plugins.xep_0030 as xep_0030
+from sleekxmpp.xmlstream import register_stanza_plugin
 
 
 class TestDisco(SleekTest):

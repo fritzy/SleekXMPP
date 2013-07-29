@@ -1,5 +1,8 @@
-from sleekxmpp.test import *
+import unittest
+from sleekxmpp import Message
+from sleekxmpp.test import SleekTest
 import sleekxmpp.plugins.xep_0033 as xep_0033
+from sleekxmpp.xmlstream import register_stanza_plugin
 
 
 class TestAddresses(SleekTest):

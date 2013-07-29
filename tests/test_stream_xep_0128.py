@@ -1,9 +1,5 @@
-import sys
-import time
-import threading
-
-from sleekxmpp.test import *
-from sleekxmpp.xmlstream import ElementBase
+import unittest
+from sleekxmpp.test import SleekTest
 
 
 class TestStreamExtendedDisco(SleekTest):

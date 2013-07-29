@@ -1,7 +1,10 @@
-from sleekxmpp.test import *
+import unittest
+from sleekxmpp import Message
+from sleekxmpp.test import SleekTest
 from sleekxmpp.thirdparty import OrderedDict
 
 import sleekxmpp.plugins.xep_0004 as xep_0004
+from sleekxmpp.xmlstream import register_stanza_plugin
 
 
 class TestDataForms(SleekTest):

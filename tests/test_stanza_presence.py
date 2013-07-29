@@ -1,6 +1,6 @@
-from sleekxmpp.test import *
-from sleekxmpp.stanza.presence import Presence
-
+import unittest
+import sleekxmpp
+from sleekxmpp.test import SleekTest
 
 class TestPresenceStanzas(SleekTest):
 

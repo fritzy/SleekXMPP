@@ -1,5 +1,6 @@
-from sleekxmpp.test import *
-from sleekxmpp.stanza.roster import Roster
+import unittest
+from sleekxmpp.test import SleekTest
+from sleekxmpp.xmlstream import ET
 
 
 class TestRosterStanzas(SleekTest):

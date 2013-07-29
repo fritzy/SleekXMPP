@@ -12,7 +12,7 @@ from sleekxmpp.jid import JID
 from sleekxmpp.stanza import Iq, StreamFeatures
 from sleekxmpp.features.feature_bind import stanza
 from sleekxmpp.xmlstream import register_stanza_plugin
-from sleekxmpp.plugins import BasePlugin, register_plugin
+from sleekxmpp.plugins import BasePlugin
 
 
 log = logging.getLogger(__name__)

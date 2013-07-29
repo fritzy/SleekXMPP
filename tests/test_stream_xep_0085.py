@@ -1,7 +1,7 @@
-import threading
 import time
 
-from sleekxmpp.test import *
+import unittest
+from sleekxmpp.test import SleekTest
 
 
 class TestStreamChatStates(SleekTest):

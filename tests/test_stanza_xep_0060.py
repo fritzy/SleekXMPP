@@ -1,6 +1,8 @@
-from sleekxmpp.test import *
+import unittest
+from sleekxmpp.test import SleekTest
 import sleekxmpp.plugins.xep_0004 as xep_0004
 import sleekxmpp.plugins.xep_0060.stanza as pubsub
+from sleekxmpp.xmlstream.stanzabase import ET
 
 
 class TestPubsubStanzas(SleekTest):

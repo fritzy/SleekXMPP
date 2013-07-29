@@ -1,6 +1,7 @@
 # -*- encoding: utf8 -*-
 from __future__ import unicode_literals
-from sleekxmpp.test import *
+import unittest
+from sleekxmpp.test import SleekTest
 from sleekxmpp import JID, InvalidJID
 from sleekxmpp.jid import nodeprep
 

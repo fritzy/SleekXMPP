@@ -1,5 +1,9 @@
-from sleekxmpp.test import *
+import unittest
+from sleekxmpp.exceptions import XMPPError
+from sleekxmpp import Iq
+from sleekxmpp.test import SleekTest
 from sleekxmpp.plugins.xep_0047 import Data
+from sleekxmpp.xmlstream import register_stanza_plugin, ET
 
 
 class TestIBB(SleekTest):

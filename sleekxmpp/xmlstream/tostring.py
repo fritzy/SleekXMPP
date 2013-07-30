@@ -140,33 +140,26 @@ def tostring(xml=None, xmlns='', stream=None, outbuffer='',
 
 
 def escape(text, use_cdata=False):
-    """Convert special characters in XML to escape sequences.
+    encoding = 'utf-8'
+    from xml.etree.ElementTree import _escape_cdata, _raise_serialization_error
 
-    :param string text: The XML text to convert.
-    :rtype: Unicode string
-    """
-    if sys.version_info < (3, 0):
-        if type(text) != types.UnicodeType:
-            text = unicode(text, 'utf-8', 'ignore')
+    if use_cdata:
+        return _escape_cdata(text, encoding)
 
-    escapes = {'&': '&amp;',
-               '<': '&lt;',
-               '>': '&gt;',
-               "'": '&apos;',
-               '"': '&quot;'}
-
-    if not use_cdata:
-        text = list(text)
-        for i, c in enumerate(text):
-            text[i] = escapes.get(c, c)
-        return ''.join(text)
-    else:
-        escape_needed = False
-        for c in text:
-            if c in escapes:
-                escape_needed = True
-                break
-        if escape_needed:
-            escaped = map(lambda x : "<![CDATA[%s]]>" % x, text.split("]]>"))
-            return "<![CDATA[]]]><![CDATA[]>]]>".join(escaped)
-        return text
+    # copied from xml.etree.ElementTree._escape_attrib with "&apos;" case
+    try:
+        if "&" in text:
+            text = text.replace("&", "&amp;")
+        if "<" in text:
+            text = text.replace("<", "&lt;")
+        if ">" in text:
+            text = text.replace(">", "&gt;")
+        if "\"" in text:
+            text = text.replace("\"", "&quot;")
+        if "'" in text:
+            text = text.replace("'", "&apos;")
+        if "\n" in text:
+            text = text.replace("\n", "&#10;")
+        return text.encode(encoding, "xmlcharrefreplace")
+    except (TypeError, AttributeError):
+        _raise_serialization_error(text)

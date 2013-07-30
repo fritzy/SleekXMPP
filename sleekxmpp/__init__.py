@@ -11,6 +11,7 @@ from sleekxmpp.clientxmpp import ClientXMPP
 from sleekxmpp.componentxmpp import ComponentXMPP
 from sleekxmpp.stanza import Message, Presence, Iq
 from sleekxmpp.jid import JID, InvalidJID
+from sleekxmpp.xmlstream.stanzabase import ET, ElementBase, register_stanza_plugin
 from sleekxmpp.xmlstream.handler import *
 from sleekxmpp.xmlstream import XMLStream, RestartStream
 from sleekxmpp.xmlstream.matcher import *

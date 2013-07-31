@@ -16,6 +16,7 @@
 from __future__ import unicode_literals
 
 import sys
+from xml.etree.ElementTree import _escape_cdata, _raise_serialization_error
 
 if sys.version_info < (3, 0):
     import types
@@ -141,7 +142,6 @@ def tostring(xml=None, xmlns='', stream=None, outbuffer='',
 
 def escape(text, use_cdata=False):
     encoding = 'utf-8'
-    from xml.etree.ElementTree import _escape_cdata, _raise_serialization_error
 
     if use_cdata:
         return _escape_cdata(text, encoding)

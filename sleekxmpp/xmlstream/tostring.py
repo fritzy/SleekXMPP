@@ -16,7 +16,7 @@
 from __future__ import unicode_literals
 
 import sys
-from xml.etree.ElementTree import _escape_cdata, _raise_serialization_error
+from xml.etree.ElementTree import _escape_cdata, _escape_attrib
 
 if sys.version_info < (3, 0):
     import types
@@ -146,20 +146,7 @@ def escape(text, use_cdata=False):
     if use_cdata:
         return _escape_cdata(text, encoding)
 
-    # copied from xml.etree.ElementTree._escape_attrib with "&apos;" case
-    try:
-        if "&" in text:
-            text = text.replace("&", "&amp;")
-        if "<" in text:
-            text = text.replace("<", "&lt;")
-        if ">" in text:
-            text = text.replace(">", "&gt;")
-        if "\"" in text:
-            text = text.replace("\"", "&quot;")
-        if "'" in text:
-            text = text.replace("'", "&apos;")
-        if "\n" in text:
-            text = text.replace("\n", "&#10;")
-        return text.encode(encoding, "xmlcharrefreplace")
-    except (TypeError, AttributeError):
-        _raise_serialization_error(text)
+    text = _escape_attrib(text, encoding)
+    if "'" in text:
+        text = text.replace("'", "&apos;")
+    return text

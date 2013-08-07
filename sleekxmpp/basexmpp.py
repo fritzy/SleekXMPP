@@ -25,6 +25,7 @@ from sleekxmpp.exceptions import IqError, IqTimeout
 from sleekxmpp.stanza import Message, Presence, Iq, StreamError
 from sleekxmpp.stanza.roster import Roster
 from sleekxmpp.stanza.nick import Nick
+from sleekxmpp.stanza.htmlim import HTMLIM
 
 from sleekxmpp.xmlstream import XMLStream, JID
 from sleekxmpp.xmlstream import ET, register_stanza_plugin

@@ -6,6 +6,17 @@
     See the file LICENSE for copying permission.
 """
 
+import logging
+if hasattr(logging, 'NullHandler'):
+    NullHandler = logging.NullHandler
+else:
+    class NullHandler(logging.Handler):
+        def handle(self, record):
+            pass
+logging.getLogger(__name__).addHandler(NullHandler())
+del NullHandler
+
+
 from sleekxmpp.stanza import Message, Presence, Iq
 from sleekxmpp.jid import JID, InvalidJID
 from sleekxmpp.xmlstream.stanzabase import ET, ElementBase, register_stanza_plugin

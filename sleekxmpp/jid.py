@@ -228,7 +228,7 @@ def _validate_domain(domain):
 
             for char in label:
                 if char in ILLEGAL_CHARS:
-                    raise InvalidJID('Domain contains illegar characters')
+                    raise InvalidJID('Domain contains illegal characters')
 
             if '-' in (label[0], label[-1]):
                 raise InvalidJID('Domain started or ended with -')

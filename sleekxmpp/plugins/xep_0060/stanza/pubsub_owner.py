@@ -94,7 +94,9 @@ class OwnerRedirect(ElementBase):
 
 
 class OwnerSubscriptions(Subscriptions):
+    name = 'subscriptions'
     namespace = 'http://jabber.org/protocol/pubsub#owner'
+    plugin_attrib = name
     interfaces = set(('node',))
 
     def append(self, subscription):

@@ -8,11 +8,5 @@
     See the file LICENSE for copying permission.
 """
 
-from sleekxmpp.plugins.base import register_plugin
+from sleekxmpp.plugins.xep_0325.stanza.control import *
 
-from sleekxmpp.plugins.xep_0323.sensordata import XEP_0323
-from sleekxmpp.plugins.xep_0323 import stanza
-
-register_plugin(XEP_0323)
-
-xep_0323=XEP_0323

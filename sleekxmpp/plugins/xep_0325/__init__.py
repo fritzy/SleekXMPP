@@ -10,9 +10,9 @@
 
 from sleekxmpp.plugins.base import register_plugin
 
-from sleekxmpp.plugins.xep_0323.sensordata import XEP_0323
-from sleekxmpp.plugins.xep_0323 import stanza
+from sleekxmpp.plugins.xep_0325.control import XEP_0325
+from sleekxmpp.plugins.xep_0325 import stanza
 
-register_plugin(XEP_0323)
+register_plugin(XEP_0325)
 
-xep_0323=XEP_0323
+xep_0325=XEP_0325

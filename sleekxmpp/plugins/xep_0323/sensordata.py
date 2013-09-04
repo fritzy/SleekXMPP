@@ -174,6 +174,12 @@ class XEP_0323(BasePlugin):
         """ Return a new session ID. """
         return str(time.time()) + '-' + self.xmpp.new_id()
 
+    def session_bind(self, jid):
+        logging.debug("setting the Disco discovery for %s" % Sensordata.namespace)
+        self.xmpp['xep_0030'].add_feature(Sensordata.namespace)
+        self.xmpp['xep_0030'].set_items(node=Sensordata.namespace, items=tuple())
+
+
     def plugin_end(self):
         """ Stop the XEP-0323 plugin """
         self.sessions.clear();
@@ -184,7 +190,6 @@ class XEP_0323(BasePlugin):
         self.xmpp.remove_handler('Sensordata Event:Cancelled')
         self.xmpp.remove_handler('Sensordata Event:Fields')
         self.xmpp['xep_0030'].del_feature(feature=Sensordata.namespace)
-        self.xmpp['xep_0030'].set_items(node=Sensordata.namespace, items=tuple());
 
 
     # =================================================================

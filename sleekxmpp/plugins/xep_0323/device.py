@@ -9,6 +9,7 @@
 """
 
 import datetime
+import logging
 
 class Device(object):
 	"""
@@ -20,16 +21,17 @@ class Device(object):
           request_fields
 	"""
 
-	def __init__(self, nodeId):
-		self.nodeId = nodeId;
-		self.fields = {};
+	def __init__(self, nodeId, fields={}):
+		self.nodeId = nodeId
+		self.fields = fields # see fields described below
 		# {'type':'numeric',
-		#	 'name':'myname',
-		#	 'value': 42,
-		#	 'unit':'Z'}];
-		self.timestamp_data = {};
-		self.momentary_data = {};
-		self.momentary_timestamp = "";
+		#  'name':'myname',
+		#  'value': 42,
+		#  'unit':'Z'}];
+		self.timestamp_data = {}
+		self.momentary_data = {}
+		self.momentary_timestamp = ""
+		logging.debug("Device object started nodeId %s",nodeId)
 
 	def has_field(self, field):
 		"""
@@ -38,9 +40,17 @@ class Device(object):
         Arguments:
             field      -- The field name		
 		"""
-		if field in self.fields:
+		if field in self.fields.keys():
 			return True;
 		return False;
+	
+	def refresh(self, fields):
+		"""
+		override method to do the refresh work
+		refresh values from hardware or other
+		"""
+		pass
+		
 
 	def request_fields(self, fields, flags, session, callback):
 		"""
@@ -85,20 +95,22 @@ class Device(object):
                                 Error details when a request failed. 
 
 		"""
-
+                logging.debug("request_fields called looking for fields %s",fields)
 		if len(fields) > 0:
 			# Check availiability
 			for f in fields:
-				if f not in self.fields:
+				if f not in self.fields.keys():
 					self._send_reject(session, callback)
 					return False;
 		else:
 			# Request all fields
-			fields = self.fields;
+			fields = self.fields.keys();
 
 
 		# Refresh data from device
 		# ...
+		logging.debug("about to refresh device fields %s",fields)
+		self.refresh(fields)
 
 		if "momentary" in flags and flags['momentary'] == "true" or \
 		   "all" in flags and flags['all'] == "true":
@@ -114,11 +126,11 @@ class Device(object):
 			for f in self.momentary_data:
 				if f in fields:
 					field_block.append({"name": f, 
-										"type": self.fields[f]["type"], 
-										"unit": self.fields[f]["unit"],
-										"dataType": self.fields[f]["dataType"],
-										"value": self.momentary_data[f]["value"], 
-										"flags": self.momentary_data[f]["flags"]});
+							    "type": self.fields[f]["type"], 
+							    "unit": self.fields[f]["unit"],
+							    "dataType": self.fields[f]["dataType"],
+							    "value": self.momentary_data[f]["value"], 
+							    "flags": self.momentary_data[f]["flags"]});
 			ts_block["timestamp"] = timestamp;
 			ts_block["fields"] = field_block;
 
@@ -145,11 +157,11 @@ class Device(object):
 			for f in self.timestamp_data[ts]:
 				if f in fields:
 					field_block.append({"name": f, 
-										"type": self.fields[f]["type"], 
-										"unit": self.fields[f]["unit"],
-										"dataType": self.fields[f]["dataType"],
-										"value": self.timestamp_data[ts][f]["value"], 
-										"flags": self.timestamp_data[ts][f]["flags"]});
+							    "type": self.fields[f]["type"], 
+							    "unit": self.fields[f]["unit"],
+							    "dataType": self.fields[f]["dataType"],
+							    "value": self.timestamp_data[ts][f]["value"], 
+							    "flags": self.timestamp_data[ts][f]["flags"]});
 
 			ts_block["timestamp"] = ts;
 			ts_block["fields"] = field_block;
@@ -208,7 +220,7 @@ class Device(object):
             flags     -- [optional] data classifier flags for the field, e.g. momentary
                          Formatted as a dictionary like { "flag name": "flag value" ... }
 		"""
-		if not name in self.fields:
+		if not name in self.fields.keys():
 			return False;
 		if not timestamp in self.timestamp_data:
 			self.timestamp_data[timestamp] = {};
@@ -226,7 +238,7 @@ class Device(object):
             flags     -- [optional] data classifier flags for the field, e.g. momentary
                          Formatted as a dictionary like { "flag name": "flag value" ... }
 		"""
-		if self.fields[name] is None:
+		if not self.fields.has_key(name):
 			return False;
 		if flags is None:
 			flags = {};

@@ -34,7 +34,8 @@ class TestToString(SleekTest):
         desired = """&lt;foo bar=&quot;baz&quot;&gt;&apos;Hi"""
         desired += """ &amp; welcome!&apos;&lt;/foo&gt;"""
 
-        self.assertEqual(escaped, desired)
+        self.failUnless(escaped == desired,
+            "XML escaping did not work: %s." % escaped)
 
     def testEmptyElement(self):
         """Test converting an empty element to a string."""

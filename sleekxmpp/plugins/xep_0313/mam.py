@@ -36,6 +36,7 @@ class XEP_0313(BasePlugin):
         register_stanza_plugin(Iq, stanza.MAM)
         register_stanza_plugin(Iq, stanza.Preferences)
         register_stanza_plugin(Message, stanza.Result)
+        register_stanza_plugin(stanza.Result, self.xmpp['xep_0297'].stanza.Forwarded)
         register_stanza_plugin(stanza.MAM, self.xmpp['xep_0059'].stanza.Set)
 
     def retrieve(self, jid=None, start=None, end=None, with_jid=None, ifrom=None,

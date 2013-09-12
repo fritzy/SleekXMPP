@@ -122,10 +122,4 @@ class Result(ElementBase):
     name = 'result'
     namespace = 'urn:xmpp:mam:tmp'
     plugin_attrib = 'mam_result'
-    interfaces = set(['forwarded', 'queryid', 'id'])
-
-    def get_forwarded(self):
-        return self.parent()['forwarded']
-
-    def del_forwarded(self):
-        del self.parent()['forwarded']
+    interfaces = set(['queryid', 'id'])

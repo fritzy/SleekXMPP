@@ -123,3 +123,17 @@ class Result(ElementBase):
     namespace = 'urn:xmpp:mam:tmp'
     plugin_attrib = 'mam_result'
     interfaces = set(['queryid', 'id'])
+
+
+class Archived(ElementBase):
+    name = 'archived'
+    namespace = 'urn:xmpp:mam:tmp'
+    plugin_attrib = 'mam_archived'
+    plugin_multi_attrib = 'mam_archives'
+    interfaces = set(['by', 'id'])
+
+    def get_by(self):
+        return JID(self._get_attr('by'))
+
+    def set_by(self):
+        return self._set_attr('by', str(value))

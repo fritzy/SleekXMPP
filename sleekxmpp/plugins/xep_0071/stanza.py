@@ -7,6 +7,7 @@
 """
 
 from sleekxmpp.stanza import Message
+from sleekxmpp.util import unicode
 from sleekxmpp.thirdparty import OrderedDict
 from sleekxmpp.xmlstream import ElementBase, ET, register_stanza_plugin, tostring
 
@@ -31,9 +32,9 @@ class XHTML_IM(ElementBase):
                 self.set_body(subcontent, sublang)
         else:
             if isinstance(content, type(ET.Element('test'))):
-                content = ET.tostring(content)
+                content = unicode(ET.tostring(content))
             else:
-                content = str(content)
+                content = unicode(content)
             header = '<body xmlns="%s"' % XHTML_NS
             if lang:
                 header = '%s xml:lang="%s"' % (header, lang)

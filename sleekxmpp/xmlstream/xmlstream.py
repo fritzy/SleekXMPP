@@ -819,7 +819,8 @@ class XMLStream(object):
         to be restarted.
         """
         log.info("Negotiating TLS")
-        log.info("Using SSL version: %s", str(self.ssl_version))
+        ssl_versions = {3: 'TLS 1.0', 1: 'SSL 3', 2: 'SSL 2/3'}
+        log.info("Using SSL version: %s", ssl_versions[self.ssl_version])
         if self.ca_certs is None:
             cert_policy = ssl.CERT_NONE
         else:

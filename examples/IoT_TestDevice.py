@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 """
     SleekXMPP: The Sleek XMPP Library
@@ -35,7 +36,7 @@ if sys.version_info < (3, 0):
     setdefaultencoding('utf8')
 else:
     raw_input = input
-    
+
 from sleekxmpp.plugins.xep_0323.device import Device
 
 #from sleekxmpp.exceptions import IqError, IqTimeout
@@ -68,7 +69,7 @@ class IoT_TestDevice(sleekxmpp.ClientXMPP):
         else:
             self.beServer=False
             self.clientJID=clientJID
-            
+
     def testForRelease(self):
         # todo thread safe
         return self.releaseMe
@@ -76,14 +77,14 @@ class IoT_TestDevice(sleekxmpp.ClientXMPP):
     def doReleaseMe(self):
         # todo thread safe
         self.releaseMe=True
-        
+
     def addDevice(self, device):
         self.device=device
-        
+
     def session_start(self, event):
         self.send_presence()
         self.get_roster()
-        # tell your preffered friend that you are alive 
+        # tell your preffered friend that you are alive
         self.send_message(mto='jocke@jabber.sust.se', mbody=self.boundjid.bare +' is now online use xep_323 stanza to talk to me')
 
         if not(self.beServer):
@@ -96,7 +97,7 @@ class IoT_TestDevice(sleekxmpp.ClientXMPP):
             msg.reply("Hi I am " + self.boundjid.full + " and I am on IP " + ip).send()
         else:
             logging.debug("got unknown message type %s", str(msg['type']))
-            
+
 class TheDevice(Device):
     """
     This is the actual device object that you will use to get information from your real hardware
@@ -112,8 +113,8 @@ class TheDevice(Device):
         """
         self._set_momentary_timestamp(self._get_timestamp())
         self.counter+=self.counter
-        self._add_field_momentary_data(self, "Temperature", self.counter) 
-        
+        self._add_field_momentary_data(self, "Temperature", self.counter)
+
 if __name__ == '__main__':
 
     # Setup the command line arguments.
@@ -123,7 +124,7 @@ if __name__ == '__main__':
     #   python IoT_TestDevice.py -j "serverjid@yourdomain.com" -p "password" -n "TestIoT" --debug
     #
     #   "client" an IoT device or other party that would like to get data from another device
-    
+
     optp = OptionParser()
 
     # Output verbosity options.
@@ -151,7 +152,7 @@ if __name__ == '__main__':
                     help="Another device to call for data on", default=None)
     optp.add_option("-n", "--nodeid", dest="nodeid",
                     help="I am a device get ready to be called", default=None)
-    
+
     opts, args = optp.parse_args()
 
      # Setup logging.
@@ -162,7 +163,7 @@ if __name__ == '__main__':
         opts.jid = raw_input("Username: ")
     if opts.password is None:
         opts.password = getpass.getpass("Password: ")
-        
+
 
     xmpp = IoT_TestDevice(opts.jid,opts.password)
     xmpp.register_plugin('xep_0030')
@@ -183,12 +184,12 @@ if __name__ == '__main__':
         myDevice._add_field(name="Temperature", typename="numeric", unit="C");
         myDevice._set_momentary_timestamp("2013-03-07T16:24:30")
         myDevice._add_field_momentary_data("Temperature", "23.4", flags={"automaticReadout": "true"});
-        
+
         xmpp['xep_0323'].register_node(nodeId=opts.nodeid, device=myDevice, commTimeout=10);
         xmpp.beClientOrServer(server=True)
         while not(xmpp.testForRelease()):
             xmpp.connect()
-            xmpp.process(block=True)    
+            xmpp.process(block=True)
             logging.debug("lost connection")
     if opts.sensorjid:
         logging.debug("will try to call another device for data")
@@ -196,7 +197,7 @@ if __name__ == '__main__':
         xmpp.connect()
         xmpp.process(block=True)
         logging.debug("ready ending")
-        
+
     else:
        print "noopp didn't happen"
 

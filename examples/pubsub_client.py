@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import sys
 import logging
 import getpass
@@ -20,7 +23,7 @@ else:
 
 class PubsubClient(sleekxmpp.ClientXMPP):
 
-    def __init__(self, jid, password, server, 
+    def __init__(self, jid, password, server,
                        node=None, action='list', data=''):
         super(PubsubClient, self).__init__(jid, password)
 
@@ -28,7 +31,7 @@ class PubsubClient(sleekxmpp.ClientXMPP):
         self.register_plugin('xep_0059')
         self.register_plugin('xep_0060')
 
-        self.actions = ['nodes', 'create', 'delete', 
+        self.actions = ['nodes', 'create', 'delete',
                         'publish', 'get', 'retract',
                         'purge', 'subscribe', 'unsubscribe']
 

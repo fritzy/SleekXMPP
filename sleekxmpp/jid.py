@@ -19,6 +19,8 @@ import stringprep
 import threading
 import encodings.idna
 
+from copy import deepcopy
+
 from sleekxmpp.util import stringprep_profiles
 from sleekxmpp.thirdparty import OrderedDict
 
@@ -630,3 +632,7 @@ class JID(object):
     def __copy__(self):
         """Generate a duplicate JID."""
         return JID(self)
+
+    def __deepcopy__(self, memo):
+        """Generate a duplicate JID."""
+        return JID(deepcopy(str(self), memo))

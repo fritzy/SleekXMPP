@@ -25,13 +25,13 @@ class MAM(ElementBase):
         self._results = []
 
     def get_start(self):
-        timestamp = self._get_attr('start')
+        timestamp = self._get_sub_text('start')
         return xep_0082.parse(timestamp)
 
     def set_start(self, value):
         if isinstance(value, dt.datetime):
             value = xep_0082.format_datetime(value)
-        self._set_attr('start', value)
+        self._set_sub_text('start', value)
 
     def get_end(self):
         timestamp = self._get_sub_text('end')

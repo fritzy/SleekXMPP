@@ -14,7 +14,7 @@ from sleekxmpp.plugins import xep_0082
 
 class Idle(ElementBase):
     name = 'idle'
-    namespace = 'urn:xmpp:idle:0'
+    namespace = 'urn:xmpp:idle:1'
     plugin_attrib = 'idle'
     interfaces = set(['since'])
 

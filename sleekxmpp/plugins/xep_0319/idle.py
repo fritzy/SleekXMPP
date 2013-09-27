@@ -38,10 +38,10 @@ class XEP_0319(BasePlugin):
         self.xmpp.add_filter('out', self._stamp_idle_presence)
 
     def session_bind(self, jid):
-        self.xmpp['xep_0030'].add_feature('urn:xmpp:idle:0')
+        self.xmpp['xep_0030'].add_feature('urn:xmpp:idle:1')
 
     def plugin_end(self):
-        self.xmpp['xep_0030'].del_feature(feature='urn:xmpp:idle:0')
+        self.xmpp['xep_0030'].del_feature(feature='urn:xmpp:idle:1')
         self.xmpp.del_filter('out', self._stamp_idle_presence)
         self.xmpp.remove_handler('Idle Presence')
 

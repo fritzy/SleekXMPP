@@ -16,6 +16,7 @@ from sleekxmpp.xmlstream import register_stanza_plugin
 from sleekxmpp.xmlstream.handler import Callback, Waiter
 from sleekxmpp.xmlstream.matcher import StanzaPath, MatchXMLMask
 from sleekxmpp.plugins.xep_0045 import stanza
+from sleekxmpp.plugins.xep_0004.stanza import Form
 
 
 log = logging.getLogger(__name__)
@@ -57,6 +58,8 @@ class XEP_0045(BasePlugin):
         register_stanza_plugin(Presence, stanza.MUCUser)
         register_stanza_plugin(Iq, stanza.MUCAdmin)
         register_stanza_plugin(Iq, stanza.MUCOwner)
+        register_stanza_plugin(stanza.MUCAdmin, Form)
+        register_stanza_plugin(stanza.MUCOwner, Form)
 
         self.xmpp.register_handler(
             Callback('MUC Presence',

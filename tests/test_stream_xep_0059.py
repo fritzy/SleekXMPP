@@ -1,6 +1,7 @@
 import threading
 
-from sleekxmpp.test import *
+import unittest
+from sleekxmpp.test import SleekTest
 from sleekxmpp.xmlstream import register_stanza_plugin
 from sleekxmpp.plugins.xep_0030 import DiscoItems
 from sleekxmpp.plugins.xep_0059 import ResultIterator, Set

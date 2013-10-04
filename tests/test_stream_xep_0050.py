@@ -1,8 +1,9 @@
 import time
 import logging
-import threading
 
-from sleekxmpp.test import *
+import unittest
+from sleekxmpp.test import SleekTest
+from sleekxmpp.xmlstream import ElementBase, register_stanza_plugin
 
 
 class TestAdHocCommands(SleekTest):
@@ -35,7 +36,7 @@ class TestAdHocCommands(SleekTest):
             logging.debug(initial)
             new_payload = TestPayload()
             if initial:
-                new_payload['bar'] = 'Received: %s' % initial['bar'] 
+                new_payload['bar'] = 'Received: %s' % initial['bar']
             else:
                 new_payload['bar'] = 'Failed'
 

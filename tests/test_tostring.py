@@ -1,6 +1,6 @@
-from sleekxmpp.test import *
-from sleekxmpp.stanza import Message
-from sleekxmpp.xmlstream.stanzabase import ET, ElementBase
+import unittest
+from sleekxmpp.test import SleekTest
+from sleekxmpp.xmlstream.stanzabase import ET
 from sleekxmpp.xmlstream.tostring import tostring, escape
 
 

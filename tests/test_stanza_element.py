@@ -1,5 +1,6 @@
-from sleekxmpp.test import *
-from sleekxmpp.xmlstream.stanzabase import ElementBase
+import unittest
+from sleekxmpp.test import SleekTest
+from sleekxmpp.xmlstream.stanzabase import ElementBase, register_stanza_plugin, ET
 from sleekxmpp.thirdparty import OrderedDict
 
 

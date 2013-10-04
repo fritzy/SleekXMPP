@@ -6,14 +6,25 @@
     See the file LICENSE for copying permission.
 """
 
-from sleekxmpp.basexmpp import BaseXMPP
-from sleekxmpp.clientxmpp import ClientXMPP
-from sleekxmpp.componentxmpp import ComponentXMPP
+import logging
+if hasattr(logging, 'NullHandler'):
+    NullHandler = logging.NullHandler
+else:
+    class NullHandler(logging.Handler):
+        def handle(self, record):
+            pass
+logging.getLogger(__name__).addHandler(NullHandler())
+del NullHandler
+
+
 from sleekxmpp.stanza import Message, Presence, Iq
 from sleekxmpp.jid import JID, InvalidJID
+from sleekxmpp.xmlstream.stanzabase import ET, ElementBase, register_stanza_plugin
 from sleekxmpp.xmlstream.handler import *
 from sleekxmpp.xmlstream import XMLStream, RestartStream
 from sleekxmpp.xmlstream.matcher import *
-from sleekxmpp.xmlstream.stanzabase import StanzaBase, ET
+from sleekxmpp.basexmpp import BaseXMPP
+from sleekxmpp.clientxmpp import ClientXMPP
+from sleekxmpp.componentxmpp import ComponentXMPP
 
 from sleekxmpp.version import __version__, __version_info__

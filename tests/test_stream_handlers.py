@@ -1,9 +1,9 @@
 import time
 
-from sleekxmpp import Message
-from sleekxmpp.test import *
-from sleekxmpp.xmlstream.handler import *
-from sleekxmpp.xmlstream.matcher import *
+import unittest
+from sleekxmpp.test import SleekTest
+from sleekxmpp.exceptions import IqTimeout
+from sleekxmpp import Callback, MatchXPath
 
 
 class TestHandlers(SleekTest):

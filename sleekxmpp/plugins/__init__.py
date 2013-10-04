@@ -81,4 +81,6 @@ __all__ = [
     'xep_0308',  # Last Message Correction
     'xep_0313',  # Message Archive Management
     'xep_0319',  # Last User Interaction in Presence
+    'xep_0323',  # IoT Systems Sensor Data
+    'xep_0325',  # IoT Systems Control
 ]

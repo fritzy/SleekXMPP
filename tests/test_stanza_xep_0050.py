@@ -1,6 +1,8 @@
 from sleekxmpp import Iq
-from sleekxmpp.test import *
+import unittest
+from sleekxmpp.test import SleekTest
 from sleekxmpp.plugins.xep_0050 import Command
+from sleekxmpp.xmlstream import register_stanza_plugin
 
 
 class TestAdHocCommandStanzas(SleekTest):

@@ -1,9 +1,8 @@
 import time
 
 from sleekxmpp import Message
-from sleekxmpp.test import *
-from sleekxmpp.xmlstream.handler import *
-from sleekxmpp.xmlstream.matcher import *
+import unittest
+from sleekxmpp.test import SleekTest
 
 
 class TestFilters(SleekTest):
@@ -84,5 +83,5 @@ class TestFilters(SleekTest):
         """)
 
 
- 
+
 suite = unittest.TestLoader().loadTestsFromTestCase(TestFilters)

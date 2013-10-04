@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import sys
 import logging
 import getpass
@@ -77,7 +80,7 @@ class PubsubEvents(sleekxmpp.ClientXMPP):
         """Handle receiving a node deletion event."""
         print('Deleted node %s' % (
            msg['pubsub_event']['delete']['node']))
- 
+
     def _config(self, msg):
         """Handle receiving a node configuration event."""
         print('Configured node %s:' % (

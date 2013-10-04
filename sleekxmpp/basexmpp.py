@@ -18,8 +18,7 @@ import sys
 import logging
 import threading
 
-import sleekxmpp
-from sleekxmpp import plugins, features, roster
+from sleekxmpp import plugins, roster, stanza
 from sleekxmpp.api import APIRegistry
 from sleekxmpp.exceptions import IqError, IqTimeout
 
@@ -34,8 +33,7 @@ from sleekxmpp.xmlstream.matcher import MatchXPath
 from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.xmlstream.stanzabase import XML_NS
 
-from sleekxmpp.features import *
-from sleekxmpp.plugins import PluginManager, register_plugin, load_plugin
+from sleekxmpp.plugins import PluginManager, load_plugin
 
 
 log = logging.getLogger(__name__)
@@ -148,7 +146,7 @@ class BaseXMPP(XMLStream):
 
         #: A reference to :mod:`sleekxmpp.stanza` to make accessing
         #: stanza classes easier.
-        self.stanza = sleekxmpp.stanza
+        self.stanza = stanza
 
         self.register_handler(
             Callback('IM',

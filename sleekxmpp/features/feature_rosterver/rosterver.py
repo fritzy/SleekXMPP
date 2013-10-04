@@ -8,7 +8,7 @@
 
 import logging
 
-from sleekxmpp.stanza import Iq, StreamFeatures
+from sleekxmpp.stanza import StreamFeatures
 from sleekxmpp.features.feature_rosterver import stanza
 from sleekxmpp.xmlstream import register_stanza_plugin
 from sleekxmpp.plugins.base import BasePlugin

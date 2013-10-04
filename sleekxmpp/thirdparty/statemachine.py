@@ -15,7 +15,8 @@ log = logging.getLogger(__name__)
 
 class StateMachine(object):
 
-    def __init__(self, states=[]):
+    def __init__(self, states=None):
+        if not states: states = []
         self.lock = threading.Condition()
         self.__states = []
         self.addStates(states)

@@ -1,6 +1,8 @@
-from sleekxmpp.test import *
+import unittest
+from sleekxmpp.test import SleekTest
 from sleekxmpp.stanza.message import Message
 from sleekxmpp.stanza.htmlim import HTMLIM
+from sleekxmpp.xmlstream import register_stanza_plugin
 
 
 class TestMessageStanzas(SleekTest):

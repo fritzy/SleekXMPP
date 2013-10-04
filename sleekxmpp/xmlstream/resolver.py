@@ -202,11 +202,14 @@ def get_AAAA(host, resolver=None):
     # If not using dnspython, attempt lookup using the OS level
     # getaddrinfo() method.
     if resolver is None:
+        if not socket.has_ipv6:
+            log.debug("Unable to query %s for AAAA records: IPv6 is not supported", host)
+            return []
         try:
             recs = socket.getaddrinfo(host, None, socket.AF_INET6,
                                                   socket.SOCK_STREAM)
             return [rec[4][0] for rec in recs]
-        except socket.gaierror:
+        except (OSError, socket.gaierror):
             log.debug("DNS: Error retreiving AAAA address " + \
                       "info for %s." % host)
             return []

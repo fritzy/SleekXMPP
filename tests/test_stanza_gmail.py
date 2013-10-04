@@ -1,5 +1,8 @@
-from sleekxmpp.test import *
+import unittest
+from sleekxmpp import Iq
+from sleekxmpp.test import SleekTest
 import sleekxmpp.plugins.gmail_notify as gmail
+from sleekxmpp.xmlstream import register_stanza_plugin, ET
 
 
 class TestGmail(SleekTest):

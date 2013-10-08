@@ -709,7 +709,7 @@ class ElementBase(object):
                 return plugin[full_attrib]
             return plugin
         else:
-            return ''
+            raise KeyError('Unknown interface %s' % attrib)
 
     def __setitem__(self, attrib, value):
         """Set the value of a stanza interface using dictionary-like syntax.
@@ -795,7 +795,8 @@ class ElementBase(object):
             plugin = self._get_plugin(attrib, lang)
             if plugin:
                 plugin[full_attrib] = value
-        return self
+        else:
+            raise KeyError('Unknown interface %s' % attrib)
 
     def __delitem__(self, attrib):
         """Delete the value of a stanza interface using dict-like syntax.

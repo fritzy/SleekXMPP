@@ -99,7 +99,7 @@ class MUCUser(ElementBase):
 
 
 class UserDecline(ElementBase):
-    name = 'decine'
+    name = 'decline'
     namespace = 'http://jabber.org/protocol/muc#user'
     plugin_attrib = 'decline'
     interfaces = set(['to', 'from', 'reason'])

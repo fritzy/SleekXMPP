@@ -289,6 +289,24 @@ class XEP_0045(BasePlugin):
             return False
         return True
 
+    def setRole(self, room, nick, role):
+        """ Change role property of a nick in a room.
+            Typically, roles are temporary (they last only as long as you are in the
+            room), whereas affiliations are permanent (they last across groupchat
+            sessions).
+        """
+        if role not in ('outcast', 'member', 'admin', 'owner', 'none'):
+            raise TypeError
+        query = ET.Element('{http://jabber.org/protocol/muc#admin}query')
+        item = ET.Element('item', {'role':role, 'nick':nick})    
+        query.append(item)
+        iq = self.xmpp.makeIqSet(query)
+        iq['to'] = room
+        result = iq.send()
+        if result is False or result['type'] != 'result':
+            raise ValueError
+        return True
+
     def invite(self, room, jid, reason='', mfrom=''):
         """ Invite a jid to a room."""
         msg = self.xmpp.makeMessage(room)

@@ -1498,8 +1498,8 @@ class XMLStream(object):
         """
         depth = 0
         root = None
-        for event, xml in ET.iterparse(self.filesocket, (b'end', b'start')):
-            if event == b'start':
+        for event, xml in ET.iterparse(self.filesocket, ('end', 'start')):
+            if event == 'start':
                 if depth == 0:
                     # We have received the start of the root element.
                     root = xml
@@ -1516,7 +1516,7 @@ class XMLStream(object):
                     # exponential backoff for new reconnect attempts.
                     self.reconnect_delay = 1.0
                 depth += 1
-            if event == b'end':
+            if event == 'end':
                 depth -= 1
                 if depth == 0:
                     # The stream's root element has closed,

@@ -115,7 +115,8 @@ class XEP_0045(BasePlugin):
             self._joined_rooms[jid] = set()
         self._joined_rooms[jid].add(node)
         self._nicks[(jid, node)] = data
-        self._roster[(jid, node)] = {}
+        if (jid, node) not in self._roster:
+            self._roster[(jid, node)] = {}
 
     def _del_joined_room(self, jid, node, ifrom, data):
         if jid in self._joined_rooms:

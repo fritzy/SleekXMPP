@@ -26,4 +26,7 @@ class MatcherId(MatcherBase):
         :param xml: The :class:`~sleekxmpp.xmlstream.stanzabase.ElementBase`
                     stanza to compare against.
         """
-        return xml['id'] == self._criteria
+        try:
+            return xml['id'] == self._criteria
+        except KeyError:
+            return False

@@ -123,6 +123,11 @@ class XMLStream(object):
         #:     xmpp.ssl_version = ssl.PROTOCOL_SSLv23
         self.ssl_version = ssl.PROTOCOL_TLSv1
 
+        #: The list of accepted ciphers, in OpenSSL Format.
+        #: It might be useful to override it for improved security
+        #: over the python defaults.
+        self.ciphers = None
+
         #: Path to a file containing certificates for verifying the
         #: server SSL certificate. A non-``None`` value will trigger
         #: certificate checking.
@@ -508,12 +513,18 @@ class XMLStream(object):
             else:
                 cert_policy = ssl.CERT_REQUIRED
 
-            ssl_socket = ssl.wrap_socket(self.socket,
-                                         certfile=self.certfile,
-                                         keyfile=self.keyfile,
-                                         ca_certs=self.ca_certs,
-                                         cert_reqs=cert_policy,
-                                         do_handshake_on_connect=False)
+            ssl_args = {
+                'certfile': self.certfile,
+                'keyfile': self.keyfile,
+                'ca_certs': self.ca_certs,
+                'cert_reqs': cert_policy,
+                'do_handshake_on_connect': False,
+            }
+
+            if sys.version_info >= (2, 7):
+                ssl_args['ciphers'] = self.ciphers
+
+            ssl_socket = ssl.wrap_socket(self.socket, **ssl_args)
 
             if hasattr(self.socket, 'socket'):
                 # We are using a testing socket, so preserve the top
@@ -826,13 +837,18 @@ class XMLStream(object):
         else:
             cert_policy = ssl.CERT_REQUIRED
 
-        ssl_socket = ssl.wrap_socket(self.socket,
-                                     certfile=self.certfile,
-                                     keyfile=self.keyfile,
-                                     ssl_version=self.ssl_version,
-                                     do_handshake_on_connect=False,
-                                     ca_certs=self.ca_certs,
-                                     cert_reqs=cert_policy)
+        ssl_args = {
+            'certfile': self.certfile,
+            'keyfile': self.keyfile,
+            'ca_certs': self.ca_certs,
+            'cert_reqs': cert_policy,
+            'do_handshake_on_connect': False,
+        }
+
+        if sys.version_info >= (2, 7):
+            ssl_args['ciphers'] = self.ciphers
+
+        ssl_socket = ssl.wrap_socket(self.socket, **ssl_args);
 
         if hasattr(self.socket, 'socket'):
             # We are using a testing socket, so preserve the top

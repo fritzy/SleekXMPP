@@ -21,14 +21,15 @@ class LegacyDelay(ElementBase):
     interfaces = set(('from', 'stamp', 'text'))
 
     def get_from(self):
-        return JID(self._get_attr('from'))
+        from_ = self._get_attr('from')
+        return JID(from_) if from_ else None
 
     def set_from(self, value):
         self._set_attr('from', str(value))
 
     def get_stamp(self):
         timestamp = self._get_attr('stamp')
-        return xep_0082.parse('%sZ' % timestamp)
+        return xep_0082.parse('%sZ' % timestamp) if timestamp else None
 
     def set_stamp(self, value):
         if isinstance(value, dt.datetime):

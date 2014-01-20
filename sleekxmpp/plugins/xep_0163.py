@@ -107,6 +107,8 @@ class XEP_0163(BasePlugin):
         """
         if node is None:
             node = stanza.namespace
+        if id is None:
+            id = 'current'
 
         return self.xmpp['xep_0060'].publish(ifrom, node,
                 id=id,

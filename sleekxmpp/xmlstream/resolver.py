@@ -131,16 +131,16 @@ def resolve(host, port=None, service=None, proto='tcp',
                 results.append((host, '::1', port))
             results.append((host, '127.0.0.1', port))
         if use_ipv6:
-            for address in get_AAAA(host, resolver=resolver):
+            for address in get_AAAA(host):
                 results.append((host, address, port))
-        for address in get_A(host, resolver=resolver):
+        for address in get_A(host):
             results.append((host, address, port))
 
         for host, address, port in results:
             yield host, address, port
 
 
-def get_A(host, resolver=None):
+def get_A(host):
     """Lookup DNS A records for a given host.
 
     If ``resolver`` is not provided, or is ``None``, then resolution will
@@ -158,32 +158,15 @@ def get_A(host, resolver=None):
 
     # If not using dnspython, attempt lookup using the OS level
     # getaddrinfo() method.
-    if resolver is None:
-        try:
-            recs = socket.getaddrinfo(host, None, socket.AF_INET,
-                                                  socket.SOCK_STREAM)
-            return [rec[4][0] for rec in recs]
-        except socket.gaierror:
-            log.debug("DNS: Error retreiving A address info for %s." % host)
-            return []
-
-    # Using dnspython:
     try:
-        recs = resolver.query(host, dns.rdatatype.A)
-        return [rec.to_text() for rec in recs]
-    except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
-        log.debug("DNS: No A records for %s" % host)
-        return []
-    except dns.exception.Timeout:
-        log.debug("DNS: A record resolution timed out for %s" % host)
-        return []
-    except dns.exception.DNSException as e:
-        log.debug("DNS: Error querying A records for %s" % host)
-        log.exception(e)
+        recs = socket.getaddrinfo(host, None, socket.AF_INET,
+                                              socket.SOCK_STREAM)
+        return [rec[4][0] for rec in recs]
+    except socket.gaierror:
+        log.debug("DNS: Error retreiving A address info for %s." % host)
         return []
 
-
-def get_AAAA(host, resolver=None):
+def get_AAAA(host):
     """Lookup DNS AAAA records for a given host.
 
     If ``resolver`` is not provided, or is ``None``, then resolution will
@@ -201,34 +184,17 @@ def get_AAAA(host, resolver=None):
 
     # If not using dnspython, attempt lookup using the OS level
     # getaddrinfo() method.
-    if resolver is None:
-        if not socket.has_ipv6:
-            log.debug("Unable to query %s for AAAA records: IPv6 is not supported", host)
-            return []
-        try:
-            recs = socket.getaddrinfo(host, None, socket.AF_INET6,
-                                                  socket.SOCK_STREAM)
-            return [rec[4][0] for rec in recs]
-        except (OSError, socket.gaierror):
-            log.debug("DNS: Error retreiving AAAA address " + \
-                      "info for %s." % host)
-            return []
-
-    # Using dnspython:
+    if not socket.has_ipv6:
+        log.debug("Unable to query %s for AAAA records: IPv6 is not supported", host)
+        return []
     try:
-        recs = resolver.query(host, dns.rdatatype.AAAA)
-        return [rec.to_text() for rec in recs]
-    except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
-        log.debug("DNS: No AAAA records for %s" % host)
+        recs = socket.getaddrinfo(host, None, socket.AF_INET6,
+                                              socket.SOCK_STREAM)
+        return [rec[4][0] for rec in recs]
+    except (OSError, socket.gaierror):
+        log.debug("DNS: Error retreiving AAAA address " + \
+                 "info for %s." % host)
         return []
-    except dns.exception.Timeout:
-        log.debug("DNS: AAAA record resolution timed out for %s" % host)
-        return []
-    except dns.exception.DNSException as e:
-        log.debug("DNS: Error querying AAAA records for %s" % host)
-        log.exception(e)
-        return []
-
 
 def get_SRV(host, port, service, proto='tcp', resolver=None):
     """Perform SRV record resolution for a given host.

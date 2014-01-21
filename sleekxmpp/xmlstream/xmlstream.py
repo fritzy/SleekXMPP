@@ -1343,12 +1343,12 @@ class XMLStream(object):
         return True
 
     def _start_thread(self, name, target, track=True):
-        self.__active_threads.add(name)
         self.__thread[name] = threading.Thread(name=name, target=target)
         self.__thread[name].daemon = self._use_daemons
         self.__thread[name].start()
 
         if track:
+            self.__active_threads.add(name)
             with self.__thread_cond:
                 self.__thread_count += 1
 

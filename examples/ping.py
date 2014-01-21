@@ -37,7 +37,7 @@ class PingTest(sleekxmpp.ClientXMPP):
     def __init__(self, jid, password, pingjid):
         sleekxmpp.ClientXMPP.__init__(self, jid, password)
         if pingjid is None:
-            pingjid = self.jid
+            pingjid = self.boundjid.bare
         self.pingjid = pingjid
 
         # The session_start event will be triggered when

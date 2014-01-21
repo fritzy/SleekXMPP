@@ -151,7 +151,7 @@ if __name__ == '__main__':
         #
         # if xmpp.connect(('talk.google.com', 5222)):
         #     ...
-        xmpp.process(block=False)
+        xmpp.process(block=True)
         print("Done")
     else:
         print("Unable to connect.")

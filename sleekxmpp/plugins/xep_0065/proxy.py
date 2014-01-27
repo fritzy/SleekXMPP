@@ -88,8 +88,9 @@ class XEP_0065(base_plugin):
 
         # Request that the proxy activate the session with the target.
         self.activate(proxy, sid, to, timeout=timeout)
-        self.xmpp.event('stream:%s:%s' % (sid, conn.peer_jid), conn)
-        return self.get_socket(sid)
+        socket = self.get_socket(sid)
+        self.xmpp.event('stream:%s:%s' % (sid, to), socket)
+        return socket
 
     def request_stream(self, to, sid=None, ifrom=None, block=True, timeout=None, callback=None):
         if sid is None:
@@ -198,11 +199,16 @@ class XEP_0065(base_plugin):
         sock = self._sessions.get(sid)
         if sock:
             try:
+                # sock.close() will also delete sid from self._sessions (see _connect_proxy)
                 sock.close()
             except socket.error:
                 pass
+            # Though this should not be neccessary remove the closed session anyway
             with self._sessions_lock:
-                del self._sessions[sid]
+                if sid in self._sessions:
+                    log.warn(('SOCKS5 session with sid = "%s" was not ' + 
+                              'removed from _sessions by sock.close()') % sid)
+                    del self._sessions[sid]
 
     def close(self):
         """Closes all proxy sockets."""
@@ -250,6 +256,7 @@ class XEP_0065(base_plugin):
                 if sid in self._sessions:
                     del self._sessions[sid]
             _close()
+            log.info('Socket closed.')
         sock.close = close
 
         sock.peer_jid = peer

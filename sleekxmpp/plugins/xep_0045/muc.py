@@ -214,13 +214,16 @@ class XEP_0045(BasePlugin):
             waiter = Queue()
 
         def on_resp(pres):
-            if pres['id'] == pid and pres['type'] == 'error':
-                self.xmpp.event('groupchat_join_failed', pres)
-                self.xmpp.event('muc::%s::joinfailed' % pres['from'].bare, pres)
-                if block:
-                    waiter.put(('failed', pres))
-            elif block:
-                waiter.put(('joined', pres))
+            if pres['id'] == pid:
+                if pres['type'] == 'error':
+                    self.xmpp.event('groupchat_join_failed', pres)
+                    self.xmpp.event('muc::%s::joinfailed' % pres['from'].bare, pres)
+                    if block:
+                        waiter.put(('failed', pres))
+                elif block:
+                    waiter.put(('joined', pres))
+            else:
+                return
 
             self.xmpp.del_event_handler('presence_error', on_resp)
             self.xmpp.del_event_handler('muc::%s::joined' % room, on_resp)

@@ -9,7 +9,7 @@
 from sleekxmpp.stanza.rootstanza import RootStanza
 from sleekxmpp.xmlstream import StanzaBase, ET
 from sleekxmpp.xmlstream.handler import Waiter, Callback
-from sleekxmpp.xmlstream.matcher import MatcherId
+from sleekxmpp.xmlstream.matcher import MatchIDSender
 from sleekxmpp.exceptions import IqTimeout, IqError
 
 
@@ -193,6 +193,13 @@ class Iq(RootStanza):
         """
         if timeout is None:
             timeout = self.stream.response_timeout
+
+        criteria = {
+            'id': self['id'],
+            'self': self.stream.boundjid,
+            'peer': self['to']
+        }
+
         if callback is not None and self['type'] in ('get', 'set'):
             handler_name = 'IqCallback_%s' % self['id']
             if timeout_callback:
@@ -203,19 +210,19 @@ class Iq(RootStanza):
                                      self._fire_timeout,
                                      repeat=False)
                 handler = Callback(handler_name,
-                                   MatcherId(self['id']),
+                                   MatchIDSender(criteria),
                                    self._handle_result,
                                    once=True)
             else:
                 handler = Callback(handler_name,
-                                   MatcherId(self['id']),
+                                   MatchIDSender(criteria),
                                    callback,
                                    once=True)
             self.stream.register_handler(handler)
             StanzaBase.send(self, now=now)
             return handler_name
         elif block and self['type'] in ('get', 'set'):
-            waitfor = Waiter('IqWait_%s' % self['id'], MatcherId(self['id']))
+            waitfor = Waiter('IqWait_%s' % self['id'], MatchIDSender(criteria))
             self.stream.register_handler(waitfor)
             StanzaBase.send(self, now=now)
             result = waitfor.wait(timeout)

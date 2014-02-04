@@ -16,7 +16,7 @@ from sleekxmpp.test import TestSocket, TestLiveSocket
 from sleekxmpp.xmlstream import ET
 from sleekxmpp.xmlstream import ElementBase
 from sleekxmpp.xmlstream.tostring import tostring
-from sleekxmpp.xmlstream.matcher import StanzaPath, MatcherId
+from sleekxmpp.xmlstream.matcher import StanzaPath, MatcherId, MatchIDSender
 from sleekxmpp.xmlstream.matcher import MatchXMLMask, MatchXPath
 
 
@@ -212,6 +212,7 @@ class SleekTest(unittest.TestCase):
             matchers = {'stanzapath': StanzaPath,
                         'xpath': MatchXPath,
                         'mask': MatchXMLMask,
+                        'idsender': MatchIDSender,
                         'id': MatcherId}
             Matcher = matchers.get(method, None)
             if Matcher is None:

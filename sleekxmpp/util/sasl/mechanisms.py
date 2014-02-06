@@ -111,7 +111,7 @@ class X_FACEBOOK_PLATFORM(Mech):
                 b'api_key': self.credentials['api_key']
             }
 
-            resp = '&'.join(['%s=%s' % (k, v) for k, v in resp_data.items()])
+            resp = '&'.join(['%s=%s' % (k.decode("utf-8"), v.decode("utf-8")) for k, v in resp_data.items()])
             return bytes(resp)
         return b''
 

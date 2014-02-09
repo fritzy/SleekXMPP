@@ -304,7 +304,7 @@ class XEP_0045(BasePlugin):
             room), whereas affiliations are permanent (they last across groupchat
             sessions).
         """
-        if role not in ('outcast', 'member', 'admin', 'owner', 'none'):
+        if role not in ('moderator', 'participant', 'visitor', 'none'):
             raise TypeError
         query = ET.Element('{http://jabber.org/protocol/muc#admin}query')
         item = ET.Element('item', {'role':role, 'nick':nick})    

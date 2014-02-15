@@ -56,6 +56,7 @@ class XEP_0045(BasePlugin):
     def plugin_init(self):
         register_stanza_plugin(Presence, stanza.MUC)
         register_stanza_plugin(Presence, stanza.MUCUser)
+        register_stanza_plugin(Message, stanza.MUCUser)
         register_stanza_plugin(Iq, stanza.MUCAdmin)
         register_stanza_plugin(Iq, stanza.MUCOwner)
         register_stanza_plugin(stanza.MUCAdmin, Form)
@@ -87,11 +88,15 @@ class XEP_0045(BasePlugin):
         self._joined_rooms = {}
         self._roster = {}
 
+    def session_bind(self, jid):
+        self.xmpp['xep_0030'].add_feature('http://jabber.org/protocol/muc')
+
     def plugin_end(self):
         self.xmpp.remove_handler('MUC Presence')
         self.xmpp.remove_handler('MUC Message')
         self.xmpp.remove_handler('MUC Subject')
         self.xmpp.del_event_handler('session_end', self._session_end)
+        self.xmpp['xep_0030'].del_feature(feature='http://jabber.org/protocol/muc')
 
     def _session_end(self, _):
         self._nicks = {}
@@ -115,19 +120,14 @@ class XEP_0045(BasePlugin):
             self._joined_rooms[jid] = set()
         self._joined_rooms[jid].add(node)
         self._nicks[(jid, node)] = data
-        self._roster[(jid, node)] = {}
+        if (jid, node) not in self._roster:
+            self._roster[(jid, node)] = {}
 
     def _del_joined_room(self, jid, node, ifrom, data):
         if jid in self._joined_rooms:
             self._joined_rooms[jid].remove(node)
         del self._nicks[(jid, node)]
         del self._roster[(jid, node)]
-
-    def plugin_end(self):
-        self.xmpp['xep_0030'].del_feature(feature='http://jabber.org/protocol/muc')
-
-    def session_bind(self, jid):
-        self.xmpp['xep_0030'].add_feature('http://jabber.org/protocol/muc')
 
     def _handle_presence(self, pres):
         room = pres['from'].bare
@@ -211,19 +211,20 @@ class XEP_0045(BasePlugin):
         pres['muc_join']['history']['seconds'] = seconds
         pres['muc_join']['history']['since'] = since
 
-        pfrom = presargs.get('pfrom', self.xmpp.boundjid)
-
         if block:
             waiter = Queue()
 
         def on_resp(pres):
-            if pres['id'] == pid and pres['type'] == 'error':
-                self.xmpp.event('groupchat_join_failed', pres)
-                self.xmpp.event('muc::%s::joinfailed' % pres['from'].bare, pres)
-                if block:
-                    waiter.put(('failed', pres))
-            elif block:
-                waiter.put(('joined', pres))
+            if pres['id'] == pid:
+                if pres['type'] == 'error':
+                    self.xmpp.event('groupchat_join_failed', pres)
+                    self.xmpp.event('muc::%s::joinfailed' % pres['from'].bare, pres)
+                    if block:
+                        waiter.put(('failed', pres))
+                elif block:
+                    waiter.put(('joined', pres))
+            else:
+                return
 
             self.xmpp.del_event_handler('presence_error', on_resp)
             self.xmpp.del_event_handler('muc::%s::joined' % room, on_resp)
@@ -271,7 +272,7 @@ class XEP_0045(BasePlugin):
 
     def set_subject(self, room, subject, mfrom=None):
         msg = self.xmpp.Message()
-        msg['to'] = '%s/%s' % (room, self.api['get_self_nick'](pfrom, room))
+        msg['to'] = '%s/%s' % (room, self.api['get_self_nick'](mfrom, room))
         msg['type'] = 'groupchat'
         msg._set_sub_text('subject', subject or '', keep=True)
         msg.send()
@@ -298,7 +299,7 @@ class XEP_0045(BasePlugin):
                     ifrom=mfrom)
         else:
             msg = self.xmpp.Message()
-            msg['to'] = to
+            msg['to'] = room
             msg['from'] = mfrom
             msg['muc']['invite']['to'] = jid
             msg['muc']['invite']['reason'] = reason

@@ -56,6 +56,7 @@ class XEP_0045(BasePlugin):
     def plugin_init(self):
         register_stanza_plugin(Presence, stanza.MUC)
         register_stanza_plugin(Presence, stanza.MUCUser)
+        register_stanza_plugin(Message, stanza.MUCUser)
         register_stanza_plugin(Iq, stanza.MUCAdmin)
         register_stanza_plugin(Iq, stanza.MUCOwner)
         register_stanza_plugin(stanza.MUCAdmin, Form)
@@ -298,7 +299,7 @@ class XEP_0045(BasePlugin):
                     ifrom=mfrom)
         else:
             msg = self.xmpp.Message()
-            msg['to'] = to
+            msg['to'] = room
             msg['from'] = mfrom
             msg['muc']['invite']['to'] = jid
             msg['muc']['invite']['reason'] = reason

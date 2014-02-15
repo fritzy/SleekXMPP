@@ -123,8 +123,8 @@ class UserInvite(ElementBase):
     namespace = 'http://jabber.org/protocol/muc#user'
     plugin_attrib = 'invite'
     plugin_multi_attrib = 'invites'
-    interfaces = set(['to', 'from', 'reason'])
-    sub_interfaces = set(['reason'])
+    interfaces = set(['to', 'from', 'reason', 'password'])
+    sub_interfaces = set(['reason', 'password'])
 
     def get_to(self):
         return JID(self._get_attr('to'))

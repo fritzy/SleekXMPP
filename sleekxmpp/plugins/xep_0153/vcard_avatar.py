@@ -124,10 +124,12 @@ class XEP_0153(BasePlugin):
             log.debug('Could not retrieve vCard for %s' % jid)
 
     def _recv_presence(self, pres):
-        if pres['muc']['affiliation']:
-            # Don't process vCard avatars for MUC occupants
-            # since they all share the same bare JID.
-            return
+        try:
+            if pres['muc']['affiliation']:
+                # Don't process vCard avatars for MUC occupants
+                # since they all share the same bare JID.
+                return
+        except: pass    
 
         if not pres.match('presence/vcard_temp_update'):
             self.api['set_hash'](pres['from'], args=None)

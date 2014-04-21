@@ -136,7 +136,7 @@ class ClientXMPP(BaseXMPP):
         be attempted. If that fails, the server user in the JID
         will be used.
 
-        :param address   -- A tuple containing the server's host and port.
+        :param address: A tuple containing the server's host and port.
         :param reattempt: If ``True``, repeat attempting to connect if an
                          error occurs. Defaults to ``True``.
         :param use_tls: Indicates if TLS should be used for the

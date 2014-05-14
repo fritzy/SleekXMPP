@@ -215,6 +215,8 @@ class FeatureMechanisms(BasePlugin):
             self.attempted_mechs.add(self.mech.name)
             self.xmpp.disconnect()
         else:
+            if resp.get_value() == '':
+                resp.del_value()
             resp.send(now=True)
 
     def _handle_success(self, stanza):

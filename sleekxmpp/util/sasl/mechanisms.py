@@ -532,6 +532,9 @@ else:
                     result = kerberos.authGSSClientStep(self.gss, b64_challenge)
                     if result != kerberos.AUTH_GSS_CONTINUE:
                         self.step = 1
+                elif not challenge:
+                    kerberos.authGSSClientClean(self.gss)
+                    return b''
                 elif self.step == 1:
                     username = self.credentials['username']
 

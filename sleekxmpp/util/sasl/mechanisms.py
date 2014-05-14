@@ -541,7 +541,7 @@ else:
 
                 resp = kerberos.authGSSClientResponse(self.gss)
             except kerberos.GSSError as e:
-                raise SASLCancelled('Kerberos error: %s' % e.message)
+                raise SASLCancelled('Kerberos error: %s' % e)
             if not resp:
                 return b''
             else:

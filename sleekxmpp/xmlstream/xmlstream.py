@@ -611,7 +611,7 @@ class XMLStream(object):
         headers = '\r\n'.join(headers) + '\r\n\r\n'
 
         try:
-            log.debug("Connecting to proxy: %s:%s", address)
+            log.debug("Connecting to proxy: %s:%s", *address)
             self.socket.connect(address)
             self.send_raw(headers, now=True)
             resp = ''

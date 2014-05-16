@@ -532,6 +532,9 @@ else:
                     result = kerberos.authGSSClientStep(self.gss, b64_challenge)
                     if result != kerberos.AUTH_GSS_CONTINUE:
                         self.step = 1
+                elif not challenge:
+                    kerberos.authGSSClientClean(self.gss)
+                    return b''
                 elif self.step == 1:
                     username = self.credentials['username']
 
@@ -541,7 +544,7 @@ else:
 
                 resp = kerberos.authGSSClientResponse(self.gss)
             except kerberos.GSSError as e:
-                raise SASLCancelled('Kerberos error: %s' % e.message)
+                raise SASLCancelled('Kerberos error: %s' % e)
             if not resp:
                 return b''
             else:

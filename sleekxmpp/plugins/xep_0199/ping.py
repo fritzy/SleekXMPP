@@ -154,6 +154,7 @@ class XEP_0199(BasePlugin):
             timeout    -- Time in seconds to wait for a response.
                           Defaults to self.timeout.
         """
+        own_host = False
         if not jid:
             if self.xmpp.is_component:
                 jid = self.xmpp.server

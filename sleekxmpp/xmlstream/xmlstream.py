@@ -519,11 +519,11 @@ class XMLStream(object):
                 cert_policy = ssl.CERT_REQUIRED
 
             ssl_args = {
-                'certfile': self.certfile,
-                'keyfile': self.keyfile,
-                'ca_certs': self.ca_certs,
-                'cert_reqs': cert_policy,
-                'do_handshake_on_connect': False,
+                b'certfile': self.certfile,
+                b'keyfile': self.keyfile,
+                b'ca_certs': self.ca_certs,
+                b'cert_reqs': cert_policy,
+                b'do_handshake_on_connect': False,
             }
 
             if sys.version_info >= (2, 7):
@@ -843,11 +843,11 @@ class XMLStream(object):
             cert_policy = ssl.CERT_REQUIRED
 
         ssl_args = {
-            'certfile': self.certfile,
-            'keyfile': self.keyfile,
-            'ca_certs': self.ca_certs,
-            'cert_reqs': cert_policy,
-            'do_handshake_on_connect': False,
+            b'certfile': self.certfile,
+            b'keyfile': self.keyfile,
+            b'ca_certs': self.ca_certs,
+            b'cert_reqs': cert_policy,
+            b'do_handshake_on_connect': False,
         }
 
         if sys.version_info >= (2, 7):

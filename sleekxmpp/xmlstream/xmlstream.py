@@ -31,7 +31,7 @@ import errno
 from xml.parsers.expat import ExpatError
 
 import sleekxmpp
-from sleekxmpp.util import Queue, QueueEmpty
+from sleekxmpp.util import Queue, QueueEmpty, safedict
 from sleekxmpp.thirdparty.statemachine import StateMachine
 from sleekxmpp.xmlstream import Scheduler, tostring, cert
 from sleekxmpp.xmlstream.stanzabase import StanzaBase, ET, ElementBase
@@ -518,13 +518,13 @@ class XMLStream(object):
             else:
                 cert_policy = ssl.CERT_REQUIRED
 
-            ssl_args = {
-                b'certfile': self.certfile,
-                b'keyfile': self.keyfile,
-                b'ca_certs': self.ca_certs,
-                b'cert_reqs': cert_policy,
-                b'do_handshake_on_connect': False,
-            }
+            ssl_args = safedict({
+                'certfile': self.certfile,
+                'keyfile': self.keyfile,
+                'ca_certs': self.ca_certs,
+                'cert_reqs': cert_policy,
+                'do_handshake_on_connect': False
+            })
 
             if sys.version_info >= (2, 7):
                 ssl_args['ciphers'] = self.ciphers
@@ -842,13 +842,13 @@ class XMLStream(object):
         else:
             cert_policy = ssl.CERT_REQUIRED
 
-        ssl_args = {
-            b'certfile': self.certfile,
-            b'keyfile': self.keyfile,
-            b'ca_certs': self.ca_certs,
-            b'cert_reqs': cert_policy,
-            b'do_handshake_on_connect': False,
-        }
+        ssl_args = safedict({
+            'certfile': self.certfile,
+            'keyfile': self.keyfile,
+            'ca_certs': self.ca_certs,
+            'cert_reqs': cert_policy,
+            'do_handshake_on_connect': False
+        })
 
         if sys.version_info >= (2, 7):
             ssl_args['ciphers'] = self.ciphers

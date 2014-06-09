@@ -11,7 +11,8 @@
 
 
 from sleekxmpp.util.misc_ops import bytes, unicode, hashes, hash, \
-                                    num_to_bytes, bytes_to_num, quote, XOR
+                                    num_to_bytes, bytes_to_num, quote, \
+                                    XOR, safedict
 
 
 # =====================================================================

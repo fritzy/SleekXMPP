@@ -129,6 +129,7 @@ def hashes():
     hashes = ['SHA-' + h[3:] for h in dir(hashlib) if h.startswith('sha')]
     return t + hashes
 
+
 def setdefaultencoding(encoding):
     """
     Set the current default string encoding used by the Unicode implementation.
@@ -152,3 +153,13 @@ def setdefaultencoding(encoding):
             raise RuntimeError("Could not find setdefaultencoding")
         sys.setdefaultencoding = func
     return func(encoding)
+
+
+def safedict(data):
+    if sys.version_info < (2, 7):
+        safe = {}
+        for key in data:
+            safe[key.encode('utf8')] = data[key]
+        return safe
+    else:
+        return data

@@ -224,6 +224,11 @@ class XMLStream(object):
         #: If set to ``True``, attempt to use IPv6.
         self.use_ipv6 = True
 
+        #: If set to ``True``, allow using the ``dnspython`` DNS library
+        #: if available. If set to ``False``, the builtin DNS resolver
+        #: will be used, even if ``dnspython`` is installed.
+        self.use_dnspython = True
+
         #: Use CDATA for escaping instead of XML entities. Defaults
         #: to ``False``.
         self.use_cdata = False
@@ -1081,7 +1086,8 @@ class XMLStream(object):
 
         return resolve(domain, port, service=self.dns_service,
                                      resolver=resolver,
-                                     use_ipv6=self.use_ipv6)
+                                     use_ipv6=self.use_ipv6,
+                                     use_dnspython=self.use_dnspython)
 
     def pick_dns_answer(self, domain, port=None):
         """Pick a server and port from DNS answers.

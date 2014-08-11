@@ -569,11 +569,11 @@ class RemoteSession(object):
             self._register_callback(pid, callback)
             iq.send()
 
-    def close(self):
+    def close(self, wait=False):
         '''
         Closes this session.
         '''
-        self._client.disconnect(False)
+        self._client.disconnect(wait=wait)
         self._session_close_callback()
 
     def _on_jabber_rpc_method_call(self, iq):

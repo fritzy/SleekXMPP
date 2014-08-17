@@ -938,12 +938,13 @@ class XMLStream(object):
 
             self.whitespace_keepalive_interval = 300
         """
-        self.schedule('Whitespace Keepalive',
-                      self.whitespace_keepalive_interval,
-                      self.send_raw,
-                      args=(' ',),
-                      kwargs={'now': True},
-                      repeat=True)
+        if self.whitespace_keepalive:
+            self.schedule('Whitespace Keepalive',
+                          self.whitespace_keepalive_interval,
+                          self.send_raw,
+                          args=(' ',),
+                          kwargs={'now': True},
+                          repeat=True)
 
     def _remove_schedules(self, event):
         """Remove whitespace keepalive and certificate expiration schedules."""

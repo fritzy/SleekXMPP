@@ -288,11 +288,8 @@ class SleekTest(unittest.TestCase):
         if self.xmpp:
             self.xmpp.socket.disconnect_error()
 
-    def stream_start(self, mode='client', skip=True, header=None,
-                           socket='mock', jid='tester@localhost',
-                           password='test', server='localhost',
-                           port=5222, sasl_mech=None,
-                           plugins=None, plugin_config={}):
+    def stream_start(self, mode='client', skip=True, header=None, socket='mock', jid='tester@localhost',
+                     password='test', server='localhost', port=5222, sasl_mech=None, plugins=None, plugin_config=None):
         """
         Initialize an XMPP client or component using a dummy XML stream.
 
@@ -315,6 +312,9 @@ class SleekTest(unittest.TestCase):
             plugins  -- List of plugins to register. By default, all plugins
                         are loaded.
         """
+        if not plugin_config:
+            plugin_config = {}
+
         if mode == 'client':
             self.xmpp = ClientXMPP(jid, password,
                                    sasl_mech=sasl_mech,
@@ -425,8 +425,7 @@ class SleekTest(unittest.TestCase):
         parts.append('xmlns="%s"' % default_ns)
         return header % ' '.join(parts)
 
-    def recv(self, data, defaults=[], method='exact',
-             use_values=True, timeout=1):
+    def recv(self, data, defaults=None, method='exact', use_values=True, timeout=1):
         """
         Pass data to the dummy XMPP client as if it came from an XMPP server.
 
@@ -447,6 +446,9 @@ class SleekTest(unittest.TestCase):
             timeout      -- Time to wait in seconds for data to be received by
                             a live connection.
         """
+        if not defaults:
+            defaults = []
+
         if self.xmpp.socket.is_live:
             # we are working with a live connection, so we should
             # verify what has been received instead of simulating

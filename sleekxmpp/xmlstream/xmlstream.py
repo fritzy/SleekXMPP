@@ -853,7 +853,7 @@ class XMLStream(object):
         if sys.version_info >= (2, 7):
             ssl_args['ciphers'] = self.ciphers
 
-        ssl_socket = ssl.wrap_socket(self.socket, **ssl_args);
+        ssl_socket = ssl.wrap_socket(self.socket, **ssl_args)
 
         if hasattr(self.socket, 'socket'):
             # We are using a testing socket, so preserve the top
@@ -1148,7 +1148,7 @@ class XMLStream(object):
         """
         return len(self.__event_handlers.get(name, []))
 
-    def event(self, name, data={}, direct=False):
+    def event(self, name, data=None, direct=False):
         """Manually trigger a custom event.
 
         :param name: The name of the event to trigger.
@@ -1159,6 +1159,9 @@ class XMLStream(object):
                        event queue. All event handlers will run in the
                        same thread.
         """
+        if not data:
+            data = {}
+
         log.debug("Event triggered: " + name)
 
         handlers = self.__event_handlers.get(name, [])
@@ -1318,9 +1321,6 @@ class XMLStream(object):
                         try:
                             sent += self.socket.send(data[sent:])
                             count += 1
-                        except Socket.error as serr:
-                            if serr.errno != errno.EINTR:
-                                raise
                         except ssl.SSLError as serr:
                             if tries >= self.ssl_retry_max:
                                 log.debug('SSL error: max retries reached')
@@ -1335,6 +1335,9 @@ class XMLStream(object):
                             if not self.stop.is_set():
                                 time.sleep(self.ssl_retry_delay)
                             tries += 1
+                        except Socket.error as serr:
+                            if serr.errno != errno.EINTR:
+                                raise
                 if count > 1:
                     log.debug('SENT: %d chunks', count)
             except (Socket.error, ssl.SSLError) as serr:
@@ -1744,9 +1747,6 @@ class XMLStream(object):
                             try:
                                 sent += self.socket.send(enc_data[sent:])
                                 count += 1
-                            except Socket.error as serr:
-                                if serr.errno != errno.EINTR:
-                                    raise
                             except ssl.SSLError as serr:
                                 if tries >= self.ssl_retry_max:
                                     log.debug('SSL error: max retries reached')
@@ -1759,6 +1759,9 @@ class XMLStream(object):
                                 if not self.stop.is_set():
                                     time.sleep(self.ssl_retry_delay)
                                 tries += 1
+                            except Socket.error as serr:
+                                if serr.errno != errno.EINTR:
+                                    raise
                     if count > 1:
                         log.debug('SENT: %d chunks', count)
                     self.send_queue.task_done()

@@ -23,7 +23,7 @@ class _TimerReset(Thread):
     t.cancel() # stop the timer's action if it's still waiting
     """
 
-    def __init__(self, interval, function, args=[], kwargs={}):
+    def __init__(self, interval, function, *args, **kwargs):
         Thread.__init__(self)
         self.interval = interval
         self.function = function

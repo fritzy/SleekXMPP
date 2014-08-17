@@ -6,7 +6,7 @@ import sleekxmpp.plugins.xep_0323 as xep_0323
 namespace='sn'
 
 class TestSensorDataStanzas(SleekTest):
-    
+
 
     def setUp(self):
         pass
@@ -59,8 +59,8 @@ class TestSensorDataStanzas(SleekTest):
         iq['req']['momentary'] = 'true'
 
 
-        iq['req'].add_node("Device02", "Source02", "CacheType");
-        iq['req'].add_node("Device44");
+        iq['req'].add_node("Device02", "Source02", "CacheType")
+        iq['req'].add_node("Device44")
 
         self.check(iq,"""
             <iq type='get'
@@ -75,7 +75,7 @@ class TestSensorDataStanzas(SleekTest):
         """
             )
 
-        iq['req'].del_node("Device02");
+        iq['req'].del_node("Device02")
 
         self.check(iq,"""
             <iq type='get'
@@ -89,7 +89,7 @@ class TestSensorDataStanzas(SleekTest):
         """
             )
 
-        iq['req'].del_nodes();
+        iq['req'].del_nodes()
 
         self.check(iq,"""
             <iq type='get'
@@ -115,8 +115,8 @@ class TestSensorDataStanzas(SleekTest):
         iq['req']['momentary'] = 'true'
 
 
-        iq['req'].add_field("Top temperature");
-        iq['req'].add_field("Bottom temperature");
+        iq['req'].add_field("Top temperature")
+        iq['req'].add_field("Bottom temperature")
 
         self.check(iq,"""
             <iq type='get'
@@ -171,7 +171,7 @@ class TestSensorDataStanzas(SleekTest):
         iq['accepted']['seqnr'] = '2'
 
         self.check(iq,"""
-            <iq type='result' 
+            <iq type='result'
                 from='device@clayster.com'
                 to='master@clayster.com/amr'
                 id='2'>
@@ -193,7 +193,7 @@ class TestSensorDataStanzas(SleekTest):
         iq['rejected']['error'] = 'Access denied.'
 
         self.check(iq,"""
-            <iq type='error' 
+            <iq type='error'
                 from='device@clayster.com'
                 to='master@clayster.com/amr'
                 id='4'>
@@ -237,12 +237,12 @@ class TestSensorDataStanzas(SleekTest):
         msg['to'] = 'master@clayster.com/amr'
         msg['fields']['seqnr'] = '1'
 
-        node = msg['fields'].add_node("Device02");
-        ts = node.add_timestamp("2013-03-07T16:24:30");
+        node = msg['fields'].add_node("Device02")
+        ts = node.add_timestamp("2013-03-07T16:24:30")
 
-        data = ts.add_data(typename="numeric", name="Temperature", value="-12.42", unit='K');
-        data['momentary'] = 'true';
-        data['automaticReadout'] = 'true';
+        data = ts.add_data(typename="numeric", name="Temperature", value="-12.42", unit='K')
+        data['momentary'] = 'true'
+        data['automaticReadout'] = 'true'
 
         self.check(msg,"""
             <message from='device@clayster.com'
@@ -250,7 +250,7 @@ class TestSensorDataStanzas(SleekTest):
                 <fields xmlns='urn:xmpp:iot:sensordata' seqnr='1'>
                     <node nodeId='Device02'>
                         <timestamp value='2013-03-07T16:24:30'>
-                            <numeric name='Temperature' momentary='true' automaticReadout='true' value='-12.42' unit='K'/> 
+                            <numeric name='Temperature' momentary='true' automaticReadout='true' value='-12.42' unit='K'/>
                         </timestamp>
                     </node>
                 </fields>
@@ -258,10 +258,9 @@ class TestSensorDataStanzas(SleekTest):
                        """
             )
 
-        node = msg['fields'].add_node("EmptyDevice");
-        node = msg['fields'].add_node("Device04");
-        ts = node.add_timestamp("EmptyTimestamp");
-
+        node = msg['fields'].add_node("EmptyDevice")
+        node = msg['fields'].add_node("Device04")
+        ts = node.add_timestamp("EmptyTimestamp")
 
         self.check(msg,"""
             <message from='device@clayster.com'
@@ -269,7 +268,7 @@ class TestSensorDataStanzas(SleekTest):
                 <fields xmlns='urn:xmpp:iot:sensordata' seqnr='1'>
                     <node nodeId='Device02'>
                         <timestamp value='2013-03-07T16:24:30'>
-                            <numeric name='Temperature' momentary='true' automaticReadout='true' value='-12.42' unit='K'/> 
+                            <numeric name='Temperature' momentary='true' automaticReadout='true' value='-12.42' unit='K'/>
                         </timestamp>
                     </node>
                     <node nodeId='EmptyDevice'/>
@@ -281,32 +280,32 @@ class TestSensorDataStanzas(SleekTest):
                        """
             )
 
-        node = msg['fields'].add_node("Device77");
-        ts = node.add_timestamp("2013-05-03T12:00:01");
-        data = ts.add_data(typename="numeric", name="Temperature", value="-12.42", unit='K');
-        data['historicalDay'] = 'true';
-        data = ts.add_data(typename="numeric", name="Speed", value="312.42", unit='km/h');
-        data['historicalWeek'] = 'false';
-        data = ts.add_data(typename="string", name="Temperature name", value="Bottom oil");
-        data['historicalMonth'] = 'true';
-        data = ts.add_data(typename="string", name="Speed name", value="Top speed");
-        data['historicalQuarter'] = 'false';
-        data = ts.add_data(typename="dateTime", name="T1", value="1979-01-01T00:00:00");
-        data['historicalYear'] = 'true';
-        data = ts.add_data(typename="dateTime", name="T2", value="2000-01-01T01:02:03");
-        data['historicalOther'] = 'false';
-        data = ts.add_data(typename="timeSpan", name="TS1", value="P5Y");
-        data['missing'] = 'true';
-        data = ts.add_data(typename="timeSpan", name="TS2", value="PT2M1S");
-        data['manualEstimate'] = 'false';
-        data = ts.add_data(typename="enum", name="top color", value="red", dataType="string");
-        data['invoiced'] = 'true';
-        data = ts.add_data(typename="enum", name="bottom color", value="black", dataType="string");
-        data['powerFailure'] = 'false';
-        data = ts.add_data(typename="boolean", name="Temperature real", value="false");
-        data['historicalDay'] = 'true';
-        data = ts.add_data(typename="boolean", name="Speed real", value="true");
-        data['historicalWeek'] = 'false';
+        node = msg['fields'].add_node("Device77")
+        ts = node.add_timestamp("2013-05-03T12:00:01")
+        data = ts.add_data(typename="numeric", name="Temperature", value="-12.42", unit='K')
+        data['historicalDay'] = 'true'
+        data = ts.add_data(typename="numeric", name="Speed", value="312.42", unit='km/h')
+        data['historicalWeek'] = 'false'
+        data = ts.add_data(typename="string", name="Temperature name", value="Bottom oil")
+        data['historicalMonth'] = 'true'
+        data = ts.add_data(typename="string", name="Speed name", value="Top speed")
+        data['historicalQuarter'] = 'false'
+        data = ts.add_data(typename="dateTime", name="T1", value="1979-01-01T00:00:00")
+        data['historicalYear'] = 'true'
+        data = ts.add_data(typename="dateTime", name="T2", value="2000-01-01T01:02:03")
+        data['historicalOther'] = 'false'
+        data = ts.add_data(typename="timeSpan", name="TS1", value="P5Y")
+        data['missing'] = 'true'
+        data = ts.add_data(typename="timeSpan", name="TS2", value="PT2M1S")
+        data['manualEstimate'] = 'false'
+        data = ts.add_data(typename="enum", name="top color", value="red", dataType="string")
+        data['invoiced'] = 'true'
+        data = ts.add_data(typename="enum", name="bottom color", value="black", dataType="string")
+        data['powerFailure'] = 'false'
+        data = ts.add_data(typename="boolean", name="Temperature real", value="false")
+        data['historicalDay'] = 'true'
+        data = ts.add_data(typename="boolean", name="Speed real", value="true")
+        data['historicalWeek'] = 'false'
 
         self.check(msg,"""
             <message from='device@clayster.com'
@@ -314,7 +313,7 @@ class TestSensorDataStanzas(SleekTest):
                 <fields xmlns='urn:xmpp:iot:sensordata' seqnr='1'>
                     <node nodeId='Device02'>
                         <timestamp value='2013-03-07T16:24:30'>
-                            <numeric name='Temperature' momentary='true' automaticReadout='true' value='-12.42' unit='K'/> 
+                            <numeric name='Temperature' momentary='true' automaticReadout='true' value='-12.42' unit='K'/>
                         </timestamp>
                     </node>
                     <node nodeId='EmptyDevice'/>
@@ -323,18 +322,18 @@ class TestSensorDataStanzas(SleekTest):
                     </node>
                     <node nodeId='Device77'>
                         <timestamp value='2013-05-03T12:00:01'>
-                            <numeric name='Temperature' historicalDay='true' value='-12.42' unit='K'/> 
-                            <numeric name='Speed' historicalWeek='false' value='312.42' unit='km/h'/> 
-                            <string name='Temperature name' historicalMonth='true' value='Bottom oil'/> 
-                            <string name='Speed name' historicalQuarter='false' value='Top speed'/> 
-                            <dateTime name='T1' historicalYear='true' value='1979-01-01T00:00:00'/> 
-                            <dateTime name='T2' historicalOther='false' value='2000-01-01T01:02:03'/> 
-                            <timeSpan name='TS1' missing='true' value='P5Y'/> 
-                            <timeSpan name='TS2' manualEstimate='false' value='PT2M1S'/> 
-                            <enum name='top color' invoiced='true' value='red' dataType='string'/> 
-                            <enum name='bottom color' powerFailure='false' value='black' dataType='string'/> 
-                            <boolean name='Temperature real' historicalDay='true' value='false'/> 
-                            <boolean name='Speed real' historicalWeek='false' value='true'/> 
+                            <numeric name='Temperature' historicalDay='true' value='-12.42' unit='K'/>
+                            <numeric name='Speed' historicalWeek='false' value='312.42' unit='km/h'/>
+                            <string name='Temperature name' historicalMonth='true' value='Bottom oil'/>
+                            <string name='Speed name' historicalQuarter='false' value='Top speed'/>
+                            <dateTime name='T1' historicalYear='true' value='1979-01-01T00:00:00'/>
+                            <dateTime name='T2' historicalOther='false' value='2000-01-01T01:02:03'/>
+                            <timeSpan name='TS1' missing='true' value='P5Y'/>
+                            <timeSpan name='TS2' manualEstimate='false' value='PT2M1S'/>
+                            <enum name='top color' invoiced='true' value='red' dataType='string'/>
+                            <enum name='bottom color' powerFailure='false' value='black' dataType='string'/>
+                            <boolean name='Temperature real' historicalDay='true' value='false'/>
+                            <boolean name='Speed real' historicalWeek='false' value='true'/>
                         </timestamp>
                     </node>
                 </fields>
@@ -342,21 +341,19 @@ class TestSensorDataStanzas(SleekTest):
                        """
             )
 
-        
+
     def testTimestamp(self):
-        msg = self.Message();
+        msg = self.Message()
 
         msg['from'] = 'device@clayster.com'
         msg['to'] = 'master@clayster.com/amr'
         msg['fields']['seqnr'] = '1'
 
-        node = msg['fields'].add_node("Device02");
-        node = msg['fields'].add_node("Device03");
+        node = msg['fields'].add_node("Device02")
+        node = msg['fields'].add_node("Device03")
 
-        ts = node.add_timestamp("2013-03-07T16:24:30");
-        ts = node.add_timestamp("2013-03-07T16:24:31");
-
-
+        ts = node.add_timestamp("2013-03-07T16:24:30")
+        ts = node.add_timestamp("2013-03-07T16:24:31")
 
         self.check(msg,"""
             <message from='device@clayster.com'
@@ -386,8 +383,8 @@ class TestSensorDataStanzas(SleekTest):
         self.check(msg,emptyStringIdXML)
         msg['fields']['stringIds'] = "1"
         self.check(msg,emptyStringIdXML)
-        
 
 
-    
+
+
 suite = unittest.TestLoader().loadTestsFromTestCase(TestSensorDataStanzas)

@@ -151,7 +151,6 @@ class Form(ElementBase):
         return fields
 
     def get_instructions(self):
-        instructions = ''
         instsXML = self.xml.findall('{%s}instructions' % self.namespace)
         return "\n".join([instXML.text for instXML in instsXML])
 

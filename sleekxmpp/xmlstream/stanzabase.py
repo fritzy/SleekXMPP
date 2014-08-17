@@ -565,7 +565,10 @@ class ElementBase(object):
         values = {}
         values['lang'] = self['lang']
         for interface in self.interfaces:
-            values[interface] = self[interface]
+            if isinstance(self[interface], JID):
+                values[interface] = self[interface].jid
+            else:
+                values[interface] = self[interface]
             if interface in self.lang_interfaces:
                 values['%s|*' % interface] = self['%s|*' % interface]
         for plugin, stanza in self.plugins.items():

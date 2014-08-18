@@ -6,6 +6,8 @@
     See the file LICENSE for copying permission.
 """
 
+import logging
+
 from sleekxmpp.stanza import Iq
 from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.xmlstream.matcher import StanzaPath

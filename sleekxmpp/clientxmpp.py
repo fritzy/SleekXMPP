@@ -52,7 +52,6 @@ class ClientXMPP(BaseXMPP):
 
     :param jid: The JID of the XMPP user account.
     :param password: The password for the XMPP user account.
-    :param ssl: **Deprecated.**
     :param plugin_config: A dictionary of plugin configurations.
     :param plugin_whitelist: A list of approved plugins that
                     will be loaded when calling
@@ -60,8 +59,13 @@ class ClientXMPP(BaseXMPP):
     :param escape_quotes: **Deprecated.**
     """
 
-    def __init__(self, jid, password, plugin_config={}, plugin_whitelist=[],
-                 escape_quotes=True, sasl_mech=None, lang='en'):
+    def __init__(self, jid, password, plugin_config=None, plugin_whitelist=None, escape_quotes=True, sasl_mech=None,
+                 lang='en'):
+        if not plugin_whitelist:
+            plugin_whitelist = []
+        if not plugin_config:
+            plugin_config = {}
+
         BaseXMPP.__init__(self, jid, 'jabber:client')
 
         self.escape_quotes = escape_quotes

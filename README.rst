@@ -3,7 +3,7 @@ SleekXMPP
 
 SleekXMPP is an MIT licensed XMPP library for Python 2.6/3.1+,
 and is featured in examples in
-`XMPP: The Definitive Guide <http://oreilly.com/catalog/9780596521271>`_ 
+`XMPP: The Definitive Guide <http://oreilly.com/catalog/9780596521271>`_
 by Kevin Smith, Remko Tronçon, and Peter Saint-Andre. If you've arrived
 here from reading the Definitive Guide, please see the notes on updating
 the examples to the latest version of SleekXMPP.
@@ -52,7 +52,7 @@ The latest source code for SleekXMPP may be found on `Github
 
 
 Installing DNSPython
----------------------
+--------------------
 If you are using Python3 and wish to use dnspython, you will have to checkout and
 install the ``python3`` branch::
 
@@ -144,7 +144,7 @@ SleekXMPP projects::
 
 
     if __name__ == '__main__':
-        # Ideally use optparse or argparse to get JID, 
+        # Ideally use optparse or argparse to get JID,
         # password, and log level.
 
         logging.basicConfig(level=logging.DEBUG,
@@ -158,15 +158,15 @@ SleekXMPP projects::
 Credits
 -------
 **Main Author:** Nathan Fritz
-    `fritzy@netflint.net <xmpp:fritzy@netflint.net?message>`_, 
+    `fritzy@netflint.net <xmpp:fritzy@netflint.net?message>`_,
     `@fritzy <http://twitter.com/fritzy>`_
 
     Nathan is also the author of XMPPHP and `Seesmic-AS3-XMPP
-    <http://code.google.com/p/seesmic-as3-xmpp/>`_, and a former member of 
+    <http://code.google.com/p/seesmic-as3-xmpp/>`_, and a former member of
     the XMPP Council.
 
 **Co-Author:** Lance Stout
-    `lancestout@gmail.com <xmpp:lancestout@gmail.com?message>`_, 
+    `lancestout@gmail.com <xmpp:lancestout@gmail.com?message>`_,
     `@lancestout <http://twitter.com/lancestout>`_
 
 **Contributors:**

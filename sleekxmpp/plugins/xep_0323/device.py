@@ -13,15 +13,18 @@ import logging
 
 class Device(object):
     """
-    Example implementation of a device readout object. 
+    Example implementation of a device readout object.
     Is registered in the XEP_0323.register_node call
-    The device object may be any custom implementation to support 
+    The device object may be any custom implementation to support
     specific devices, but it must implement the functions:
           has_field
           request_fields
     """
 
-    def __init__(self, nodeId, fields={}):
+    def __init__(self, nodeId, fields=None):
+        if not fields:
+            fields = {}
+
         self.nodeId = nodeId
         self.fields = fields # see fields described below
         # {'type':'numeric',
@@ -38,19 +41,19 @@ class Device(object):
         Returns true if the supplied field name exists in this device.
 
         Arguments:
-            field      -- The field name        
+            field      -- The field name
         """
         if field in self.fields.keys():
-            return True;
-        return False;
-    
+            return True
+        return False
+
     def refresh(self, fields):
         """
         override method to do the refresh work
         refresh values from hardware or other
         """
         pass
-        
+
 
     def request_fields(self, fields, flags, session, callback):
         """
@@ -65,7 +68,7 @@ class Device(object):
                         Formatted as a dictionary like { "flag name": "flag value" ... }
             session  -- Session id, only used in the callback as identifier
             callback -- Callback function to call when data is available.
-        
+
                     The callback function must support the following arguments:
 
                 session  -- Session id, as supplied in the request_fields call
@@ -73,11 +76,11 @@ class Device(object):
                 result   -- The current result status of the readout. Valid values are:
                                "error"  - Readout failed.
                                "fields" - Contains readout data.
-                               "done"   - Indicates that the readout is complete. May contain 
+                               "done"   - Indicates that the readout is complete. May contain
                                           readout data.
-                timestamp_block -- [optional] Only applies when result != "error" 
+                timestamp_block -- [optional] Only applies when result != "error"
                                The readout data. Structured as a dictionary:
-                  { 
+                  {
                     timestamp:     timestamp for this datablock,
                     fields:        list of field dictionary (one per readout field).
                       readout field dictionary format:
@@ -89,10 +92,10 @@ class Device(object):
                         dataType:  The datatype of the field. Only applies to type enum.
                         flags:     [optional] data classifier flags for the field, e.g. momentary
                                Formatted as a dictionary like { "flag name": "flag value" ... }
-                      }  
+                      }
                   }
                 error_msg -- [optional] Only applies when result == "error".
-                                Error details when a request failed. 
+                                Error details when a request failed.
 
         """
         logging.debug("request_fields called looking for fields %s",fields)
@@ -101,10 +104,10 @@ class Device(object):
             for f in fields:
                 if f not in self.fields.keys():
                     self._send_reject(session, callback)
-                    return False;
+                    return False
         else:
             # Request all fields
-            fields = self.fields.keys();
+            fields = self.fields.keys()
 
 
         # Refresh data from device
@@ -114,27 +117,27 @@ class Device(object):
 
         if "momentary" in flags and flags['momentary'] == "true" or \
            "all" in flags and flags['all'] == "true":
-            ts_block = {};
-            timestamp = "";
+            ts_block = {}
+            timestamp = ""
 
             if len(self.momentary_timestamp) > 0:
-                timestamp = self.momentary_timestamp;
+                timestamp = self.momentary_timestamp
             else:
-                timestamp = self._get_timestamp();
+                timestamp = self._get_timestamp()
 
-            field_block = [];
+            field_block = []
             for f in self.momentary_data:
                 if f in fields:
-                    field_block.append({"name": f, 
-                                "type": self.fields[f]["type"], 
+                    field_block.append({"name": f,
+                                "type": self.fields[f]["type"],
                                 "unit": self.fields[f]["unit"],
                                 "dataType": self.fields[f]["dataType"],
-                                "value": self.momentary_data[f]["value"], 
-                                "flags": self.momentary_data[f]["flags"]});
-            ts_block["timestamp"] = timestamp;
-            ts_block["fields"] = field_block;
+                                "value": self.momentary_data[f]["value"],
+                                "flags": self.momentary_data[f]["flags"]})
+            ts_block["timestamp"] = timestamp
+            ts_block["fields"] = field_block
 
-            callback(session, result="done", nodeId=self.nodeId, timestamp_block=ts_block);
+            callback(session, result="done", nodeId=self.nodeId, timestamp_block=ts_block)
             return
 
         from_flag = self._datetime_flag_parser(flags, 'from')
@@ -142,36 +145,36 @@ class Device(object):
 
         for ts in sorted(self.timestamp_data.keys()):
             tsdt = datetime.datetime.strptime(ts, "%Y-%m-%dT%H:%M:%S")
-            if not from_flag is None: 
-                if tsdt < from_flag: 
+            if not from_flag is None:
+                if tsdt < from_flag:
                     #print (str(tsdt) + " < " + str(from_flag))
                     continue
-            if not to_flag is None: 
-                if tsdt > to_flag: 
+            if not to_flag is None:
+                if tsdt > to_flag:
                     #print (str(tsdt) + " > " + str(to_flag))
                     continue
-    
-            ts_block = {};
-            field_block = [];
+
+            ts_block = {}
+            field_block = []
 
             for f in self.timestamp_data[ts]:
                 if f in fields:
-                    field_block.append({"name": f, 
-                                "type": self.fields[f]["type"], 
+                    field_block.append({"name": f,
+                                "type": self.fields[f]["type"],
                                 "unit": self.fields[f]["unit"],
                                 "dataType": self.fields[f]["dataType"],
-                                "value": self.timestamp_data[ts][f]["value"], 
-                                "flags": self.timestamp_data[ts][f]["flags"]});
+                                "value": self.timestamp_data[ts][f]["value"],
+                                "flags": self.timestamp_data[ts][f]["flags"]})
 
-            ts_block["timestamp"] = ts;
-            ts_block["fields"] = field_block;
-            callback(session, result="fields", nodeId=self.nodeId, timestamp_block=ts_block);
-        callback(session, result="done", nodeId=self.nodeId, timestamp_block=None);
+            ts_block["timestamp"] = ts
+            ts_block["fields"] = field_block
+            callback(session, result="fields", nodeId=self.nodeId, timestamp_block=ts_block)
+        callback(session, result="done", nodeId=self.nodeId, timestamp_block=None)
 
     def _datetime_flag_parser(self, flags, flagname):
         if not flagname in flags:
             return None
-        
+
         dt = None
         try:
             dt = datetime.datetime.strptime(flags[flagname], "%Y-%m-%dT%H:%M:%S")
@@ -195,7 +198,7 @@ class Device(object):
             session  -- Session id, see definition in request_fields function
             callback -- Callback function, see definition in request_fields function
         """
-        callback(session, result="error", nodeId=self.nodeId, timestamp_block=None, error_msg="Reject");
+        callback(session, result="error", nodeId=self.nodeId, timestamp_block=None, error_msg="Reject")
 
     def _add_field(self, name, typename, unit=None, dataType=None):
         """
@@ -207,7 +210,7 @@ class Device(object):
             unit     -- [optional] only applies to "numeric". Unit for the field.
             dataType -- [optional] only applies to "enum". Datatype for the field.
         """
-        self.fields[name] = {"type": typename, "unit": unit, "dataType": dataType};
+        self.fields[name] = {"type": typename, "unit": unit, "dataType": dataType}
 
     def _add_field_timestamp_data(self, name, timestamp, value, flags=None):
         """
@@ -221,12 +224,12 @@ class Device(object):
                          Formatted as a dictionary like { "flag name": "flag value" ... }
         """
         if not name in self.fields.keys():
-            return False;
+            return False
         if not timestamp in self.timestamp_data:
-            self.timestamp_data[timestamp] = {};
+            self.timestamp_data[timestamp] = {}
 
-        self.timestamp_data[timestamp][name] = {"value": value, "flags": flags};
-        return True;
+        self.timestamp_data[timestamp][name] = {"value": value, "flags": flags}
+        return True
 
     def _add_field_momentary_data(self, name, value, flags=None):
         """
@@ -239,17 +242,17 @@ class Device(object):
                          Formatted as a dictionary like { "flag name": "flag value" ... }
         """
         if name not in self.fields:
-            return False;
+            return False
         if flags is None:
-            flags = {};
-        
+            flags = {}
+
         flags["momentary"] = "true"
-        self.momentary_data[name] = {"value": value, "flags": flags};
-        return True;
+        self.momentary_data[name] = {"value": value, "flags": flags}
+        return True
 
     def _set_momentary_timestamp(self, timestamp):
         """
         This function is only for unit testing to produce predictable results.
         """
-        self.momentary_timestamp = timestamp;
+        self.momentary_timestamp = timestamp
 

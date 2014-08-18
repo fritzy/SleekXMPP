@@ -19,7 +19,7 @@ class TestStreamSensorData(SleekTest):
         pass
 
     def _time_now(self):
-        return datetime.datetime.now().replace(microsecond=0).isoformat()
+        return datetime.datetime.now().replace(microsecond=0).isoformat();
 
     def tearDown(self):
         self.stream_close()
@@ -29,12 +29,12 @@ class TestStreamSensorData(SleekTest):
                           plugins=['xep_0030',
                                    'xep_0323'])
 
-        myDevice = Device("Device22")
-        myDevice._add_field(name="Temperature", typename="numeric", unit="°C")
+        myDevice = Device("Device22");
+        myDevice._add_field(name="Temperature", typename="numeric", unit="°C");
         myDevice._set_momentary_timestamp("2013-03-07T16:24:30")
-        myDevice._add_field_momentary_data("Temperature", "23.4", flags={"automaticReadout": "true"})
+        myDevice._add_field_momentary_data("Temperature", "23.4", flags={"automaticReadout": "true"});
 
-        self.xmpp['xep_0323'].register_node(nodeId="Device22", device=myDevice, commTimeout=0.5)
+        self.xmpp['xep_0323'].register_node(nodeId="Device22", device=myDevice, commTimeout=0.5);
 
         self.recv("""
             <iq type='get'
@@ -46,7 +46,7 @@ class TestStreamSensorData(SleekTest):
         """)
 
         self.send("""
-            <iq type='result'
+            <iq type='result' 
                 from='device@clayster.com'
                 to='master@clayster.com/amr'
                 id='1'>
@@ -60,11 +60,11 @@ class TestStreamSensorData(SleekTest):
                 <fields xmlns='urn:xmpp:iot:sensordata' seqnr='1' done='true'>
                     <node nodeId='Device22'>
                         <timestamp value='2013-03-07T16:24:30'>
-                            <numeric name='Temperature' momentary='true' automaticReadout='true' value='23.4' unit='°C'/>
+                            <numeric name='Temperature' momentary='true' automaticReadout='true' value='23.4' unit='°C'/> 
                         </timestamp>
                     </node>
                 </fields>
-            </message>
+            </message>            
             """)
 
     def testRequestRejectAuth(self):
@@ -73,7 +73,7 @@ class TestStreamSensorData(SleekTest):
                           plugins=['xep_0030',
                                    'xep_0323'])
 
-        self.xmpp['xep_0323']._set_authenticated("darth@deathstar.com")
+        self.xmpp['xep_0323']._set_authenticated("darth@deathstar.com");
 
         self.recv("""
             <iq type='get'
@@ -85,7 +85,7 @@ class TestStreamSensorData(SleekTest):
         """)
 
         self.send("""
-            <iq type='error'
+            <iq type='error' 
                 from='device@clayster.com'
                 to='master@clayster.com/amr'
                 id='4'>
@@ -101,8 +101,8 @@ class TestStreamSensorData(SleekTest):
                           plugins=['xep_0030',
                                    'xep_0323'])
 
-        myDevice = Device("Device44")
-        self.xmpp['xep_0323'].register_node('Device44', myDevice, commTimeout=0.5)
+        myDevice = Device("Device44");
+        self.xmpp['xep_0323'].register_node('Device44', myDevice, commTimeout=0.5);
 
         print("."),
 
@@ -118,7 +118,7 @@ class TestStreamSensorData(SleekTest):
         """)
 
         self.send("""
-            <iq type='error'
+            <iq type='error' 
                 from='device@clayster.com'
                 to='master@clayster.com/amr'
                 id='77'>
@@ -142,7 +142,7 @@ class TestStreamSensorData(SleekTest):
         """)
 
         self.send("""
-            <iq type='result'
+            <iq type='result' 
                 from='device@clayster.com'
                 to='master@clayster.com/amr'
                 id='8'>
@@ -157,11 +157,11 @@ class TestStreamSensorData(SleekTest):
                           plugins=['xep_0030',
                                    'xep_0323'])
 
-        myDevice = Device("Device44")
-        myDevice._add_field(name='Voltage', typename="numeric", unit="V")
-        myDevice._add_field_timestamp_data(name="Voltage", value="230.4", timestamp="2000-01-01T00:01:02", flags={"invoiced": "true"})
+        myDevice = Device("Device44");
+        myDevice._add_field(name='Voltage', typename="numeric", unit="V");
+        myDevice._add_field_timestamp_data(name="Voltage", value="230.4", timestamp="2000-01-01T00:01:02", flags={"invoiced": "true"});
 
-        self.xmpp['xep_0323'].register_node('Device44', myDevice, commTimeout=0.5)
+        self.xmpp['xep_0323'].register_node('Device44', myDevice, commTimeout=0.5);
 
         print("."),
 
@@ -177,7 +177,7 @@ class TestStreamSensorData(SleekTest):
         """)
 
         self.send("""
-            <iq type='error'
+            <iq type='error' 
                 from='device@clayster.com'
                 to='master@clayster.com/amr'
                 id='7'>
@@ -201,7 +201,7 @@ class TestStreamSensorData(SleekTest):
         """)
 
         self.send("""
-            <iq type='result'
+            <iq type='result' 
                 from='device@clayster.com'
                 to='master@clayster.com/amr'
                 id='8'>
@@ -215,11 +215,11 @@ class TestStreamSensorData(SleekTest):
                 <fields xmlns='urn:xmpp:iot:sensordata' seqnr='7'>
                     <node nodeId='Device44'>
                         <timestamp value='2000-01-01T00:01:02'>
-                            <numeric name='Voltage' invoiced='true' value='230.4' unit='V'/>
+                            <numeric name='Voltage' invoiced='true' value='230.4' unit='V'/> 
                         </timestamp>
                     </node>
                 </fields>
-            </message>
+            </message>            
             """)
 
         self.send("""
@@ -227,7 +227,7 @@ class TestStreamSensorData(SleekTest):
                      to='master@clayster.com/amr'>
                 <fields xmlns='urn:xmpp:iot:sensordata' seqnr='7' done='true'>
                 </fields>
-            </message>
+            </message>            
             """)
 
     def testRequestMultiTimestampSingleField(self):
@@ -236,15 +236,15 @@ class TestStreamSensorData(SleekTest):
                           plugins=['xep_0030',
                                    'xep_0323'])
 
-        myDevice = Device("Device44")
-        myDevice._add_field(name='Voltage', typename="numeric", unit="V")
-        myDevice._add_field_timestamp_data(name="Voltage", value="230.4", timestamp="2000-01-01T00:01:02", flags={"invoiced": "true"})
-        myDevice._add_field(name='Current', typename="numeric", unit="A")
-        myDevice._add_field(name='Height', typename="string")
-        myDevice._add_field_timestamp_data(name="Voltage", value="230.6", timestamp="2000-01-01T01:01:02")
-        myDevice._add_field_timestamp_data(name="Height", value="115 m", timestamp="2000-01-01T01:01:02", flags={"invoiced": "true"})
+        myDevice = Device("Device44");
+        myDevice._add_field(name='Voltage', typename="numeric", unit="V");
+        myDevice._add_field_timestamp_data(name="Voltage", value="230.4", timestamp="2000-01-01T00:01:02", flags={"invoiced": "true"});
+        myDevice._add_field(name='Current', typename="numeric", unit="A");
+        myDevice._add_field(name='Height', typename="string");
+        myDevice._add_field_timestamp_data(name="Voltage", value="230.6", timestamp="2000-01-01T01:01:02");
+        myDevice._add_field_timestamp_data(name="Height", value="115 m", timestamp="2000-01-01T01:01:02", flags={"invoiced": "true"});
 
-        self.xmpp['xep_0323'].register_node('Device44', myDevice, commTimeout=0.5)
+        self.xmpp['xep_0323'].register_node('Device44', myDevice, commTimeout=0.5);
 
         print("."),
 
@@ -260,7 +260,7 @@ class TestStreamSensorData(SleekTest):
         """)
 
         self.send("""
-            <iq type='result'
+            <iq type='result' 
                 from='device@clayster.com'
                 to='master@clayster.com/amr'
                 id='8'>
@@ -274,11 +274,11 @@ class TestStreamSensorData(SleekTest):
                 <fields xmlns='urn:xmpp:iot:sensordata' seqnr='7'>
                     <node nodeId='Device44'>
                         <timestamp value='2000-01-01T00:01:02'>
-                            <numeric name='Voltage' invoiced='true' value='230.4' unit='V'/>
+                            <numeric name='Voltage' invoiced='true' value='230.4' unit='V'/> 
                         </timestamp>
                     </node>
                 </fields>
-            </message>
+            </message>            
             """)
 
         self.send("""
@@ -287,11 +287,11 @@ class TestStreamSensorData(SleekTest):
                 <fields xmlns='urn:xmpp:iot:sensordata' seqnr='7'>
                     <node nodeId='Device44'>
                         <timestamp value='2000-01-01T01:01:02'>
-                            <numeric name='Voltage' value='230.6' unit='V'/>
+                            <numeric name='Voltage' value='230.6' unit='V'/> 
                         </timestamp>
                     </node>
                 </fields>
-            </message>
+            </message>            
             """)
 
         self.send("""
@@ -299,7 +299,7 @@ class TestStreamSensorData(SleekTest):
                      to='master@clayster.com/amr'>
                 <fields xmlns='urn:xmpp:iot:sensordata' seqnr='7' done='true'>
                 </fields>
-            </message>
+            </message>            
             """)
 
     def testRequestMultiTimestampAllFields(self):
@@ -308,15 +308,15 @@ class TestStreamSensorData(SleekTest):
                           plugins=['xep_0030',
                                    'xep_0323'])
 
-        myDevice = Device("Device44")
-        myDevice._add_field(name='Voltage', typename="numeric", unit="V")
-        myDevice._add_field_timestamp_data(name="Voltage", value="230.4", timestamp="2000-01-01T00:01:02", flags={"invoiced": "true"})
-        myDevice._add_field(name='Current', typename="numeric", unit="A")
-        myDevice._add_field(name='Height', typename="string")
-        myDevice._add_field_timestamp_data(name="Voltage", value="230.6", timestamp="2000-01-01T01:01:02")
-        myDevice._add_field_timestamp_data(name="Height", value="115 m", timestamp="2000-01-01T01:01:02", flags={"invoiced": "true"})
+        myDevice = Device("Device44");
+        myDevice._add_field(name='Voltage', typename="numeric", unit="V");
+        myDevice._add_field_timestamp_data(name="Voltage", value="230.4", timestamp="2000-01-01T00:01:02", flags={"invoiced": "true"});
+        myDevice._add_field(name='Current', typename="numeric", unit="A");
+        myDevice._add_field(name='Height', typename="string");
+        myDevice._add_field_timestamp_data(name="Voltage", value="230.6", timestamp="2000-01-01T01:01:02");
+        myDevice._add_field_timestamp_data(name="Height", value="115 m", timestamp="2000-01-01T01:01:02", flags={"invoiced": "true"});
 
-        self.xmpp['xep_0323'].register_node('Device44', myDevice, commTimeout=0.5)
+        self.xmpp['xep_0323'].register_node('Device44', myDevice, commTimeout=0.5);
 
         print("."),
 
@@ -330,7 +330,7 @@ class TestStreamSensorData(SleekTest):
         """)
 
         self.send("""
-            <iq type='result'
+            <iq type='result' 
                 from='device@clayster.com'
                 to='master@clayster.com/amr'
                 id='8'>
@@ -344,11 +344,11 @@ class TestStreamSensorData(SleekTest):
                 <fields xmlns='urn:xmpp:iot:sensordata' seqnr='7'>
                     <node nodeId='Device44'>
                         <timestamp value='2000-01-01T00:01:02'>
-                            <numeric name='Voltage' invoiced='true' value='230.4' unit='V'/>
+                            <numeric name='Voltage' invoiced='true' value='230.4' unit='V'/> 
                         </timestamp>
                     </node>
                 </fields>
-            </message>
+            </message>            
             """)
 
         self.send("""
@@ -357,12 +357,12 @@ class TestStreamSensorData(SleekTest):
                 <fields xmlns='urn:xmpp:iot:sensordata' seqnr='7'>
                     <node nodeId='Device44'>
                         <timestamp value='2000-01-01T01:01:02'>
-                            <numeric name='Voltage' value='230.6' unit='V'/>
-                            <string name='Height' invoiced='true' value='115 m'/>
+                            <numeric name='Voltage' value='230.6' unit='V'/> 
+                            <string name='Height' invoiced='true' value='115 m'/> 
                         </timestamp>
                     </node>
                 </fields>
-            </message>
+            </message>            
             """)
 
         self.send("""
@@ -370,7 +370,7 @@ class TestStreamSensorData(SleekTest):
                      to='master@clayster.com/amr'>
                 <fields xmlns='urn:xmpp:iot:sensordata' seqnr='7' done='true'>
                 </fields>
-            </message>
+            </message>            
             """)
 
     def testRequestAPI(self):
@@ -379,7 +379,7 @@ class TestStreamSensorData(SleekTest):
                           plugins=['xep_0030',
                                    'xep_0323'])
 
-        self.xmpp['xep_0323'].request_data(from_jid="tester@localhost", to_jid="you@google.com", callback=None)
+        self.xmpp['xep_0323'].request_data(from_jid="tester@localhost", to_jid="you@google.com", callback=None);
 
         self.send("""
             <iq type='get'
@@ -390,7 +390,7 @@ class TestStreamSensorData(SleekTest):
             </iq>
             """)
 
-        self.xmpp['xep_0323'].request_data(from_jid="tester@localhost", to_jid="you@google.com", nodeIds=['Device33', 'Device22'], callback=None)
+        self.xmpp['xep_0323'].request_data(from_jid="tester@localhost", to_jid="you@google.com", nodeIds=['Device33', 'Device22'], callback=None);
 
         self.send("""
             <iq type='get'
@@ -404,7 +404,7 @@ class TestStreamSensorData(SleekTest):
             </iq>
             """)
 
-        self.xmpp['xep_0323'].request_data(from_jid="tester@localhost", to_jid="you@google.com", fields=['Temperature', 'Voltage'], callback=None)
+        self.xmpp['xep_0323'].request_data(from_jid="tester@localhost", to_jid="you@google.com", fields=['Temperature', 'Voltage'], callback=None);
 
         self.send("""
             <iq type='get'
@@ -424,13 +424,13 @@ class TestStreamSensorData(SleekTest):
                           plugins=['xep_0030',
                                    'xep_0323'])
 
-        results = []
+        results = []; 
 
         def my_callback(from_jid, result, nodeId=None, timestamp=None, fields=None, error_msg=None):
             if (result == "rejected") and (error_msg == "Invalid device Device22"):
-                results.append("rejected")
+                results.append("rejected");
 
-        self.xmpp['xep_0323'].request_data(from_jid="tester@localhost", to_jid="you@google.com", nodeIds=['Device33', 'Device22'], callback=my_callback)
+        self.xmpp['xep_0323'].request_data(from_jid="tester@localhost", to_jid="you@google.com", nodeIds=['Device33', 'Device22'], callback=my_callback);
 
         self.send("""
             <iq type='get'
@@ -445,20 +445,20 @@ class TestStreamSensorData(SleekTest):
             """)
 
         self.recv("""
-            <iq type='error'
+            <iq type='error' 
                 from='you@google.com'
                 to='tester@localhost'
                 id='1'>
                 <rejected xmlns='urn:xmpp:iot:sensordata' seqnr='1'>
                     <error>Invalid device Device22</error>
                 </rejected>
-            </iq>
+            </iq>            
             """)
 
         time.sleep(.1)
 
-        self.failUnless(results == ["rejected"],
-                "Rejected callback was not properly executed")
+        self.failUnless(results == ["rejected"], 
+                "Rejected callback was not properly executed");
 
     def testRequestAcceptedAPI(self):
 
@@ -466,12 +466,12 @@ class TestStreamSensorData(SleekTest):
                           plugins=['xep_0030',
                                    'xep_0323'])
 
-        results = []
+        results = []; 
 
         def my_callback(from_jid, result, nodeId=None, timestamp=None, fields=None, error_msg=None):
-            results.append(result)
+            results.append(result);
 
-        self.xmpp['xep_0323'].request_data(from_jid="tester@localhost", to_jid="you@google.com", nodeIds=['Device33', 'Device22'], callback=my_callback)
+        self.xmpp['xep_0323'].request_data(from_jid="tester@localhost", to_jid="you@google.com", nodeIds=['Device33', 'Device22'], callback=my_callback);
 
         self.send("""
             <iq type='get'
@@ -486,18 +486,18 @@ class TestStreamSensorData(SleekTest):
             """)
 
         self.recv("""
-            <iq type='result'
+            <iq type='result' 
                 from='you@google.com'
                 to='tester@localhost'
                 id='1'>
                 <accepted xmlns='urn:xmpp:iot:sensordata' seqnr='1'/>
-            </iq>
+            </iq>            
             """)
 
         time.sleep(.1)
 
-        self.failUnless(results == ["accepted"],
-                "Accepted callback was not properly executed")
+        self.failUnless(results == ["accepted"], 
+                "Accepted callback was not properly executed");
 
     def testRequestFieldsAPI(self):
 
@@ -505,25 +505,25 @@ class TestStreamSensorData(SleekTest):
                           plugins=['xep_0030',
                                    'xep_0323'])
 
-        results = []
-        callback_data = {}
+        results = []; 
+        callback_data = {}; 
 
         def my_callback(from_jid, result, nodeId=None, timestamp=None, fields=None, error_msg=None):
-            results.append(result)
+            results.append(result);
             if result == "fields":
-                callback_data["nodeId"] = nodeId
-                callback_data["timestamp"] = timestamp
-                callback_data["error_msg"] = error_msg
+                callback_data["nodeId"] = nodeId;
+                callback_data["timestamp"] = timestamp;
+                callback_data["error_msg"] = error_msg;
                 for f in fields:
-                    callback_data["field_" + f['name']] = f
+                    callback_data["field_" + f['name']] = f;
 
         t1= threading.Thread(name="request_data",
                          target=self.xmpp['xep_0323'].request_data,
-                         kwargs={"from_jid": "tester@localhost",
-                                    "to_jid": "you@google.com",
-                                    "nodeIds": ['Device33'],
-                                    "callback": my_callback})
-        t1.start()
+                         kwargs={"from_jid": "tester@localhost", 
+                                    "to_jid": "you@google.com", 
+                                    "nodeIds": ['Device33'], 
+                                    "callback": my_callback});
+        t1.start();
         #self.xmpp['xep_0323'].request_data(from_jid="tester@localhost", to_jid="you@google.com", nodeIds=['Device33'], callback=my_callback);
 
         self.send("""
@@ -538,12 +538,12 @@ class TestStreamSensorData(SleekTest):
             """)
 
         self.recv("""
-            <iq type='result'
+            <iq type='result' 
                 from='you@google.com'
                 to='tester@localhost'
                 id='1'>
                 <accepted xmlns='urn:xmpp:iot:sensordata' seqnr='1'/>
-            </iq>
+            </iq>            
             """)
 
         self.recv("""
@@ -552,42 +552,42 @@ class TestStreamSensorData(SleekTest):
                 <fields xmlns='urn:xmpp:iot:sensordata' seqnr='1'>
                     <node nodeId='Device33'>
                         <timestamp value='2000-01-01T00:01:02'>
-                            <numeric name='Voltage' invoiced='true' value='230.4' unit='V'/>
-                            <boolean name='TestBool' value='true'/>
+                            <numeric name='Voltage' invoiced='true' value='230.4' unit='V'/> 
+                            <boolean name='TestBool' value='true'/> 
                         </timestamp>
                     </node>
                 </fields>
-            </message>
+            </message>            
             """)
 
         self.recv("""
             <message from='you@google.com'
                      to='tester@localhost'>
                 <fields xmlns='urn:xmpp:iot:sensordata' seqnr='1' done='true'/>
-            </message>
+            </message>            
             """)
 
-        t1.join()
+        t1.join();
         time.sleep(.5)
 
-        self.failUnlessEqual(results, ["accepted","fields","done"])
+        self.failUnlessEqual(results, ["accepted","fields","done"]);
         # self.assertIn("nodeId", callback_data);
         self.assertTrue("nodeId" in callback_data)
-        self.failUnlessEqual(callback_data["nodeId"], "Device33")
+        self.failUnlessEqual(callback_data["nodeId"], "Device33");
         # self.assertIn("timestamp", callback_data);
-        self.assertTrue("timestamp" in callback_data)
-        self.failUnlessEqual(callback_data["timestamp"], "2000-01-01T00:01:02")
+        self.assertTrue("timestamp" in callback_data);
+        self.failUnlessEqual(callback_data["timestamp"], "2000-01-01T00:01:02");
         #self.assertIn("field_Voltage", callback_data);
-        self.assertTrue("field_Voltage" in callback_data)
-        self.failUnlessEqual(callback_data["field_Voltage"], {"name": "Voltage", "value": "230.4", "typename": "numeric", "unit": "V", "flags": {"invoiced": "true"}})
+        self.assertTrue("field_Voltage" in callback_data);
+        self.failUnlessEqual(callback_data["field_Voltage"], {"name": "Voltage", "value": "230.4", "typename": "numeric", "unit": "V", "flags": {"invoiced": "true"}});
         #self.assertIn("field_TestBool", callback_data);
-        self.assertTrue("field_TestBool" in callback_data)
-        self.failUnlessEqual(callback_data["field_TestBool"], {"name": "TestBool", "value": "true", "typename": "boolean" })
+        self.assertTrue("field_TestBool" in callback_data);
+        self.failUnlessEqual(callback_data["field_TestBool"], {"name": "TestBool", "value": "true", "typename": "boolean" });
 
     def testServiceDiscoveryClient(self):
         self.stream_start(mode='client',
                           plugins=['xep_0030',
-                                   'xep_0323'])
+                                   'xep_0323']);
 
         self.recv("""
         <iq type='get'
@@ -605,14 +605,14 @@ class TestStreamSensorData(SleekTest):
             <query xmlns='http://jabber.org/protocol/disco#info'>
                 <identity category='client' type='bot'/>
                 <feature var='urn:xmpp:iot:sensordata'/>
-            </query>
-        </iq>
+            </query>  
+        </iq>            
         """)
 
     def testServiceDiscoveryComponent(self):
         self.stream_start(mode='component',
                           plugins=['xep_0030',
-                                   'xep_0323'])
+                                   'xep_0323']);
 
         self.recv("""
         <iq type='get'
@@ -631,8 +631,8 @@ class TestStreamSensorData(SleekTest):
             <query xmlns='http://jabber.org/protocol/disco#info'>
                 <identity category='component' type='generic'/>
                 <feature var='urn:xmpp:iot:sensordata'/>
-            </query>
-        </iq>
+            </query>  
+        </iq>            
         """)
 
     def testRequestTimeout(self):
@@ -641,23 +641,23 @@ class TestStreamSensorData(SleekTest):
                           plugins=['xep_0030',
                                    'xep_0323'])
 
-        results = []
-        callback_data = {}
+        results = [];
+        callback_data = {}; 
 
         def my_callback(from_jid, result, nodeId=None, timestamp=None, error_msg=None):
-            results.append(result)
+            results.append(result);
             if result == "failure":
-                callback_data["nodeId"] = nodeId
-                callback_data["timestamp"] = timestamp
-                callback_data["error_msg"] = error_msg
+                callback_data["nodeId"] = nodeId;
+                callback_data["timestamp"] = timestamp;
+                callback_data["error_msg"] = error_msg;
 
         t1= threading.Thread(name="request_data",
                          target=self.xmpp['xep_0323'].request_data,
-                         kwargs={"from_jid": "tester@localhost",
-                                    "to_jid": "you@google.com",
-                                    "nodeIds": ['Device33'],
-                                    "callback": my_callback})
-        t1.start()
+                         kwargs={"from_jid": "tester@localhost", 
+                                    "to_jid": "you@google.com", 
+                                    "nodeIds": ['Device33'], 
+                                    "callback": my_callback});
+        t1.start();
 
         self.send("""
             <iq type='get'
@@ -671,12 +671,12 @@ class TestStreamSensorData(SleekTest):
             """)
 
         self.recv("""
-            <iq type='result'
+            <iq type='result' 
                 from='you@google.com'
                 to='tester@localhost'
                 id='1'>
                 <accepted xmlns='urn:xmpp:iot:sensordata' seqnr='1'/>
-            </iq>
+            </iq>            
             """)
 
         self.recv("""
@@ -688,31 +688,31 @@ class TestStreamSensorData(SleekTest):
             </message>
             """)
 
-        t1.join()
+        t1.join();
         time.sleep(.5)
 
-        self.failUnlessEqual(results, ["accepted","failure"])
+        self.failUnlessEqual(results, ["accepted","failure"]);
         # self.assertIn("nodeId", callback_data);
-        self.assertTrue("nodeId" in callback_data)
-        self.failUnlessEqual(callback_data["nodeId"], "Device33")
+        self.assertTrue("nodeId" in callback_data);
+        self.failUnlessEqual(callback_data["nodeId"], "Device33");
         # self.assertIn("timestamp", callback_data);
-        self.assertTrue("timestamp" in callback_data)
-        self.failUnlessEqual(callback_data["timestamp"], "2013-03-07T17:13:30")
+        self.assertTrue("timestamp" in callback_data);
+        self.failUnlessEqual(callback_data["timestamp"], "2013-03-07T17:13:30");
         # self.assertIn("error_msg", callback_data);
-        self.assertTrue("error_msg" in callback_data)
-        self.failUnlessEqual(callback_data["error_msg"], "Timeout.")
+        self.assertTrue("error_msg" in callback_data);
+        self.failUnlessEqual(callback_data["error_msg"], "Timeout.");
 
     def testDelayedRequest(self):
         self.stream_start(mode='component',
                           plugins=['xep_0030',
                                    'xep_0323'])
 
-        myDevice = Device("Device22")
-        myDevice._add_field(name="Temperature", typename="numeric", unit="°C")
+        myDevice = Device("Device22");
+        myDevice._add_field(name="Temperature", typename="numeric", unit="°C");
         myDevice._set_momentary_timestamp("2013-03-07T16:24:30")
-        myDevice._add_field_momentary_data("Temperature", "23.4", flags={"automaticReadout": "true"})
+        myDevice._add_field_momentary_data("Temperature", "23.4", flags={"automaticReadout": "true"});
 
-        self.xmpp['xep_0323'].register_node(nodeId="Device22", device=myDevice, commTimeout=0.5)
+        self.xmpp['xep_0323'].register_node(nodeId="Device22", device=myDevice, commTimeout=0.5);
 
         dtnow = datetime.datetime.now()
         ts_2sec = datetime.timedelta(0,2)
@@ -729,7 +729,7 @@ class TestStreamSensorData(SleekTest):
         """)
 
         self.send("""
-            <iq type='result'
+            <iq type='result' 
                 from='device@clayster.com'
                 to='master@clayster.com/amr'
                 id='1'>
@@ -743,7 +743,7 @@ class TestStreamSensorData(SleekTest):
             <message from='device@clayster.com'
                      to='master@clayster.com/amr'>
                 <started xmlns='urn:xmpp:iot:sensordata' seqnr='1' />
-            </message>
+            </message>            
             """)
 
         self.send("""
@@ -752,11 +752,11 @@ class TestStreamSensorData(SleekTest):
                 <fields xmlns='urn:xmpp:iot:sensordata' seqnr='1' done='true'>
                     <node nodeId='Device22'>
                         <timestamp value='2013-03-07T16:24:30'>
-                            <numeric name='Temperature' momentary='true' automaticReadout='true' value='23.4' unit='°C'/>
+                            <numeric name='Temperature' momentary='true' automaticReadout='true' value='23.4' unit='°C'/> 
                         </timestamp>
                     </node>
                 </fields>
-            </message>
+            </message>            
             """)
 
     def testDelayedRequestFail(self):
@@ -764,12 +764,12 @@ class TestStreamSensorData(SleekTest):
                           plugins=['xep_0030',
                                    'xep_0323'])
 
-        myDevice = Device("Device22")
-        myDevice._add_field(name="Temperature", typename="numeric", unit="°C")
+        myDevice = Device("Device22");
+        myDevice._add_field(name="Temperature", typename="numeric", unit="°C");
         myDevice._set_momentary_timestamp("2013-03-07T16:24:30")
-        myDevice._add_field_momentary_data("Temperature", "23.4", flags={"automaticReadout": "true"})
+        myDevice._add_field_momentary_data("Temperature", "23.4", flags={"automaticReadout": "true"});
 
-        self.xmpp['xep_0323'].register_node(nodeId="Device22", device=myDevice, commTimeout=0.5)
+        self.xmpp['xep_0323'].register_node(nodeId="Device22", device=myDevice, commTimeout=0.5);
 
         dtnow = datetime.datetime.now()
         ts_2sec = datetime.timedelta(0,2)
@@ -792,7 +792,7 @@ class TestStreamSensorData(SleekTest):
         xml_stanza['rejected']['error'] = error_text
 
         self._filtered_stanza_check("""
-            <iq type='error'
+            <iq type='error' 
                 from='device@clayster.com'
                 to='master@clayster.com/amr'
                 id='1'>
@@ -825,13 +825,13 @@ class TestStreamSensorData(SleekTest):
                           plugins=['xep_0030',
                                    'xep_0323'])
 
-        myDevice = Device("Device44")
-        myDevice._add_field(name='Voltage', typename="numeric", unit="V")
-        myDevice._add_field_timestamp_data(name="Voltage", value="230.1", timestamp="2000-01-01T00:01:02", flags={"invoiced": "true"})
-        myDevice._add_field_timestamp_data(name="Voltage", value="230.2", timestamp="2000-02-01T00:01:02", flags={"invoiced": "true"})
-        myDevice._add_field_timestamp_data(name="Voltage", value="230.3", timestamp="2000-03-01T00:01:02", flags={"invoiced": "true"})
+        myDevice = Device("Device44");
+        myDevice._add_field(name='Voltage', typename="numeric", unit="V");
+        myDevice._add_field_timestamp_data(name="Voltage", value="230.1", timestamp="2000-01-01T00:01:02", flags={"invoiced": "true"});
+        myDevice._add_field_timestamp_data(name="Voltage", value="230.2", timestamp="2000-02-01T00:01:02", flags={"invoiced": "true"});
+        myDevice._add_field_timestamp_data(name="Voltage", value="230.3", timestamp="2000-03-01T00:01:02", flags={"invoiced": "true"});
 
-        self.xmpp['xep_0323'].register_node('Device44', myDevice, commTimeout=0.5)
+        self.xmpp['xep_0323'].register_node('Device44', myDevice, commTimeout=0.5);
 
         print("."),
 
@@ -847,7 +847,7 @@ class TestStreamSensorData(SleekTest):
         """)
 
         self.send("""
-            <iq type='result'
+            <iq type='result' 
                 from='device@clayster.com'
                 to='master@clayster.com/amr'
                 id='6'>
@@ -861,11 +861,11 @@ class TestStreamSensorData(SleekTest):
                 <fields xmlns='urn:xmpp:iot:sensordata' seqnr='6'>
                     <node nodeId='Device44'>
                         <timestamp value='2000-02-01T00:01:02'>
-                            <numeric name='Voltage' invoiced='true' value='230.2' unit='V'/>
+                            <numeric name='Voltage' invoiced='true' value='230.2' unit='V'/> 
                         </timestamp>
                     </node>
                 </fields>
-            </message>
+            </message>            
             """)
 
         self.send("""
@@ -874,11 +874,11 @@ class TestStreamSensorData(SleekTest):
                 <fields xmlns='urn:xmpp:iot:sensordata' seqnr='6'>
                     <node nodeId='Device44'>
                         <timestamp value='2000-03-01T00:01:02'>
-                            <numeric name='Voltage' invoiced='true' value='230.3' unit='V'/>
+                            <numeric name='Voltage' invoiced='true' value='230.3' unit='V'/> 
                         </timestamp>
                     </node>
                 </fields>
-            </message>
+            </message>            
             """)
 
         self.send("""
@@ -886,7 +886,7 @@ class TestStreamSensorData(SleekTest):
                      to='master@clayster.com/amr'>
                 <fields xmlns='urn:xmpp:iot:sensordata' seqnr='6' done='true'>
                 </fields>
-            </message>
+            </message>            
             """)
 
     def testRequestFieldTo(self):
@@ -895,13 +895,13 @@ class TestStreamSensorData(SleekTest):
                           plugins=['xep_0030',
                                    'xep_0323'])
 
-        myDevice = Device("Device44")
-        myDevice._add_field(name='Voltage', typename="numeric", unit="V")
-        myDevice._add_field_timestamp_data(name="Voltage", value="230.1", timestamp="2000-01-01T00:01:02", flags={"invoiced": "true"})
-        myDevice._add_field_timestamp_data(name="Voltage", value="230.2", timestamp="2000-02-01T00:01:02", flags={"invoiced": "true"})
-        myDevice._add_field_timestamp_data(name="Voltage", value="230.3", timestamp="2000-03-01T00:01:02", flags={"invoiced": "true"})
+        myDevice = Device("Device44");
+        myDevice._add_field(name='Voltage', typename="numeric", unit="V");
+        myDevice._add_field_timestamp_data(name="Voltage", value="230.1", timestamp="2000-01-01T00:01:02", flags={"invoiced": "true"});
+        myDevice._add_field_timestamp_data(name="Voltage", value="230.2", timestamp="2000-02-01T00:01:02", flags={"invoiced": "true"});
+        myDevice._add_field_timestamp_data(name="Voltage", value="230.3", timestamp="2000-03-01T00:01:02", flags={"invoiced": "true"});
 
-        self.xmpp['xep_0323'].register_node('Device44', myDevice, commTimeout=0.5)
+        self.xmpp['xep_0323'].register_node('Device44', myDevice, commTimeout=0.5);
 
         print("."),
 
@@ -917,7 +917,7 @@ class TestStreamSensorData(SleekTest):
         """)
 
         self.send("""
-            <iq type='result'
+            <iq type='result' 
                 from='device@clayster.com'
                 to='master@clayster.com/amr'
                 id='6'>
@@ -931,11 +931,11 @@ class TestStreamSensorData(SleekTest):
                 <fields xmlns='urn:xmpp:iot:sensordata' seqnr='6'>
                     <node nodeId='Device44'>
                         <timestamp value='2000-01-01T00:01:02'>
-                            <numeric name='Voltage' invoiced='true' value='230.1' unit='V'/>
+                            <numeric name='Voltage' invoiced='true' value='230.1' unit='V'/> 
                         </timestamp>
                     </node>
                 </fields>
-            </message>
+            </message>            
             """)
 
         self.send("""
@@ -944,11 +944,11 @@ class TestStreamSensorData(SleekTest):
                 <fields xmlns='urn:xmpp:iot:sensordata' seqnr='6'>
                     <node nodeId='Device44'>
                         <timestamp value='2000-02-01T00:01:02'>
-                            <numeric name='Voltage' invoiced='true' value='230.2' unit='V'/>
+                            <numeric name='Voltage' invoiced='true' value='230.2' unit='V'/> 
                         </timestamp>
                     </node>
                 </fields>
-            </message>
+            </message>            
             """)
 
         self.send("""
@@ -956,7 +956,7 @@ class TestStreamSensorData(SleekTest):
                      to='master@clayster.com/amr'>
                 <fields xmlns='urn:xmpp:iot:sensordata' seqnr='6' done='true'>
                 </fields>
-            </message>
+            </message>            
             """)
 
     def testRequestFieldFromTo(self):
@@ -965,13 +965,13 @@ class TestStreamSensorData(SleekTest):
                           plugins=['xep_0030',
                                    'xep_0323'])
 
-        myDevice = Device("Device44")
-        myDevice._add_field(name='Voltage', typename="numeric", unit="V")
-        myDevice._add_field_timestamp_data(name="Voltage", value="230.1", timestamp="2000-01-01T00:01:02", flags={"invoiced": "true"})
-        myDevice._add_field_timestamp_data(name="Voltage", value="230.2", timestamp="2000-02-01T00:01:02", flags={"invoiced": "true"})
-        myDevice._add_field_timestamp_data(name="Voltage", value="230.3", timestamp="2000-03-01T00:01:02", flags={"invoiced": "true"})
+        myDevice = Device("Device44");
+        myDevice._add_field(name='Voltage', typename="numeric", unit="V");
+        myDevice._add_field_timestamp_data(name="Voltage", value="230.1", timestamp="2000-01-01T00:01:02", flags={"invoiced": "true"});
+        myDevice._add_field_timestamp_data(name="Voltage", value="230.2", timestamp="2000-02-01T00:01:02", flags={"invoiced": "true"});
+        myDevice._add_field_timestamp_data(name="Voltage", value="230.3", timestamp="2000-03-01T00:01:02", flags={"invoiced": "true"});
 
-        self.xmpp['xep_0323'].register_node('Device44', myDevice, commTimeout=0.5)
+        self.xmpp['xep_0323'].register_node('Device44', myDevice, commTimeout=0.5);
 
         print("."),
 
@@ -987,7 +987,7 @@ class TestStreamSensorData(SleekTest):
         """)
 
         self.send("""
-            <iq type='result'
+            <iq type='result' 
                 from='device@clayster.com'
                 to='master@clayster.com/amr'
                 id='6'>
@@ -1001,11 +1001,11 @@ class TestStreamSensorData(SleekTest):
                 <fields xmlns='urn:xmpp:iot:sensordata' seqnr='6'>
                     <node nodeId='Device44'>
                         <timestamp value='2000-02-01T00:01:02'>
-                            <numeric name='Voltage' invoiced='true' value='230.2' unit='V'/>
+                            <numeric name='Voltage' invoiced='true' value='230.2' unit='V'/> 
                         </timestamp>
                     </node>
                 </fields>
-            </message>
+            </message>            
             """)
 
         self.send("""
@@ -1013,7 +1013,7 @@ class TestStreamSensorData(SleekTest):
                      to='master@clayster.com/amr'>
                 <fields xmlns='urn:xmpp:iot:sensordata' seqnr='6' done='true'>
                 </fields>
-            </message>
+            </message>            
             """)
 
     def testDelayedRequestClient(self):
@@ -1021,25 +1021,25 @@ class TestStreamSensorData(SleekTest):
                           plugins=['xep_0030',
                                    'xep_0323'])
 
-        results = []
-        callback_data = {}
+        results = []; 
+        callback_data = {}; 
 
         def my_callback(from_jid, result, nodeId=None, timestamp=None, fields=None, error_msg=None):
-            results.append(result)
+            results.append(result);
             if result == "fields":
-                callback_data["nodeId"] = nodeId
-                callback_data["timestamp"] = timestamp
-                callback_data["error_msg"] = error_msg
+                callback_data["nodeId"] = nodeId;
+                callback_data["timestamp"] = timestamp;
+                callback_data["error_msg"] = error_msg;
                 for f in fields:
-                    callback_data["field_" + f['name']] = f
+                    callback_data["field_" + f['name']] = f;
 
         t1= threading.Thread(name="request_data",
                          target=self.xmpp['xep_0323'].request_data,
-                         kwargs={"from_jid": "tester@localhost",
-                                    "to_jid": "you@google.com",
-                                    "nodeIds": ['Device33'],
-                                    "callback": my_callback})
-        t1.start()
+                         kwargs={"from_jid": "tester@localhost", 
+                                    "to_jid": "you@google.com", 
+                                    "nodeIds": ['Device33'], 
+                                    "callback": my_callback});
+        t1.start();
         #self.xmpp['xep_0323'].request_data(from_jid="tester@localhost", to_jid="you@google.com", nodeIds=['Device33'], callback=my_callback);
 
         self.send("""
@@ -1054,20 +1054,20 @@ class TestStreamSensorData(SleekTest):
             """)
 
         self.recv("""
-            <iq type='result'
+            <iq type='result' 
                 from='you@google.com'
                 to='tester@localhost'
                 id='1'>
                 <accepted xmlns='urn:xmpp:iot:sensordata' seqnr='1'  queued='true'/>
-            </iq>
+            </iq>            
             """)
 
         self.recv("""
             <message from='device@clayster.com'
                      to='master@clayster.com/amr'>
                 <started xmlns='urn:xmpp:iot:sensordata' seqnr='1' />
-            </message>
-            """)
+            </message>            
+            """)        
 
         self.recv("""
             <message from='you@google.com'
@@ -1075,37 +1075,37 @@ class TestStreamSensorData(SleekTest):
                 <fields xmlns='urn:xmpp:iot:sensordata' seqnr='1'>
                     <node nodeId='Device33'>
                         <timestamp value='2000-01-01T00:01:02'>
-                            <numeric name='Voltage' invoiced='true' value='230.4' unit='V'/>
-                            <boolean name='TestBool' value='true'/>
+                            <numeric name='Voltage' invoiced='true' value='230.4' unit='V'/> 
+                            <boolean name='TestBool' value='true'/> 
                         </timestamp>
                     </node>
                 </fields>
-            </message>
+            </message>            
             """)
 
         self.recv("""
             <message from='you@google.com'
                      to='tester@localhost'>
                 <fields xmlns='urn:xmpp:iot:sensordata' seqnr='1' done='true'/>
-            </message>
+            </message>            
             """)
 
-        t1.join()
+        t1.join();
         time.sleep(.5)
 
-        self.failUnlessEqual(results, ["queued","started","fields","done"])
+        self.failUnlessEqual(results, ["queued","started","fields","done"]);
         # self.assertIn("nodeId", callback_data);
-        self.assertTrue("nodeId" in callback_data)
-        self.failUnlessEqual(callback_data["nodeId"], "Device33")
+        self.assertTrue("nodeId" in callback_data);
+        self.failUnlessEqual(callback_data["nodeId"], "Device33");
         # self.assertIn("timestamp", callback_data);
-        self.assertTrue("timestamp" in callback_data)
-        self.failUnlessEqual(callback_data["timestamp"], "2000-01-01T00:01:02")
+        self.assertTrue("timestamp" in callback_data);
+        self.failUnlessEqual(callback_data["timestamp"], "2000-01-01T00:01:02");
         # self.assertIn("field_Voltage", callback_data);
-        self.assertTrue("field_Voltage" in callback_data)
-        self.failUnlessEqual(callback_data["field_Voltage"], {"name": "Voltage", "value": "230.4", "typename": "numeric", "unit": "V", "flags": {"invoiced": "true"}})
+        self.assertTrue("field_Voltage" in callback_data);
+        self.failUnlessEqual(callback_data["field_Voltage"], {"name": "Voltage", "value": "230.4", "typename": "numeric", "unit": "V", "flags": {"invoiced": "true"}});
         # self.assertIn("field_TestBool", callback_data);
-        self.assertTrue("field_TestBool" in callback_data)
-        self.failUnlessEqual(callback_data["field_TestBool"], {"name": "TestBool", "value": "true", "typename": "boolean" })
+        self.assertTrue("field_TestBool" in callback_data);
+        self.failUnlessEqual(callback_data["field_TestBool"], {"name": "TestBool", "value": "true", "typename": "boolean" });
 
 
     def testRequestFieldsCancelAPI(self):
@@ -1114,12 +1114,12 @@ class TestStreamSensorData(SleekTest):
                           plugins=['xep_0030',
                                    'xep_0323'])
 
-        results = []
+        results = []; 
 
         def my_callback(from_jid, result, nodeId=None, timestamp=None, fields=None, error_msg=None):
-            results.append(result)
+            results.append(result);
 
-        session = self.xmpp['xep_0323'].request_data(from_jid="tester@localhost", to_jid="you@google.com", nodeIds=['Device33'], callback=my_callback)
+        session = self.xmpp['xep_0323'].request_data(from_jid="tester@localhost", to_jid="you@google.com", nodeIds=['Device33'], callback=my_callback);
 
         self.send("""
             <iq type='get'
@@ -1133,15 +1133,15 @@ class TestStreamSensorData(SleekTest):
             """)
 
         self.recv("""
-            <iq type='result'
+            <iq type='result' 
                 from='you@google.com'
                 to='tester@localhost'
                 id='1'>
                 <accepted xmlns='urn:xmpp:iot:sensordata' seqnr='1'/>
-            </iq>
+            </iq>            
             """)
 
-        self.xmpp['xep_0323'].cancel_request(session=session)
+        self.xmpp['xep_0323'].cancel_request(session=session);
 
         self.send("""
             <iq type='get'
@@ -1163,19 +1163,19 @@ class TestStreamSensorData(SleekTest):
 
         time.sleep(.5)
 
-        self.failUnlessEqual(results, ["accepted","cancelled"])
+        self.failUnlessEqual(results, ["accepted","cancelled"]);
 
     def testDelayedRequestCancel(self):
         self.stream_start(mode='component',
                           plugins=['xep_0030',
                                    'xep_0323'])
 
-        myDevice = Device("Device22")
-        myDevice._add_field(name="Temperature", typename="numeric", unit="°C")
+        myDevice = Device("Device22");
+        myDevice._add_field(name="Temperature", typename="numeric", unit="°C");
         myDevice._set_momentary_timestamp("2013-03-07T16:24:30")
-        myDevice._add_field_momentary_data("Temperature", "23.4", flags={"automaticReadout": "true"})
+        myDevice._add_field_momentary_data("Temperature", "23.4", flags={"automaticReadout": "true"});
 
-        self.xmpp['xep_0323'].register_node(nodeId="Device22", device=myDevice, commTimeout=0.5)
+        self.xmpp['xep_0323'].register_node(nodeId="Device22", device=myDevice, commTimeout=0.5);
 
         dtnow = datetime.datetime.now()
         ts_2sec = datetime.timedelta(0,2)
@@ -1192,7 +1192,7 @@ class TestStreamSensorData(SleekTest):
         """)
 
         self.send("""
-            <iq type='result'
+            <iq type='result' 
                 from='device@clayster.com'
                 to='master@clayster.com/amr'
                 id='1'>

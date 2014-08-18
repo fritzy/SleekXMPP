@@ -26,7 +26,7 @@ class ControlSet(ElementBase):
     interfaces = set(['nodes','datas'])
 
     def __init__(self, xml=None, parent=None):
-        ElementBase.__init__(self, xml, parent)
+        ElementBase.__init__(self, xml, parent);
         self._nodes = set()
         self._datas = set()
 
@@ -53,7 +53,7 @@ class ControlSet(ElementBase):
         Arguments:
             nodeId    -- The ID for the node.
             sourceId  -- [optional] identifying the data source controlling the device
-            cacheType -- [optional] narrowing down the search to a specific kind of node
+            cacheType -- [optional] narrowing down the search to a specific kind of node        
         """
         if nodeId not in self._nodes:
             self._nodes.add((nodeId))
@@ -117,40 +117,40 @@ class ControlSet(ElementBase):
 
     def add_data(self, name, typename, value):
         """
-        Add a new data element.
+        Add a new data element. 
 
         Arguments:
             name       -- The name of the data element
-            typename   -- The type of data element
-                          (boolean, color, string, date, dateTime,
+            typename   -- The type of data element 
+                          (boolean, color, string, date, dateTime, 
                            double, duration, int, long, time)
             value      -- The value of the data element
         """
         if name not in self._datas:
-            dataObj = None
+            dataObj = None;
             if typename == "boolean":
-                dataObj = BooleanParameter(parent=self)
+                dataObj = BooleanParameter(parent=self);
             elif typename == "color":
-                dataObj = ColorParameter(parent=self)
+                dataObj = ColorParameter(parent=self);
             elif typename == "string":
-                dataObj = StringParameter(parent=self)
+                dataObj = StringParameter(parent=self);
             elif typename == "date":
-                dataObj = DateParameter(parent=self)
+                dataObj = DateParameter(parent=self);
             elif typename == "dateTime":
-                dataObj = DateTimeParameter(parent=self)
+                dataObj = DateTimeParameter(parent=self);
             elif typename == "double":
-                dataObj = DoubleParameter(parent=self)
+                dataObj = DoubleParameter(parent=self);
             elif typename == "duration":
-                dataObj = DurationParameter(parent=self)
+                dataObj = DurationParameter(parent=self);
             elif typename == "int":
-                dataObj = IntParameter(parent=self)
+                dataObj = IntParameter(parent=self);
             elif typename == "long":
-                dataObj = LongParameter(parent=self)
+                dataObj = LongParameter(parent=self);
             elif typename == "time":
-                dataObj = TimeParameter(parent=self)
+                dataObj = TimeParameter(parent=self);
 
-            dataObj['name'] = name
-            dataObj['value'] = value
+            dataObj['name'] = name;
+            dataObj['value'] = value;
 
             self._datas.add(name)
             self.iterables.append(dataObj)
@@ -217,7 +217,7 @@ class ControlSetResponse(ElementBase):
     interfaces = set(['responseCode'])
 
     def __init__(self, xml=None, parent=None):
-        ElementBase.__init__(self, xml, parent)
+        ElementBase.__init__(self, xml, parent);
         self._nodes = set()
         self._datas = set()
 
@@ -244,7 +244,7 @@ class ControlSetResponse(ElementBase):
         Arguments:
             nodeId    -- The ID for the node.
             sourceId  -- [optional] identifying the data source controlling the device
-            cacheType -- [optional] narrowing down the search to a specific kind of node
+            cacheType -- [optional] narrowing down the search to a specific kind of node        
         """
         if nodeId not in self._nodes:
             self._nodes.add(nodeId)
@@ -308,7 +308,7 @@ class ControlSetResponse(ElementBase):
 
     def add_data(self, name):
         """
-        Add a new ResponseParameter element.
+        Add a new ResponseParameter element. 
 
         Arguments:
             name   -- Name of the parameter
@@ -316,7 +316,7 @@ class ControlSetResponse(ElementBase):
         if name not in self._datas:
             self._datas.add(name)
             data = ResponseParameter(parent=self)
-            data['name'] = name
+            data['name'] = name;
             self.iterables.append(data)
             return data
         return None
@@ -383,26 +383,26 @@ class Error(ElementBase):
             value -- string
         """
 
-        self.xml.text = value
+        self.xml.text = value;
         return self
 
     def del_text(self):
         """Remove the contents inside the XML tag."""
         self.xml.text = ""
-        return self
+        return self    
 
 class ResponseParameter(ElementBase):
-    """
-    Parameter element in ControlSetResponse.
-    """
+    """ 
+    Parameter element in ControlSetResponse. 
+    """    
     namespace = 'urn:xmpp:iot:control'
     name = 'parameter'
     plugin_attrib = name
-    interfaces = set(['name'])
+    interfaces = set(['name']);
 
 
 class BaseParameter(ElementBase):
-    """
+    """ 
     Parameter element in SetCommand. This is a base class,
     all instances of parameters added to SetCommand must be of types:
         BooleanParameter
@@ -415,91 +415,90 @@ class BaseParameter(ElementBase):
         IntParameter
         LongParameter
         TimeParameter
-    """
+    """    
     namespace = 'urn:xmpp:iot:control'
     name = 'baseParameter'
     plugin_attrib = name
-    interfaces = set(['name','value'])
+    interfaces = set(['name','value']);
 
     def _get_typename(self):
-        return self.name
-
+        return self.name;
 
 class BooleanParameter(BaseParameter):
-    """
-    Field data of type boolean.
-    Note that the value is expressed as a string.
+    """ 
+    Field data of type boolean. 
+    Note that the value is expressed as a string. 
     """
     name = 'boolean'
     plugin_attrib = name
 
 class ColorParameter(BaseParameter):
-    """
-    Field data of type color.
-    Note that the value is expressed as a string.
+    """ 
+    Field data of type color. 
+    Note that the value is expressed as a string. 
     """
     name = 'color'
     plugin_attrib = name
 
 class StringParameter(BaseParameter):
-    """
-    Field data of type string.
+    """ 
+    Field data of type string. 
     """
     name = 'string'
     plugin_attrib = name
 
 class DateParameter(BaseParameter):
-    """
-    Field data of type date.
-    Note that the value is expressed as a string.
+    """ 
+    Field data of type date. 
+    Note that the value is expressed as a string. 
     """
     name = 'date'
     plugin_attrib = name
 
 class DateTimeParameter(BaseParameter):
-    """
-    Field data of type dateTime.
-    Note that the value is expressed as a string.
+    """ 
+    Field data of type dateTime. 
+    Note that the value is expressed as a string. 
     """
     name = 'dateTime'
     plugin_attrib = name
 
 class DoubleParameter(BaseParameter):
-    """
-    Field data of type double.
-    Note that the value is expressed as a string.
+    """ 
+    Field data of type double. 
+    Note that the value is expressed as a string. 
     """
     name = 'double'
     plugin_attrib = name
 
 class DurationParameter(BaseParameter):
-    """
-    Field data of type duration.
-    Note that the value is expressed as a string.
+    """ 
+    Field data of type duration. 
+    Note that the value is expressed as a string. 
     """
     name = 'duration'
     plugin_attrib = name
 
 class IntParameter(BaseParameter):
-    """
-    Field data of type int.
-    Note that the value is expressed as a string.
+    """ 
+    Field data of type int. 
+    Note that the value is expressed as a string. 
     """
     name = 'int'
     plugin_attrib = name
 
 class LongParameter(BaseParameter):
-    """
-    Field data of type long (64-bit int).
-    Note that the value is expressed as a string.
+    """ 
+    Field data of type long (64-bit int). 
+    Note that the value is expressed as a string. 
     """
     name = 'long'
     plugin_attrib = name
 
 class TimeParameter(BaseParameter):
-    """
-    Field data of type time.
-    Note that the value is expressed as a string.
+    """ 
+    Field data of type time. 
+    Note that the value is expressed as a string. 
     """
     name = 'time'
     plugin_attrib = name

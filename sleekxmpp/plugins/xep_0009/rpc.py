@@ -61,7 +61,7 @@ class XEP_0009(BasePlugin):
         iq.enable('rpc_query')
         iq['rpc_query']['method_call']['method_name'] = pmethod
         iq['rpc_query']['method_call']['params'] = params
-        return iq
+        return iq;
 
     def make_iq_method_response(self, pid, pto, params):
         iq = self.xmpp.makeIqResult(pid)
@@ -93,7 +93,7 @@ class XEP_0009(BasePlugin):
 
     def _item_not_found(self, iq):
         payload = iq.get_payload()
-        iq.reply().error().set_payload(payload)
+        iq.reply().error().set_payload(payload);
         iq['error']['code'] = '404'
         iq['error']['type'] = 'cancel'
         iq['error']['condition'] = 'item-not-found'

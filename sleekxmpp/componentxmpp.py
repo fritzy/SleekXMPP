@@ -49,13 +49,8 @@ class ComponentXMPP(BaseXMPP):
                       Defaults to ``False``.
     """
 
-    def __init__(self, jid, secret, host=None, port=None, plugin_config=None, plugin_whitelist=None, use_jc_ns=False):
-
-        if not plugin_whitelist:
-            plugin_whitelist = []
-        if not plugin_config:
-            plugin_config = {}
-
+    def __init__(self, jid, secret, host=None, port=None,
+                 plugin_config={}, plugin_whitelist=[], use_jc_ns=False):
         if use_jc_ns:
             default_ns = 'jabber:client'
         else:

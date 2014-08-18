@@ -34,7 +34,7 @@ class StateMachine(object):
             self.lock.release()
 
 
-    def transition(self, from_state, to_state, wait=0.0, func=None, *args, **kwargs):
+    def transition(self, from_state, to_state, wait=0.0, func=None, args=[], kwargs={}):
         '''
         Transition from the given `from_state` to the given `to_state`.
         This method will return `True` if the state machine is now in `to_state`.  It
@@ -70,7 +70,7 @@ class StateMachine(object):
                                     func=func, args=args, kwargs=kwargs)
 
 
-    def transition_any(self, from_states, to_state, wait=0.0, func=None, *args, **kwargs):
+    def transition_any(self, from_states, to_state, wait=0.0, func=None, args=[], kwargs={}):
         '''
         Transition from any of the given `from_states` to the given `to_state`.
         '''

@@ -15,7 +15,7 @@ import sleekxmpp.plugins.xep_0325 as xep_0325
 namespace='sn'
 
 class TestControlStanzas(SleekTest):
-
+    
 
     def setUp(self):
         pass
@@ -29,8 +29,8 @@ class TestControlStanzas(SleekTest):
         iq['from'] = 'master@clayster.com/amr'
         iq['to'] = 'device@clayster.com'
         iq['id'] = '1'
-        iq['set'].add_node("Device02", "Source02", "MyCacheType")
-        iq['set'].add_node("Device15")
+        iq['set'].add_node("Device02", "Source02", "MyCacheType");
+        iq['set'].add_node("Device15");
         iq['set'].add_data("Tjohej", "boolean", "true")
 
         self.check(iq,"""
@@ -47,7 +47,7 @@ class TestControlStanzas(SleekTest):
         """
             )
 
-        iq['set'].del_node("Device02")
+        iq['set'].del_node("Device02");
 
         self.check(iq,"""
             <iq type='set'
@@ -62,7 +62,7 @@ class TestControlStanzas(SleekTest):
         """
             )
 
-        iq['set'].del_nodes()
+        iq['set'].del_nodes();
 
         self.check(iq,"""
             <iq type='set'
@@ -84,12 +84,12 @@ class TestControlStanzas(SleekTest):
         msg = self.Message()
         msg['from'] = 'master@clayster.com/amr'
         msg['to'] = 'device@clayster.com'
-        msg['set'].add_node("Device02")
-        msg['set'].add_node("Device15")
+        msg['set'].add_node("Device02");
+        msg['set'].add_node("Device15");
         msg['set'].add_data("Tjohej", "boolean", "true")
 
         self.check(msg,"""
-            <message
+            <message 
                 from='master@clayster.com/amr'
                 to='device@clayster.com'>
                 <set xmlns='urn:xmpp:iot:control'>
@@ -111,7 +111,7 @@ class TestControlStanzas(SleekTest):
         iq['from'] = 'master@clayster.com/amr'
         iq['to'] = 'device@clayster.com'
         iq['id'] = '8'
-        iq['setResponse']['responseCode'] = "OK"
+        iq['setResponse']['responseCode'] = "OK";
 
         self.check(iq,"""
             <iq type='result'
@@ -128,9 +128,10 @@ class TestControlStanzas(SleekTest):
         iq['from'] = 'master@clayster.com/amr'
         iq['to'] = 'device@clayster.com'
         iq['id'] = '9'
-        iq['setResponse']['responseCode'] = "OtherError"
-        iq['setResponse']['error']['var'] = "Output"
-        iq['setResponse']['error']['text'] = "Test of other error.!"
+        iq['setResponse']['responseCode'] = "OtherError";
+        iq['setResponse']['error']['var'] = "Output";
+        iq['setResponse']['error']['text'] = "Test of other error.!";
+
 
         self.check(iq,"""
             <iq type='error'
@@ -149,10 +150,11 @@ class TestControlStanzas(SleekTest):
         iq['from'] = 'master@clayster.com/amr'
         iq['to'] = 'device@clayster.com'
         iq['id'] = '9'
-        iq['setResponse']['responseCode'] = "NotFound"
-        iq['setResponse'].add_node("Device17", "Source09")
-        iq['setResponse'].add_node("Device18", "Source09")
-        iq['setResponse'].add_data("Tjohopp")
+        iq['setResponse']['responseCode'] = "NotFound";
+        iq['setResponse'].add_node("Device17", "Source09");
+        iq['setResponse'].add_node("Device18", "Source09");
+        iq['setResponse'].add_data("Tjohopp");
+
 
         self.check(iq,"""
             <iq type='error'
@@ -177,38 +179,38 @@ class TestControlStanzas(SleekTest):
         iq['from'] = 'master@clayster.com/amr'
         iq['to'] = 'device@clayster.com'
         iq['id'] = '1'
-        iq['set'].add_node("Device02", "Source02", "MyCacheType")
-        iq['set'].add_node("Device15")
+        iq['set'].add_node("Device02", "Source02", "MyCacheType");
+        iq['set'].add_node("Device15");
 
-        iq['set'].add_data("Tjohej", "boolean", "true")
-        iq['set'].add_data("Tjohej2", "boolean", "false")
+        iq['set'].add_data("Tjohej", "boolean", "true");
+        iq['set'].add_data("Tjohej2", "boolean", "false");
 
-        iq['set'].add_data("TjohejC", "color", "FF00FF")
-        iq['set'].add_data("TjohejC2", "color", "00FF00")
+        iq['set'].add_data("TjohejC", "color", "FF00FF");
+        iq['set'].add_data("TjohejC2", "color", "00FF00");
 
-        iq['set'].add_data("TjohejS", "string", "String1")
-        iq['set'].add_data("TjohejS2", "string", "String2")
+        iq['set'].add_data("TjohejS", "string", "String1");
+        iq['set'].add_data("TjohejS2", "string", "String2");
 
-        iq['set'].add_data("TjohejDate", "date", "2012-01-01")
-        iq['set'].add_data("TjohejDate2", "date", "1900-12-03")
+        iq['set'].add_data("TjohejDate", "date", "2012-01-01");
+        iq['set'].add_data("TjohejDate2", "date", "1900-12-03");
 
-        iq['set'].add_data("TjohejDateT4", "dateTime", "1900-12-03 12:30")
-        iq['set'].add_data("TjohejDateT2", "dateTime", "1900-12-03 11:22")
+        iq['set'].add_data("TjohejDateT4", "dateTime", "1900-12-03 12:30");
+        iq['set'].add_data("TjohejDateT2", "dateTime", "1900-12-03 11:22");
 
-        iq['set'].add_data("TjohejDouble2", "double", "200.22")
-        iq['set'].add_data("TjohejDouble3", "double", "-12232131.3333")
+        iq['set'].add_data("TjohejDouble2", "double", "200.22");
+        iq['set'].add_data("TjohejDouble3", "double", "-12232131.3333");
 
-        iq['set'].add_data("TjohejDur", "duration", "P5Y")
-        iq['set'].add_data("TjohejDur2", "duration", "PT2M1S")
+        iq['set'].add_data("TjohejDur", "duration", "P5Y");
+        iq['set'].add_data("TjohejDur2", "duration", "PT2M1S");
 
-        iq['set'].add_data("TjohejInt", "int", "1")
-        iq['set'].add_data("TjohejInt2", "int", "-42")
+        iq['set'].add_data("TjohejInt", "int", "1");
+        iq['set'].add_data("TjohejInt2", "int", "-42");
 
-        iq['set'].add_data("TjohejLong", "long", "123456789098")
-        iq['set'].add_data("TjohejLong2", "long", "-90983243827489374")
+        iq['set'].add_data("TjohejLong", "long", "123456789098");
+        iq['set'].add_data("TjohejLong2", "long", "-90983243827489374");
 
-        iq['set'].add_data("TjohejTime", "time", "23:59")
-        iq['set'].add_data("TjohejTime2", "time", "12:00")
+        iq['set'].add_data("TjohejTime", "time", "23:59");
+        iq['set'].add_data("TjohejTime2", "time", "12:00");
 
         self.check(iq,"""
             <iq type='set'
@@ -242,5 +244,5 @@ class TestControlStanzas(SleekTest):
             </iq>
         """
             )
-
+    
 suite = unittest.TestLoader().loadTestsFromTestCase(TestControlStanzas)

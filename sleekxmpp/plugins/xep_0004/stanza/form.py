@@ -195,7 +195,14 @@ class Form(ElementBase):
             fields = fields.items()
         for var, field in fields:
             field['var'] = var
-            self.add_field(**field)
+            self.add_field(
+                var = field.get('var'),
+                label = field.get('label'),
+                desc = field.get('desc'),
+                required = field.get('required'),
+                value = field.get('value'),
+                options = field.get('options'),
+                type = field.get('type'))
 
     def set_instructions(self, instructions):
         del self['instructions']

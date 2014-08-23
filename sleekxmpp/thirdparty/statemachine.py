@@ -34,7 +34,7 @@ class StateMachine(object):
             self.lock.release()
 
 
-    def transition(self, from_state, to_state, wait=0.0, func=None, *args, **kwargs):
+    def transition(self, from_state, to_state, wait=0.0, func=None, args=None, kwargs=None):
         '''
         Transition from the given `from_state` to the given `to_state`.
         This method will return `True` if the state machine is now in `to_state`.  It
@@ -65,15 +65,23 @@ class StateMachine(object):
         values for `args` and `kwargs` are provided, they are expanded and passed like so:
         `func( *args, **kwargs )`.
         '''
+        if not args:
+            args = []
+        if not kwargs:
+            kwargs = {}
 
         return self.transition_any((from_state,), to_state, wait=wait,
                                     func=func, args=args, kwargs=kwargs)
 
 
-    def transition_any(self, from_states, to_state, wait=0.0, func=None, *args, **kwargs):
+    def transition_any(self, from_states, to_state, wait=0.0, func=None, args=None, kwargs=None):
         '''
         Transition from any of the given `from_states` to the given `to_state`.
         '''
+        if not args:
+            args = []
+        if not kwargs:
+            kwargs = {}
 
         if not isinstance(from_states, (tuple, list, set)):
             raise ValueError("from_states should be a list, tuple, or set")

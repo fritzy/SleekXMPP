@@ -291,7 +291,7 @@ class XMLStream(object):
         self.event_queue = Queue()
 
         #: A queue of string data to be sent over the stream.
-        self.send_queue = Queue()
+        self.send_queue = Queue(maxsize=256)
         self.send_queue_lock = threading.Lock()
         self.send_lock = threading.RLock()
 

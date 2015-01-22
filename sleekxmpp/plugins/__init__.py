@@ -83,4 +83,5 @@ __all__ = [
     'xep_0319',  # Last User Interaction in Presence
     'xep_0323',  # IoT Systems Sensor Data
     'xep_0325',  # IoT Systems Control
+    'xep_0332',  # HTTP Over XMPP Transport
 ]

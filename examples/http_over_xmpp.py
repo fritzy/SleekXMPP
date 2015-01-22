@@ -29,6 +29,7 @@ class HTTPOverXMPPClient(ClientXMPP):
     def __init__(self, jid, password):
         ClientXMPP.__init__(self, jid, password)
 
+        self.register_plugin('xep_0332')    # HTTP over XMPP
     #     self.register_plugin('xep_0030')  # Service Discovery
     #     self.register_plugin('xep_0004')  # Data Forms
     #     self.register_plugin('xep_0060')  # PubSub

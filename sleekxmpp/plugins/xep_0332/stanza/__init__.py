@@ -8,9 +8,5 @@
     See the file LICENSE for copying permission.
 """
 
-from sleekxmpp.plugins.base import register_plugin
-
-from sleekxmpp.plugins.xep_0332.http import XEP_0332
-from sleekxmpp.plugins.xep_0332 import stanza
-
-register_plugin(XEP_0332)
+from sleekxmpp.plugins.xep_0332.stanza.request import *
+from sleekxmpp.plugins.xep_0332.stanza.response import *

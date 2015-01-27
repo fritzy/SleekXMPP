@@ -8,12 +8,14 @@
     See the file LICENSE for copying permission.
 """
 
-from sleekxmpp.xmlstream import ElementBase
+from sleekxmpp import Iq
+from sleekxmpp.xmlstream import ElementBase, register_stanza_plugin
+from sleekxmpp.plugins.xep_0131.stanza import Headers
 
 
-class Req(ElementBase):
+class Request(ElementBase):
     pass
 
 
-class Resp(ElementBase):
-    pass
+register_stanza_plugin(Iq, Request)
+register_stanza_plugin(Request, Headers)

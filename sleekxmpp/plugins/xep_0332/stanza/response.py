@@ -8,9 +8,14 @@
     See the file LICENSE for copying permission.
 """
 
-from sleekxmpp.plugins.base import register_plugin
+from sleekxmpp import Iq
+from sleekxmpp.xmlstream import ElementBase, register_stanza_plugin
+from sleekxmpp.plugins.xep_0131.stanza import Headers
 
-from sleekxmpp.plugins.xep_0332.http import XEP_0332
-from sleekxmpp.plugins.xep_0332 import stanza
 
-register_plugin(XEP_0332)
+class Response(ElementBase):
+    pass
+
+
+register_stanza_plugin(Iq, Response)
+register_stanza_plugin(Response, Headers)

@@ -10,7 +10,19 @@
 
 import logging
 
+from sleekxmpp import Iq
+
+from sleekxmpp.xmlstream import register_stanza_plugin
+from sleekxmpp.xmlstream.handler import Callback
+from sleekxmpp.xmlstream.matcher import StanzaPath
+
 from sleekxmpp.plugins.base import BasePlugin
+
+from sleekxmpp.plugins.xep_0332.stanza import NAMESPACE
+from sleekxmpp.plugins.xep_0332.stanza.request import Request
+from sleekxmpp.plugins.xep_0332.stanza.response import Response
+
+from sleekxmpp.plugins.xep_0131.stanza import Headers
 
 
 log = logging.getLogger(__name__)
@@ -29,9 +41,37 @@ class XEP_0332(BasePlugin):
     def plugin_init(self):
         log.debug("XEP_0332:: plugin_init()")
 
+        self.xmpp.register_handler(Callback(
+            'HTTP Request', StanzaPath('iq/req'), self._handle_request
+        ))
+        self.xmpp.register_handler(Callback(
+            'HTTP Response', StanzaPath('iq/resp'), self._handle_response
+        ))
+
+        register_stanza_plugin(Iq, Request)
+        register_stanza_plugin(Iq, Response)
+        register_stanza_plugin(Request, Headers)
+        register_stanza_plugin(Response, Headers)
+
     def plugin_end(self):
         log.debug("XEP_0332:: plugin_end()")
+        self.xmpp.remove_handler('HTTP Request')
+        self.xmpp.remove_handler('HTTP Response')
+        self.xmpp['xep_0030'].del_feature(NAMESPACE)
 
     def session_bind(self, jid):
         log.debug("XEP_0332:: session_bind()")
+        self.xmpp['xep_0030'].add_feature(NAMESPACE)
+
+    def _handle_request(self):
+        log.debug("XEP_0332:: _handle_request()")
+
+    def _handle_response(self):
+        log.debug("XEP_0332:: _handle_response()")
+
+    def send_request(self, method=None, resource=None, headers=None, data=None, **kwargs):
+        log.debug("XEP_0332:: send_request()")
+
+    def send_response(self, status_code=None, headers=None, data=None, **kwargs):
+        log.debug("XEP_0332:: send_response()")
 

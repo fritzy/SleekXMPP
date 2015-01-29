@@ -9,7 +9,6 @@
 """
 
 from sleekxmpp.xmlstream import ElementBase
-from sleekxmpp.plugins.xep_0332.stanza import NAMESPACE
 
 
 class Response(ElementBase):
@@ -41,6 +40,18 @@ class Response(ElementBase):
     """
 
     name = 'response'
-    namespace = NAMESPACE
-    interfaces = set(('statusCode', 'statusMessage', 'version'))
+    namespace = 'urn:xmpp:http'
+    interfaces = set(['code', 'version'])
     plugin_attrib = 'resp'
+
+    def get_code(self):
+        print "Response:: get_code()"
+
+    def set_code(self, code):
+        print "Response:: set_code()"
+        self._set_attr('statusCode', str(code))
+        self._set_attr('statusMessage', str(code))
+
+    def set_version(self, version='1.1'):
+        print "Response:: set_version()"
+        self._set_attr('version', version)

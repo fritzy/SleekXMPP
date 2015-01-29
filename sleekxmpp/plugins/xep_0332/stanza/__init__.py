@@ -8,4 +8,6 @@
     See the file LICENSE for copying permission.
 """
 
-NAMESPACE = 'urn:xmpp:http'
+from sleekxmpp.plugins.xep_0332.stanza.request import Request
+from sleekxmpp.plugins.xep_0332.stanza.response import Response
+from sleekxmpp.plugins.xep_0332.stanza.data import Data

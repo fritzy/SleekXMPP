@@ -9,7 +9,6 @@
 """
 
 from sleekxmpp.xmlstream import ElementBase
-from sleekxmpp.plugins.xep_0332.stanza import NAMESPACE
 
 
 class Request(ElementBase):
@@ -43,7 +42,28 @@ class Request(ElementBase):
     """
 
     name = 'request'
-    namespace = NAMESPACE
-    interfaces = set(('method', 'resource', 'version'))
+    namespace = 'urn:xmpp:http'
+    interfaces = set(['method', 'resource', 'version'])
     plugin_attrib = 'req'
+
+    def get_method(self):
+        print "Request:: get_method()"
+
+    def set_method(self, method):
+        print "Request:: set_method()"
+        self._set_attr('method', method)
+
+    def get_resource(self):
+        print "Request:: get_resource()"
+
+    def set_resource(self, resource):
+        print "Request:: set_resource()"
+        self._set_attr('resource', resource)
+
+    def get_version(self):
+        print "Request:: get_version()"
+
+    def set_version(self, version='1.1'):
+        print "Request:: set_version()"
+        self._set_attr('version', version)
 

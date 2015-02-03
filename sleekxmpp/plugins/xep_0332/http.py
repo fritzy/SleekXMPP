@@ -91,10 +91,12 @@ class XEP_0332(BasePlugin):
     def _handle_request(self, iq):
         log.debug("XEP_0332:: _handle_request()")
         print iq
+        self.xmpp.event('http_request', iq)
 
     def _handle_response(self, iq):
         log.debug("XEP_0332:: _handle_response()")
         print iq
+        self.xmpp.event('http_response', iq)
 
     def send_request(self, to=None, method=None, resource=None, headers=None,
                      data=None, **kwargs):
@@ -107,12 +109,13 @@ class XEP_0332(BasePlugin):
         iq['req']['method'] = method
         iq['req']['resource'] = resource
         iq['req']['version'] = '1.1'        # TODO: set this implicitly
-        iq['req']['data'] = data
+        if data:
+            iq['req']['data'] = data
         print iq
-        # return iq.send(timeout=kwargs.get('timeout', None),
-        #                block=kwargs.get('block', True),
-        #                callback=kwargs.get('callback', None),
-        #                timeout_callback=kwargs.get('timeout_callback', None))
+        return iq.send(timeout=kwargs.get('timeout', None),
+                       block=kwargs.get('block', True),
+                       callback=kwargs.get('callback', None),
+                       timeout_callback=kwargs.get('timeout_callback', None))
 
     def send_response(self, to=None, code=None, headers=None, data=None,
                       **kwargs):
@@ -124,7 +127,8 @@ class XEP_0332(BasePlugin):
         iq['resp']['headers'] = headers
         iq['resp']['code'] = code
         iq['resp']['version'] = '1.1'       # TODO: set this implicitly
-        iq['resp']['data'] = data
+        if data:
+            iq['resp']['data'] = data
         print iq
         # return iq.send(timeout=kwargs.get('timeout', None),
         # block=kwargs.get('block', True),

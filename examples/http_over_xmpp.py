@@ -51,6 +51,13 @@ class HTTPOverXMPPClient(ClientXMPP):
 
 if __name__ == '__main__':
 
+    #
+    # NOTE: To run this example, fill up the blanks in session_start() and
+    #       use the following command.
+    #
+    # ./http_over_xmpp.py -J <jid> -P <pwd> -i <ip> -p <port> [-v]
+    #
+
     parser = OptionParser()
 
     # Output verbosity options.

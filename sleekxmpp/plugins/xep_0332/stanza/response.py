@@ -41,17 +41,21 @@ class Response(ElementBase):
 
     name = 'response'
     namespace = 'urn:xmpp:http'
-    interfaces = set(['code', 'version'])
+    interfaces = set(['code', 'message', 'version'])
     plugin_attrib = 'resp'
 
     def get_code(self):
-        print "Response:: get_code()"
+        code = self._get_attr('statusCode', None)
+        return int(code) if code is not None else code
 
     def set_code(self, code):
-        print "Response:: set_code()"
         self._set_attr('statusCode', str(code))
-        self._set_attr('statusMessage', str(code))
+
+    def get_message(self):
+        return self._get_attr('statusMessage', '')
+
+    def set_message(self, message):
+        self._set_attr('statusMessage', message)
 
     def set_version(self, version='1.1'):
-        print "Response:: set_version()"
         self._set_attr('version', version)

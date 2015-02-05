@@ -50,26 +50,21 @@ class XEP_0332(BasePlugin):
     }
 
     def plugin_init(self):
-        log.debug("XEP_0332:: plugin_init()")
-
         self.xmpp.register_handler(Callback(
             'HTTP Request', StanzaPath('iq/req'), self._handle_request
         ))
         self.xmpp.register_handler(Callback(
             'HTTP Response', StanzaPath('iq/resp'), self._handle_response
         ))
-
         register_stanza_plugin(Iq, Request, iterable=True)
         register_stanza_plugin(Iq, Response, iterable=True)
         register_stanza_plugin(Request, Headers, iterable=True)
         register_stanza_plugin(Request, Data, iterable=True)
         register_stanza_plugin(Response, Headers, iterable=True)
         register_stanza_plugin(Response, Data, iterable=True)
-
         # TODO: Should we register any api's here? self.api.register()
 
     def plugin_end(self):
-        log.debug("XEP_0332:: plugin_end()")
         self.xmpp.remove_handler('HTTP Request')
         self.xmpp.remove_handler('HTTP Response')
         self.xmpp['xep_0030'].del_feature('urn:xmpp:http')
@@ -79,7 +74,6 @@ class XEP_0332(BasePlugin):
             )
 
     def session_bind(self, jid):
-        log.debug("XEP_0332:: session_bind()")
         self.xmpp['xep_0030'].add_feature('urn:xmpp:http')
         for header in self.supported_headers:
             self.xmpp['xep_0030'].add_feature(
@@ -89,18 +83,13 @@ class XEP_0332(BasePlugin):
             # self.xmpp['xep_0131'].supported_headers.add(header)
 
     def _handle_request(self, iq):
-        log.debug("XEP_0332:: _handle_request()")
-        print iq
         self.xmpp.event('http_request', iq)
 
     def _handle_response(self, iq):
-        log.debug("XEP_0332:: _handle_response()")
-        print iq
         self.xmpp.event('http_response', iq)
 
     def send_request(self, to=None, method=None, resource=None, headers=None,
                      data=None, **kwargs):
-        log.debug("XEP_0332:: send_request()")
         iq = self.xmpp.Iq()
         iq['from'] = self.xmpp.boundjid
         iq['to'] = to
@@ -109,29 +98,46 @@ class XEP_0332(BasePlugin):
         iq['req']['method'] = method
         iq['req']['resource'] = resource
         iq['req']['version'] = '1.1'        # TODO: set this implicitly
-        if data:
+        if data is not None:
             iq['req']['data'] = data
-        print iq
-        return iq.send(timeout=kwargs.get('timeout', None),
-                       block=kwargs.get('block', True),
-                       callback=kwargs.get('callback', None),
-                       timeout_callback=kwargs.get('timeout_callback', None))
+        return iq.send(
+            timeout=kwargs.get('timeout', None),
+            block=kwargs.get('block', True),
+            callback=kwargs.get('callback', None),
+            timeout_callback=kwargs.get('timeout_callback', None)
+        )
 
-    def send_response(self, to=None, code=None, headers=None, data=None,
-                      **kwargs):
-        log.debug("XEP_0332:: send_response()")
+    def send_response(self, to=None, code=None, message=None, headers=None,
+                      data=None, **kwargs):
         iq = self.xmpp.Iq()
         iq['from'] = self.xmpp.boundjid
         iq['to'] = to
         iq['type'] = 'result'
         iq['resp']['headers'] = headers
         iq['resp']['code'] = code
+        iq['resp']['message'] = message
         iq['resp']['version'] = '1.1'       # TODO: set this implicitly
-        if data:
+        if data is not None:
             iq['resp']['data'] = data
-        print iq
-        # return iq.send(timeout=kwargs.get('timeout', None),
-        # block=kwargs.get('block', True),
-        #                callback=kwargs.get('callback', None),
-        #                timeout_callback=kwargs.get('timeout_callback', None))
+        return iq.send(
+            timeout=kwargs.get('timeout', None),
+            block=kwargs.get('block', True),
+            callback=kwargs.get('callback', None),
+            timeout_callback=kwargs.get('timeout_callback', None)
+        )
 
+    def send_error(self, to=None, ecode=500, etype='wait',
+                   econd='internal-server-error', **kwargs):
+        iq = self.xmpp.Iq()
+        iq['type'] = 'error'
+        iq['from'] = self.xmpp.boundjid
+        iq['to'] = to
+        iq['error']['code'] = ecode
+        iq['error']['type'] = etype
+        iq['error']['condition'] = econd
+        return iq.send(
+            timeout=kwargs.get('timeout', None),
+            block=kwargs.get('block', True),
+            callback=kwargs.get('callback', None),
+            timeout_callback=kwargs.get('timeout_callback', None)
+        )

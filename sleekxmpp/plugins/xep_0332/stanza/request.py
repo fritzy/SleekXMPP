@@ -20,7 +20,7 @@ class Request(ElementBase):
 
     Examples:
     <iq type='set' from='a@b.com/browser' to='x@y.com' id='1'>
-        <req xmlns='urn:xmpp:http' method='GET' resource='/api/user' version='1.1'>
+        <req xmlns='urn:xmpp:http' method='GET' resource='/api/users' version='1.1'>
             <headers xmlns='http://jabber.org/protocol/shim'>
                 <header name='Host'>b.com</header>
             </headers>
@@ -35,7 +35,7 @@ class Request(ElementBase):
                 <header name='Content-Length'>...</header>
             </headers>
             <data>
-                <text>&lt;html&gt;&lt;header/&gt;&lt;body&gt;&lt;p&gt;Beautiful home page.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</text>
+                <text>...</text>
             </data>
         </req>
     </iq>
@@ -47,23 +47,19 @@ class Request(ElementBase):
     plugin_attrib = 'req'
 
     def get_method(self):
-        print "Request:: get_method()"
+        return self._get_attr('method', None)
 
     def set_method(self, method):
-        print "Request:: set_method()"
         self._set_attr('method', method)
 
     def get_resource(self):
-        print "Request:: get_resource()"
+        return self._get_attr('resource', None)
 
     def set_resource(self, resource):
-        print "Request:: set_resource()"
         self._set_attr('resource', resource)
 
     def get_version(self):
-        print "Request:: get_version()"
+        return self._get_attr('version', None)
 
     def set_version(self, version='1.1'):
-        print "Request:: set_version()"
         self._set_attr('version', version)
-

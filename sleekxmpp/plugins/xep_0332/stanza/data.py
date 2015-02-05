@@ -16,14 +16,15 @@ class Data(ElementBase):
     The data element.
     """
     name = 'data'
-    namespace = ''
+    namespace = 'urn:xmpp:http'
     interfaces = set(['data'])
     plugin_attrib = 'data'
+    is_extension = True
 
-    def get_data(self):
-        print "Data:: get_data()"
+    def get_data(self, encoding='text'):
+        data = self._get_sub_text(encoding, None)
+        return str(data) if data is not None else data
 
     def set_data(self, data, encoding='text'):
-        print "Data:: set_data()"
         self._set_sub_text(encoding, text=data)
 

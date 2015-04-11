@@ -10,7 +10,7 @@ from sleekxmpp.xmlstream import ElementBase, ET, register_stanza_plugin
 
 
 class Certs(ElementBase):
-    name = 'query'
+    name = 'items'
     namespace = 'urn:xmpp:saslcert:1'
     plugin_attrib = 'sasl_certs'
     interfaces = set()

@@ -460,9 +460,11 @@ class XMLStream(object):
     def _connect(self, reattempt=True):
         self.scheduler.remove('Session timeout check')
 
-        if self.reconnect_delay is None or not reattempt:
+        if self.reconnect_delay is None:
             delay = 1.0
-        else:
+            self.reconnect_delay = delay
+                                                 
+        if reattempt:
             delay = min(self.reconnect_delay * 2, self.reconnect_max_delay)
             delay = random.normalvariate(delay, delay * 0.1)
             log.debug('Waiting %s seconds before connecting.', delay)

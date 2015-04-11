@@ -523,7 +523,8 @@ class XMLStream(object):
                 'keyfile': self.keyfile,
                 'ca_certs': self.ca_certs,
                 'cert_reqs': cert_policy,
-                'do_handshake_on_connect': False
+                'do_handshake_on_connect': False,
+                "ssl_version": self.ssl_version
             })
 
             if sys.version_info >= (2, 7):
@@ -847,7 +848,8 @@ class XMLStream(object):
             'keyfile': self.keyfile,
             'ca_certs': self.ca_certs,
             'cert_reqs': cert_policy,
-            'do_handshake_on_connect': False
+            'do_handshake_on_connect': False,
+            "ssl_version": self.ssl_version
         })
 
         if sys.version_info >= (2, 7):

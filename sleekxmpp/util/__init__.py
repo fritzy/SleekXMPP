@@ -32,12 +32,17 @@ def _gevent_threads_enabled():
 
 if _gevent_threads_enabled():
     import gevent.queue as queue
-    Queue = queue.JoinableQueue
+    _queue = queue.JoinableQueue
 else:
     try:
         import queue
     except ImportError:
         import Queue as queue
-    Queue = queue.Queue
+    _queue = queue.Queue
+class Queue(_queue):
+    def put(self, item, block=True, timeout=None):
+        if _queue.full(self):
+            _queue.get(self)
+        return _queue.put(self, item, block, timeout)
 
 QueueEmpty = queue.Empty

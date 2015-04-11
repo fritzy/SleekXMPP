@@ -124,10 +124,10 @@ class Request(ElementBase):
 
     def get_nodes(self):
         """Return all nodes."""
-        nodes = set()
+        nodes = []
         for node in self['substanzas']:
             if isinstance(node, RequestNode):
-                nodes.add(node)
+                nodes.append(node)
         return nodes
 
     def set_nodes(self, nodes):
@@ -190,10 +190,10 @@ class Request(ElementBase):
 
     def get_fields(self):
         """Return all fields."""
-        fields = set()
+        fields = []
         for field in self['substanzas']:
             if isinstance(field, RequestField):
-                fields.add(field)
+                fields.append(field)
         return fields
 
     def set_fields(self, fields):
@@ -351,10 +351,10 @@ class Fields(ElementBase):
 
     def get_nodes(self):
         """Return all nodes."""
-        nodes = set()
+        nodes = []
         for node in self['substanzas']:
             if isinstance(node, FieldsNode):
-                nodes.add(node)
+                nodes.append(node)
         return nodes
 
     def set_nodes(self, nodes):
@@ -450,10 +450,10 @@ class FieldsNode(ElementBase):
     def get_timestamps(self):
         """Return all timestamps."""
         #print(str(id(self)) + " get_timestamps: ")
-        timestamps = set()
+        timestamps = []
         for timestamp in self['substanzas']:
             if isinstance(timestamp, Timestamp):
-                timestamps.add(timestamp)
+                timestamps.append(timestamp)
         return timestamps
 
     def set_timestamps(self, timestamps):
@@ -634,10 +634,10 @@ class Timestamp(ElementBase):
 
     def get_datas(self):
         """ Return all data elements. """
-        datas = set()
+        datas = []
         for data in self['substanzas']:
             if isinstance(data, Field):
-                datas.add(data)
+                datas.append(data)
         return datas
 
     def set_datas(self, datas):

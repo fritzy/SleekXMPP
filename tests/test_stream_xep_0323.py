@@ -572,16 +572,16 @@ class TestStreamSensorData(SleekTest):
 
         self.failUnlessEqual(results, ["accepted","fields","done"]);
         # self.assertIn("nodeId", callback_data);
-        self.assertTrue(callback_data.has_key("nodeId"));
+        self.assertTrue("nodeId" in callback_data)
         self.failUnlessEqual(callback_data["nodeId"], "Device33");
         # self.assertIn("timestamp", callback_data);
-        self.assertTrue(callback_data.has_key("timestamp"));
+        self.assertTrue("timestamp" in callback_data);
         self.failUnlessEqual(callback_data["timestamp"], "2000-01-01T00:01:02");
         #self.assertIn("field_Voltage", callback_data);
-        self.assertTrue(callback_data.has_key("field_Voltage"));
+        self.assertTrue("field_Voltage" in callback_data);
         self.failUnlessEqual(callback_data["field_Voltage"], {"name": "Voltage", "value": "230.4", "typename": "numeric", "unit": "V", "flags": {"invoiced": "true"}});
         #self.assertIn("field_TestBool", callback_data);
-        self.assertTrue(callback_data.has_key("field_TestBool"));
+        self.assertTrue("field_TestBool" in callback_data);
         self.failUnlessEqual(callback_data["field_TestBool"], {"name": "TestBool", "value": "true", "typename": "boolean" });
 
     def testServiceDiscoveryClient(self):
@@ -693,13 +693,13 @@ class TestStreamSensorData(SleekTest):
 
         self.failUnlessEqual(results, ["accepted","failure"]);
         # self.assertIn("nodeId", callback_data);
-        self.assertTrue(callback_data.has_key("nodeId"));
+        self.assertTrue("nodeId" in callback_data);
         self.failUnlessEqual(callback_data["nodeId"], "Device33");
         # self.assertIn("timestamp", callback_data);
-        self.assertTrue(callback_data.has_key("timestamp"));
+        self.assertTrue("timestamp" in callback_data);
         self.failUnlessEqual(callback_data["timestamp"], "2013-03-07T17:13:30");
         # self.assertIn("error_msg", callback_data);
-        self.assertTrue(callback_data.has_key("error_msg"));
+        self.assertTrue("error_msg" in callback_data);
         self.failUnlessEqual(callback_data["error_msg"], "Timeout.");
 
     def testDelayedRequest(self):
@@ -1095,16 +1095,16 @@ class TestStreamSensorData(SleekTest):
 
         self.failUnlessEqual(results, ["queued","started","fields","done"]);
         # self.assertIn("nodeId", callback_data);
-        self.assertTrue(callback_data.has_key("nodeId"));
+        self.assertTrue("nodeId" in callback_data);
         self.failUnlessEqual(callback_data["nodeId"], "Device33");
         # self.assertIn("timestamp", callback_data);
-        self.assertTrue(callback_data.has_key("timestamp"));
+        self.assertTrue("timestamp" in callback_data);
         self.failUnlessEqual(callback_data["timestamp"], "2000-01-01T00:01:02");
         # self.assertIn("field_Voltage", callback_data);
-        self.assertTrue(callback_data.has_key("field_Voltage"));
+        self.assertTrue("field_Voltage" in callback_data);
         self.failUnlessEqual(callback_data["field_Voltage"], {"name": "Voltage", "value": "230.4", "typename": "numeric", "unit": "V", "flags": {"invoiced": "true"}});
         # self.assertIn("field_TestBool", callback_data);
-        self.assertTrue(callback_data.has_key("field_TestBool"));
+        self.assertTrue("field_TestBool" in callback_data);
         self.failUnlessEqual(callback_data["field_TestBool"], {"name": "TestBool", "value": "true", "typename": "boolean" });
 
 

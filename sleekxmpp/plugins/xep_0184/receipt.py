@@ -118,6 +118,9 @@ class XEP_0184(BasePlugin):
         if stanza['receipt']:
             return stanza
 
+        if not stanza['body']:
+            return stanza
+
         if stanza['to'].resource:
             if not self.xmpp['xep_0030'].supports(stanza['to'],
                     feature='urn:xmpp:receipts',

@@ -60,7 +60,9 @@ class RootStanza(StanzaBase):
             self.send()
         elif isinstance(e, XMPPError):
             # We raised this deliberately
+            keep_id = self['id']
             self.reply(clear=e.clear)
+            self['id'] = keep_id
             self['error']['condition'] = e.condition
             self['error']['text'] = e.text
             self['error']['type'] = e.etype
@@ -72,7 +74,9 @@ class RootStanza(StanzaBase):
             self.send()
         else:
             # We probably didn't raise this on purpose, so send an error stanza
+            keep_id = self['id']
             self.reply()
+            self['id'] = keep_id
             self['error']['condition'] = 'undefined-condition'
             self['error']['text'] = "SleekXMPP got into trouble."
             self['error']['type'] = 'cancel'

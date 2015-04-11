@@ -32,10 +32,10 @@ log = logging.getLogger(__name__)
 #:     cd dnspython
 #:     git checkout python3
 #:     python3 setup.py install
-USE_DNSPYTHON = False
+DNSPYTHON_AVAILABLE = False
 try:
     import dns.resolver
-    USE_DNSPYTHON = True
+    DNSPYTHON_AVAILABLE = True
 except ImportError as e:
     log.debug("Could not find dnspython package. " + \
               "Not all features will be available")
@@ -47,13 +47,13 @@ def default_resolver():
     :returns: A :class:`dns.resolver.Resolver` object if dnspython
               is available. Otherwise, ``None``.
     """
-    if USE_DNSPYTHON:
+    if DNSPYTHON_AVAILABLE:
         return dns.resolver.get_default_resolver()
     return None
 
 
 def resolve(host, port=None, service=None, proto='tcp',
-            resolver=None, use_ipv6=True):
+            resolver=None, use_ipv6=True, use_dnspython=True):
     """Peform DNS resolution for a given hostname.
 
     Resolution may perform SRV record lookups if a service and protocol
@@ -77,6 +77,9 @@ def resolve(host, port=None, service=None, proto='tcp',
     :param use_ipv6: Optionally control the use of IPv6 in situations
                      where it is either not available, or performance
                      is degraded. Defaults to ``True``.
+    :param use_dnspython: Optionally control if dnspython is used to make
+                          the DNS queries instead of the built-in DNS
+                          library.
 
     :type     host: string
     :type     port: int
@@ -84,14 +87,22 @@ def resolve(host, port=None, service=None, proto='tcp',
     :type    proto: string
     :type resolver: :class:`dns.resolver.Resolver`
     :type use_ipv6: bool
+    :type use_dnspython: bool
 
     :return: An iterable of IP address, port pairs in the order
              dictated by SRV priorities and weights, if applicable.
     """
+
+    if not use_dnspython:
+        if DNSPYTHON_AVAILABLE:
+            log.debug("DNS: Not using dnspython, but dnspython is installed.")
+        else:
+            log.debug("DNS: Not using dnspython.")
+
     if not use_ipv6:
         log.debug("DNS: Use of IPv6 has been disabled.")
 
-    if resolver is None and USE_DNSPYTHON:
+    if resolver is None and DNSPYTHON_AVAILABLE and use_dnspython:
         resolver = dns.resolver.get_default_resolver()
 
     # An IPv6 literal is allowed to be enclosed in square brackets, but
@@ -122,7 +133,9 @@ def resolve(host, port=None, service=None, proto='tcp',
     if not service:
         hosts = [(host, port)]
     else:
-        hosts = get_SRV(host, port, service, proto, resolver=resolver)
+        hosts = get_SRV(host, port, service, proto, 
+                        resolver=resolver,
+                        use_dnspython=use_dnspython)
 
     for host, port in hosts:
         results = []
@@ -131,16 +144,18 @@ def resolve(host, port=None, service=None, proto='tcp',
                 results.append((host, '::1', port))
             results.append((host, '127.0.0.1', port))
         if use_ipv6:
-            for address in get_AAAA(host):
+            for address in get_AAAA(host, resolver=resolver, 
+                                          use_dnspython=use_dnspython):
                 results.append((host, address, port))
-        for address in get_A(host):
+        for address in get_A(host, resolver=resolver,
+                                   use_dnspython=use_dnspython):
             results.append((host, address, port))
 
         for host, address, port in results:
             yield host, address, port
 
 
-def get_A(host):
+def get_A(host, resolver=None, use_dnspython=True):
     """Lookup DNS A records for a given host.
 
     If ``resolver`` is not provided, or is ``None``, then resolution will
@@ -148,9 +163,13 @@ def get_A(host):
 
     :param     host: The hostname to resolve for A record IPv4 addresses.
     :param resolver: Optional DNS resolver object to use for the query.
+    :param use_dnspython: Optionally control if dnspython is used to make
+                          the DNS queries instead of the built-in DNS
+                          library.
 
     :type     host: string
     :type resolver: :class:`dns.resolver.Resolver` or ``None``
+    :type use_dnspython: bool
 
     :return: A list of IPv4 literals.
     """
@@ -158,15 +177,32 @@ def get_A(host):
 
     # If not using dnspython, attempt lookup using the OS level
     # getaddrinfo() method.
+    if resolver is None or not use_dnspython:
+        try:
+            recs = socket.getaddrinfo(host, None, socket.AF_INET,
+                                                  socket.SOCK_STREAM)
+            return [rec[4][0] for rec in recs]
+        except socket.gaierror:
+            log.debug("DNS: Error retreiving A address info for %s." % host)
+            return []
+
+    # Using dnspython:
     try:
-        recs = socket.getaddrinfo(host, None, socket.AF_INET,
-                                              socket.SOCK_STREAM)
-        return [rec[4][0] for rec in recs]
-    except socket.gaierror:
-        log.debug("DNS: Error retreiving A address info for %s." % host)
+        recs = resolver.query(host, dns.rdatatype.A)
+        return [rec.to_text() for rec in recs]
+    except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
+        log.debug("DNS: No A records for %s" % host)
+        return []
+    except dns.exception.Timeout:
+        log.debug("DNS: A record resolution timed out for %s" % host)
+        return []
+    except dns.exception.DNSException as e:
+        log.debug("DNS: Error querying A records for %s" % host)
+        log.exception(e)
         return []
 
-def get_AAAA(host):
+
+def get_AAAA(host, resolver=None, use_dnspython=True):
     """Lookup DNS AAAA records for a given host.
 
     If ``resolver`` is not provided, or is ``None``, then resolution will
@@ -174,9 +210,13 @@ def get_AAAA(host):
 
     :param     host: The hostname to resolve for AAAA record IPv6 addresses.
     :param resolver: Optional DNS resolver object to use for the query.
+    :param use_dnspython: Optionally control if dnspython is used to make
+                          the DNS queries instead of the built-in DNS
+                          library.
 
     :type     host: string
     :type resolver: :class:`dns.resolver.Resolver` or ``None``
+    :type use_dnspython: bool
 
     :return: A list of IPv6 literals.
     """
@@ -184,19 +224,36 @@ def get_AAAA(host):
 
     # If not using dnspython, attempt lookup using the OS level
     # getaddrinfo() method.
-    if not socket.has_ipv6:
-        log.debug("Unable to query %s for AAAA records: IPv6 is not supported", host)
-        return []
+    if resolver is None or not use_dnspython:
+        if not socket.has_ipv6:
+            log.debug("Unable to query %s for AAAA records: IPv6 is not supported", host)
+            return []
+        try:
+            recs = socket.getaddrinfo(host, None, socket.AF_INET6,
+                                                  socket.SOCK_STREAM)
+            return [rec[4][0] for rec in recs]
+        except (OSError, socket.gaierror):
+            log.debug("DNS: Error retreiving AAAA address " + \
+                      "info for %s." % host)
+            return []
+
+    # Using dnspython:
     try:
-        recs = socket.getaddrinfo(host, None, socket.AF_INET6,
-                                              socket.SOCK_STREAM)
-        return [rec[4][0] for rec in recs]
-    except (OSError, socket.gaierror):
-        log.debug("DNS: Error retreiving AAAA address " + \
-                 "info for %s." % host)
+        recs = resolver.query(host, dns.rdatatype.AAAA)
+        return [rec.to_text() for rec in recs]
+    except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
+        log.debug("DNS: No AAAA records for %s" % host)
+        return []
+    except dns.exception.Timeout:
+        log.debug("DNS: AAAA record resolution timed out for %s" % host)
+        return []
+    except dns.exception.DNSException as e:
+        log.debug("DNS: Error querying AAAA records for %s" % host)
+        log.exception(e)
         return []
 
-def get_SRV(host, port, service, proto='tcp', resolver=None):
+
+def get_SRV(host, port, service, proto='tcp', resolver=None, use_dnspython=True):
     """Perform SRV record resolution for a given host.
 
     .. note::
@@ -222,7 +279,7 @@ def get_SRV(host, port, service, proto='tcp', resolver=None):
     :return: A list of hostname, port pairs in the order dictacted
              by SRV priorities and weights.
     """
-    if resolver is None:
+    if resolver is None or not use_dnspython:
         log.warning("DNS: dnspython not found. Can not use SRV lookup.")
         return [(host, port)]
 

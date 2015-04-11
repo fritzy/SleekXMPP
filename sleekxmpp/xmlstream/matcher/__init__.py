@@ -7,6 +7,7 @@
 """
 
 from sleekxmpp.xmlstream.matcher.id import MatcherId
+from sleekxmpp.xmlstream.matcher.idsender import MatchIDSender
 from sleekxmpp.xmlstream.matcher.many import MatchMany
 from sleekxmpp.xmlstream.matcher.stanzapath import StanzaPath
 from sleekxmpp.xmlstream.matcher.xmlmask import MatchXMLMask

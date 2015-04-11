@@ -1,4 +1,5 @@
 import time
+import threading
 
 import unittest
 from sleekxmpp.test import SleekTest
@@ -225,6 +226,58 @@ class TestHandlers(SleekTest):
             <body>Handler 3: Testing</body>
           </message>
         """)
+
+    def testWrongSender(self):
+      """
+      Test that using the wrong sender JID in a IQ result
+      doesn't trigger handlers.
+      """
+
+      events = []
+
+      def run_test():
+          # Check that Iq was sent by waiter_handler
+          iq = self.Iq()
+          iq['id'] = 'test'
+          iq['to'] = 'tester@sleekxmpp.com/test'
+          iq['type'] = 'set'
+          iq['query'] = 'test'
+          result = iq.send()
+          events.append(result['from'].full)
+
+      t = threading.Thread(name="sender_test", target=run_test)
+      t.start()
+
+      self.recv("""
+        <iq id="test" from="evil@sleekxmpp.com/bad" type="result">
+          <query xmlns="test" />
+        </iq>
+      """)
+      self.recv("""
+        <iq id="test" from="evil2@sleekxmpp.com" type="result">
+          <query xmlns="test" />
+        </iq>
+      """)
+      self.recv("""
+        <iq id="test" from="evil.com" type="result">
+          <query xmlns="test" />
+        </iq>
+      """)
+
+      # Now for a good one
+      self.recv("""
+        <iq id="test" from="tester@sleekxmpp.com/test" type="result">
+          <query xmlns="test" />
+        </iq>
+      """)
+
+      t.join()
+
+      time.sleep(0.1)
+
+      self.assertEqual(events, ['tester@sleekxmpp.com/test'], "Did not timeout on bad sender")
+
+
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestHandlers)

@@ -19,6 +19,7 @@ import logging
 import weakref
 from xml.etree import cElementTree as ET
 
+from sleekxmpp.util import safedict
 from sleekxmpp.xmlstream import JID
 from sleekxmpp.xmlstream.tostring import tostring
 from sleekxmpp.thirdparty import OrderedDict
@@ -565,7 +566,10 @@ class ElementBase(object):
         values = {}
         values['lang'] = self['lang']
         for interface in self.interfaces:
-            values[interface] = self[interface]
+            if isinstance(self[interface], JID):
+                values[interface] = self[interface].jid
+            else:
+                values[interface] = self[interface]
             if interface in self.lang_interfaces:
                 values['%s|*' % interface] = self['%s|*' % interface]
         for plugin, stanza in self.plugins.items():
@@ -676,6 +680,8 @@ class ElementBase(object):
         if lang and attrib in self.lang_interfaces:
             kwargs['lang'] = lang
 
+        kwargs = safedict(kwargs)
+
         if attrib == 'substanzas':
             return self.iterables
         elif attrib in self.interfaces or attrib == 'lang':
@@ -751,6 +757,8 @@ class ElementBase(object):
         kwargs = {}
         if lang and attrib in self.lang_interfaces:
             kwargs['lang'] = lang
+
+        kwargs = safedict(kwargs)
 
         if attrib in self.interfaces or attrib == 'lang':
             if value is not None:
@@ -838,6 +846,8 @@ class ElementBase(object):
         kwargs = {}
         if lang and attrib in self.lang_interfaces:
             kwargs['lang'] = lang
+
+        kwargs = safedict(kwargs)
 
         if attrib in self.interfaces or attrib == 'lang':
             del_method = "del_%s" % attrib.lower()

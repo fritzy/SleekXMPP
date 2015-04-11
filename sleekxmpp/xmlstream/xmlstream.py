@@ -31,7 +31,7 @@ import errno
 from xml.parsers.expat import ExpatError
 
 import sleekxmpp
-from sleekxmpp.util import Queue, QueueEmpty
+from sleekxmpp.util import Queue, QueueEmpty, safedict
 from sleekxmpp.thirdparty.statemachine import StateMachine
 from sleekxmpp.xmlstream import Scheduler, tostring, cert
 from sleekxmpp.xmlstream.stanzabase import StanzaBase, ET, ElementBase
@@ -224,6 +224,11 @@ class XMLStream(object):
         #: If set to ``True``, attempt to use IPv6.
         self.use_ipv6 = True
 
+        #: If set to ``True``, allow using the ``dnspython`` DNS library
+        #: if available. If set to ``False``, the builtin DNS resolver
+        #: will be used, even if ``dnspython`` is installed.
+        self.use_dnspython = True
+
         #: Use CDATA for escaping instead of XML entities. Defaults
         #: to ``False``.
         self.use_cdata = False
@@ -286,7 +291,7 @@ class XMLStream(object):
         self.event_queue = Queue()
 
         #: A queue of string data to be sent over the stream.
-        self.send_queue = Queue()
+        self.send_queue = Queue(maxsize=256)
         self.send_queue_lock = threading.Lock()
         self.send_lock = threading.RLock()
 
@@ -455,9 +460,11 @@ class XMLStream(object):
     def _connect(self, reattempt=True):
         self.scheduler.remove('Session timeout check')
 
-        if self.reconnect_delay is None or not reattempt:
+        if self.reconnect_delay is None:
             delay = 1.0
-        else:
+            self.reconnect_delay = delay
+                                                 
+        if reattempt:
             delay = min(self.reconnect_delay * 2, self.reconnect_max_delay)
             delay = random.normalvariate(delay, delay * 0.1)
             log.debug('Waiting %s seconds before connecting.', delay)
@@ -513,13 +520,14 @@ class XMLStream(object):
             else:
                 cert_policy = ssl.CERT_REQUIRED
 
-            ssl_args = {
+            ssl_args = safedict({
                 'certfile': self.certfile,
                 'keyfile': self.keyfile,
                 'ca_certs': self.ca_certs,
                 'cert_reqs': cert_policy,
                 'do_handshake_on_connect': False,
-            }
+                "ssl_version": self.ssl_version
+            })
 
             if sys.version_info >= (2, 7):
                 ssl_args['ciphers'] = self.ciphers
@@ -611,7 +619,7 @@ class XMLStream(object):
         headers = '\r\n'.join(headers) + '\r\n\r\n'
 
         try:
-            log.debug("Connecting to proxy: %s:%s", address)
+            log.debug("Connecting to proxy: %s:%s", *address)
             self.socket.connect(address)
             self.send_raw(headers, now=True)
             resp = ''
@@ -837,13 +845,14 @@ class XMLStream(object):
         else:
             cert_policy = ssl.CERT_REQUIRED
 
-        ssl_args = {
+        ssl_args = safedict({
             'certfile': self.certfile,
             'keyfile': self.keyfile,
             'ca_certs': self.ca_certs,
             'cert_reqs': cert_policy,
             'do_handshake_on_connect': False,
-        }
+            "ssl_version": self.ssl_version
+        })
 
         if sys.version_info >= (2, 7):
             ssl_args['ciphers'] = self.ciphers
@@ -933,12 +942,13 @@ class XMLStream(object):
 
             self.whitespace_keepalive_interval = 300
         """
-        self.schedule('Whitespace Keepalive',
-                      self.whitespace_keepalive_interval,
-                      self.send_raw,
-                      args=(' ',),
-                      kwargs={'now': True},
-                      repeat=True)
+        if self.whitespace_keepalive:
+            self.schedule('Whitespace Keepalive',
+                          self.whitespace_keepalive_interval,
+                          self.send_raw,
+                          args=(' ',),
+                          kwargs={'now': True},
+                          repeat=True)
 
     def _remove_schedules(self, event):
         """Remove whitespace keepalive and certificate expiration schedules."""
@@ -1081,7 +1091,8 @@ class XMLStream(object):
 
         return resolve(domain, port, service=self.dns_service,
                                      resolver=resolver,
-                                     use_ipv6=self.use_ipv6)
+                                     use_ipv6=self.use_ipv6,
+                                     use_dnspython=self.use_dnspython)
 
     def pick_dns_answer(self, domain, port=None):
         """Pick a server and port from DNS answers.
@@ -1343,12 +1354,12 @@ class XMLStream(object):
         return True
 
     def _start_thread(self, name, target, track=True):
-        self.__active_threads.add(name)
         self.__thread[name] = threading.Thread(name=name, target=target)
         self.__thread[name].daemon = self._use_daemons
         self.__thread[name].start()
 
         if track:
+            self.__active_threads.add(name)
             with self.__thread_cond:
                 self.__thread_count += 1
 

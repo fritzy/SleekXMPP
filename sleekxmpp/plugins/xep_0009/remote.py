@@ -733,7 +733,8 @@ class Remote(object):
             if(client.boundjid.bare in cls._sessions):
                 raise RemoteException("There already is a session associated with these credentials!")
             else:
-                cls._sessions[client.boundjid.bare] = client;
+                cls._sessions[client.boundjid.bare] = client
+
         def _session_close_callback():
             with Remote._lock:
                 del cls._sessions[client.boundjid.bare]

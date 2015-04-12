@@ -187,14 +187,14 @@ class FeatureMechanisms(BasePlugin):
         except sasl.SASLCancelled:
             self.attempted_mechs.add(self.mech.name)
             self._send_auth()
-        except sasl.SASLFailed:
-            self.attempted_mechs.add(self.mech.name)
-            self._send_auth()
         except sasl.SASLMutualAuthFailed:
             log.error("Mutual authentication failed! " + \
                       "A security breach is possible.")
             self.attempted_mechs.add(self.mech.name)
             self.xmpp.disconnect()
+        except sasl.SASLFailed:
+            self.attempted_mechs.add(self.mech.name)
+            self._send_auth()
         else:
             resp.send(now=True)
 
@@ -207,13 +207,13 @@ class FeatureMechanisms(BasePlugin):
             resp['value'] = self.mech.process(stanza['value'])
         except sasl.SASLCancelled:
             self.stanza.Abort(self.xmpp).send()
-        except sasl.SASLFailed:
-            self.stanza.Abort(self.xmpp).send()
         except sasl.SASLMutualAuthFailed:
             log.error("Mutual authentication failed! " + \
                       "A security breach is possible.")
             self.attempted_mechs.add(self.mech.name)
             self.xmpp.disconnect()
+        except sasl.SASLFailed:
+            self.stanza.Abort(self.xmpp).send()
         else:
             if resp.get_value() == '':
                 resp.del_value()

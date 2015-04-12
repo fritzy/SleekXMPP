@@ -52,7 +52,7 @@ class Item(ElementBase):
     def get_source(self):
         return JID(self._get_attr('source', ''))
 
-    def set_source(self):
+    def set_source(self, value):
         self._set_attr('source', str(value))
 
 

@@ -24,7 +24,7 @@ class GoogleAuth(ElementBase):
         print('setting up google extension')
 
     def get_client_uses_full_bind_result(self):
-        return self.parent()._get_attr(self.disovery_attr) == 'true'
+        return self.parent()._get_attr(self.discovery_attr) == 'true'
 
     def set_client_uses_full_bind_result(self, value):
         print('>>>', value)

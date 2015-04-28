@@ -237,8 +237,7 @@ class RosterNode(object):
         if not self.xmpp.is_component:
             return self.update(jid, subscription='remove')
 
-    def update(self, jid, name=None, subscription=None, groups=[],
-                     block=True, timeout=None, callback=None):
+    def update(self, jid, name=None, subscription=None, groups=None, block=True, timeout=None, callback=None):
         """
         Update a JID's subscription information.
 
@@ -258,6 +257,9 @@ class RosterNode(object):
                             Will be executed when the roster is received.
                             Implies block=False.
         """
+        if not groups:
+            groups = []
+
         self[jid]['name'] = name
         self[jid]['groups'] = groups
         self[jid].save()

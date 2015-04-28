@@ -6,7 +6,7 @@
     See the file LICENSE for copying permission.
 """
 
-from binding import py2xml, xml2py, xml2fault, fault2xml
+from sleekxmpp.plugins.xep_0009.binding import py2xml, xml2py, xml2fault, fault2xml
 from threading import RLock
 import abc
 import inspect
@@ -17,6 +17,45 @@ import threading
 import traceback
 
 log = logging.getLogger(__name__)
+
+# Define a function _isstr() to check if an object is a string in a way
+# compatible with Python 2 and Python 3 (basestring does not exists in Python 3).
+try:
+    basestring # This evaluation will throw an exception if basestring does not exists (Python 3).
+    def _isstr(obj):
+        return isinstance(obj, basestring)
+except NameError:
+    def _isstr(obj):
+        return isinstance(obj, str)
+
+
+# Class decorator to declare a metaclass to a class in a way compatible with Python 2 and 3.
+# This decorator is copied from 'six' (https://bitbucket.org/gutworth/six):
+#
+# Copyright (c) 2010-2015 Benjamin Peterson
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+def _add_metaclass(metaclass):
+    def wrapper(cls):
+        orig_vars = cls.__dict__.copy()
+        slots = orig_vars.get('__slots__')
+        if slots is not None:
+            if isinstance(slots, str):
+                slots = [slots]
+            for slots_var in slots:
+                orig_vars.pop(slots_var)
+        orig_vars.pop('__dict__', None)
+        orig_vars.pop('__weakref__', None)
+        return metaclass(cls.__name__, cls.__bases__, orig_vars)
+    return wrapper
 
 def _intercept(method, name, public):
     def _resolver(instance, *args, **kwargs):
@@ -68,7 +107,7 @@ def remote(function_argument, public = True):
     if hasattr(function_argument, '__call__'):
         return _intercept(function_argument, None, public)
     else:
-        if not isinstance(function_argument, basestring):
+        if not _isstr(function_argument):
             if not isinstance(function_argument, bool):
                 raise Exception('Expected an RPC method name or visibility modifier!')
             else:
@@ -222,12 +261,11 @@ class TimeoutException(Exception):
     pass
 
 
+@_add_metaclass(abc.ABCMeta)
 class Callback(object):
     '''
     A base class for callback handlers.
     '''
-    __metaclass__ = abc.ABCMeta
-
 
     @abc.abstractproperty
     def set_value(self, value):
@@ -291,7 +329,7 @@ class Future(Callback):
         self._event.set()
 
 
-
+@_add_metaclass(abc.ABCMeta)
 class Endpoint(object):
     '''
     The Endpoint class is an abstract base class for all objects
@@ -303,8 +341,6 @@ class Endpoint(object):
     which specifies which object an RPC call refers to. It is the
     first part in a RPC method name '<fqn>.<method>'.
     '''
-    __metaclass__ = abc.ABCMeta
-
 
     def __init__(self, session, target_jid):
         '''
@@ -491,7 +527,7 @@ class RemoteSession(object):
 
     def _find_key(self, dict, value):
         """return the key of dictionary dic given the value"""
-        search = [k for k, v in dict.iteritems() if v == value]
+        search = [k for k, v in dict.items() if v == value]
         if len(search) == 0:
             return None
         else:
@@ -547,7 +583,7 @@ class RemoteSession(object):
             result = handler_cls(*args, **kwargs)
             Endpoint.__init__(result, self, self._client.boundjid.full)
         method_dict = result.get_methods()
-        for method_name, method in method_dict.iteritems():
+        for method_name, method in method_dict.items():
             #!!! self._client.plugin['xep_0009'].register_call(result.FQN(), method, method_name)
             self._register_call(result.FQN(), method, method_name)
         self._register_acl(result.FQN(), acl)
@@ -697,7 +733,8 @@ class Remote(object):
             if(client.boundjid.bare in cls._sessions):
                 raise RemoteException("There already is a session associated with these credentials!")
             else:
-                cls._sessions[client.boundjid.bare] = client;
+                cls._sessions[client.boundjid.bare] = client
+
         def _session_close_callback():
             with Remote._lock:
                 del cls._sessions[client.boundjid.bare]

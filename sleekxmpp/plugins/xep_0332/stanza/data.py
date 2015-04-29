@@ -11,14 +11,14 @@
 from sleekxmpp.xmlstream import ElementBase
 
 
-class Data(ElementBase):
+class HTTPData(ElementBase):
     """
     The data element.
     """
     name = 'data'
     namespace = 'urn:xmpp:http'
     interfaces = set(['data'])
-    plugin_attrib = 'data'
+    plugin_attrib = 'http-data'
     is_extension = True
 
     def get_data(self, encoding='text'):

@@ -11,7 +11,7 @@
 from sleekxmpp.xmlstream import ElementBase
 
 
-class Response(ElementBase):
+class HTTPResponse(ElementBase):
 
     """
     When the HTTP Server responds, it does so by sending an `iq` stanza
@@ -21,8 +21,13 @@ class Response(ElementBase):
     in which the original requests were made.
 
     Examples:
-    <iq type='result' from='httpserver@clayster.com' to='httpclient@clayster.com/browser' id='2'>
-        <resp xmlns='urn:xmpp:http' version='1.1' statusCode='200' statusMessage='OK'>
+    <iq type='result'
+        from='httpserver@clayster.com'
+        to='httpclient@clayster.com/browser' id='2'>
+        <resp xmlns='urn:xmpp:http'
+              version='1.1'
+              statusCode='200'
+              statusMessage='OK'>
             <headers xmlns='http://jabber.org/protocol/shim'>
                 <header name='Date'>Fri, 03 May 2013 16:39:54GMT-4</header>
                 <header name='Server'>Clayster</header>
@@ -42,7 +47,7 @@ class Response(ElementBase):
     name = 'response'
     namespace = 'urn:xmpp:http'
     interfaces = set(['code', 'message', 'version'])
-    plugin_attrib = 'resp'
+    plugin_attrib = 'http-resp'
 
     def get_code(self):
         code = self._get_attr('statusCode', None)

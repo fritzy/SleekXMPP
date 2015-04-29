@@ -161,7 +161,7 @@ item itself, and the JID and node that will own the item.
     In this case, the owning JID and node are provided with the
     parameters ``ijid`` and ``node``. 
 
-Peforming Disco Queries
+Performing Disco Queries
 -----------------------
 The methods ``get_info()`` and ``get_items()`` are used to query remote JIDs
 and their nodes for disco information. Since these methods are wrappers for

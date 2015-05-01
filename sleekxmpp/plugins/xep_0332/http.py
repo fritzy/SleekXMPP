@@ -136,12 +136,12 @@ class XEP_0332(BasePlugin):
             timeout_callback=kwargs.get('timeout_callback', None)
         )
 
-    def send_error(self, to=None, ecode=500, etype='wait',
+    def send_error(self, to=None, ecode='500', etype='wait',
                    econd='internal-server-error', **kwargs):
         iq = self.xmpp.Iq()
-        iq['type'] = 'error'
         iq['from'] = self.xmpp.boundjid
         iq['to'] = to
+        iq['type'] = 'error'
         iq['error']['code'] = ecode
         iq['error']['type'] = etype
         iq['error']['condition'] = econd

@@ -109,7 +109,7 @@ class XEP_0332(BasePlugin):
         iq['http-req']['resource'] = resource
         iq['http-req']['version'] = '1.1'        # TODO: set this implicitly
         if data is not None:
-            iq['http-req']['http-data'] = data
+            iq['http-req']['data'] = data
         return iq.send(
             timeout=kwargs.get('timeout', None),
             block=kwargs.get('block', True),
@@ -128,7 +128,7 @@ class XEP_0332(BasePlugin):
         iq['http-resp']['message'] = message
         iq['http-resp']['version'] = '1.1'       # TODO: set this implicitly
         if data is not None:
-            iq['http-resp']['http-data'] = data
+            iq['http-resp']['data'] = data
         return iq.send(
             timeout=kwargs.get('timeout', None),
             block=kwargs.get('block', True),

@@ -17,7 +17,9 @@ from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.xmlstream.matcher import StanzaPath
 
 from sleekxmpp.plugins.base import BasePlugin
-from sleekxmpp.plugins.xep_0332.stanza import Request, Response, Data
+from sleekxmpp.plugins.xep_0332.stanza import (
+    HTTPRequest, HTTPResponse, HTTPData
+)
 from sleekxmpp.plugins.xep_0131.stanza import Headers
 
 
@@ -50,18 +52,26 @@ class XEP_0332(BasePlugin):
     }
 
     def plugin_init(self):
-        self.xmpp.register_handler(Callback(
-            'HTTP Request', StanzaPath('iq/req'), self._handle_request
-        ))
-        self.xmpp.register_handler(Callback(
-            'HTTP Response', StanzaPath('iq/resp'), self._handle_response
-        ))
-        register_stanza_plugin(Iq, Request, iterable=True)
-        register_stanza_plugin(Iq, Response, iterable=True)
-        register_stanza_plugin(Request, Headers, iterable=True)
-        register_stanza_plugin(Request, Data, iterable=True)
-        register_stanza_plugin(Response, Headers, iterable=True)
-        register_stanza_plugin(Response, Data, iterable=True)
+        self.xmpp.register_handler(
+            Callback(
+                'HTTP Request',
+                StanzaPath('iq/http-req'),
+                self._handle_request
+            )
+        )
+        self.xmpp.register_handler(
+            Callback(
+                'HTTP Response',
+                StanzaPath('iq/http-resp'),
+                self._handle_response
+            )
+        )
+        register_stanza_plugin(Iq, HTTPRequest, iterable=True)
+        register_stanza_plugin(Iq, HTTPResponse, iterable=True)
+        register_stanza_plugin(HTTPRequest, Headers, iterable=True)
+        register_stanza_plugin(HTTPRequest, HTTPData, iterable=True)
+        register_stanza_plugin(HTTPResponse, Headers, iterable=True)
+        register_stanza_plugin(HTTPResponse, HTTPData, iterable=True)
         # TODO: Should we register any api's here? self.api.register()
 
     def plugin_end(self):
@@ -94,12 +104,12 @@ class XEP_0332(BasePlugin):
         iq['from'] = self.xmpp.boundjid
         iq['to'] = to
         iq['type'] = 'set'
-        iq['req']['headers'] = headers
-        iq['req']['method'] = method
-        iq['req']['resource'] = resource
-        iq['req']['version'] = '1.1'        # TODO: set this implicitly
+        iq['http-req']['headers'] = headers
+        iq['http-req']['method'] = method
+        iq['http-req']['resource'] = resource
+        iq['http-req']['version'] = '1.1'        # TODO: set this implicitly
         if data is not None:
-            iq['req']['data'] = data
+            iq['http-req']['data'] = data
         return iq.send(
             timeout=kwargs.get('timeout', None),
             block=kwargs.get('block', True),
@@ -113,12 +123,12 @@ class XEP_0332(BasePlugin):
         iq['from'] = self.xmpp.boundjid
         iq['to'] = to
         iq['type'] = 'result'
-        iq['resp']['headers'] = headers
-        iq['resp']['code'] = code
-        iq['resp']['message'] = message
-        iq['resp']['version'] = '1.1'       # TODO: set this implicitly
+        iq['http-resp']['headers'] = headers
+        iq['http-resp']['code'] = code
+        iq['http-resp']['message'] = message
+        iq['http-resp']['version'] = '1.1'       # TODO: set this implicitly
         if data is not None:
-            iq['resp']['data'] = data
+            iq['http-resp']['data'] = data
         return iq.send(
             timeout=kwargs.get('timeout', None),
             block=kwargs.get('block', True),
@@ -126,12 +136,12 @@ class XEP_0332(BasePlugin):
             timeout_callback=kwargs.get('timeout_callback', None)
         )
 
-    def send_error(self, to=None, ecode=500, etype='wait',
+    def send_error(self, to=None, ecode='500', etype='wait',
                    econd='internal-server-error', **kwargs):
         iq = self.xmpp.Iq()
-        iq['type'] = 'error'
         iq['from'] = self.xmpp.boundjid
         iq['to'] = to
+        iq['type'] = 'error'
         iq['error']['code'] = ecode
         iq['error']['type'] = etype
         iq['error']['condition'] = econd

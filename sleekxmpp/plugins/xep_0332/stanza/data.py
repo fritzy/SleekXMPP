@@ -11,7 +11,7 @@
 from sleekxmpp.xmlstream import ElementBase
 
 
-class Data(ElementBase):
+class HTTPData(ElementBase):
     """
     The data element.
     """

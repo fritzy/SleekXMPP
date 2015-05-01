@@ -8,6 +8,6 @@
     See the file LICENSE for copying permission.
 """
 
-from sleekxmpp.plugins.xep_0332.stanza.request import Request
-from sleekxmpp.plugins.xep_0332.stanza.response import Response
-from sleekxmpp.plugins.xep_0332.stanza.data import Data
+from sleekxmpp.plugins.xep_0332.stanza.request import HTTPRequest
+from sleekxmpp.plugins.xep_0332.stanza.response import HTTPResponse
+from sleekxmpp.plugins.xep_0332.stanza.data import HTTPData

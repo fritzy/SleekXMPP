@@ -11,16 +11,19 @@
 from sleekxmpp.xmlstream import ElementBase
 
 
-class Request(ElementBase):
+class HTTPRequest(ElementBase):
 
     """
     All HTTP communication is done using the `Request`/`Response` paradigm.
-    Each HTTP Request is made sending an `iq` stanza containing a `req` element
-    to the server. Each `iq` stanza sent is of type `set`.
+    Each HTTP Request is made sending an `iq` stanza containing a `req`
+    element to the server. Each `iq` stanza sent is of type `set`.
 
     Examples:
     <iq type='set' from='a@b.com/browser' to='x@y.com' id='1'>
-        <req xmlns='urn:xmpp:http' method='GET' resource='/api/users' version='1.1'>
+        <req xmlns='urn:xmpp:http'
+             method='GET'
+             resource='/api/users'
+             version='1.1'>
             <headers xmlns='http://jabber.org/protocol/shim'>
                 <header name='Host'>b.com</header>
             </headers>
@@ -28,7 +31,10 @@ class Request(ElementBase):
     </iq>
 
     <iq type='set' from='a@b.com/browser' to='x@y.com' id='2'>
-        <req xmlns='urn:xmpp:http' method='PUT' resource='/api/users' version='1.1'>
+        <req xmlns='urn:xmpp:http'
+             method='PUT'
+             resource='/api/users'
+             version='1.1'>
             <headers xmlns='http://jabber.org/protocol/shim'>
                 <header name='Host'>b.com</header>
                 <header name='Content-Type'>text/html</header>
@@ -44,7 +50,7 @@ class Request(ElementBase):
     name = 'request'
     namespace = 'urn:xmpp:http'
     interfaces = set(['method', 'resource', 'version'])
-    plugin_attrib = 'req'
+    plugin_attrib = 'http-req'
 
     def get_method(self):
         return self._get_attr('method', None)

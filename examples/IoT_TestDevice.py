@@ -11,18 +11,10 @@
     See the file LICENSE for copying permission.
 """
 
-import os
-import sys
-# This can be used when you are in a test environment and need to make paths right
-sys.path=['/Users/jocke/Dropbox/06_dev/SleekXMPP']+sys.path
-
+import getpass
 import logging
-import unittest
-import distutils.core
-import datetime
+import sys
 
-from glob import glob
-from os.path import splitext, basename, join as pjoin
 from optparse import OptionParser
 from urllib import urlopen
 
@@ -38,8 +30,6 @@ else:
     raw_input = input
 
 from sleekxmpp.plugins.xep_0323.device import Device
-
-#from sleekxmpp.exceptions import IqError, IqTimeout
 
 class IoT_TestDevice(sleekxmpp.ClientXMPP):
 

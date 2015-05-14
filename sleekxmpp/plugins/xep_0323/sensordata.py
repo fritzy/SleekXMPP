@@ -107,7 +107,6 @@ class XEP_0323(BasePlugin):
 
     default_config = {
         'threaded': True
-#        'session_db': None
     }
 
     def plugin_init(self):
@@ -300,8 +299,6 @@ class XEP_0323(BasePlugin):
             self.sessions[session]["commTimers"] = {}
             self.sessions[session]["nodeDone"] = {}
 
-            #print("added session: " + str(self.sessions))
-
             iq.reply()
             iq['accepted']['seqnr'] = seqnr
             if not request_delay_sec is None:
@@ -318,10 +315,8 @@ class XEP_0323(BasePlugin):
                 return
 
             if self.threaded:
-                #print("starting thread")
                 tr_req = Thread(target=self._threaded_node_request, args=(session, process_fields, req_flags))
                 tr_req.start()
-                #print("started thread")
             else:
                 self._threaded_node_request(session, process_fields, req_flags)
 
@@ -348,7 +343,6 @@ class XEP_0323(BasePlugin):
         for node in self.sessions[session]["node_list"]:
             timer = TimerReset(self.nodes[node]['commTimeout'], self._event_comm_timeout, args=(session, node))
             self.sessions[session]["commTimers"][node] = timer
-            #print("Starting timer " + str(timer) + ", timeout: " + str(self.nodes[node]['commTimeout']))
             timer.start()
             self.nodes[node]['device'].request_fields(process_fields, flags=flags, session=session, callback=self._device_field_request_callback)
 
@@ -376,7 +370,6 @@ class XEP_0323(BasePlugin):
             msg['failure']['done'] = 'true'
         msg.send()
         # The session is complete, delete it
-        #print("del session " + session + " due to timeout")
         del self.sessions[session]
 
     def _event_delayed_req(self, session, process_fields, req_flags):
@@ -466,7 +459,6 @@ class XEP_0323(BasePlugin):
             if (self._all_nodes_done(session)):
                 msg['failure']['done'] = 'true'
                 # The session is complete, delete it
-                # print("del session " + session + " due to error")
                 del self.sessions[session]
             msg.send()
         else:
@@ -493,7 +485,6 @@ class XEP_0323(BasePlugin):
                 msg['fields']['done'] = 'true'
                 if (self._all_nodes_done(session)):
                     # The session is complete, delete it
-                    # print("del session " + session + " due to complete")
                     del self.sessions[session]
             else:
                 # Restart comm timer
@@ -663,7 +654,6 @@ class XEP_0323(BasePlugin):
         Received Iq with cancelled - this is a cancel confirm.
         Delete the session.
         """
-        #print("Got cancelled")
         seqnr = iq['cancelled']['seqnr']
         callback = self.sessions[seqnr]["callback"]
         callback(from_jid=iq['from'], result="cancelled")

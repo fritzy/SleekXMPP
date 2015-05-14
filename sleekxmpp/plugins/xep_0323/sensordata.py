@@ -15,7 +15,6 @@ from threading import Thread, Lock, Timer
 
 from sleekxmpp.plugins.xep_0323.timerreset import TimerReset
 
-from sleekxmpp.xmlstream import JID
 from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.xmlstream.matcher import StanzaPath
 from sleekxmpp.plugins.base import BasePlugin

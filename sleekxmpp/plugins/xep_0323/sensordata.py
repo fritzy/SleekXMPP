@@ -160,11 +160,11 @@ class XEP_0323(BasePlugin):
         self.last_seqnr = 0
         self.seqnr_lock = Lock()
 
-        ## For testning only
+        ## For testing only
         self.test_authenticated_from = ""
 
     def post_init(self):
-        """ Init complete. Register our features in Serivce discovery. """
+        """ Init complete. Register our features in Service discovery. """
         BasePlugin.post_init(self)
         self.xmpp['xep_0030'].add_feature(Sensordata.namespace)
         self.xmpp['xep_0030'].set_items(node=Sensordata.namespace, items=tuple())
@@ -403,7 +403,7 @@ class XEP_0323(BasePlugin):
 
     def _all_nodes_done(self, session):
         """
-        Checks wheter all devices are done replying to the readout.
+        Checks whether all devices are done replying to the readout.
 
         Arguments:
             session         -- The request session id
@@ -447,7 +447,7 @@ class XEP_0323(BasePlugin):
                                 Error details when a request failed.
         """
         if not session in self.sessions:
-            # This can happend if a session was deleted, like in a cancellation. Just drop the data.
+            # This can happen if a session was deleted, like in a cancellation. Just drop the data.
             return
 
         if result == "error":
@@ -535,14 +535,14 @@ class XEP_0323(BasePlugin):
 
     def request_data(self, from_jid, to_jid, callback, nodeIds=None, fields=None, flags=None):
         """
-        Called on the client side to initiade a data readout.
+        Called on the client side to initiate a data readout.
         Composes a message with the request and sends it to the device(s).
         Does not block, the callback will be called when data is available.
 
         Arguments:
             from_jid        -- The jid of the requester
             to_jid          -- The jid of the device(s)
-            callback        -- The callback function to call when data is availble.
+            callback        -- The callback function to call when data is available.
 
                             The callback function must support the following arguments:
 
@@ -672,7 +672,7 @@ class XEP_0323(BasePlugin):
 
     def _handle_event_fields(self, msg):
         """
-        Received Msg with fields - this is a data reponse to a request.
+        Received Msg with fields - this is a data response to a request.
         If this is the last data block, issue a "done" callback.
         """
         seqnr = msg['fields']['seqnr']

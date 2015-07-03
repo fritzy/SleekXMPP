@@ -181,4 +181,4 @@ def verify(expected, raw_cert):
             return True
 
     raise CertificateError(
-            'Could not match certficate against hostname: %s' % expected)
+            'Could not match certificate against hostname: %s' % expected)

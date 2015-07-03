@@ -55,8 +55,8 @@ class BaseXMPP(XMLStream):
                        is used during initialization.
     """
 
-    def __init__(self, jid='', default_ns='jabber:client'):
-        XMLStream.__init__(self)
+    def __init__(self, jid='', default_ns='jabber:client', **kwargs):
+        XMLStream.__init__(self, **kwargs)
 
         self.default_ns = default_ns
         self.stream_ns = 'http://etherx.jabber.org/streams'

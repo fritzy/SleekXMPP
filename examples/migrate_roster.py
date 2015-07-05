@@ -113,7 +113,7 @@ def on_session2(event):
         new_xmpp.update_roster(jid,
                 name = item['name'],
                 groups = item['groups'])
-        new_xmpp.disconnect()
+    new_xmpp.disconnect()
 new_xmpp.add_event_handler('session_start', on_session2)
 
 if new_xmpp.connect():

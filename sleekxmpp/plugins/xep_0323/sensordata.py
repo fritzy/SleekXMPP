@@ -15,7 +15,6 @@ from threading import Thread, Lock, Timer
 
 from sleekxmpp.plugins.xep_0323.timerreset import TimerReset
 
-from sleekxmpp.xmlstream import JID
 from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.xmlstream.matcher import StanzaPath
 from sleekxmpp.plugins.base import BasePlugin
@@ -108,7 +107,6 @@ class XEP_0323(BasePlugin):
 
     default_config = {
         'threaded': True
-#        'session_db': None
     }
 
     def plugin_init(self):
@@ -161,11 +159,11 @@ class XEP_0323(BasePlugin):
         self.last_seqnr = 0
         self.seqnr_lock = Lock()
 
-        ## For testning only
+        ## For testing only
         self.test_authenticated_from = ""
 
     def post_init(self):
-        """ Init complete. Register our features in Serivce discovery. """
+        """ Init complete. Register our features in Service discovery. """
         BasePlugin.post_init(self)
         self.xmpp['xep_0030'].add_feature(Sensordata.namespace)
         self.xmpp['xep_0030'].set_items(node=Sensordata.namespace, items=tuple())
@@ -301,8 +299,6 @@ class XEP_0323(BasePlugin):
             self.sessions[session]["commTimers"] = {}
             self.sessions[session]["nodeDone"] = {}
 
-            #print("added session: " + str(self.sessions))
-
             iq.reply()
             iq['accepted']['seqnr'] = seqnr
             if not request_delay_sec is None:
@@ -319,10 +315,8 @@ class XEP_0323(BasePlugin):
                 return
 
             if self.threaded:
-                #print("starting thread")
                 tr_req = Thread(target=self._threaded_node_request, args=(session, process_fields, req_flags))
                 tr_req.start()
-                #print("started thread")
             else:
                 self._threaded_node_request(session, process_fields, req_flags)
 
@@ -349,7 +343,6 @@ class XEP_0323(BasePlugin):
         for node in self.sessions[session]["node_list"]:
             timer = TimerReset(self.nodes[node]['commTimeout'], self._event_comm_timeout, args=(session, node))
             self.sessions[session]["commTimers"][node] = timer
-            #print("Starting timer " + str(timer) + ", timeout: " + str(self.nodes[node]['commTimeout']))
             timer.start()
             self.nodes[node]['device'].request_fields(process_fields, flags=flags, session=session, callback=self._device_field_request_callback)
 
@@ -377,7 +370,6 @@ class XEP_0323(BasePlugin):
             msg['failure']['done'] = 'true'
         msg.send()
         # The session is complete, delete it
-        #print("del session " + session + " due to timeout")
         del self.sessions[session]
 
     def _event_delayed_req(self, session, process_fields, req_flags):
@@ -404,7 +396,7 @@ class XEP_0323(BasePlugin):
 
     def _all_nodes_done(self, session):
         """
-        Checks wheter all devices are done replying to the readout.
+        Checks whether all devices are done replying to the readout.
 
         Arguments:
             session         -- The request session id
@@ -448,7 +440,7 @@ class XEP_0323(BasePlugin):
                                 Error details when a request failed.
         """
         if not session in self.sessions:
-            # This can happend if a session was deleted, like in a cancellation. Just drop the data.
+            # This can happen if a session was deleted, like in a cancellation. Just drop the data.
             return
 
         if result == "error":
@@ -467,7 +459,6 @@ class XEP_0323(BasePlugin):
             if (self._all_nodes_done(session)):
                 msg['failure']['done'] = 'true'
                 # The session is complete, delete it
-                # print("del session " + session + " due to error")
                 del self.sessions[session]
             msg.send()
         else:
@@ -494,7 +485,6 @@ class XEP_0323(BasePlugin):
                 msg['fields']['done'] = 'true'
                 if (self._all_nodes_done(session)):
                     # The session is complete, delete it
-                    # print("del session " + session + " due to complete")
                     del self.sessions[session]
             else:
                 # Restart comm timer
@@ -536,14 +526,14 @@ class XEP_0323(BasePlugin):
 
     def request_data(self, from_jid, to_jid, callback, nodeIds=None, fields=None, flags=None):
         """
-        Called on the client side to initiade a data readout.
+        Called on the client side to initiate a data readout.
         Composes a message with the request and sends it to the device(s).
         Does not block, the callback will be called when data is available.
 
         Arguments:
             from_jid        -- The jid of the requester
             to_jid          -- The jid of the device(s)
-            callback        -- The callback function to call when data is availble.
+            callback        -- The callback function to call when data is available.
 
                             The callback function must support the following arguments:
 
@@ -664,7 +654,6 @@ class XEP_0323(BasePlugin):
         Received Iq with cancelled - this is a cancel confirm.
         Delete the session.
         """
-        #print("Got cancelled")
         seqnr = iq['cancelled']['seqnr']
         callback = self.sessions[seqnr]["callback"]
         callback(from_jid=iq['from'], result="cancelled")
@@ -673,7 +662,7 @@ class XEP_0323(BasePlugin):
 
     def _handle_event_fields(self, msg):
         """
-        Received Msg with fields - this is a data reponse to a request.
+        Received Msg with fields - this is a data response to a request.
         If this is the last data block, issue a "done" callback.
         """
         seqnr = msg['fields']['seqnr']

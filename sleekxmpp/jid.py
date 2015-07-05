@@ -529,10 +529,6 @@ class JID(object):
         return self._jid[0] or ''
 
     @property
-    def bare(self):
-        return _format_jid(self._jid[0], self._jid[1])
-
-    @property
     def server(self):
         return self._jid[1] or ''
 
@@ -555,7 +551,6 @@ class JID(object):
     @property
     def bare(self):
         return _format_jid(self._jid[0], self._jid[1])
-
 
     @resource.setter
     def resource(self, value):

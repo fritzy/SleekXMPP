@@ -94,7 +94,7 @@ class Disco(sleekxmpp.ClientXMPP):
                 info = self['xep_0030'].get_info(jid=self.target_jid,
                                                  node=self.target_node,
                                                  block=True)
-            elif self.get in self.items_types:
+            if self.get in self.items_types:
                 # The same applies from above. Listen for the
                 # disco_items event or pass a callback function
                 # if you need to process a non-blocking request.

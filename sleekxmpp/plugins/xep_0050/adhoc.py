@@ -101,7 +101,7 @@ class XEP_0050(BasePlugin):
                          self._handle_command))
 
         register_stanza_plugin(Iq, Command)
-        register_stanza_plugin(Command, Form)
+        register_stanza_plugin(Command, Form, iterable=True)
 
         self.xmpp.add_event_handler('command_execute',
                                     self._handle_command_start,

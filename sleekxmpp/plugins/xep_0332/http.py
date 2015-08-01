@@ -127,6 +127,8 @@ class XEP_0332(BasePlugin):
         iq['http-resp']['code'] = code
         iq['http-resp']['message'] = message
         iq['http-resp']['version'] = '1.1'       # TODO: set this implicitly
+        if 'id' in kwargs:
+            iq['id'] = kwargs["id"]
         if data is not None:
             iq['http-resp']['data'] = data
         return iq.send(
@@ -145,6 +147,8 @@ class XEP_0332(BasePlugin):
         iq['error']['code'] = ecode
         iq['error']['type'] = etype
         iq['error']['condition'] = econd
+        if 'id' in kwargs:
+            iq['id'] = kwargs["id"]
         return iq.send(
             timeout=kwargs.get('timeout', None),
             block=kwargs.get('block', True),

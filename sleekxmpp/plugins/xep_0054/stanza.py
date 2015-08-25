@@ -128,7 +128,8 @@ class Telephone(ElementBase):
 
     def setup(self, xml=None):
         super(Telephone, self).setup(xml=xml)
-        self._set_sub_text('NUMBER', '', keep=True)
+        ## this blanks out numbers received from server
+        ##self._set_sub_text('NUMBER', '', keep=True)
 
     def set_number(self, value):
         self._set_sub_text('NUMBER', value, keep=True)

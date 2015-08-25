@@ -72,9 +72,10 @@ class XEP_0202(BasePlugin):
         Arguments:
             iq -- The Iq time request stanza.
         """
-        iq.reply()
-        iq['entity_time']['time'] = self.local_time(iq['to'])
-        iq.send()
+        if iq['type'] == 'get':
+            iq.reply()
+            iq['entity_time']['time'] = self.local_time(iq['to'])
+            iq.send()
 
     def get_entity_time(self, to, ifrom=None, **iqargs):
         """

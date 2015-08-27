@@ -108,6 +108,8 @@ class XEP_0332(BasePlugin):
         iq['http-req']['method'] = method
         iq['http-req']['resource'] = resource
         iq['http-req']['version'] = '1.1'        # TODO: set this implicitly
+        if 'id' in kwargs:
+            iq['id'] = kwargs["id"]
         if data is not None:
             iq['http-req']['data'] = data
         return iq.send(

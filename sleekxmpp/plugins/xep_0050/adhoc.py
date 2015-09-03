@@ -425,12 +425,25 @@ class XEP_0050(BasePlugin):
 
             del self.sessions[sessionid]
 
+            payload = session['payload']
+            if payload is None:
+                payload = []
+            if not isinstance(payload, list):
+                payload = [payload]
+
+            for item in payload:
+                register_stanza_plugin(Command, item.__class__, iterable=True)
+
             iq.reply()
             iq['command']['node'] = node
             iq['command']['sessionid'] = sessionid
             iq['command']['actions'] = []
             iq['command']['status'] = 'completed'
             iq['command']['notes'] = session['notes']
+
+            for item in payload:
+                iq['command'].append(item)
+
             iq.send()
         else:
             raise XMPPError('item-not-found')

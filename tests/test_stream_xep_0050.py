@@ -120,6 +120,7 @@ class TestAdHocCommands(SleekTest):
 
             def handle_form(form, session):
                 results.append(form['values']['foo'])
+                session['payload'] = None
 
             form = self.xmpp['xep_0004'].makeForm('form')
             form.addField(var='foo', ftype='text-single', label='Foo')
@@ -192,6 +193,7 @@ class TestAdHocCommands(SleekTest):
 
             def handle_step2(form, session):
                 results.append(form['values']['bar'])
+                session['payload'] = None
 
             def handle_step1(form, session):
                 results.append(form['values']['foo'])
@@ -427,6 +429,7 @@ class TestAdHocCommands(SleekTest):
             def handle_form(forms, session):
                 for form in forms:
                     results.append(form['values']['FORM_TYPE'])
+                session['payload'] = None
 
             form1 = self.xmpp['xep_0004'].makeForm('form')
             form1.addField(var='FORM_TYPE', ftype='hidden', value='form_1')

@@ -11,8 +11,8 @@ class TestDataForms(SleekTest):
 
     def setUp(self):
         register_stanza_plugin(Message, xep_0004.Form)
-        register_stanza_plugin(xep_0004.Form, xep_0004.FormField)
-        register_stanza_plugin(xep_0004.FormField, xep_0004.FieldOption)
+        register_stanza_plugin(xep_0004.Form, xep_0004.FormField, iterable=True)
+        register_stanza_plugin(xep_0004.FormField, xep_0004.FieldOption, iterable=True)
 
     def testMultipleInstructions(self):
         """Testing using multiple instructions elements in a data form."""
@@ -68,7 +68,7 @@ class TestDataForms(SleekTest):
                                      'value': 'cool'},
                                     {'label': 'Urgh!',
                                      'value': 'urgh'}]}
-        form['fields'] = fields
+        form.set_fields(fields)
 
 
         self.check(msg, """
@@ -141,13 +141,13 @@ class TestDataForms(SleekTest):
                                      'value': 'cool'},
                                     {'label': 'Urgh!',
                                      'value': 'urgh'}]}
-        form['fields'] = fields
+        form.set_fields(fields)
 
         form['type'] = 'submit'
-        form['values'] = {'f1': 'username',
+        form.set_values({'f1': 'username',
                           'f2': 'hunter2',
                           'f3': 'A long\nmultiline\nmessage',
-                          'f4': 'cool'}
+                          'f4': 'cool'})
 
         self.check(form, """
           <x xmlns="jabber:x:data" type="submit">
@@ -189,7 +189,7 @@ class TestDataForms(SleekTest):
                                      'value': 'cool'},
                                     {'label': 'Urgh!',
                                      'value': 'urgh'}]}
-        form['fields'] = fields
+        form.set_fields(fields)
 
         form['type'] = 'cancel'
 

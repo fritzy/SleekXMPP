@@ -24,28 +24,27 @@ class FormValidation(ElementBase):
     plugin_tag_map = {}
 
     def _add_field(self, name):
+        self.remove_all()
         item_xml = ET.Element('{%s}%s' % (self.namespace, name))
         self.xml.append(item_xml)
         return item_xml
 
     def set_basic(self, value):
-        self.remove_all()
         if value:
             self._add_field('basic')
+        else:
+            self['basic'] = False
 
     def set_open(self, value):
-        self.remove_all()
         if value:
             self._add_field('open')
 
     def set_regex(self, regex):
-        self.remove_all()
         if regex:
             _regex = self._add_field('regex')
             _regex.text = regex
 
     def set_range(self, value, minimum=None, maximum=None):
-        self.remove_all()
         if value:
             _range = self._add_field('range')
             _range.attrib['min'] = str(minimum)

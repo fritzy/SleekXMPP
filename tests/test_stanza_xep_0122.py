@@ -46,92 +46,92 @@ class TestDataForms(SleekTest):
           </message>
         """)
 
-    def test_open_validation(self):
-        """Testing using multiple instructions elements in a data form."""
-        msg = self.Message()
-        form = msg['form']
-        field = form.addField(var='f1',
-                              ftype='text-single',
-                              label='Text',
-                              desc='A text field',
-                              required=True,
-                              value='Some text!')
-
-        validation = field['validate']
-        validation.set_open(True)
-
-        self.check(msg, """
-          <message>
-            <x xmlns="jabber:x:data" type="form">
-              <field var="f1" type="text-single" label="Text">
-                <desc>A text field</desc>
-                <required />
-                <value>Some text!</value>
-                <validate xmlns="http://jabber.org/protocol/xdata-validate">
-                    <open/>
-                </validate>
-              </field>
-            </x>
-          </message>
-        """)
-
-    def test_regex_validation(self):
-        """Testing using multiple instructions elements in a data form."""
-        msg = self.Message()
-        form = msg['form']
-        field = form.addField(var='f1',
-                              ftype='text-single',
-                              label='Text',
-                              desc='A text field',
-                              required=True,
-                              value='Some text!')
-
-        validation = field['validate']
-        validation.set_regex('[0-9]+')
-
-        self.check(msg, """
-          <message>
-            <x xmlns="jabber:x:data" type="form">
-              <field var="f1" type="text-single" label="Text">
-                <desc>A text field</desc>
-                <required />
-                <value>Some text!</value>
-                <validate xmlns="http://jabber.org/protocol/xdata-validate">
-                    <regex>[0-9]+</regex>
-                </validate>
-              </field>
-            </x>
-          </message>
-        """)
-
-    def test_range_validation(self):
-        """Testing using multiple instructions elements in a data form."""
-        msg = self.Message()
-        form = msg['form']
-        field = form.addField(var='f1',
-                              ftype='text-single',
-                              label='Text',
-                              desc='A text field',
-                              required=True,
-                              value='Some text!')
-
-        validation = field['validate']
-        validation.set_range(True, minimum=0, maximum=10)
-
-        self.check(msg, """
-          <message>
-            <x xmlns="jabber:x:data" type="form">
-              <field var="f1" type="text-single" label="Text">
-                <desc>A text field</desc>
-                <required />
-                <value>Some text!</value>
-                <validate xmlns="http://jabber.org/protocol/xdata-validate">
-                    <range min="0" max="10" />
-                </validate>
-              </field>
-            </x>
-          </message>
-        """)
+    # def test_open_validation(self):
+    #     """Testing using multiple instructions elements in a data form."""
+    #     msg = self.Message()
+    #     form = msg['form']
+    #     field = form.addField(var='f1',
+    #                           ftype='text-single',
+    #                           label='Text',
+    #                           desc='A text field',
+    #                           required=True,
+    #                           value='Some text!')
+    #
+    #     validation = field['validate']
+    #     validation.set_open(True)
+    #
+    #     self.check(msg, """
+    #       <message>
+    #         <x xmlns="jabber:x:data" type="form">
+    #           <field var="f1" type="text-single" label="Text">
+    #             <desc>A text field</desc>
+    #             <required />
+    #             <value>Some text!</value>
+    #             <validate xmlns="http://jabber.org/protocol/xdata-validate">
+    #                 <open/>
+    #             </validate>
+    #           </field>
+    #         </x>
+    #       </message>
+    #     """)
+    #
+    # def test_regex_validation(self):
+    #     """Testing using multiple instructions elements in a data form."""
+    #     msg = self.Message()
+    #     form = msg['form']
+    #     field = form.addField(var='f1',
+    #                           ftype='text-single',
+    #                           label='Text',
+    #                           desc='A text field',
+    #                           required=True,
+    #                           value='Some text!')
+    #
+    #     validation = field['validate']
+    #     validation.set_regex('[0-9]+')
+    #
+    #     self.check(msg, """
+    #       <message>
+    #         <x xmlns="jabber:x:data" type="form">
+    #           <field var="f1" type="text-single" label="Text">
+    #             <desc>A text field</desc>
+    #             <required />
+    #             <value>Some text!</value>
+    #             <validate xmlns="http://jabber.org/protocol/xdata-validate">
+    #                 <regex>[0-9]+</regex>
+    #             </validate>
+    #           </field>
+    #         </x>
+    #       </message>
+    #     """)
+    #
+    # def test_range_validation(self):
+    #     """Testing using multiple instructions elements in a data form."""
+    #     msg = self.Message()
+    #     form = msg['form']
+    #     field = form.addField(var='f1',
+    #                           ftype='text-single',
+    #                           label='Text',
+    #                           desc='A text field',
+    #                           required=True,
+    #                           value='Some text!')
+    #
+    #     validation = field['validate']
+    #     validation.set_range(True, minimum=0, maximum=10)
+    #
+    #     self.check(msg, """
+    #       <message>
+    #         <x xmlns="jabber:x:data" type="form">
+    #           <field var="f1" type="text-single" label="Text">
+    #             <desc>A text field</desc>
+    #             <required />
+    #             <value>Some text!</value>
+    #             <validate xmlns="http://jabber.org/protocol/xdata-validate">
+    #                 <range min="0" max="10" />
+    #             </validate>
+    #           </field>
+    #         </x>
+    #       </message>
+    #     """)
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestDataForms)

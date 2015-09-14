@@ -22,8 +22,7 @@ class Form(ElementBase):
     namespace = 'jabber:x:data'
     name = 'x'
     plugin_attrib = 'form'
-    interfaces = set(('instructions', 'items',
-                      'reported', 'title', 'type', ))
+    interfaces = set(('instructions', 'items', 'reported', 'title', 'type', ))
     sub_interfaces = set(('title',))
     form_types = set(('cancel', 'form', 'result', 'submit'))
 
@@ -43,7 +42,7 @@ class Form(ElementBase):
 
     @property
     def field(self):
-        return self['fields']
+        return self.get_fields()
 
     def set_type(self, ftype):
         self._set_attr('type', ftype)
@@ -178,7 +177,7 @@ class Form(ElementBase):
 
     def get_values(self):
         values = OrderedDict()
-        fields = self['fields']
+        fields = self.get_fields()
         for var in fields:
             values[var] = fields[var]['value']
         return values
@@ -226,7 +225,7 @@ class Form(ElementBase):
             self.add_reported(var, **field)
 
     def set_values(self, values):
-        fields = self['fields']
+        fields = self.get_fields()
         for field in values:
             if field not in self.get_fields():
                 fields[field] = self.add_field(var=field)

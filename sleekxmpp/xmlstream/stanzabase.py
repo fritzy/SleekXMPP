@@ -563,7 +563,7 @@ class ElementBase(object):
 
         .. versionadded:: 1.0-Beta1
         """
-        values = {}
+        values = OrderedDict()
         values['lang'] = self['lang']
         for interface in self.interfaces:
             if isinstance(self[interface], JID):

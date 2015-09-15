@@ -10,3 +10,4 @@ except:
 
 from sleekxmpp.thirdparty import socks
 from sleekxmpp.thirdparty.mini_dateutil import tzutc, tzoffset, parse_iso
+from sleekxmpp.thirdparty.orderedset import OrderedSet

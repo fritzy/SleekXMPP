@@ -197,5 +197,52 @@ class TestDataForms(SleekTest):
           <x xmlns="jabber:x:data" type="cancel" />
         """)
 
+    def testReported(self):
+        msg = self.Message()
+        form = msg['form']
+        form['type'] = 'result'
+
+        form.add_reported(var='f1', ftype='text-single', label='Username')
+
+        form.add_item({'f1': 'username@example.org'})
+
+        self.check(msg, """
+          <message>
+            <x xmlns="jabber:x:data" type="result">
+              <reported>
+                <field var="f1" type="text-single" label="Username" />
+              </reported>
+              <item>
+                <field var="f1">
+                  <value>username@example.org</value>
+                </field>
+              </item>
+            </x>
+          </message>
+        """)
+
+    def testSetReported(self):
+        msg = self.Message()
+        form = msg['form']
+        form['type'] = 'result'
+
+        reported = {'f1': {
+            'var': 'f1',
+            'type': 'text-single',
+            'label': 'Username'
+        }}
+
+        form.set_reported(reported)
+
+        self.check(msg, """
+          <message>
+            <x xmlns="jabber:x:data" type="result">
+              <reported>
+                <field var="f1" type="text-single" label="Username" />
+              </reported>
+            </x>
+          </message>
+        """)
+
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestDataForms)

@@ -9,7 +9,7 @@
 import copy
 import logging
 
-from sleekxmpp.thirdparty import OrderedDict
+from sleekxmpp.thirdparty import OrderedDict, OrderedSet
 
 from sleekxmpp.xmlstream import ElementBase, ET
 from sleekxmpp.plugins.xep_0004.stanza import FormField
@@ -22,7 +22,7 @@ class Form(ElementBase):
     namespace = 'jabber:x:data'
     name = 'x'
     plugin_attrib = 'form'
-    interfaces = set(('instructions', 'items', 'reported', 'title', 'type', ))
+    interfaces = OrderedSet(('instructions', 'reported', 'title', 'type', 'items', ))
     sub_interfaces = set(('title',))
     form_types = set(('cancel', 'form', 'result', 'submit'))
 
@@ -169,7 +169,7 @@ class Form(ElementBase):
     def get_reported(self):
         fields = OrderedDict()
         xml = self.xml.findall('{%s}reported/{%s}field' % (self.namespace,
-                                     FormField.namespace))
+                                                           FormField.namespace))
         for field in xml:
             field = FormField(xml=field)
             fields[field['var']] = field
@@ -219,10 +219,26 @@ class Form(ElementBase):
             self.add_item(item)
 
     def set_reported(self, reported):
+        """
+        This either needs a dictionary or dictionaries or a dictionary of form fields.
+        :param reported:
+        :return:
+        """
         for var in reported:
             field = reported[var]
-            field['var'] = var
-            self.add_reported(var, **field)
+
+            if isinstance(field, dict):
+                self.add_reported(**field)
+            else:
+                reported = self.xml.find('{%s}reported' % self.namespace)
+                if reported is None:
+                    reported = ET.Element('{%s}reported' % self.namespace)
+                    self.xml.append(reported)
+
+                fieldXML = ET.Element('{%s}field' % FormField.namespace)
+                reported.append(fieldXML)
+                new_field = FormField(xml=fieldXML)
+                new_field.values = field.values
 
     def set_values(self, values):
         fields = self.get_fields()

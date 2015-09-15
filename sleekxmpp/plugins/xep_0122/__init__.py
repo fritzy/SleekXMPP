@@ -8,4 +8,4 @@ register_plugin(XEP_0122)
 
 
 # Retain some backwards compatibility
-xep_0121 = XEP_0122
+xep_0122 = XEP_0122

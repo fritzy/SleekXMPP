@@ -16,4 +16,4 @@ class XEP_0122(BasePlugin):
     stanza = stanza
 
     def plugin_init(self):
-        register_stanza_plugin(FormField, FormValidation, iterable=True)
+        register_stanza_plugin(FormField, FormValidation)

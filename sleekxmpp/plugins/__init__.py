@@ -47,6 +47,7 @@ __all__ = [
     'xep_0108',  # User Activity
     'xep_0115',  # Entity Capabilities
     'xep_0118',  # User Tune
+    'xep_0122',  # Data Forms Validation
     'xep_0128',  # Extended Service Discovery
     'xep_0131',  # Standard Headers and Internet Metadata
     'xep_0133',  # Service Administration

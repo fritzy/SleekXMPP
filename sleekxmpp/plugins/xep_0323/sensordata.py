@@ -482,10 +482,10 @@ class XEP_0323(BasePlugin):
             if result == "done":
                 self.sessions[session]["commTimers"][nodeId].cancel()
                 self.sessions[session]["nodeDone"][nodeId] = True
-                msg['fields']['done'] = 'true'
                 if (self._all_nodes_done(session)):
                     # The session is complete, delete it
                     del self.sessions[session]
+                    msg['fields']['done'] = 'true'
             else:
                 # Restart comm timer
                 self.sessions[session]["commTimers"][nodeId].reset()

@@ -11,18 +11,10 @@
     See the file LICENSE for copying permission.
 """
 
-import os
-import sys
-# This can be used when you are in a test environment and need to make paths right
-sys.path=['/Users/jocke/Dropbox/06_dev/SleekXMPP']+sys.path
-
+import getpass
 import logging
-import unittest
-import distutils.core
-import datetime
+import sys
 
-from glob import glob
-from os.path import splitext, basename, join as pjoin
 from optparse import OptionParser
 from urllib import urlopen
 
@@ -38,8 +30,6 @@ else:
     raw_input = input
 
 from sleekxmpp.plugins.xep_0323.device import Device
-
-#from sleekxmpp.exceptions import IqError, IqTimeout
 
 class IoT_TestDevice(sleekxmpp.ClientXMPP):
 
@@ -179,13 +169,13 @@ if __name__ == '__main__':
         # node=opts.nodeid,
         # jid=xmpp.boundjid.full)
 
-        myDevice = TheDevice(opts.nodeid);
+        myDevice = TheDevice(opts.nodeid)
         # myDevice._add_field(name="Relay", typename="numeric", unit="Bool");
-        myDevice._add_field(name="Temperature", typename="numeric", unit="C");
+        myDevice._add_field(name="Temperature", typename="numeric", unit="C")
         myDevice._set_momentary_timestamp("2013-03-07T16:24:30")
-        myDevice._add_field_momentary_data("Temperature", "23.4", flags={"automaticReadout": "true"});
+        myDevice._add_field_momentary_data("Temperature", "23.4", flags={"automaticReadout": "true"})
 
-        xmpp['xep_0323'].register_node(nodeId=opts.nodeid, device=myDevice, commTimeout=10);
+        xmpp['xep_0323'].register_node(nodeId=opts.nodeid, device=myDevice, commTimeout=10)
         xmpp.beClientOrServer(server=True)
         while not(xmpp.testForRelease()):
             xmpp.connect()

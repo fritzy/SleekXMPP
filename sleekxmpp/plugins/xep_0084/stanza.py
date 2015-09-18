@@ -8,7 +8,7 @@
 
 from base64 import b64encode, b64decode
 
-from sleekxmpp.util import bytes
+from sleekxmpp.util import bytes as sbytes
 from sleekxmpp.xmlstream import ET, ElementBase, register_stanza_plugin
 
 
@@ -20,12 +20,15 @@ class Data(ElementBase):
 
     def get_value(self):
         if self.xml.text:
-            return b64decode(bytes(self.xml.text))
+            return b64decode(sbytes(self.xml.text))
         return ''
 
     def set_value(self, value):
         if value:
-            self.xml.text = b64encode(bytes(value))
+            self.xml.text = b64encode(sbytes(value))
+            # Python3 base64 encoded is bytes and needs to be decoded to string
+            if isinstance(self.xml.text, bytes):
+                self.xml.text = self.xml.text.decode()
         else:
             self.xml.text = ''
 

@@ -72,19 +72,18 @@ JID_CACHE_LOCK = threading.Lock()
 JID_CACHE_MAX_SIZE = 1024
 
 def _cache(key, parts, locked):
-    JID_CACHE[key] = (parts, locked)
-    if len(JID_CACHE) > JID_CACHE_MAX_SIZE:
-        with JID_CACHE_LOCK:
-            while len(JID_CACHE) > JID_CACHE_MAX_SIZE:
-                found = None
-                for key, item in JID_CACHE.items():
-                    if not item[1]: # if not locked
-                        found = key
-                        break
-                if not found: # more than MAX_SIZE locked
-                    # warn?
+    with JID_CACHE_LOCK:
+        JID_CACHE[key] = (parts, locked)
+        while len(JID_CACHE) > JID_CACHE_MAX_SIZE:
+            found = None
+            for key, item in JID_CACHE.items():
+                if not item[1]: # if not locked
+                    found = key
                     break
-                del JID_CACHE[found]
+            if not found: # more than MAX_SIZE locked
+                # warn?
+                break
+            del JID_CACHE[found]
 
 # pylint: disable=c0103
 #: The nodeprep profile of stringprep used to validate the local,
@@ -529,10 +528,6 @@ class JID(object):
         return self._jid[0] or ''
 
     @property
-    def bare(self):
-        return _format_jid(self._jid[0], self._jid[1])
-
-    @property
     def server(self):
         return self._jid[1] or ''
 
@@ -555,7 +550,6 @@ class JID(object):
     @property
     def bare(self):
         return _format_jid(self._jid[0], self._jid[1])
-
 
     @resource.setter
     def resource(self, value):

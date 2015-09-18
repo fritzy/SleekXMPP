@@ -206,7 +206,7 @@ class XEP_0065(base_plugin):
             # Though this should not be neccessary remove the closed session anyway
             with self._sessions_lock:
                 if sid in self._sessions:
-                    log.warn(('SOCKS5 session with sid = "%s" was not ' + 
+                    log.warn(('SOCKS5 session with sid = "%s" was not ' +
                               'removed from _sessions by sock.close()') % sid)
                     del self._sessions[sid]
 
@@ -240,9 +240,9 @@ class XEP_0065(base_plugin):
         # The hostname MUST be SHA1(SID + Requester JID + Target JID)
         # where the output is hexadecimal-encoded (not binary).
         digest = sha1()
-        digest.update(sid)
-        digest.update(str(requester))
-        digest.update(str(target))
+        digest.update(sid.encode('utf-8'))
+        digest.update(str(requester).encode('utf-8'))
+        digest.update(str(target).encode('utf-8'))
 
         dest = digest.hexdigest()
 

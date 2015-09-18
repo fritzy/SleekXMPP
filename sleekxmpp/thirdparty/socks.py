@@ -28,6 +28,9 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMANGE.
 This module provides a standard socket-like interface for Python
 for tunneling connections through SOCKS proxies.
 
+"""
+
+"""
 
 Minor modifications made by Christopher Gilbert (http://motomastyle.com/)
 for use in PyLoris (http://pyloris.sourceforge.net/)
@@ -35,10 +38,13 @@ for use in PyLoris (http://pyloris.sourceforge.net/)
 Minor modifications made by Mario Vilas (http://breakingcode.wordpress.com/)
 mainly to merge bug fixes found in Sourceforge
 
+Minor modifications made by Eugene Dementiev (http://www.dementiev.eu/)
+
 """
 
 import socket
 import struct
+import sys
 
 PROXY_TYPE_SOCKS4 = 1
 PROXY_TYPE_SOCKS5 = 2
@@ -208,12 +214,12 @@ class socksocket(socket.socket):
             if self.__proxy[3]:
                 # Resolve remotely
                 ipaddr = None
-                req = req + chr(0x03).encode() + chr(len(destaddr)).encode() + destaddr
+                req = req + chr(0x03).encode() + chr(len(destaddr)).encode() + destaddr.encode()
             else:
                 # Resolve locally
                 ipaddr = socket.inet_aton(socket.gethostbyname(destaddr))
                 req = req + chr(0x01).encode() + ipaddr
-        req = req + struct.pack(">H", destport)
+        req += struct.pack(">H", destport)
         self.sendall(req)
         # Get the response
         resp = self.__recvall(4)
@@ -282,7 +288,7 @@ class socksocket(socket.socket):
         # The username parameter is considered userid for SOCKS4
         if self.__proxy[4] != None:
             req = req + self.__proxy[4]
-        req = req + chr(0x00).encode()
+        req += chr(0x00).encode()
         # DNS name if remote resolving is required
         # NOTE: This is actually an extension to the SOCKS4 protocol
         # called SOCKS4A and may not be supported in all cases.
@@ -323,7 +329,10 @@ class socksocket(socket.socket):
         # We read the response until we get the string "\r\n\r\n"
         resp = self.recv(1)
         while resp.find("\r\n\r\n".encode()) == -1:
-            resp = resp + self.recv(1)
+            recv = self.recv(1)
+            if not recv:
+                raise GeneralProxyError((1, _generalerrors[1]))
+            resp = resp + recv
         # We just need the first line to check if the connection
         # was successful
         statusline = resp.splitlines()[0].split(" ".encode(), 2)

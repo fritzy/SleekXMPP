@@ -397,6 +397,16 @@ class XEP_0045(BasePlugin):
             return None
         return self.rooms[room].keys()
 
+    def getUsersByAffiliation(cls, room, affiliation='member', ifrom=None):
+        if affiliation not in ('outcast', 'member', 'admin', 'owner', 'none'):
+            raise TypeError
+        query = ET.Element('{http://jabber.org/protocol/muc#admin}query')
+        item = ET.Element('{http://jabber.org/protocol/muc#admin}item', {'affiliation': affiliation})
+        query.append(item)
+        iq = cls.xmpp.Iq(sto=room, sfrom=ifrom, stype='get')
+        iq.append(query)
+        return iq.send()
+
 
 xep_0045 = XEP_0045
 register_plugin(XEP_0045)

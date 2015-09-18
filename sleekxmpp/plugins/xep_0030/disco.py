@@ -324,7 +324,7 @@ class XEP_0030(BasePlugin):
             callback -- Optional callback to execute when a reply is
                         received instead of blocking and waiting for
                         the reply.
-            timeout_callback -- Optional callback to execute when no result 
+            timeout_callback -- Optional callback to execute when no result
                         has been received in timeout seconds.
         """
         if local is None:
@@ -408,7 +408,7 @@ class XEP_0030(BasePlugin):
             iterator -- If True, return a result set iterator using
                         the XEP-0059 plugin, if the plugin is loaded.
                         Otherwise the parameter is ignored.
-            timeout_callback -- Optional callback to execute when no result 
+            timeout_callback -- Optional callback to execute when no result
                         has been received in timeout seconds.
         """
         if local or local is None and jid is None:
@@ -604,7 +604,7 @@ class XEP_0030(BasePlugin):
         """
         self.api['del_features'](jid, node, None, kwargs)
 
-    def _run_node_handler(self, htype, jid, node=None, ifrom=None, data={}):
+    def _run_node_handler(self, htype, jid, node=None, ifrom=None, data=None):
         """
         Execute the most specific node handler for the given
         JID/node combination.
@@ -615,6 +615,9 @@ class XEP_0030(BasePlugin):
             node  -- The node requested.
             data  -- Optional, custom data to pass to the handler.
         """
+        if not data:
+            data = {}
+
         return self.api[htype](jid, node, ifrom, data)
 
     def _handle_disco_info(self, iq):

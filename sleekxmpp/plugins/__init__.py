@@ -47,6 +47,7 @@ __all__ = [
     'xep_0108',  # User Activity
     'xep_0115',  # Entity Capabilities
     'xep_0118',  # User Tune
+    'xep_0122',  # Data Forms Validation
     'xep_0128',  # Extended Service Discovery
     'xep_0131',  # Standard Headers and Internet Metadata
     'xep_0133',  # Service Administration
@@ -83,4 +84,5 @@ __all__ = [
     'xep_0319',  # Last User Interaction in Presence
     'xep_0323',  # IoT Systems Sensor Data
     'xep_0325',  # IoT Systems Control
+    'xep_0332',  # HTTP Over XMPP Transport
 ]

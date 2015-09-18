@@ -63,7 +63,7 @@ class AvatarSetter(sleekxmpp.ClientXMPP):
 
         avatar_file = None
         try:
-            avatar_file = open(os.path.expanduser(self.filepath))
+            avatar_file = open(os.path.expanduser(self.filepath), 'rb')
         except IOError:
             print('Could not find file: %s' % self.filepath)
             return self.disconnect()

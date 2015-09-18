@@ -68,7 +68,7 @@ class RosterBrowser(sleekxmpp.ClientXMPP):
         try:
             self.get_roster()
         except IqError as err:
-            print('Error: %' % err.iq['error']['condition'])
+            print('Error: %s' % err.iq['error']['condition'])
         except IqTimeout:
             print('Error: Request timed out')
         self.send_presence()

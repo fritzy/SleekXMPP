@@ -11,8 +11,8 @@ class TestDataForms(SleekTest):
 
     def setUp(self):
         register_stanza_plugin(Message, xep_0004.Form)
-        register_stanza_plugin(xep_0004.Form, xep_0004.FormField)
-        register_stanza_plugin(xep_0004.FormField, xep_0004.FieldOption)
+        register_stanza_plugin(xep_0004.Form, xep_0004.FormField, iterable=True)
+        register_stanza_plugin(xep_0004.FormField, xep_0004.FieldOption, iterable=True)
 
     def testMultipleInstructions(self):
         """Testing using multiple instructions elements in a data form."""
@@ -68,7 +68,7 @@ class TestDataForms(SleekTest):
                                      'value': 'cool'},
                                     {'label': 'Urgh!',
                                      'value': 'urgh'}]}
-        form['fields'] = fields
+        form.set_fields(fields)
 
 
         self.check(msg, """
@@ -141,13 +141,13 @@ class TestDataForms(SleekTest):
                                      'value': 'cool'},
                                     {'label': 'Urgh!',
                                      'value': 'urgh'}]}
-        form['fields'] = fields
+        form.set_fields(fields)
 
         form['type'] = 'submit'
-        form['values'] = {'f1': 'username',
+        form.set_values({'f1': 'username',
                           'f2': 'hunter2',
                           'f3': 'A long\nmultiline\nmessage',
-                          'f4': 'cool'}
+                          'f4': 'cool'})
 
         self.check(form, """
           <x xmlns="jabber:x:data" type="submit">
@@ -189,12 +189,59 @@ class TestDataForms(SleekTest):
                                      'value': 'cool'},
                                     {'label': 'Urgh!',
                                      'value': 'urgh'}]}
-        form['fields'] = fields
+        form.set_fields(fields)
 
         form['type'] = 'cancel'
 
         self.check(form, """
           <x xmlns="jabber:x:data" type="cancel" />
+        """)
+
+    def testReported(self):
+        msg = self.Message()
+        form = msg['form']
+        form['type'] = 'result'
+
+        form.add_reported(var='f1', ftype='text-single', label='Username')
+
+        form.add_item({'f1': 'username@example.org'})
+
+        self.check(msg, """
+          <message>
+            <x xmlns="jabber:x:data" type="result">
+              <reported>
+                <field var="f1" type="text-single" label="Username" />
+              </reported>
+              <item>
+                <field var="f1">
+                  <value>username@example.org</value>
+                </field>
+              </item>
+            </x>
+          </message>
+        """)
+
+    def testSetReported(self):
+        msg = self.Message()
+        form = msg['form']
+        form['type'] = 'result'
+
+        reported = {'f1': {
+            'var': 'f1',
+            'type': 'text-single',
+            'label': 'Username'
+        }}
+
+        form.set_reported(reported)
+
+        self.check(msg, """
+          <message>
+            <x xmlns="jabber:x:data" type="result">
+              <reported>
+                <field var="f1" type="text-single" label="Username" />
+              </reported>
+            </x>
+          </message>
         """)
 
 

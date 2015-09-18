@@ -13,8 +13,9 @@ class FormField(ElementBase):
     namespace = 'jabber:x:data'
     name = 'field'
     plugin_attrib = 'field'
+    plugin_multi_attrib = 'fields'
     interfaces = set(('answer', 'desc', 'required', 'value',
-                      'options', 'label', 'type', 'var'))
+                      'label', 'type', 'var'))
     sub_interfaces = set(('desc',))
     plugin_tag_map = {}
     plugin_attrib_map = {}
@@ -165,6 +166,7 @@ class FieldOption(ElementBase):
     plugin_attrib = 'option'
     interfaces = set(('label', 'value'))
     sub_interfaces = set(('value',))
+    plugin_multi_attrib = 'options'
 
 
 FormField.addOption = FormField.add_option

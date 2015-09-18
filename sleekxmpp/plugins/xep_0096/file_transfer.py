@@ -47,6 +47,7 @@ class XEP_0096(BasePlugin):
         data['size'] = size
         data['date'] = date
         data['desc'] = desc
+        data['hash'] = hash
         if allow_ranged:
             data.enable('range')
 

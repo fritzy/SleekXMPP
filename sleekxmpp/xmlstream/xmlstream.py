@@ -464,7 +464,7 @@ class XMLStream(object):
         if self.reconnect_delay is None:
             delay = 1.0
             self.reconnect_delay = delay
-                                                 
+
         if reattempt:
             delay = min(self.reconnect_delay * 2, self.reconnect_max_delay)
             delay = random.normalvariate(delay, delay * 0.1)
@@ -839,8 +839,10 @@ class XMLStream(object):
         to be restarted.
         """
         log.info("Negotiating TLS")
-        ssl_versions = {3: 'TLS 1.0', 1: 'SSL 3', 2: 'SSL 2/3'}
-        log.info("Using SSL version: %s", ssl_versions[self.ssl_version])
+        log.info(
+            "Using SSL version: %s",
+            ssl.get_protocol_name(self.ssl_version).replace('PROTOCOL_', '', 1)
+        )
         if self.ca_certs is None:
             cert_policy = ssl.CERT_NONE
         else:

@@ -18,7 +18,7 @@ class OOBTransfer(ElementBase):
     namespace = 'jabber:iq:oob'
     plugin_attrib = 'oob_transfer'
     interfaces = set(('url', 'desc', 'sid'))
-    sub_interfaces = set(('url', 'desc'))
+    sub_interfaces = set(('url', 'desc', 'size'))
 
 
 class OOB(ElementBase):

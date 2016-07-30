@@ -161,6 +161,9 @@ class XEP_0045(BasePlugin):
         if pr['type'] == 'unavailable':
             if entry['nick'] in self.rooms[entry['room']]:
                 del self.rooms[entry['room']][entry['nick']]
+            if '{}/{}'.format(entry['room'], entry['nick']) == self.getOurJidInRoom(entry['room']):
+                log.debug("I got kicked :( from %s" % entry['room'])
+                del self.rooms[entry['room']]
             got_offline = True
         else:
             if entry['nick'] not in self.rooms[entry['room']]:

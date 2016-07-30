@@ -29,5 +29,5 @@ class OOB(ElementBase):
     name = 'x'
     namespace = 'jabber:x:oob'
     plugin_attrib = 'oob'
-    interfaces = set(('url', 'desc'))
+    interfaces = set(('url', 'desc', 'size'))
     sub_interfaces = interfaces

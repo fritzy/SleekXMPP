@@ -407,6 +407,31 @@ class XMLStream(object):
         """Return the current unique stream ID in hexadecimal form."""
         return "%s%X" % (self._id_prefix, self._id)
 
+    def _create_secure_socket(self):
+        log.info(
+            "Using SSL version: %s",
+            ssl.get_protocol_name(self.ssl_version).replace('PROTOCOL_', '', 1)
+        )
+
+        if self.ca_certs is None:
+            cert_policy = ssl.CERT_NONE
+        else:
+            cert_policy = ssl.CERT_REQUIRED
+
+        ssl_args = safedict({
+            'certfile': self.certfile,
+            'keyfile': self.keyfile,
+            'ca_certs': self.ca_certs,
+            'cert_reqs': cert_policy,
+            'do_handshake_on_connect': False,
+            "ssl_version": self.ssl_version
+        })
+
+        if sys.version_info >= (2, 7):
+            ssl_args['ciphers'] = self.ciphers
+
+        return = ssl.wrap_socket(self.socket, **ssl_args)
+
     def connect(self, host='', port=0, use_ssl=False,
                 use_tls=True, reattempt=True):
         """Create a new socket and connect to the server.
@@ -516,25 +541,7 @@ class XMLStream(object):
 
         if self.use_ssl:
             log.debug("Socket Wrapped for SSL")
-            if self.ca_certs is None:
-                cert_policy = ssl.CERT_NONE
-            else:
-                cert_policy = ssl.CERT_REQUIRED
-
-            ssl_args = safedict({
-                'certfile': self.certfile,
-                'keyfile': self.keyfile,
-                'ca_certs': self.ca_certs,
-                'cert_reqs': cert_policy,
-                'do_handshake_on_connect': False,
-                "ssl_version": self.ssl_version
-            })
-
-            if sys.version_info >= (2, 7):
-                ssl_args['ciphers'] = self.ciphers
-
-            ssl_socket = ssl.wrap_socket(self.socket, **ssl_args)
-
+            ssl_socket = self._create_secure_socket()
             if hasattr(self.socket, 'socket'):
                 # We are using a testing socket, so preserve the top
                 # layer of wrapping.
@@ -839,29 +846,7 @@ class XMLStream(object):
         to be restarted.
         """
         log.info("Negotiating TLS")
-        log.info(
-            "Using SSL version: %s",
-            ssl.get_protocol_name(self.ssl_version).replace('PROTOCOL_', '', 1)
-        )
-        if self.ca_certs is None:
-            cert_policy = ssl.CERT_NONE
-        else:
-            cert_policy = ssl.CERT_REQUIRED
-
-        ssl_args = safedict({
-            'certfile': self.certfile,
-            'keyfile': self.keyfile,
-            'ca_certs': self.ca_certs,
-            'cert_reqs': cert_policy,
-            'do_handshake_on_connect': False,
-            "ssl_version": self.ssl_version
-        })
-
-        if sys.version_info >= (2, 7):
-            ssl_args['ciphers'] = self.ciphers
-
-        ssl_socket = ssl.wrap_socket(self.socket, **ssl_args)
-
+        ssl_socket = self._create_secure_socket()
         if hasattr(self.socket, 'socket'):
             # We are using a testing socket, so preserve the top
             # layer of wrapping.

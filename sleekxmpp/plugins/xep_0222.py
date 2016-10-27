@@ -28,7 +28,8 @@ class XEP_0222(BasePlugin):
     profile = {'pubsub#persist_items': True,
                'pubsub#send_last_published_item': 'never'}
 
-    def configure(self, node):
+    def configure(self, node, ifrom=None, block=None, callback=None,
+                  timeout=None):
         """
         Update a node's configuration to match the public storage profile.
         """

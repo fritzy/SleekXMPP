@@ -37,7 +37,8 @@ class XEP_0078(BasePlugin):
     dependencies = set()
     stanza = stanza
     default_config = {
-        'order': 15
+        'order': 15,
+        'force_plain': False,
     }
 
     def plugin_init(self):
@@ -103,7 +104,10 @@ class XEP_0078(BasePlugin):
 
         iq['auth']['resource'] = resource
 
-        if 'digest' in resp['auth']['fields']:
+        if not 'digest' in resp['auth']['fields'] or self.force_plain:
+            log.warning('Authenticating via jabber:iq:auth Plain.')
+            iq['auth']['password'] = self.xmpp.password
+        else:
             log.debug('Authenticating via jabber:iq:auth Digest')
             if sys.version_info < (3, 0):
                 stream_id = bytes(self.xmpp.stream_id)
@@ -112,11 +116,8 @@ class XEP_0078(BasePlugin):
                 stream_id = bytes(self.xmpp.stream_id, encoding='utf-8')
                 password = bytes(self.xmpp.password, encoding='utf-8')
 
-            digest = hashlib.sha1(b'%s%s' % (stream_id, password)).hexdigest()
+            digest = hashlib.sha1(stream_id + password).hexdigest()
             iq['auth']['digest'] = digest
-        else:
-            log.warning('Authenticating via jabber:iq:auth Plain.')
-            iq['auth']['password'] = self.xmpp.password
 
         # Step 3: Send credentials
         try:

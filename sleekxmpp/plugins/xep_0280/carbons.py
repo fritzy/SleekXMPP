@@ -61,10 +61,12 @@ class XEP_0280(BasePlugin):
         self.xmpp.plugin['xep_0030'].add_feature('urn:xmpp:carbons:2')
 
     def _handle_carbon_received(self, msg):
-        self.xmpp.event('carbon_received', msg)
+        if msg['from'].bare == self.xmpp.boundjid.bare:
+            self.xmpp.event('carbon_received', msg)
 
     def _handle_carbon_sent(self, msg):
-        self.xmpp.event('carbon_sent', msg)
+        if msg['from'].bare == self.xmpp.boundjid.bare:
+            self.xmpp.event('carbon_sent', msg)
 
     def enable(self, ifrom=None, block=True, timeout=None, callback=None):
         iq = self.xmpp.Iq()

@@ -3,7 +3,8 @@
 
 """
     SleekXMPP: The Sleek XMPP Library
-    Copyright (C) 2010  Nathanael C. Fritz
+    Copyright (C) 2010  Nathanael C. Fritz,
+                  2017  Mario Hock
     This file is part of SleekXMPP.
 
     See the file LICENSE for copying permission.
@@ -64,6 +65,50 @@ class EchoBot(sleekxmpp.ClientXMPP):
         """
         self.send_presence()
         self.get_roster()
+        
+        
+        print("Start MAM")
+        ret = self["xep_0313"].get_preferences()
+        print( "Archiving default is: ", ret["mam_prefs"]["default"] )
+        #self["xep_0313"].set_preferences(default="always", block=True)
+
+        ## async non-blocking
+        #answer = self["xep_0313"].retrieve(callback=self.__handle_mam_result)
+        
+        ## blocking
+        answer = self["xep_0313"].retrieve(callback=None, 
+                                           #start="2017-06-05T12:00:00+00:00",
+                                           #end="2017-06-05T23:59:59+00:00",
+                                           number_of_queried_elements=1,
+                                           collect_all=True)
+        
+        ## If no callback is used, the handler function is called here to display the results.
+        self.__handle_mam_result(answer)
+        
+        ## Note that a blocking call will finish before this,
+        #  an async call will finish after this.
+        print("End MAM")
+        
+        
+    def __handle_mam_result(self, response):
+        print( "Answer for query {}".format(response['mam_answer']['queryid']) )
+        print( "  - answer is: {}".format("complete" if response["mam_answer"]["complete"] else "incomplete") )
+        print( "  - last message is: {}".format(response["mam_answer"]["rsm"]["last"]) )
+        
+        result = response['mam_answer']['results']
+        
+        for x in result:
+            msg = x["mam_result"]["forwarded"]["message"]
+            delay = x["mam_result"]["forwarded"]["delay"]
+            if ( msg["body"] ):
+                print("==========")
+                print( "From:", msg["from"] )
+                print( "Time:", delay["stamp"] )
+                print( "--------" )
+                print( msg["body"] )
+                print( "--------" )
+                print()
+
 
     def message(self, msg):
         """
@@ -121,6 +166,9 @@ if __name__ == '__main__':
     xmpp.register_plugin('xep_0004') # Data Forms
     xmpp.register_plugin('xep_0060') # PubSub
     xmpp.register_plugin('xep_0199') # XMPP Ping
+    xmpp.register_plugin("xep_0313") # MAM
+    xmpp.register_plugin("xep_0004") # Data Form (required by xep_0313)
+
 
     # If you are connecting to Facebook and wish to use the
     # X-FACEBOOK-PLATFORM authentication mechanism, you will need
@@ -155,3 +203,4 @@ if __name__ == '__main__':
         print("Done")
     else:
         print("Unable to connect.")
+

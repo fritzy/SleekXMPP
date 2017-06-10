@@ -106,3 +106,9 @@ class Set(ElementBase):
             return b.text
         else:
             return None
+
+    def get_max(self):
+        return int(self._get_attr('max'))
+    
+    def set_max(self, value):
+        self._set_attr('max', str(value))

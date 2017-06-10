@@ -1,7 +1,7 @@
 """
     SleekXMPP: The Sleek XMPP Library
     Copyright (C) 2012 Nathanael C. Fritz, Lance J.T. Stout,
-                  2017 Mario Hock
+    Copyright (C) 2017 Mario Hock
     This file is part of SleekXMPP.
 
     See the file LICENSE for copying permission.
@@ -25,23 +25,20 @@ class MAM(ElementBase):
         ElementBase.setup(self, xml)
         self._results = []
         self._limiting_results_form = None
-        
+
     def _get_limiting_results_form(self):
-        if ( not self._limiting_results_form ):
+        if not self._limiting_results_form:
             ## FIXME, how to load such a plugin propperly??
             form = xep_0004.XEP_0004(None).make_form(ftype="submit") 
             form.add_field(var="FORM_TYPE", ftype="hidden", value="urn:xmpp:mam:2")
             self.append(form)
             self._limiting_results_form = form
-            
+
         return self._limiting_results_form
 
 
 
     def get_start(self):
-        #timestamp = self._get_sub_text('start')
-        #return xep_0082.parse(timestamp)
-
         raise Exception("not implemented")
         return None
 
@@ -49,13 +46,12 @@ class MAM(ElementBase):
     def set_start(self, value):
         if isinstance(value, dt.datetime):
             value = xep_0082.format_datetime(value)
-            
-        self._get_limiting_results_form().add_field(var="start", ftype="text-single", value=value)
-        
+
+        self._get_limiting_results_form().add_field(
+            var="start", ftype="text-single", value=value)
+
 
     def get_end(self):
-        #timestamp = self._get_sub_text('end')
-        #return xep_0082.parse(timestamp)
         raise Exception("not implemented")
         return None
 
@@ -63,20 +59,19 @@ class MAM(ElementBase):
     def set_end(self, value):
         if isinstance(value, dt.datetime):
             value = xep_0082.format_datetime(value)
-        
-        self._get_limiting_results_form().add_field(var="end", ftype="text-single", value=value)
 
+        self._get_limiting_results_form().add_field(
+            var="end", ftype="text-single", value=value)
 
     def get_with(self):
-        #return JID(self._get_sub_text('with'))
         raise Exception("not implemented")
         return None
 
-    ## FIXME, seems that _no_ messages are returned at all, if this is set
+    # FIXME, seems that _no_ messages are returned at all, if this is set,
+    # though, the generated XML looks fine..
     def set_with(self, value):
-        self._get_limiting_results_form().add_field(var="with", ftype="jid-single", value=str(value))
-
-
+        self._get_limiting_results_form().add_field(
+            var="with", ftype="jid-single", value=str(value))
 
 
 class Preferences(ElementBase):

@@ -80,6 +80,12 @@ class Archive_Query:
                 complete = self.__check_completeness(response)
 
             response['mam_answer']['results'] = self.__get_results()
+            
+            # usually callbacks are only used when non-blocking, but.. who knows
+            if self._callback_ptr:
+                self._callback_ptr(response)
+                self._callback_ptr = None
+            
             return response
 
         except XMPPError as e:
@@ -110,7 +116,8 @@ class Archive_Query:
             response['mam_answer']['results'] = self.__get_results()
 
             # * callback to application *
-            self._callback_ptr(response)
+            if self._callback_ptr:
+                self._callback_ptr(response)
             self._callback_ptr = None
 
             self._cleanup_callback(self)
@@ -179,7 +186,8 @@ class XEP_0313(BasePlugin):
 
     def retrieve(
         self, start=None, end=None, with_jid=None, continue_after=None,
-                 number_of_queried_elements=None, collect_all=True, timeout=None, callback=None):
+                 number_of_queried_elements=None, collect_all=True, 
+                 block=True, timeout=None, callback=None):
 
         query = Archive_Query(
             self.xmpp,
@@ -196,7 +204,7 @@ class XEP_0313(BasePlugin):
         self._open_queries[query_id] = query
 
         # Synchronous, blocking (no callback)
-        if not callback:
+        if block:
             result = query.run_blocking()
             del self._open_queries[query_id]
 

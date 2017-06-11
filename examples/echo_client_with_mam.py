@@ -73,10 +73,10 @@ class EchoBot(sleekxmpp.ClientXMPP):
         # self["xep_0313"].set_preferences(default="always", block=True)
 
         # async non-blocking
-        # answer = self["xep_0313"].retrieve(callback=self.__handle_mam_result)
+        # answer = self["xep_0313"].retrieve(block=False, callback=self.__handle_mam_result)
 
         # blocking
-        answer = self["xep_0313"].retrieve(callback=None,
+        answer = self["xep_0313"].retrieve(block=True, callback=None,
                                            # start="2017-06-05T12:00:00+00:00",
                                            # end="2017-06-05T23:59:59+00:00",
                                            number_of_queried_elements=1,

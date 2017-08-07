@@ -36,7 +36,7 @@ class URI(ElementBase):
         self.xml.text = value
 
     def del_value(self):
-        sel.xml.text = ''
+        self.xml.text = ''
 
 
 register_stanza_plugin(Media, URI, iterable=True)

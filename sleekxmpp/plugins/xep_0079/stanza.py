@@ -8,6 +8,7 @@
 
 from __future__ import unicode_literals
 
+from sleekxmpp import JID
 from sleekxmpp.xmlstream import ElementBase, register_stanza_plugin
 
 

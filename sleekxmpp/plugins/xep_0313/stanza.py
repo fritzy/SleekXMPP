@@ -1,70 +1,82 @@
 """
     SleekXMPP: The Sleek XMPP Library
-    Copyright (C) 2012 Nathanael C. Fritz, Lance J.T. Stout
+    Copyright (C) 2012 Nathanael C. Fritz, Lance J.T. Stout,
+    Copyright (C) 2017 Mario Hock
     This file is part of SleekXMPP.
 
-    See the file LICENSE for copying permissio
+    See the file LICENSE for copying permission.
 """
 
 import datetime as dt
 
 from sleekxmpp.jid import JID
 from sleekxmpp.xmlstream import ElementBase, ET
-from sleekxmpp.plugins import xep_0082
+from sleekxmpp.plugins import xep_0082, xep_0004
 
 
 class MAM(ElementBase):
     name = 'query'
-    namespace = 'urn:xmpp:mam:tmp'
+    namespace = 'urn:xmpp:mam:2'
     plugin_attrib = 'mam'
-    interfaces = set(['queryid', 'start', 'end', 'with', 'results'])
+    interfaces = set(['queryid', 'start', 'end', 'with'])
     sub_interfaces = set(['start', 'end', 'with'])
 
     def setup(self, xml=None):
         ElementBase.setup(self, xml)
         self._results = []
+        self._limiting_results_form = None
+
+    def _get_limiting_results_form(self):
+        if not self._limiting_results_form:
+            ## FIXME, how to load such a plugin propperly??
+            form = xep_0004.XEP_0004(None).make_form(ftype="submit") 
+            form.add_field(var="FORM_TYPE", ftype="hidden", value="urn:xmpp:mam:2")
+            self.append(form)
+            self._limiting_results_form = form
+
+        return self._limiting_results_form
+
+
 
     def get_start(self):
-        timestamp = self._get_sub_text('start')
-        return xep_0082.parse(timestamp)
+        raise Exception("not implemented")
+        return None
+
 
     def set_start(self, value):
         if isinstance(value, dt.datetime):
             value = xep_0082.format_datetime(value)
-        self._set_sub_text('start', value)
+
+        self._get_limiting_results_form().add_field(
+            var="start", ftype="text-single", value=value)
+
 
     def get_end(self):
-        timestamp = self._get_sub_text('end')
-        return xep_0082.parse(timestamp)
+        raise Exception("not implemented")
+        return None
+
 
     def set_end(self, value):
         if isinstance(value, dt.datetime):
             value = xep_0082.format_datetime(value)
-        self._set_sub_text('end', value)
+
+        self._get_limiting_results_form().add_field(
+            var="end", ftype="text-single", value=value)
 
     def get_with(self):
-        return JID(self._get_sub_text('with'))
+        raise Exception("not implemented")
+        return None
 
+    # FIXME, seems that _no_ messages are returned at all, if this is set,
+    # though, the generated XML looks fine..
     def set_with(self, value):
-        self._set_sub_text('with', str(value))
-
-    # The results interface is meant only as an easy
-    # way to access the set of collected message responses
-    # from the query.
-
-    def get_results(self):
-        return self._results
-
-    def set_results(self, values):
-        self._results = values
-
-    def del_results(self):
-        self._results = []
+        self._get_limiting_results_form().add_field(
+            var="with", ftype="jid-single", value=str(value))
 
 
 class Preferences(ElementBase):
     name = 'prefs'
-    namespace = 'urn:xmpp:mam:tmp'
+    namespace = 'urn:xmpp:mam:2'
     plugin_attrib = 'mam_prefs'
     interfaces = set(['default', 'always', 'never'])
     sub_interfaces = set(['always', 'never'])
@@ -120,20 +132,28 @@ class Preferences(ElementBase):
 
 class Result(ElementBase):
     name = 'result'
-    namespace = 'urn:xmpp:mam:tmp'
+    namespace = 'urn:xmpp:mam:2'
     plugin_attrib = 'mam_result'
     interfaces = set(['queryid', 'id'])
 
 
-class Archived(ElementBase):
-    name = 'archived'
-    namespace = 'urn:xmpp:mam:tmp'
-    plugin_attrib = 'mam_archived'
-    plugin_multi_attrib = 'mam_archives'
-    interfaces = set(['by', 'id'])
 
-    def get_by(self):
-        return JID(self._get_attr('by'))
+class MAM_Fin(ElementBase):
+    name = 'fin'
+    namespace = 'urn:xmpp:mam:2'
+    plugin_attrib = 'mam_answer'
+    interfaces = set(['queryid', 'complete', 'results'])
 
-    def set_by(self):
-        return self._set_attr('by', str(value))
+
+    # The results interface is meant only as an easy
+    # way to access the set of collected message responses
+    # from the query.
+    def get_results(self):
+        return self._results
+
+    def set_results(self, values):
+        self._results = values
+
+    def del_results(self):
+        self._results = []
+

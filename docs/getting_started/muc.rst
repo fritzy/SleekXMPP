@@ -1,7 +1,7 @@
 .. _mucbot:
 
 =========================
-Mulit-User Chat (MUC) Bot
+Multi-User Chat (MUC) Bot
 =========================
 
 .. note::

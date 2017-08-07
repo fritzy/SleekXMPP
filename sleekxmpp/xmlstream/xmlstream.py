@@ -116,13 +116,21 @@ class XMLStream(object):
 
     def __init__(self, socket=None, host='', port=0, certfile=None,
                  keyfile=None, ca_certs=None, **kwargs):
-        #: Most XMPP servers support TLSv1, but OpenFire in particular
-        #: does not work well with it. For OpenFire, set
-        #: :attr:`ssl_version` to use ``SSLv23``::
+        #: Default ssl_version is ``PROTOCOL_SSLv23``, but despite the name,
+        #: ``PROTOCOL_SSLv23`` means to enable all possible SSL/TLS versions.
+        #: In addition, SSLv2 & SSLv3 is insecure, we have explictly disabled
+        #: them during the connections, which is considered as the best practice.
+        #: Thus, ironically, ``PROTOCOL_SSLv23`` enables everything except SSLv2/3.
         #:
-        #:     import ssl
-        #:     xmpp.ssl_version = ssl.PROTOCOL_SSLv23
-        self.ssl_version = ssl.PROTOCOL_TLSv1
+        #: .. note::
+        #:
+        #:     Most XMPP servers support TLSv1 or newer, however, if you really have to
+        #:     connect to systems with insecure SSLv3, you may set :attr:`ssl_version`
+        #:     as ``ssl.PROTOCOL_SSLv3``. Other values are ignored by current implementation.
+        #:
+        #:         import ssl
+        #:         xmpp.ssl_version = ssl.PROTOCOL_SSLv3
+        self.ssl_version = ssl.PROTOCOL_SSLv23
 
         #: The list of accepted ciphers, in OpenSSL Format.
         #: It might be useful to override it for improved security
@@ -407,6 +415,114 @@ class XMLStream(object):
         """Return the current unique stream ID in hexadecimal form."""
         return "%s%X" % (self._id_prefix, self._id)
 
+    def _create_secure_socket(self):
+        _CIPHERS_SSL = (
+            'ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+HIGH:'
+            'DH+HIGH:ECDH+3DES:DH+3DES:RSA+AESGCM:RSA+AES:RSA+HIGH:RSA+3DES:!aNULL:'
+            '!eNULL:!MD5'
+        )
+
+        # 3DES is vulnerable to Sweet32 attack, thus it is not used in TLS connections,
+        # however, for SSL connections, it is the only usable cipher for some programs.
+        _CIPHERS_TLS = (
+            'ECDH+AESGCM:ECDH+CHACHA20:DH+AESGCM:DH+CHACHA20:ECDH+AES256:DH+AES256:'
+            'ECDH+AES128:DH+AES:ECDH+HIGH:DH+HIGH:RSA+AESGCM:RSA+AES:RSA+HIGH:'
+            '!aNULL:!eNULL:!MD5:!3DES'
+        )
+
+        log.info(
+            "Using SSL/TLS version: %s",
+            ssl.get_protocol_name(self.ssl_version).replace('PROTOCOL_', '', 1)
+        )
+        if self.ssl_version == ssl.PROTOCOL_SSLv23:
+            log.info(
+                "Note: SSLv23 doesn't mean SSLv2 and SSLv3, but means all "
+                "supported versions, actually TLSv1.0+, since SSLv2 and "
+                "SSLv3 is disabled."
+            )
+
+        if self.ca_certs is None:
+            cert_policy = ssl.CERT_NONE
+        else:
+            cert_policy = ssl.CERT_REQUIRED
+
+        ssl_args = safedict({
+            'certfile': self.certfile,
+            'keyfile': self.keyfile,
+            'ca_certs': self.ca_certs,
+            'cert_reqs': cert_policy,
+            'do_handshake_on_connect': False,
+        })
+
+        if sys.version_info > (3,):
+            if sys.version_info >= (3, 4):
+                # Good, create_default_context() is supported, which consists
+                # recommended security settings by default.
+                ctx = ssl.create_default_context()
+                if self.ssl_version == ssl.PROTOCOL_SSLv3:
+                    # But if the user specifies insecure SSLv3, do a favor.
+                    ctx.options &= ~ssl.OP_NO_SSLv3  # UNSET NO_SSLv3, or set SSLv3
+                    ctx.set_ciphers(_CIPHERS_SSL)  # _CIPHERS_SSL is weaker
+
+                # XXX: certificate is not verified in most circumstances.
+                # FIXME: need to provide a new option that verifies against system CAs.
+                if cert_policy == ssl.CERT_NONE:
+                    ctx.check_hostname = False
+                    ctx.verify_mode = ssl.CERT_NONE
+                elif cert_policy == ssl.CERT_REQUIRED:
+                    ctx.load_verify_locations(cafile=self.ca_certs)
+            else:
+                # Oops, create_default_context() is not supported.
+                if self.ssl_version == ssl.PROTOCOL_SSLv3:
+                    # First, if the user specifies insecure SSLv3, do a favor.
+                    ctx = ssl.SSLContext(ssl.PROTOCOL_SSLv3)
+                    ctx.set_ciphers(_CIPHERS_SSL)
+                else:
+                    # Or, set the version to TLSv1 (later is not supported),
+                    # and set a list of good ciphers.
+                    ctx = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
+                    ctx.set_ciphers(_CIPHERS_TLS)
+                # And in both case, CRIME attack needs to be prevented.
+                if sys.version_info >= (3, 3):
+                    ctx.options &= ssl.OP_NO_COMPRESSION
+
+                # Verify the certificate.
+                if cert_policy == ssl.CERT_NONE:
+                    ctx.check_hostname = False
+                    ctx.verify_mode = ssl.CERT_NONE
+                elif cert_policy == ssl.CERT_REQUIRED:
+                    ctx.check_hostname = True
+                    ctx.verify_mode = ssl.CERT_REQUIRED
+                    ctx.load_verify_locations(cafile=self.ca_certs)
+        elif sys.version_info >= (2, 7, 9):
+            # Good, create_default_context() is supported, do the same as Python 3.4.
+            ctx = ssl.create_default_context()
+            if self.ssl_version == ssl.PROTOCOL_SSLv3:
+                # If the user specifies insecure SSLv3, do a favor.
+                ctx.options &= ~ssl.OP_NO_SSLv3
+                ctx.set_ciphers(_CIPHERS_SSL)
+            if cert_policy == ssl.CERT_NONE:
+                # XXX: certificate is not verified!
+                ctx.check_hostname = False
+                ctx.verify_mode = ssl.CERT_NONE
+            elif cert_policy == ssl.CERT_REQUIRED:
+                ctx.load_verify_locations(cafile=self.ca_certs)
+        else:
+            if self.ssl_version == ssl.PROTOCOL_SSLv3:
+                ssl_args['ssl_version'] = ssl.PROTOCOL_SSLv3
+            else:
+                ssl_args['ssl_version'] = ssl.PROTOCOL_TLSv1
+            ctx = None
+
+        if ctx:
+            if self.ciphers:
+                ctx.set_ciphers(self.ciphers)
+            return ctx.wrap_socket(self.socket, do_handshake_on_connect=False)
+        else:
+            if self.ciphers and sys.version_info >= (2, 7):
+                ssl_args['ciphers'] = self.ciphers
+            return ssl.wrap_socket(self.socket, **ssl_args)
+
     def connect(self, host='', port=0, use_ssl=False,
                 use_tls=True, reattempt=True):
         """Create a new socket and connect to the server.
@@ -516,25 +632,7 @@ class XMLStream(object):
 
         if self.use_ssl:
             log.debug("Socket Wrapped for SSL")
-            if self.ca_certs is None:
-                cert_policy = ssl.CERT_NONE
-            else:
-                cert_policy = ssl.CERT_REQUIRED
-
-            ssl_args = safedict({
-                'certfile': self.certfile,
-                'keyfile': self.keyfile,
-                'ca_certs': self.ca_certs,
-                'cert_reqs': cert_policy,
-                'do_handshake_on_connect': False,
-                "ssl_version": self.ssl_version
-            })
-
-            if sys.version_info >= (2, 7):
-                ssl_args['ciphers'] = self.ciphers
-
-            ssl_socket = ssl.wrap_socket(self.socket, **ssl_args)
-
+            ssl_socket = self._create_secure_socket()
             if hasattr(self.socket, 'socket'):
                 # We are using a testing socket, so preserve the top
                 # layer of wrapping.
@@ -839,29 +937,7 @@ class XMLStream(object):
         to be restarted.
         """
         log.info("Negotiating TLS")
-        log.info(
-            "Using SSL version: %s",
-            ssl.get_protocol_name(self.ssl_version).replace('PROTOCOL_', '', 1)
-        )
-        if self.ca_certs is None:
-            cert_policy = ssl.CERT_NONE
-        else:
-            cert_policy = ssl.CERT_REQUIRED
-
-        ssl_args = safedict({
-            'certfile': self.certfile,
-            'keyfile': self.keyfile,
-            'ca_certs': self.ca_certs,
-            'cert_reqs': cert_policy,
-            'do_handshake_on_connect': False,
-            "ssl_version": self.ssl_version
-        })
-
-        if sys.version_info >= (2, 7):
-            ssl_args['ciphers'] = self.ciphers
-
-        ssl_socket = ssl.wrap_socket(self.socket, **ssl_args)
-
+        ssl_socket = self._create_secure_socket()
         if hasattr(self.socket, 'socket'):
             # We are using a testing socket, so preserve the top
             # layer of wrapping.

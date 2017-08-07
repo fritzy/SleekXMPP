@@ -159,6 +159,7 @@ Plugin Guides
 .. toctree:: 
     :maxdepth: 1
 
+    guide_xep_0027
     guide_xep_0030
 
 SleekXMPP Architecture and Design

@@ -233,9 +233,12 @@ class RosterNode(object):
         Arguments:
             jid -- The JID to remove.
         """
-        self[jid].remove()
-        if not self.xmpp.is_component:
-            return self.update(jid, subscription='remove')
+        try:
+            self[jid].remove()
+        # Try to delete with subscription remove either way
+        finally:
+            if not self.xmpp.is_component:
+                return self.update(jid, subscription='remove')
 
     def update(self, jid, name=None, subscription=None, groups=None, block=True, timeout=None, callback=None):
         """

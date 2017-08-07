@@ -10,7 +10,7 @@ import logging
 import time
 
 from sleekxmpp import Iq
-from sleekxmpp.exceptions import IqError
+from sleekxmpp.exceptions import IqError, XMPPError
 from sleekxmpp.xmlstream.handler import Callback
 from sleekxmpp.xmlstream.matcher import StanzaPath
 from sleekxmpp.xmlstream import register_stanza_plugin, JID

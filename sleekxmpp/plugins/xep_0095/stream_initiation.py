@@ -135,7 +135,7 @@ class XEP_0095(BasePlugin):
         if sid is None:
             sid = uuid4().hex
         if methods is None:
-            methods = list(self._methods.keys())
+            methods = map(lambda x:{'value':x},list(self._methods.keys()))
         if not isinstance(methods, (list, tuple, set)):
             methods = [methods]
 

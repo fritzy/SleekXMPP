@@ -108,19 +108,11 @@ def extract_dates(raw_cert):
 
     not_before = validity.getComponentByName('notBefore')
     not_before = str(not_before.getComponent())
+    not_before = datetime.strptime(not_before, '%Y%m%d%H%M%SZ')
 
     not_after = validity.getComponentByName('notAfter')
     not_after = str(not_after.getComponent())
-
-    if isinstance(not_before, GeneralizedTime):
-        not_before = datetime.strptime(not_before, '%Y%m%d%H%M%SZ')
-    else:
-        not_before = datetime.strptime(not_before, '%y%m%d%H%M%SZ')
-
-    if isinstance(not_after, GeneralizedTime):
-        not_after = datetime.strptime(not_after, '%Y%m%d%H%M%SZ')
-    else:
-        not_after = datetime.strptime(not_after, '%y%m%d%H%M%SZ')
+    not_after = datetime.strptime(not_after, '%Y%m%d%H%M%SZ')
 
     return not_before, not_after
 

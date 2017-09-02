@@ -148,7 +148,7 @@ setup(
     description      = DESCRIPTION,
     long_description = LONG_DESCRIPTION,
     author       = 'Nathanael Fritz',
-    author_email = 'fritzy [at] netflint.net',
+    author_email = 'fritzy@netflint.net',
     url          = 'http://github.com/fritzy/SleekXMPP',
     license      = 'MIT',
     platforms    = [ 'any' ],

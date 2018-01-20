@@ -6,7 +6,8 @@
     See the file LICENSE for copying permission.
 """
 
-from sleekxmpp.thirdparty import OrderedDict
+from collections import OrderedDict
+
 from sleekxmpp.xmlstream import StanzaBase
 
 

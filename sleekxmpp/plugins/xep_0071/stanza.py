@@ -6,9 +6,10 @@
     See the file LICENSE for copying permission.
 """
 
+from collections import OrderedDict
+
 from sleekxmpp.stanza import Message
 from sleekxmpp.util import unicode
-from sleekxmpp.thirdparty import OrderedDict
 from sleekxmpp.xmlstream import ElementBase, ET, register_stanza_plugin, tostring
 
 

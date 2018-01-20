@@ -1,7 +1,7 @@
 import unittest
+from collections import OrderedDict
 from sleekxmpp.test import SleekTest
 from sleekxmpp.xmlstream.stanzabase import ElementBase, register_stanza_plugin, ET
-from sleekxmpp.thirdparty import OrderedDict
 
 
 class TestElementBase(SleekTest):

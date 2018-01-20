@@ -13,7 +13,7 @@ hides namespaces when able and does not introduce excessive namespace
 prefixes::
 
     >>> from sleekxmpp.xmlstream.tostring import tostring
-    >>> from xml.etree import cElementTree as ET
+    >>> from xml.etree import ElementTree as ET
     >>> xml = ET.fromstring('<foo xmlns="bar"><baz /></foo>')
     >>> ET.tostring(xml)
     '<ns0:foo xmlns:ns0="bar"><ns0:baz /></foo>'

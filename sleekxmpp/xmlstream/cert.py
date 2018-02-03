@@ -5,8 +5,23 @@ from datetime import datetime, timedelta
 # prevent thread safety issues.
 datetime.strptime('1970-01-01 12:00:00', "%Y-%m-%d %H:%M:%S")
 
+try:
+    from packaging import version
+
+    def check_version(ver1, ver2):
+        return version.parse(ver1) <= version.parse(ver2)
+
+except ImportError:
+    from distutils.version import LooseVersion, StrictVersion
+
+    def check_version(ver1, ver2):
+        try:
+            return StrictVersion(ver1) <= StrictVersion(ver2)
+        except ValueError:
+            return LooseVersion(ver1) <= LooseVersion(ver1)
 
 try:
+    from pyasn1 import __version__ as pyasn1_version
     from pyasn1.codec.der import decoder, encoder
     from pyasn1.type.univ import Any, ObjectIdentifier, OctetString
     from pyasn1.type.char import BMPString, IA5String, UTF8String
@@ -19,11 +34,11 @@ try:
 
     XMPP_ADDR = ObjectIdentifier('1.3.6.1.5.5.7.8.5')
     SRV_NAME = ObjectIdentifier('1.3.6.1.5.5.7.8.7')
-
     HAVE_PYASN1 = True
+    HAVE_PYASN1_4 = check_version('0.4.1', pyasn1_version)
 except ImportError:
     HAVE_PYASN1 = False
-
+    HAVE_PYASN1_4 = False
 
 log = logging.getLogger(__name__)
 
@@ -69,8 +84,14 @@ def extract_names(raw_cert):
         if oid != SUBJECT_ALT_NAME:
             continue
 
-        value = decoder.decode(extension.getComponentByName('extnValue'),
-                               asn1Spec=OctetString())[0]
+        if HAVE_PYASN1_4:
+            value = extension.getComponentByName('extnValue')
+        else:
+            value = decoder.decode(
+                extension.getComponentByName('extnValue'),
+                asn1Spec=OctetString()
+            )[0]
+
         sa_names = decoder.decode(value, asn1Spec=SubjectAltName())[0]
         for name in sa_names:
             name_type = name.getName()
@@ -108,11 +129,16 @@ def extract_dates(raw_cert):
 
     not_before = validity.getComponentByName('notBefore')
     not_before = str(not_before.getComponent())
-    not_before = datetime.strptime(not_before, '%Y%m%d%H%M%SZ')
 
     not_after = validity.getComponentByName('notAfter')
     not_after = str(not_after.getComponent())
-    not_after = datetime.strptime(not_after, '%Y%m%d%H%M%SZ')
+
+    if HAVE_PYASN1_4:
+        not_before = datetime.strptime(not_before, '%y%m%d%H%M%SZ')
+        not_after = datetime.strptime(not_after, '%y%m%d%H%M%SZ')
+    else:
+        not_before = datetime.strptime(not_before, '%Y%m%d%H%M%SZ')
+        not_after = datetime.strptime(not_after, '%Y%m%d%H%M%SZ')
 
     return not_before, not_after
 

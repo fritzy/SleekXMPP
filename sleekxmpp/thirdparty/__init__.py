@@ -1,7 +1,4 @@
-try:
-    from collections import OrderedDict
-except:
-    from sleekxmpp.thirdparty.ordereddict import OrderedDict
+from collections import OrderedDict
 
 try:
     from gnupg import GPG

@@ -62,7 +62,7 @@ To get started, here is a brief outline of the structure that the final project 
 Default Encoding
 ----------------
 XMPP requires support for UTF-8 and so SleekXMPP must use UTF-8 as well. In
-Python3 this is simple because Unicode is the default string type. For Python2.6+
+Python3 this is simple because Unicode is the default string type. For Python2.7
 the situation is not as easy because standard strings are simply byte arrays and
 use ASCII. We can get Python to use UTF-8 as the default encoding by including:
 
@@ -74,7 +74,7 @@ use ASCII. We can get Python to use UTF-8 as the default encoding by including:
 
 .. warning::
 
-    Until we are able to ensure that SleekXMPP will always use Unicode in Python2.6+, this
+    Until we are able to ensure that SleekXMPP will always use Unicode in Python2.7, this
     may cause issues embedding SleekXMPP into other applications which assume ASCII encoding.
 
 Creating the EchoBot Class

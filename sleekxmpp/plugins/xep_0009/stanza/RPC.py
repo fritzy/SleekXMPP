@@ -7,7 +7,7 @@
 """
 
 from sleekxmpp.xmlstream.stanzabase import ElementBase
-from xml.etree import cElementTree as ET
+from xml.etree import ElementTree as ET
 
 
 class RPCQuery(ElementBase):

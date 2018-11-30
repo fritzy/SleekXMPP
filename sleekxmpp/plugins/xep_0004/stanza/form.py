@@ -9,7 +9,9 @@
 import copy
 import logging
 
-from sleekxmpp.thirdparty import OrderedDict, OrderedSet
+from collections import OrderedDict
+
+from sleekxmpp.thirdparty import OrderedSet
 
 from sleekxmpp.xmlstream import ElementBase, ET
 from sleekxmpp.plugins.xep_0004.stanza import FormField

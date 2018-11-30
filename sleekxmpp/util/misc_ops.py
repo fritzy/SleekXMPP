@@ -18,11 +18,11 @@ def bytes(text):
     """
     Convert Unicode text to UTF-8 encoded bytes.
 
-    Since Python 2.6+ and Python 3+ have similar but incompatible
+    Since Python 2.7 and Python 3+ have similar but incompatible
     signatures, this function unifies the two to keep code sane.
 
     :param text: Unicode text to convert to bytes
-    :rtype: bytes (Python3), str (Python2.6+)
+    :rtype: bytes (Python3), str (Python2.7)
     """
     if text is None:
         return b''

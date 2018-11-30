@@ -4,7 +4,7 @@
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     This module is a shim for correcting deficiencies in the file
-    socket implementation of Python2.6.
+    socket implementation of Python2.7.
 
     Part of SleekXMPP: The Sleek XMPP Library
 
@@ -20,9 +20,9 @@ import socket
 class FileSocket(_fileobject):
 
     """Create a file object wrapper for a socket to work around
-    issues present in Python 2.6 when using sockets as file objects.
+    issues present in Python 2.7 when using sockets as file objects.
 
-    The parser for :class:`~xml.etree.cElementTree` requires a file, but
+    The parser for :class:`~xml.etree.ElementTree` requires a file, but
     we will be reading from the XMPP connection socket instead.
     """
 
@@ -41,10 +41,10 @@ class FileSocket(_fileobject):
             return data
 
 
-class Socket26(socket.socket):
+class Socket27(socket.socket):
 
     """A custom socket implementation that uses our own FileSocket class
-    to work around issues in Python 2.6 when using sockets as files.
+    to work around issues in Python 2.7 when using sockets as files.
     """
 
     def makefile(self, mode='r', bufsize=-1):

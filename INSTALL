@@ -1,5 +1,5 @@
 Pre-requisites:
-- Python 3.1 or 2.6
+- Python 2.7 or 3.4+
 
 Install:
 > python3 setup.py install

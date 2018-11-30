@@ -19,10 +19,10 @@ import stringprep
 import threading
 import encodings.idna
 
+from collections import OrderedDict
 from copy import deepcopy
 
 from sleekxmpp.util import stringprep_profiles
-from sleekxmpp.thirdparty import OrderedDict
 
 #: These characters are not allowed to appear in a JID.
 ILLEGAL_CHARS = '\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\x0c\r' + \

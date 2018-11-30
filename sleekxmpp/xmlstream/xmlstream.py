@@ -42,7 +42,7 @@ from sleekxmpp.xmlstream.resolver import resolve, default_resolver
 # In Python 2.x, file socket objects are broken. A patched socket
 # wrapper is provided for this case in filesocket.py.
 if sys.version_info < (3, 0):
-    from sleekxmpp.xmlstream.filesocket import FileSocket, Socket26
+    from sleekxmpp.xmlstream.filesocket import FileSocket, Socket27
 
 
 #: The time in seconds to wait before timing out waiting for response stanzas.
@@ -212,7 +212,7 @@ class XMLStream(object):
         self.set_socket(socket)
 
         if sys.version_info < (3, 0):
-            self.socket_class = Socket26
+            self.socket_class = Socket27
         else:
             self.socket_class = Socket.socket
 

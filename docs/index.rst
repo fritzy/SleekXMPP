@@ -29,7 +29,7 @@ SleekXMPP
         `sleek@conference.jabber.org <xmpp:sleek@conference.jabber.org?join>`_
 
 
-SleekXMPP is an :ref:`MIT licensed <license>` XMPP library for Python 2.6/3.1+,
+SleekXMPP is an :ref:`MIT licensed <license>` XMPP library for Python 2.7/3.4+,
 and is featured in examples in
 `XMPP: The Definitive Guide <http://oreilly.com/catalog/9780596521271>`_ 
 by Kevin Smith, Remko Tronçon, and Peter Saint-Andre. If you've arrived

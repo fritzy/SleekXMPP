@@ -219,4 +219,4 @@ man_pages = [
      [u'Nathan Fritz, Lance Stout'], 1)
 ]
 
-intersphinx_mapping = {'python': ('http://docs.python.org/3.2', 'python-objects.inv')}
+intersphinx_mapping = {'python': ('http://docs.python.org/3.6', 'python-objects.inv')}

@@ -2,7 +2,7 @@
 
 .. _filesocket:
 
-Python 2.6 File Socket Shims
+Python 2.7 File Socket Shims
 ============================
 
 .. autoclass:: FileSocket

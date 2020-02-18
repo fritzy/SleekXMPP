@@ -1,6 +1,17 @@
 SleekXMPP
 #########
 
+⚠️ Deprecated
+------------
+SleekXMPP is deprecated in favor of Slixmpp, a fork which takes full advantage of Python 3 and asyncio.
+    
+    Slixmpp Repo: `https://lab.louiz.org/poezio/slixmpp`
+    
+    Github Mirror: `https://github.com/poezio/slixmpp`
+
+About
+-----
+
 SleekXMPP is an MIT licensed XMPP library for Python 2.7/3.4+,
 and is featured in examples in
 `XMPP: The Definitive Guide <http://oreilly.com/catalog/9780596521271>`_
@@ -164,6 +175,11 @@ Credits
     Nathan is also the author of XMPPHP and `Seesmic-AS3-XMPP
     <http://code.google.com/p/seesmic-as3-xmpp/>`_, and a former member of
     the XMPP Council.
+
+**Maintainer:** Mike "Bear" Taylor
+    https://bear.im/
+    
+    A special thanks to Bear for stewarding the project for the last few years of its life.
 
 **Co-Author:** Lance Stout
     `lancestout@gmail.com <xmpp:lancestout@gmail.com?message>`_,
